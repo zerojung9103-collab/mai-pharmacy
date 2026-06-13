@@ -1,39 +1,23 @@
 // Netlify Function — proxy ไปยัง Claude API อย่างปลอดภัย
-// API key เก็บใน Environment Variable (ANTHROPIC_API_KEY) ไม่อยู่ในโค้ดฝั่ง browser
+// API key เก็บใน Environment Variable (ANTHROPIC_API_KEY)
 
 export const handler = async (event) => {
-  // ตอบ preflight (CORS) ก่อน
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders(), body: '' };
   }
-
-  // อนุญาตเฉพาะ POST
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
+    return { statusCode: 405, headers: corsHeaders(), body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return {
-      statusCode: 500,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: 'ยังไม่ได้ตั้งค่า ANTHROPIC_API_KEY ใน Netlify' })
-    };
+    return { statusCode: 500, headers: corsHeaders(), body: JSON.stringify({ error: 'ยังไม่ได้ตั้งค่า ANTHROPIC_API_KEY ใน Netlify' }) };
   }
 
   try {
     const { messages, system } = JSON.parse(event.body || '{}');
-
     if (!messages || !Array.isArray(messages)) {
-      return {
-        statusCode: 400,
-        headers: corsHeaders(),
-        body: JSON.stringify({ error: 'ต้องส่ง messages มาด้วย' })
-      };
+      return { statusCode: 400, headers: corsHeaders(), body: JSON.stringify({ error: 'ต้องส่ง messages มาด้วย' }) };
     }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -45,39 +29,22 @@ export const handler = async (event) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
+        max_tokens: 8000,
         system: system || '',
         messages: messages
       })
     });
 
     const data = await response.json();
-
     if (!response.ok) {
-      return {
-        statusCode: response.status,
-        headers: corsHeaders(),
-        body: JSON.stringify({ error: data.error?.message || 'Claude API error' })
-      };
+      return { statusCode: response.status, headers: corsHeaders(), body: JSON.stringify({ error: data.error?.message || 'Claude API error' }) };
     }
 
-    const text = (data.content || [])
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('\n');
-
-    return {
-      statusCode: 200,
-      headers: corsHeaders(),
-      body: JSON.stringify({ reply: text })
-    };
+    const text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+    return { statusCode: 200, headers: corsHeaders(), body: JSON.stringify({ reply: text }) };
 
   } catch (err) {
-    return {
-      statusCode: 500,
-      headers: corsHeaders(),
-      body: JSON.stringify({ error: err.message })
-    };
+    return { statusCode: 500, headers: corsHeaders(), body: JSON.stringify({ error: err.message }) };
   }
 };
 
