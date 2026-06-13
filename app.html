@@ -1,0 +1,1974 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ใหม่เภสัช — ระบบหลัก</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-d:#0F6E56;--green-dd:#085041;--green-l:#E1F5EE;--green-ll:#F0FAF6;
+  --blue:#378ADD;--blue-d:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;
+  --amber:#EF9F27;--amber-l:#FAEEDA;--amber-t:#633806;
+  --purple:#7F77DD;--purple-l:#EEEDFE;--purple-t:#3C3489;
+  --red:#E24B4A;--red-l:#FCEBEB;--red-t:#A32D2D;
+  --bg:#F4F6F5;--surface:#fff;--border:#E8ECEB;--border2:#D4DAD8;
+  --text:#18211F;--text2:#5A6B67;--text3:#9AADA9;
+  --r:12px;--rl:16px;--font:'Noto Sans Thai',system-ui,sans-serif;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --shadow-md:0 2px 8px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.06);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:#18211F;display:flex;flex-direction:column;z-index:100}
+.sb-brand{padding:1.5rem 1.25rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-icon{width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.75rem}
+.sb-brand h1{font-size:16px;font-weight:700;color:#fff}
+.sb-brand p{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
+.sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
+.sb-sec{font-size:10px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:.1em;text-transform:uppercase;padding:.75rem .75rem .35rem;margin-top:.25rem}
+.sb-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;transition:.12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
+.sb-item.active{background:var(--green);color:#fff}
+.sb-item.hidden{display:none}
+.sb-item svg{width:17px;height:17px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.07)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:.5rem .75rem;border-radius:10px}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.sb-uname{font-size:13px;font-weight:600;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-urole{font-size:11px;color:rgba(255,255,255,.35)}
+.sb-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);padding:5px;border-radius:7px;transition:.12s}
+.sb-logout:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
+.sb-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+.main{margin-left:240px;padding:2rem;min-height:100vh}
+.page{display:none}.page.active{display:block}
+.topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px}
+.page-title{font-size:22px;font-weight:700;color:var(--text)}
+.page-sub{font-size:13px;color:var(--text3);margin-top:3px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;box-shadow:var(--shadow)}
+.card-title{font-size:15px;font-weight:700;margin-bottom:.25rem}
+.card-sub{font-size:12px;color:var(--text3);margin-bottom:1rem}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.25rem}
+.mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--rl) var(--rl) 0 0}
+.mcard.c-green::before{background:var(--green)}.mcard.c-blue::before{background:var(--blue)}.mcard.c-amber::before{background:var(--amber)}.mcard.c-purple::before{background:var(--purple)}.mcard.c-red::before{background:var(--red)}
+.mcard-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
+.mcard-icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.mcard-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.02em;margin-bottom:4px}
+.mcard-val{font-size:22px;font-weight:700;color:var(--text)}
+.mcard-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);transition:.12s;font-family:var(--font);white-space:nowrap}
+.btn:hover{background:var(--bg)}.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--green);border-color:var(--green);color:#fff}.btn-primary:hover{background:var(--green-d)}
+.btn-danger{background:var(--red-l);border-color:#F09595;color:var(--red-t)}.btn-danger:hover{background:#F7C1C1}
+.btn-blue{background:var(--blue-l);border-color:var(--blue);color:var(--blue-t)}
+.btn-sm{padding:5px 12px;font-size:12px;border-radius:7px}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap}
+.tabs{display:flex;gap:2px;background:var(--border);border-radius:11px;padding:3px;width:fit-content}
+.tab{padding:6px 16px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:var(--font);transition:.12s}
+.tab.active{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.branch-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.branch-tab{padding:6px 16px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);transition:.12s;font-family:var(--font)}
+.branch-tab.active{background:var(--green-l);border-color:var(--green);color:var(--green-dd);font-weight:600}
+.field{margin-bottom:1rem}
+.fl{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.02em}
+input,select,textarea{width:100%;font-family:var(--font);font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:9px;background:#FAFBFB;color:var(--text);outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--green);background:var(--surface);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+input:read-only{background:var(--bg);color:var(--text3);cursor:default}
+input:read-only:focus{border-color:var(--border2);box-shadow:none}
+textarea{resize:vertical;min-height:64px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.divider{height:1px;background:var(--border);margin:1.25rem 0}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge-green{background:var(--green-l);color:var(--green-dd)}.badge-blue{background:var(--blue-l);color:var(--blue-t)}.badge-amber{background:var(--amber-l);color:var(--amber-t)}.badge-red{background:var(--red-l);color:var(--red-t)}.badge-purple{background:var(--purple-l);color:var(--purple-t)}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--rl);padding:1.75rem;width:460px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:1.25rem}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
+.schedule-grid{display:grid;grid-template-columns:130px repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;font-size:12px}
+.sg-cell{background:var(--surface);padding:8px 6px;display:flex;align-items:flex-start;justify-content:center;min-height:52px}
+.sg-hdr{background:#F8FAF9;font-weight:700;color:var(--text2);font-size:11px;flex-direction:column;gap:1px;align-items:center}
+.sg-name{justify-content:flex-start;background:#F8FAF9;flex-direction:column;gap:0;padding:8px 10px}
+.s-tp{background:var(--green-l);color:var(--green-dd);border-radius:6px;padding:3px 6px;font-size:10px;font-weight:600;text-align:center;cursor:pointer;width:100%;margin-bottom:2px;border:1px solid rgba(29,158,117,.2)}
+.s-bp{background:var(--blue-l);color:var(--blue-t);border-radius:6px;padding:3px 6px;font-size:10px;font-weight:600;text-align:center;cursor:pointer;width:100%;margin-bottom:2px;border:1px solid rgba(55,138,221,.2)}
+.s-id{background:var(--amber-l);color:var(--amber-t);border-radius:6px;padding:3px 6px;font-size:10px;font-weight:600;text-align:center;cursor:pointer;width:100%;margin-bottom:2px;border:1px solid rgba(239,159,39,.2)}
+.add-s{background:none;border:1.5px dashed var(--border2);border-radius:6px;color:var(--text3);font-size:11px;padding:3px;cursor:pointer;font-family:var(--font);width:100%;transition:.12s}
+.add-s:hover{border-color:var(--green);color:var(--green);background:var(--green-ll)}
+.week-nav{display:flex;align-items:center;gap:10px}
+.week-btn{width:34px;height:34px;border-radius:9px;border:1.5px solid var(--border2);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--text2);transition:.12s;font-family:var(--font)}
+.week-btn:hover{background:var(--bg);color:var(--text)}
+.week-lbl{font-size:14px;font-weight:700;min-width:150px;text-align:center}
+.pay-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;padding:10px 12px;background:#FAFBFB;border-radius:9px;border:1px solid var(--border)}
+.pay-label{font-size:13px;font-weight:500;min-width:130px;flex-shrink:0}
+.pay-input{flex:1;max-width:150px;text-align:right;background:var(--surface)!important}
+.pay-unit{font-size:12px;color:var(--text3);min-width:24px}
+.total-row{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem;background:var(--green-ll);border-radius:10px;margin-top:.5rem;border:1px solid rgba(29,158,117,.15)}
+.total-lbl{font-size:13px;font-weight:600;color:var(--green-d)}
+.total-val{font-size:20px;font-weight:700;color:var(--green-dd)}
+.hist-item{border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:10px;background:var(--surface);box-shadow:var(--shadow)}
+.hi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.pill{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg);color:var(--text2);font-weight:500;border:1px solid var(--border)}
+.branch-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.25rem}
+.bcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--shadow);transition:.12s}
+.bcard:hover{box-shadow:var(--shadow-md)}
+.bcard-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.bcard-bar-bg{height:5px;background:var(--bg);border-radius:3px;margin-bottom:.75rem}
+.bcard-bar{height:5px;border-radius:3px;transition:.4s}
+.chart-wrap{position:relative;width:100%;height:280px;margin-top:.5rem}
+.legend-row{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text2)}
+.legend-item{display:flex;align-items:center;gap:6px}
+.legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.mem-table{width:100%;border-collapse:collapse;font-size:13px}
+.mem-table th{background:#F8FAF9;padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.mem-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.mem-table tr:last-child td{border-bottom:none}
+.mem-table tr:hover td{background:#FAFBFB}
+.mem-av{width:34px;height:34px;border-radius:50%;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.sta-on{background:var(--green-l);color:var(--green-dd);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;display:inline-block}
+.sta-off{background:var(--red-l);color:var(--red-t);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;display:inline-block}
+.perm-check{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--border)}
+.perm-check:last-child{border-bottom:none}
+.perm-check input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--green);flex-shrink:0}
+.perm-check label{font-size:13px;color:var(--text);cursor:pointer;flex:1}
+.perm-check span{font-size:11px;color:var(--text3)}
+.payroll-table{width:100%;border-collapse:collapse;font-size:13px}
+.payroll-table th{background:#F8FAF9;padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.04em;border-bottom:1px solid var(--border)}
+.payroll-table td{padding:12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.payroll-table tr:last-child td{border-bottom:none}
+.payroll-table tr:hover td{background:#FAFBFB}
+.payroll-sum{background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:var(--r);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+.staff-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+.staff-row:last-child{border-bottom:none}
+.staff-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background:var(--green-l);color:var(--green-dd)}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:13px;font-weight:500;z-index:400;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+.toast.show{opacity:1;transform:translateY(0)}.toast.err{background:var(--red-t)}.toast.ok{background:var(--green-d)}
+.loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:1rem;backdrop-filter:blur(2px)}
+.loading.show{display:flex}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.access-denied{text-align:center;padding:4rem 2rem;color:var(--text3)}
+.access-denied svg{width:56px;height:56px;stroke:var(--border2);fill:none;stroke-width:1.5;margin:0 auto 1rem;display:block}
+.access-denied h3{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:.5rem}
+/* === Mobile components (base styles first) === */
+.mobile-topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#18211F;z-index:90;align-items:center;padding:0 1rem;gap:12px;display:none}
+.mobile-topbar-title{font-size:15px;font-weight:700;color:#fff;flex:1}
+.hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center}
+.hamburger:hover{background:rgba(255,255,255,.1)}
+.hamburger svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;backdrop-filter:blur(2px)}
+.sidebar-backdrop.open{display:block}
+/* === Desktop: sidebar always visible, hide mobile bar === */
+@media(min-width:769px){
+  .mobile-topbar{display:none!important}
+  .sidebar-backdrop{display:none!important}
+}
+/* === Mobile: hide sidebar by default, show mobile bar === */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:transform .25s ease}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0;padding:1rem;padding-top:72px}
+  .field-row,.field-row3{grid-template-columns:1fr}
+  .mobile-topbar{display:flex!important}
+  .schedule-grid{grid-template-columns:90px repeat(7,1fr)}
+}
+.bday-badge{display:inline-flex;align-items:center;gap:3px;background:#FFF0F5;color:#C2185B;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:600;border:1px solid #F8BBD0;margin-bottom:2px;width:100%}
+.ai-panel{background:linear-gradient(135deg,#18211F,#1D3A35);border-radius:var(--rl);padding:1.5rem;margin-bottom:1rem;border:1px solid rgba(29,158,117,.3)}
+.ai-panel-title{color:#fff;font-size:15px;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
+.ai-panel-sub{color:rgba(255,255,255,.5);font-size:12px;margin-bottom:1rem}
+.ai-chat{background:rgba(255,255,255,.05);border-radius:var(--r);padding:1rem;min-height:120px;max-height:300px;overflow-y:auto;margin-bottom:.75rem;border:1px solid rgba(255,255,255,.08)}
+.ai-msg{margin-bottom:.75rem;font-size:13px;line-height:1.6}
+.ai-msg.user{text-align:right}.ai-msg.user span{background:var(--green);color:#fff;padding:6px 12px;border-radius:12px 12px 3px 12px;display:inline-block;max-width:85%}
+.ai-msg.ai span{background:rgba(255,255,255,.1);color:#fff;padding:6px 12px;border-radius:12px 12px 12px 3px;display:inline-block;max-width:85%;text-align:left}
+.ai-msg.thinking span{color:rgba(255,255,255,.4);font-style:italic;font-size:12px}
+.ai-input-row{display:flex;gap:8px}
+.ai-input{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:9px 12px;color:#fff;font-family:var(--font);font-size:13px;outline:none}
+.ai-input::placeholder{color:rgba(255,255,255,.3)}
+.ai-input:focus{border-color:var(--green);background:rgba(255,255,255,.12)}
+.ai-send{padding:9px 16px;background:var(--green);border:none;border-radius:9px;color:#fff;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;transition:.15s;white-space:nowrap}
+.ai-send:hover{background:var(--green-d)}.ai-send:disabled{background:var(--text3);cursor:not-allowed}
+.perm-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.perm-toggle:last-child{border-bottom:none}
+.toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--border2);border-radius:20px;transition:.2s}
+.toggle-slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle-sw input:checked+.toggle-slider{background:var(--green)}
+.toggle-sw input:checked+.toggle-slider:before{transform:translateX(18px)}
+.payroll-item-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FAFBFB;border-radius:9px;border:1px solid var(--border);margin-bottom:6px}
+.payroll-item-label{flex:1;font-size:13px;font-weight:500}
+.payroll-item-type{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0}
+.type-add{background:var(--green-l);color:var(--green-dd)}.type-ded{background:var(--red-l);color:var(--red-t)}
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:8px 0;letter-spacing:.04em}
+.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:10px;min-height:104px;padding:6px;display:flex;flex-direction:column;gap:3px;transition:.12s;position:relative}
+.cal-cell.other-month{background:#FAFBFB;opacity:.5}
+.cal-cell.today{border-color:var(--green);border-width:2px;box-shadow:0 0 0 3px rgba(29,158,117,.08)}
+.cal-cell:hover{border-color:var(--border2)}
+.cal-date{font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;justify-content:space-between}
+.cal-date.is-today{color:var(--green-d)}
+.cal-bday{font-size:9px;color:#C2185B;font-weight:700;background:#FFF0F5;border-radius:4px;padding:1px 4px;margin-bottom:1px}
+.cal-shift{border-radius:5px;padding:2px 5px;font-size:9px;font-weight:600;cursor:pointer;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-shift.s-tp{background:var(--green-l);color:var(--green-dd)}
+.cal-shift.s-bp{background:var(--blue-l);color:var(--blue-t)}
+.cal-shift.s-id{background:var(--amber-l);color:var(--amber-t)}
+.cal-add{font-size:14px;color:var(--text3);cursor:pointer;text-align:center;border:1px dashed var(--border2);border-radius:5px;padding:1px;margin-top:auto;transition:.12s;line-height:1.2}
+.cal-add:hover{border-color:var(--green);color:var(--green);background:var(--green-ll)}
+.cal-more{font-size:9px;color:var(--text3);text-align:center;cursor:pointer}
+.cal-more:hover{color:var(--green-d)}
+@media(max-width:768px){
+  .cal-cell{min-height:72px;padding:3px;border-radius:7px}
+  .cal-grid{gap:3px}
+  .cal-shift{font-size:8px;padding:1px 3px}
+  .cal-date{font-size:11px}
+}
+/* Payroll per-person */
+.pr-person-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:1.5rem}
+.pr-person-card{background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:10px}
+.pr-person-card:hover{border-color:var(--green);box-shadow:var(--shadow)}
+.pr-person-card.selected{border-color:var(--green);background:var(--green-ll)}
+.pr-person-av{width:40px;height:40px;border-radius:50%;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0}
+.pr-calc-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;box-shadow:var(--shadow)}
+.pr-line{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.pr-line:last-of-type{border-bottom:none}
+.pr-line-label{font-size:13px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.pr-line-input{width:140px;text-align:right}
+.pr-line-add{color:var(--green-d);font-weight:600}
+.pr-line-ded{color:var(--red-t);font-weight:600}
+.pr-net-box{background:linear-gradient(135deg,#085041,#1D9E75);border-radius:12px;padding:1.5rem;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+.pr-net-box .lbl{font-size:13px;opacity:.85}
+.pr-net-box .val{font-size:30px;font-weight:700}
+.pr-extra-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--text2);font-weight:500">กำลังโหลด...</div></div>
+
+<!-- Mobile Top Bar -->
+<div class="mobile-topbar" id="mobile-topbar">
+  <button class="hamburger" onclick="toggleSidebar()" aria-label="เปิดเมนู">
+    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="mobile-topbar-title">💊 ใหม่เภสัช</div>
+  <div class="sb-avatar" id="mobile-avatar" style="width:32px;height:32px;font-size:12px">?</div>
+</div>
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+<nav class="sidebar" id="sidebar">
+  <div class="sb-brand" style="display:flex;align-items:flex-start;justify-content:space-between">
+    <div>
+      <div class="sb-icon">💊</div>
+      <h1>ใหม่เภสัช</h1>
+      <p>ระบบจัดการร้าน</p>
+    </div>
+    <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-sec">ภาพรวม</div>
+    <button class="sb-item" id="nav-dashboard" onclick="goto('dashboard')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>แดชบอร์ด
+    </button>
+    <div class="sb-sec">พนักงาน</div>
+    <button class="sb-item hidden" id="nav-schedule" onclick="goto('schedule')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>ตารางเวร
+    </button>
+    <div class="sb-sec">บัญชี</div>
+    <button class="sb-item hidden" id="nav-sales" onclick="goto('sales')">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>บันทึกยอดขาย
+    </button>
+    <div class="sb-sec">สมาชิก</div>
+    <button class="sb-item hidden" id="nav-members" onclick="goto('members')">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>จัดการสมาชิก
+    </button>
+    <div class="sb-sec">เงินเดือน</div>
+    <button class="sb-item hidden" id="nav-payroll" onclick="goto('payroll')">
+      <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Payroll
+    </button>
+    <button class="sb-item" id="nav-my-payroll" onclick="goto('my-payroll')">
+      <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="2"/></svg>ประวัติเงินเดือน
+    </button>
+    <div class="sb-sec">ระบบ</div>
+    <button class="sb-item" id="nav-settings" onclick="goto('settings')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>ตั้งค่า
+    </button>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-user">
+      <div class="sb-avatar" id="sb-av">?</div>
+      <div style="flex:1;overflow:hidden">
+        <div class="sb-uname" id="sb-name">...</div>
+        <div class="sb-urole" id="sb-role"></div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()" title="ออกจากระบบ">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<main class="main">
+  <!-- DASHBOARD -->
+  <div class="page" id="page-dashboard">
+    <div class="topbar">
+      <div><div class="page-title">แดชบอร์ดยอดขาย</div><div class="page-sub">ภาพรวมยอดขายทุกสาขา</div></div>
+      <div class="tabs" id="db-tabs">
+        <button class="tab active" onclick="dbSetMode('day',this)">รายวัน</button>
+        <button class="tab" onclick="dbSetMode('month',this)">รายเดือน</button>
+        <button class="tab" onclick="dbSetMode('year',this)">รายปี</button>
+      </div>
+    </div>
+    <div id="db-filter" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem"></div>
+    <div class="metric-grid" id="db-metrics"></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+        <div style="font-size:14px;font-weight:700">กราฟยอดขายแยกสาขา</div>
+        <div class="legend-row" id="db-legend"></div>
+      </div>
+      <div class="chart-wrap"><canvas id="dbChart" role="img" aria-label="กราฟยอดขาย"></canvas></div>
+    </div>
+    <div class="branch-cards" id="db-bcards" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div class="page" id="page-schedule">
+    <div class="topbar">
+      <div><div class="page-title">ตารางเวรพนักงาน</div><div class="page-sub">จัดเวรทำงานแต่ละวัน — ยืดหยุ่นข้ามสาขาได้</div></div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="week-btn" onclick="scChangeMonth(-1)">&#8249;</button>
+        <div class="week-lbl" id="sc-month-lbl" style="min-width:140px"></div>
+        <button class="week-btn" onclick="scChangeMonth(1)">&#8250;</button>
+        <select id="sc-branch-filter" onchange="scRender()" style="width:auto;padding:7px 12px;font-size:13px;margin-left:8px">
+          <option value="all">ทุกสาขา</option>
+          <option value="0">ทรัพย์พัฒนา</option>
+          <option value="1">บางปู</option>
+          <option value="2">อินดี้</option>
+        </select>
+        <button class="btn btn-sm" id="sc-bday-btn" onclick="toggleBdayPanel()">🎂 วันเกิด</button>
+        <button class="btn btn-sm" id="sc-ai-btn" style="display:none" onclick="toggleAiPanel()">✨ AI จัดเวร</button>
+      </div>
+    </div>
+
+    <div id="sc-bday-panel" style="display:none;margin-bottom:1rem">
+      <div class="card">
+        <div style="font-size:14px;font-weight:700;margin-bottom:.25rem">🎂 แสดงวันเกิดในตาราง</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">เปิด/ปิดการแสดงวันเกิดแต่ละคนในตารางเวร</div>
+        <div id="bday-member-list"><div style="color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
+        <div style="margin-top:1rem;font-size:12px;color:var(--text3)">วันเกิดที่เปิดจะแสดง 🎂 ในตารางเวรวันนั้นๆ</div>
+      </div>
+    </div>
+
+    <div id="sc-ai-panel" style="display:none;margin-bottom:1rem">
+      <div class="ai-panel">
+        <div class="ai-panel-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          AI จัดตารางเวร
+        </div>
+        <div class="ai-panel-sub">บอก AI ว่าต้องการจัดเวรอย่างไร เช่น ใครหยุดวันไหน ใครไม่อยากทำงานร่วมกัน ต้องการกะเช้า/บ่าย</div>
+        <div class="ai-chat" id="ai-chat-box">
+          <div class="ai-msg ai"><span>สวัสดีครับ! ผมช่วยจัดตารางเวรให้ได้เลย บอกผมได้เลยว่า<br>• ต้องการจัดเวรเดือนไหน?<br>• ใครต้องการหยุดวันไหนบ้าง?<br>• มีข้อจำกัดพิเศษไหม? เช่น ไม่อยากทำงานคู่กัน หรือต้องการกะเช้า/บ่ายเท่านั้น</span></div>
+        </div>
+        <div class="ai-input-row">
+          <input class="ai-input" id="ai-input" placeholder="เช่น: จัดเวรเดือนกรกฎาคม สุภาพรหยุด 5,10,15 วิชัยไม่อยากทำงานกับนภา..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMessage()}">
+          <button class="ai-send" id="ai-send-btn" onclick="sendAiMessage()">ส่ง</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:1.25rem">
+      <div class="cal-grid" id="sc-cal-dow" style="margin-bottom:6px">
+        <div class="cal-dow">จันทร์</div><div class="cal-dow">อังคาร</div><div class="cal-dow">พุธ</div><div class="cal-dow">พฤหัส</div><div class="cal-dow">ศุกร์</div><div class="cal-dow">เสาร์</div><div class="cal-dow">อาทิตย์</div>
+      </div>
+      <div class="cal-grid" id="sc-cal"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap;align-items:center">
+      <span style="font-size:12px;color:var(--text3);font-weight:500">สี:</span>
+      <span class="badge badge-green">ทรัพย์พัฒนา</span>
+      <span class="badge badge-blue">บางปู</span>
+      <span class="badge badge-amber">อินดี้</span>
+      <span style="font-size:11px;color:var(--text3)">• 🎂 = วันเกิด • กดวันเพื่อเพิ่ม/แก้เวร</span>
+    </div>
+  </div>
+
+  <!-- SALES -->
+  <div class="page" id="page-sales">
+    <div class="topbar"><div><div class="page-title">บันทึกยอดขายรายวัน</div><div class="page-sub">กรอกยอดขายแยกตามสาขาและประเภทการชำระ</div></div></div>
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div class="tabs" id="sales-tabs">
+        <button class="tab active" onclick="salesSetView('entry',this)">บันทึกยอด</button>
+        <button class="tab" onclick="salesSetView('history',this)">ประวัติ</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label class="fl" style="margin:0;white-space:nowrap">วันที่</label>
+        <input type="date" id="sales-date" style="width:auto;padding:6px 10px">
+      </div>
+    </div>
+    <div id="sales-entry">
+      <div class="branch-tabs" id="sales-btabs" style="margin-bottom:1rem">
+        <button class="branch-tab active" onclick="salesSetBranch(0,this)">ทรัพย์พัฒนา</button>
+        <button class="branch-tab" onclick="salesSetBranch(1,this)">บางปู</button>
+        <button class="branch-tab" onclick="salesSetBranch(2,this)">อินดี้</button>
+      </div>
+      <div class="card" id="sales-form"></div>
+      <div class="btn-group" style="margin-top:1rem">
+        <button class="btn btn-primary" onclick="salesSave()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>บันทึกยอด
+        </button>
+      </div>
+    </div>
+    <div id="sales-history" style="display:none">
+      <div class="metric-grid" id="sales-sum"></div>
+      <div id="sales-hist-list"></div>
+    </div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div class="page" id="page-members">
+    <div class="topbar">
+      <div><div class="page-title">จัดการสมาชิก</div><div class="page-sub">รายชื่อผู้ใช้งานและกำหนดสิทธิ์</div></div>
+      <button class="btn btn-primary" onclick="loadMembers()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>รีเฟรช
+      </button>
+    </div>
+    <div class="card">
+      <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+        <input type="text" id="mem-search" placeholder="ค้นหาชื่อ หรืออีเมล..." oninput="filterMembers()" style="flex:1;min-width:200px">
+        <select id="mem-filter" onchange="filterMembers()" style="width:auto;padding:7px 12px">
+          <option value="all">ทุกสถานะ</option>
+          <option value="active">ใช้งานอยู่</option>
+          <option value="inactive">ระงับแล้ว</option>
+        </select>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="mem-table">
+          <thead><tr><th>สมาชิก</th><th>อีเมล</th><th>วันเกิด</th><th>บทบาท</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+          <tbody id="mem-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr></tbody>
+        </table>
+      </div>
+      <div id="mem-count" style="font-size:12px;color:var(--text3);margin-top:1rem;text-align:right"></div>
+    </div>
+  </div>
+
+  <!-- PAYROLL (admin) -->
+  <div class="page" id="page-payroll">
+    <div class="topbar">
+      <div><div class="page-title">จัดการ Payroll</div><div class="page-sub">คำนวณ บันทึก และดูประวัติเงินเดือนพนักงาน</div></div>
+    </div>
+    <div class="tabs" id="pr-tabs" style="margin-bottom:1.25rem">
+      <button class="tab active" onclick="prSetTab('current',this)">เดือนปัจจุบัน</button>
+      <button class="tab" onclick="prSetTab('history',this)">ประวัติรายปี</button>
+    </div>
+
+    <!-- TAB: คำนวณรายคน -->
+    <div id="pr-tab-current">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem">
+        <label style="font-size:13px;color:var(--text2);font-weight:600">เดือน</label>
+        <select id="pr-month" onchange="prMonthChanged()" style="width:auto;padding:7px 12px;font-size:13px">
+          <option value="1">ม.ค.</option><option value="2">ก.พ.</option><option value="3">มี.ค.</option><option value="4">เม.ย.</option><option value="5">พ.ค.</option><option value="6">มิ.ย.</option><option value="7">ก.ค.</option><option value="8">ส.ค.</option><option value="9">ก.ย.</option><option value="10">ต.ค.</option><option value="11">พ.ย.</option><option value="12">ธ.ค.</option>
+        </select>
+        <select id="pr-year" onchange="prMonthChanged()" style="width:auto;padding:7px 12px;font-size:13px"></select>
+      </div>
+
+      <div class="card-title" style="margin-bottom:.75rem">เลือกพนักงานที่ต้องการคำนวณ</div>
+      <div class="pr-person-select" id="pr-person-select"></div>
+
+      <div id="pr-calc-area" style="display:none">
+        <div class="pr-calc-card" id="pr-calc-card"></div>
+      </div>
+    </div>
+
+    <!-- TAB: ประวัติรายปี -->
+    <div id="pr-tab-history" style="display:none">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem">
+        <label style="font-size:13px;color:var(--text2);font-weight:500">ปี</label>
+        <select id="pr-hist-year" style="width:auto;padding:7px 12px;font-size:13px"></select>
+        <label style="font-size:13px;color:var(--text2);font-weight:500">พนักงาน</label>
+        <select id="pr-hist-member" style="width:auto;padding:7px 12px;font-size:13px;min-width:180px">
+          <option value="all">ทุกคน</option>
+        </select>
+        <button class="btn btn-primary" onclick="loadAdminPayrollHistory()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>ดูประวัติ
+        </button>
+        <button class="btn" onclick="exportHistoryPDF()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Export PDF
+        </button>
+      </div>
+      <div class="metric-grid" id="pr-hist-metrics"></div>
+      <div class="card">
+        <div id="pr-hist-content">
+          <div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">เลือกปีและกด "ดูประวัติ"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY PAYROLL (member) -->
+  <div class="page" id="page-my-payroll">
+    <div class="topbar">
+      <div><div class="page-title">ประวัติเงินเดือน</div><div class="page-sub">ประวัติการรับเงินเดือนของคุณ (ดูได้เฉพาะปีปัจจุบัน)</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="mpr-year" style="width:auto;padding:7px 12px;font-size:13px"></select>
+        <button class="btn btn-primary" onclick="loadMyPayroll()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>ดูประวัติ
+        </button>
+        <button class="btn" onclick="exportMyPayrollPDF()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Export PDF
+        </button>
+      </div>
+    </div>
+    <div id="mpr-year-warning" style="display:none;background:var(--amber-l);border:1px solid var(--amber);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:var(--amber-t);margin-bottom:1rem;font-weight:500">
+      ⚠️ คุณสามารถดูประวัติเงินเดือนได้เฉพาะปีปัจจุบันเท่านั้น
+    </div>
+    <div class="metric-grid" id="mpr-metrics"></div>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="payroll-table" id="mpr-table">
+          <thead><tr><th>เดือน</th><th>ประเภท</th><th>ฐานเงินเดือน</th><th>ชั่วโมงทำงาน</th><th>โบนัส</th><th>หัก</th><th>รวมสุทธิ</th><th>สถานะ</th><th>สลิป</th></tr></thead>
+          <tbody id="mpr-tbody"><tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">กด "ดูประวัติ" เพื่อโหลดข้อมูล</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="topbar"><div><div class="page-title">ตั้งค่าระบบ</div><div class="page-sub">จัดการพนักงาน ประเภทการชำระ และโปรไฟล์</div></div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
+      <div class="card">
+        <div class="card-title">ประเภทการชำระ</div>
+        <div class="card-sub">เพิ่ม/ลบประเภทได้ตามต้องการ</div>
+        <div id="pay-type-list"></div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:8px">
+          <input type="text" id="new-pay-name" placeholder="ชื่อประเภทใหม่..." style="flex:1">
+          <button class="btn btn-primary btn-sm" onclick="addPayType()">+ เพิ่ม</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">พนักงาน (ตารางเวร)</div>
+        <div class="card-sub">จัดการรายชื่อพนักงาน</div>
+        <div id="staff-list-s"></div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input type="text" id="new-staff-name" placeholder="ชื่อ-นามสกุล" style="flex:1;min-width:120px">
+          <input type="text" id="new-staff-role" placeholder="ตำแหน่ง" style="flex:1;min-width:100px">
+          <button class="btn btn-primary btn-sm" onclick="addStaff()">+ เพิ่ม</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">โปรไฟล์ของฉัน</div>
+        <div class="card-sub">ข้อมูลบัญชีที่ลงทะเบียนไว้</div>
+        <div id="my-profile"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeMO(event)"><div class="modal" id="modal-box"></div></div>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
+  authDomain:"naimaphat-pharmacy.firebaseapp.com",
+  projectId:"naimaphat-pharmacy",
+  storageBucket:"naimaphat-pharmacy.firebasestorage.app",
+  messagingSenderId:"642082079849",
+  appId:"1:642082079849:web:54d00567f0654339414ef8"
+});
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ===== CONSTANTS =====
+const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
+const BCOLORS=['#1D9E75','#378ADD','#EF9F27'];
+const BCOLORS_L=['#E1F5EE','#E6F1FB','#FAEEDA'];
+const DAYNAMES=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
+const MONTHS_TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const PERM_LABELS={dashboard:'ดูแดชบอร์ด',schedule:'ดู/แก้ไขตารางเวร',sales:'บันทึกยอดขาย',members:'จัดการสมาชิก',payroll_self:'ดูเงินเดือนตัวเอง'};
+
+// ===== LOCAL DATA =====
+let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","โอนธนาคาร","บัตรเครดิต","QR Code"]');
+let staff=JSON.parse(localStorage.getItem('nm_staff')||JSON.stringify([{id:1,name:'สุภาพร ใจดี',role:'เภสัชกร'},{id:2,name:'วิชัย มงคล',role:'ผู้ช่วยเภสัชกร'},{id:3,name:'นภา สวัสดิ์',role:'พนักงานขาย'},{id:4,name:'กานต์ พิมล',role:'พนักงานขาย'},{id:5,name:'มนัส ทองดี',role:'พนักงานส่งยา'},{id:6,name:'ปิยะ รุ่งเรือง',role:'แคชเชียร์'}]));
+let shifts=JSON.parse(localStorage.getItem('nm_shifts')||'[]');
+let salesEntries=JSON.parse(localStorage.getItem('nm_sales')||'[]');
+let nextShiftId=Math.max(0,...shifts.map(s=>s.id),100)+1;
+let nextStaffId=Math.max(0,...staff.map(s=>s.id))+1;
+
+function saveLocal(){
+  localStorage.setItem('nm_payTypes',JSON.stringify(payTypes));
+  localStorage.setItem('nm_staff',JSON.stringify(staff));
+  localStorage.setItem('nm_shifts',JSON.stringify(shifts));
+  localStorage.setItem('nm_sales',JSON.stringify(salesEntries));
+}
+
+// ===== STATE =====
+let currentUser=null, profile=null, isAdmin=false;
+let allMembers=[], payrollData={};
+
+// ===== HELPERS =====
+function loading(v){document.getElementById('loading').classList.toggle('show',v);}
+function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
+function openModal(html){document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-overlay').classList.add('open');}
+window.closeMO=function(e){if(!e||e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('open');};
+window.closeMD=function(){document.getElementById('modal-overlay').classList.remove('open');};
+function fmt(n){return Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});}
+function fmtB(n){if(n>=1e6)return'฿'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'฿'+(n/1e3).toFixed(0)+'K';return'฿'+fmt(n);}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+function seedRand(s){let x=s;return()=>{x=(x*16807)%2147483647;return(x-1)/2147483646;};}
+function hasPerm(p){if(isAdmin)return true;return profile?.permissions?.[p]===true;}
+
+// ===== SIDEBAR by permissions =====
+function buildNav(){
+  const navMap={
+    dashboard:{perm:'dashboard'},
+    schedule:{perm:'schedule'},
+    sales:{perm:'sales'},
+    members:{perm:'members'},
+    payroll:{adminOnly:true},
+    'my-payroll':{perm:'payroll_self'},
+    settings:{always:true},
+  };
+  Object.entries(navMap).forEach(([page,cfg])=>{
+    const el=document.getElementById('nav-'+page);
+    if(!el)return;
+    let show=false;
+    if(cfg.always)show=true;
+    else if(cfg.adminOnly)show=isAdmin;
+    else show=isAdmin||hasPerm(cfg.perm);
+    el.classList.toggle('hidden',!show);
+  });
+  // โหลด member bdays สำหรับตารางเวร
+  loadMemberBdays();
+  // ไปหน้าแรกที่มีสิทธิ์
+  const first=document.querySelector('.sb-item:not(.hidden)');
+  if(first){const pg=first.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];if(pg)goto(pg);}
+}
+
+// ===== AUTH =====
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href='index.html';return;}
+  loading(true);
+  currentUser=user;
+  try{
+    const snap=await getDoc(doc(db,'members',user.uid));
+    profile=snap.exists()?snap.data():null;
+    isAdmin=profile?.role==='admin';
+  }catch(e){profile=null;isAdmin=false;}
+  const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():user.email;
+  document.getElementById('sb-av').textContent=name.charAt(0).toUpperCase();
+  document.getElementById('sb-name').textContent=name;
+  document.getElementById('sb-role').textContent=isAdmin?'ผู้ดูแลระบบ':'สมาชิก';
+  const mAv=document.getElementById('mobile-avatar');
+  if(mAv)mAv.textContent=name.charAt(0).toUpperCase();
+  initYearSelects();
+  buildNav();
+  loading(false);
+});
+
+window.doLogout=async function(){await signOut(auth);window.location.href='index.html';};
+
+// ===== MOBILE SIDEBAR =====
+window.toggleSidebar=function(){
+  const sb=document.getElementById('sidebar');
+  const bd=document.getElementById('sidebar-backdrop');
+  sb.classList.toggle('open');
+  bd.classList.toggle('open');
+};
+window.closeSidebar=function(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-backdrop').classList.remove('open');
+};
+
+// ===== PERMISSION MAP =====
+const PAGE_PERM={
+  'dashboard':'dashboard',
+  'schedule':'schedule',
+  'sales':'sales',
+  'members':'members',
+  'payroll':'payroll_all',
+  'my-payroll':'payroll_self',
+  'settings':null,
+};
+function canAccessPage(page){
+  if(!currentUser)return false;
+  if(isAdmin)return true;
+  const perm=PAGE_PERM[page];
+  if(perm===null)return true;
+  if(perm==='payroll_all')return false;
+  return hasPerm(perm);
+}
+
+// ===== NAV =====
+window.goto=function(page){
+  closeSidebar();
+  if(!canAccessPage(page)){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+    const pageEl=document.getElementById('page-'+page);
+    if(pageEl){
+      pageEl.classList.add('active');
+      pageEl.innerHTML=`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh;text-align:center;color:var(--text3)">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:1rem;stroke:var(--border2)"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+        <div style="font-size:16px;font-weight:600;color:var(--text2);margin-bottom:.5rem">ไม่มีสิทธิ์เข้าถึง</div>
+        <div style="font-size:13px">กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์การใช้งาน</div>
+      </div>`;
+    }
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
+  const pageEl=document.getElementById('page-'+page);
+  const navEl=document.getElementById('nav-'+page);
+  if(pageEl)pageEl.classList.add('active');
+  if(navEl)navEl.classList.add('active');
+  if(page==='dashboard')dbRender();
+  if(page==='schedule')scRender();
+  if(page==='sales'){salesRenderForm();salesRenderHistory();}
+  if(page==='members')loadMembers();
+  if(page==='payroll'){initYearSelects();loadPayroll();}
+  if(page==='my-payroll')loadMyPayroll();
+  if(page==='settings'){renderPayTypeSettings();renderStaffSettings();renderMyProfile();}
+};
+
+// ===== YEAR SELECTS =====
+function initYearSelects(){
+  const yr=new Date().getFullYear();
+  // admin pr-year: 3 ปี
+  const adminYears=[yr-2,yr-1,yr,yr+1];
+  ['pr-year','pr-hist-year'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    el.innerHTML=adminYears.map(y=>`<option value="${y}"${y===yr?' selected':''}>${y}</option>`).join('');
+  });
+  // member mpr-year: เฉพาะปีปัจจุบัน (จะกรอง JS อีกรอบตอน load)
+  const mprEl=document.getElementById('mpr-year');
+  if(mprEl) mprEl.innerHTML=`<option value="${yr}">${yr}</option>`;
+  const prM=document.getElementById('pr-month');
+  if(prM)prM.value=String(new Date().getMonth()+1);
+}
+
+// ===== PAYROLL TABS =====
+window.prSetTab=function(tab,el){
+  document.querySelectorAll('#pr-tabs .tab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('pr-tab-current').style.display=tab==='current'?'':'none';
+  document.getElementById('pr-tab-history').style.display=tab==='history'?'':'none';
+  if(tab==='history') populateHistMemberSelect();
+};
+
+// ===== DASHBOARD =====
+let dbMode='day',dbYear=new Date().getFullYear(),dbMonth=new Date().getMonth()+1,dbChart=null;
+function getDbData(){
+  if(salesEntries.length>0){
+    if(dbMode==='day'){const days=new Date(dbYear,dbMonth,0).getDate();return Array.from({length:days},(_,i)=>{const ds=`${dbYear}-${String(dbMonth).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;return{label:String(i+1),branches:BRANCHES.map((_,bi)=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===bi);return{total:e?e.total:0,pays:e?e.amounts:{}};})};});}
+    if(dbMode==='month'){return MONTHS_TH.map((m,mi)=>{const ms=String(mi+1).padStart(2,'0');return{label:m,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(`${dbYear}-${ms}`)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})};});}
+    const years=[...new Set(salesEntries.map(x=>x.date.slice(0,4)))].sort();
+    if(!years.length)years.push(String(new Date().getFullYear()));
+    return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})}));
+  }
+  const rng=seedRand(dbYear*100+dbMonth+dbMode.length);
+  if(dbMode==='day'){const days=new Date(dbYear,dbMonth,0).getDate();return Array.from({length:days},(_,i)=>({label:String(i+1),branches:BRANCHES.map((_,bi)=>{const base=[18000,15000,12000][bi];const total=Math.round(base*(0.4+rng()*0.9));const pays={};let rem=total;payTypes.forEach((p,pi)=>{if(pi===payTypes.length-1){pays[p]=rem;}else{const v=Math.round(rem*(0.2+rng()*0.4));pays[p]=v;rem-=v;}});return{total,pays};})}));}
+  if(dbMode==='month'){return MONTHS_TH.map(m=>({label:m,branches:BRANCHES.map((_,bi)=>{const base=[540000,450000,360000][bi];const total=Math.round(base*(0.7+rng()*0.6));const pays={};let rem=total;payTypes.forEach((p,pi)=>{if(pi===payTypes.length-1){pays[p]=rem;}else{const v=Math.round(rem*(0.2+rng()*0.4));pays[p]=v;rem-=v;}});return{total,pays};})}));}
+  return [2024,2025,2026].map(y=>({label:String(y),branches:BRANCHES.map((_,bi)=>{const base=[6480000,5400000,4320000][bi];const total=Math.round(base*(0.8+rng()*0.4));const pays={};let rem=total;payTypes.forEach((p,pi)=>{if(pi===payTypes.length-1){pays[p]=rem;}else{const v=Math.round(rem*(0.2+rng()*0.4));pays[p]=v;rem-=v;}});return{total,pays};})}));
+}
+window.dbSetMode=function(m,el){dbMode=m;document.querySelectorAll('#db-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');dbRender();};
+function dbRender(){
+  if(!hasPerm('dashboard')){document.getElementById('page-dashboard').innerHTML=accessDenied();return;}
+  const rows=getDbData();
+  const totals=BRANCHES.map((_,bi)=>rows.reduce((a,r)=>a+r.branches[bi].total,0));
+  const grand=totals.reduce((a,v)=>a+v,0);const maxT=Math.max(...totals,1);
+  let fHtml='';
+  if(dbMode==='day'){fHtml=`<select onchange="dbMonth=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbMonth?' selected':''}>${m}</option>`).join('')}</select><select onchange="dbYear=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select>`;}
+  else if(dbMode==='month'){fHtml=`<select onchange="dbYear=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select>`;}
+  else fHtml=`<span style="font-size:13px;color:var(--text3)">เปรียบเทียบยอดขายทุกปี</span>`;
+  document.getElementById('db-filter').innerHTML=fHtml;
+  document.getElementById('db-metrics').innerHTML=`<div class="mcard c-green"><div class="mcard-icon" style="background:var(--green-l);color:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="mcard-label">ยอดรวมทุกสาขา</div><div class="mcard-val">฿${fmt(grand)}</div><div class="mcard-sub">${dbMode==='day'?MONTHS_TH[dbMonth-1]+' '+dbYear:dbMode==='month'?'ปี '+dbYear:'ทุกปี'}</div></div>${BRANCHES.map((b,bi)=>`<div class="mcard ${['c-green','c-blue','c-amber'][bi]}"><div class="mcard-icon" style="background:${BCOLORS_L[bi]};color:${BCOLORS[bi]}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(totals[bi])}</div><div class="mcard-sub">${grand?Math.round(totals[bi]/grand*100):0}%</div></div>`).join('')}`;
+  document.getElementById('db-legend').innerHTML=BRANCHES.map((b,bi)=>`<div class="legend-item"><span class="legend-dot" style="background:${BCOLORS[bi]}"></span>${b}</div>`).join('');
+  const labels=rows.map(r=>r.label);
+  const datasets=BRANCHES.map((b,bi)=>dbMode==='year'?{label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'CC',borderColor:BCOLORS[bi],borderWidth:0,borderRadius:5}:{label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'18',borderColor:BCOLORS[bi],borderWidth:2,pointRadius:dbMode==='day'?1:3,tension:0.35,fill:true});
+  if(dbChart)dbChart.destroy();
+  dbChart=new Chart(document.getElementById('dbChart'),{type:dbMode==='year'?'bar':'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ฿${fmt(ctx.parsed.y)}`},backgroundColor:'#18211F',padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{size:11},autoSkip:dbMode==='day',maxRotation:0,color:'#9AADA9'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11},callback:v=>fmtB(v),color:'#9AADA9'},border:{display:false}}}}});
+  document.getElementById('db-bcards').innerHTML=BRANCHES.map((b,bi)=>{const tot=totals[bi];const pct=Math.round(tot/maxT*100);const payRows=payTypes.map(p=>{const v=rows.reduce((a,r)=>a+(r.branches[bi].pays[p]||0),0);return v>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px"><span>${p}</span><span style="font-weight:500;color:var(--text2)">฿${fmt(v)}</span></div>`:''}).join('');return`<div class="bcard"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem"><span class="bcard-dot" style="background:${BCOLORS[bi]}"></span><span style="font-size:13px;font-weight:600">${b}</span></div><div style="font-size:22px;font-weight:700;margin-bottom:.5rem;color:${BCOLORS[bi]}">฿${fmt(tot)}</div><div class="bcard-bar-bg"><div class="bcard-bar" style="width:${pct}%;background:${BCOLORS[bi]}"></div></div>${payRows}</div>`;}).join('');
+}
+
+// ===== SCHEDULE (CALENDAR) + BIRTHDAY + AI =====
+let scMonth=new Date().getMonth();
+let scYear=new Date().getFullYear();
+let bdaySettings=JSON.parse(localStorage.getItem('nm_bday_settings')||'{}');
+let memberBdays=[];
+
+window.scChangeMonth=function(d){
+  scMonth+=d;
+  if(scMonth>11){scMonth=0;scYear++;}
+  if(scMonth<0){scMonth=11;scYear--;}
+  scRender();
+};
+
+async function loadMemberBdays(){
+  if(memberBdays.length>0)return;
+  if(allMembers.length>0){memberBdays=allMembers.filter(m=>m.dateOfBirth&&m.status==='active');return;}
+  try{
+    const snap=await getDocs(collection(db,'members'));
+    allMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));
+    memberBdays=allMembers.filter(m=>m.dateOfBirth&&m.status==='active');
+  }catch(e){console.error('loadMemberBdays error:',e);}
+}
+
+function getBdayOnDate(dateStr){
+  const d=new Date(dateStr);const m=d.getMonth()+1,day=d.getDate();
+  return memberBdays.filter(mem=>{
+    if(!bdaySettings[mem.uid])return false;
+    const bday=new Date(mem.dateOfBirth);
+    return bday.getMonth()+1===m&&bday.getDate()===day;
+  });
+}
+
+function memberName(uid){
+  const m=allMembers.find(x=>x.uid===uid);
+  return m?`${m.firstName||''} ${m.lastName||''}`.trim():uid;
+}
+
+function scRender(){
+  const canEdit=isAdmin;
+  const aiBtn=document.getElementById('sc-ai-btn');
+  if(aiBtn)aiBtn.style.display=isAdmin?'':'none';
+
+  document.getElementById('sc-month-lbl').textContent=`${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth]} ${scYear}`;
+
+  const branchFilter=document.getElementById('sc-branch-filter')?.value||'all';
+
+  // โหลดสมาชิกถ้ายังไม่มี
+  if(allMembers.length===0){
+    document.getElementById('sc-cal').innerHTML=`<div style="grid-column:1/-1;padding:2rem;text-align:center;color:var(--text3);font-size:13px">กำลังโหลด...</div>`;
+    loadMembers().then(()=>{loadMemberBdays().then(scRender);});
+    return;
+  }
+  loadMemberBdays();
+
+  // คำนวณวันแรกของเดือน (เริ่มจันทร์)
+  const firstDay=new Date(scYear,scMonth,1);
+  const lastDay=new Date(scYear,scMonth+1,0);
+  const daysInMonth=lastDay.getDate();
+  let startOffset=(firstDay.getDay()||7)-1; // 0=จันทร์
+  const todayStr2=new Date().toISOString().slice(0,10);
+
+  let html='';
+  // ช่องว่างต้นเดือน
+  for(let i=0;i<startOffset;i++){
+    const prevDate=new Date(scYear,scMonth,-(startOffset-i-1));
+    html+=`<div class="cal-cell other-month"><div class="cal-date">${prevDate.getDate()}</div></div>`;
+  }
+  // วันในเดือน
+  for(let day=1;day<=daysInMonth;day++){
+    const ds=`${scYear}-${String(scMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isToday=ds===todayStr2;
+    let dayShifts=shifts.filter(s=>s.date===ds);
+    if(branchFilter!=='all')dayShifts=dayShifts.filter(s=>String(s.branch)===branchFilter);
+    const bdays=getBdayOnDate(ds);
+    const bdayHtml=bdays.map(b=>`<div class="cal-bday">🎂 ${b.firstName}</div>`).join('');
+    const maxShow=3;
+    const shiftCards=dayShifts.slice(0,maxShow).map(s=>{
+      const nm=memberName(s.staffId).split(' ')[0];
+      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}">${nm} ${s.start}</div>`;
+    }).join('');
+    const moreCount=dayShifts.length-maxShow;
+    const moreHtml=moreCount>0?`<div class="cal-more" onclick="event.stopPropagation();scDayDetail('${ds}')">+${moreCount} เพิ่มเติม</div>`:'';
+    const addBtn=canEdit?`<div class="cal-add" onclick="event.stopPropagation();scAddShift('','${ds}')">+</div>`:'';
+    html+=`<div class="cal-cell${isToday?' today':''}" ${canEdit?`onclick="scDayDetail('${ds}')"`:''} style="cursor:${canEdit?'pointer':'default'}">
+      <div class="cal-date${isToday?' is-today':''}">${day}${isToday?'<span style="font-size:9px;background:var(--green);color:#fff;padding:1px 5px;border-radius:8px">วันนี้</span>':''}</div>
+      ${bdayHtml}${shiftCards}${moreHtml}${addBtn}
+    </div>`;
+  }
+  // ช่องว่างท้ายเดือน
+  const totalCells=startOffset+daysInMonth;
+  const endOffset=(7-(totalCells%7))%7;
+  for(let i=1;i<=endOffset;i++){
+    html+=`<div class="cal-cell other-month"><div class="cal-date">${i}</div></div>`;
+  }
+  document.getElementById('sc-cal').innerHTML=html;
+}
+
+// แสดงรายละเอียดเวรในวันนั้น
+window.scDayDetail=function(ds){
+  const d=new Date(ds);
+  const dateStr=d.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  const dayShifts=shifts.filter(s=>s.date===ds);
+  const bdays=getBdayOnDate(ds);
+  const bdayHtml=bdays.length?`<div style="background:#FFF0F5;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#C2185B;font-weight:600">🎂 วันเกิด: ${bdays.map(b=>`${b.firstName} ${b.lastName||''}`).join(', ')}</div>`:'';
+  const shiftList=dayShifts.length?dayShifts.map(s=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
+      <span class="badge ${['badge-green','badge-blue','badge-amber'][s.branch]}">${BRANCHES[s.branch]}</span>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${memberName(s.staffId)}</div><div style="font-size:12px;color:var(--text3)">${s.start} – ${s.end}</div></div>
+      ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`:''}
+    </div>`).join(''):'<div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">ยังไม่มีเวรในวันนี้</div>';
+  openModal(`<div class="modal-title">📅 ${dateStr}</div>
+    ${bdayHtml}
+    <div style="font-size:13px;font-weight:600;margin-bottom:10px">เวรทำงาน (${dayShifts.length})</div>
+    ${shiftList}
+    ${isAdmin?`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="scAddShift('','${ds}')">+ เพิ่มเวร</button></div>`:`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`}`);
+};
+
+// Birthday Panel toggle
+window.toggleBdayPanel=async function(){
+  const panel=document.getElementById('sc-bday-panel');
+  const isOpen=panel.style.display!=='none';
+  panel.style.display=isOpen?'none':'block';
+  if(!isOpen){
+    await loadMemberBdays();
+    renderBdayList();
+  }
+};
+
+function renderBdayList(){
+  const el=document.getElementById('bday-member-list');
+  if(!memberBdays.length){el.innerHTML='<div style="font-size:13px;color:var(--text3)">ไม่พบสมาชิกที่มีข้อมูลวันเกิด</div>';return;}
+  el.innerHTML=memberBdays.map(m=>{
+    const name=`${m.firstName||''} ${m.lastName||''}`.trim();
+    const dob=new Date(m.dateOfBirth);
+    const dobStr=`${dob.getDate()}/${dob.getMonth()+1}`;
+    const checked=bdaySettings[m.uid]?'checked':'';
+    return`<div class="perm-toggle">
+      <div>
+        <div style="font-size:13px;font-weight:600">${name}</div>
+        <div style="font-size:11px;color:var(--text3)">🎂 ${dobStr} ทุกปี</div>
+      </div>
+      <label class="toggle-sw">
+        <input type="checkbox" ${checked} onchange="toggleBday('${m.uid}',this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>`;
+  }).join('');
+}
+
+window.toggleBday=function(uid,val){
+  bdaySettings[uid]=val;
+  localStorage.setItem('nm_bday_settings',JSON.stringify(bdaySettings));
+  scRender();
+};
+
+// AI Panel toggle
+window.toggleAiPanel=function(){
+  const panel=document.getElementById('sc-ai-panel');
+  panel.style.display=panel.style.display==='none'?'block':'none';
+};
+
+// AI Chat สำหรับจัดตารางเวร
+let aiMessages=[];
+window.sendAiMessage=async function(){
+  const input=document.getElementById('ai-input');
+  const msg=input.value.trim();
+  if(!msg)return;
+  input.value='';
+  const btn=document.getElementById('ai-send-btn');
+  btn.disabled=true;
+
+  // เพิ่มข้อความ user
+  addAiMsg('user',msg);
+  aiMessages.push({role:'user',content:msg});
+  addAiMsg('thinking','กำลังคิด...');
+
+  // สร้าง context ของพนักงานและเวรปัจจุบัน
+  const staffList=allMembers.filter(m=>m.status==='active').map(m=>`${m.firstName||''} ${m.lastName||''}`.trim()).join(', ');
+  const systemPrompt=`คุณเป็น AI ผู้ช่วยจัดตารางเวรสำหรับร้านขายยา ใหม่เภสัช มี 3 สาขา: ทรัพย์พัฒนา, บางปู, อินดี้
+พนักงานปัจจุบัน: ${staffList}
+หน้าที่: ช่วยจัดตารางเวรตามความต้องการของ admin โดยคำนึงถึง:
+- วันหยุดที่แต่ละคนต้องการ
+- ข้อจำกัดในการทำงานร่วมกัน
+- ความสมดุลของชั่วโมงทำงาน
+ตอบเป็นภาษาไทย กระชับ ชัดเจน และแนะนำตารางเวรที่เป็นไปได้`;
+
+  try{
+    // เรียกผ่าน Netlify Function (ปลอดภัย API key ซ่อนหลังบ้าน)
+    const res=await fetch('/.netlify/functions/ai-schedule',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        system:systemPrompt,
+        messages:aiMessages
+      })
+    });
+    const data=await res.json();
+    const chatBox=document.getElementById('ai-chat-box');
+    const thinking=chatBox.querySelector('.thinking');
+    if(thinking)thinking.remove();
+    if(!res.ok||data.error){
+      addAiMsg('ai','ขอโทษครับ เกิดข้อผิดพลาด: '+(data.error||'ไม่สามารถเชื่อมต่อ AI ได้'));
+    }else{
+      const reply=data.reply||'ขอโทษครับ ไม่ได้รับคำตอบ';
+      addAiMsg('ai',reply);
+      aiMessages.push({role:'assistant',content:reply});
+    }
+  }catch(e){
+    const chatBox=document.getElementById('ai-chat-box');
+    const thinking=chatBox.querySelector('.thinking');
+    if(thinking)thinking.remove();
+    addAiMsg('ai','ขอโทษครับ เชื่อมต่อ AI ไม่ได้ กรุณาตรวจสอบว่าตั้งค่า Netlify Function แล้ว');
+  }
+  btn.disabled=false;
+};
+
+function addAiMsg(type,text){
+  const chatBox=document.getElementById('ai-chat-box');
+  const div=document.createElement('div');
+  div.className=`ai-msg ${type}`;
+  div.innerHTML=`<span>${text.replace(/\n/g,'<br>')}</span>`;
+  chatBox.appendChild(div);
+  chatBox.scrollTop=chatBox.scrollHeight;
+}
+window.scAddShift=function(uid,ds){
+  const activeMembers=allMembers.filter(m=>m.status==='active');
+  const d=new Date(ds);
+  const dateStr=d.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
+  openModal(`<div class="modal-title">เพิ่มเวร — ${dateStr}</div>
+    <div class="field"><label class="fl">สมาชิก</label><select id="m-staff">${activeMembers.map(e=>`<option value="${e.uid}"${e.uid===uid?' selected':''}>${e.firstName||''} ${e.lastName||''}</option>`).join('')}</select></div>
+    <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('')}</select></div>
+    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label><input type="time" id="m-start" value="08:00" step="60" lang="en-GB"></div><div class="field"><label class="fl">เลิก</label><input type="time" id="m-end" value="17:00" step="60" lang="en-GB"></div></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveNew('${ds}')">บันทึก</button></div>`);
+};
+window.scSaveNew=function(ds){
+  const uid=document.getElementById('m-staff').value;
+  const branch=parseInt(document.getElementById('m-branch').value);
+  const start=document.getElementById('m-start').value;
+  const end=document.getElementById('m-end').value;
+  const shiftId='s_'+Date.now();
+  shifts.push({id:shiftId,staffId:uid,branch,date:ds,start,end});
+  saveLocal();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
+};
+window.scEditShift=function(sid){
+  const s=shifts.find(x=>x.id===sid);if(!s)return;
+  const mem=allMembers.find(m=>m.uid===s.staffId);
+  const name=mem?`${mem.firstName||''} ${mem.lastName||''}`.trim():s.staffId;
+  openModal(`<div class="modal-title">แก้ไขเวร — ${name}</div>
+    <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}"${i===s.branch?' selected':''}>${b}</option>`).join('')}</select></div>
+    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label><input type="time" id="m-start" value="${s.start}" step="60" lang="en-GB"></div><div class="field"><label class="fl">เลิก</label><input type="time" id="m-end" value="${s.end}" step="60" lang="en-GB"></div></div>
+    <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">บันทึก</button></div>`);
+};
+window.scSaveEdit=function(sid){const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=document.getElementById('m-start').value;s.end=document.getElementById('m-end').value;saveLocal();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
+window.scDel=function(sid){shifts=shifts.filter(s=>s.id!==sid);saveLocal();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
+
+// ===== SALES =====
+let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''};
+window.salesSetView=function(v,el){document.querySelectorAll('#sales-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('sales-entry').style.display=v==='entry'?'':'none';document.getElementById('sales-history').style.display=v==='history'?'':'none';if(v==='history')salesRenderHistory();};
+window.salesSetBranch=function(i,el){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBranch=i;document.querySelectorAll('.branch-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');salesRenderForm();};
+function salesRenderForm(){
+  const amounts=salesAmounts[salesBranch];
+  const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
+  const rows=payTypes.map(p=>`<div class="pay-row"><span class="pay-label">${p}</span><input class="pay-input" type="number" min="0" placeholder="0" value="${amounts[p]||''}" oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)"><span class="pay-unit">บาท</span></div>`).join('');
+  document.getElementById('sales-form').innerHTML=`<div style="font-size:14px;font-weight:700;margin-bottom:1rem;color:${BCOLORS[salesBranch]}">สาขา${BRANCHES[salesBranch]}</div>${rows}<div class="total-row"><span class="total-lbl">ยอดรวมสาขานี้</span><span class="total-val" id="sales-total">฿${fmt(total)}</span></div><div class="field" style="margin-top:1rem;margin-bottom:0"><label class="fl">หมายเหตุ</label><textarea id="sales-note" placeholder="เช่น มีคืนยา / เครื่องรูดบัตรขัดข้อง...">${salesNotes[salesBranch]||''}</textarea></div>`;
+  if(!document.getElementById('sales-date').value)document.getElementById('sales-date').value=todayStr();
+}
+window.salesUpdateAmt=function(p,v){salesAmounts[salesBranch][p]=v;const total=payTypes.reduce((a,pt)=>a+(parseFloat(salesAmounts[salesBranch][pt])||0),0);const el=document.getElementById('sales-total');if(el)el.textContent='฿'+fmt(total);};
+window.salesSave=function(){
+  salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';
+  const date=document.getElementById('sales-date').value;
+  if(!date){showToast('กรุณาเลือกวันที่','err');return;}
+  const amounts={...salesAmounts[salesBranch]};
+  const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
+  const idx=salesEntries.findIndex(e=>e.date===date&&e.branch===salesBranch);
+  const rec={date,branch:salesBranch,amounts,total,note:salesNotes[salesBranch]};
+  if(idx>=0)salesEntries[idx]=rec;else salesEntries.push(rec);
+  saveLocal();showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย');
+};
+function salesRenderHistory(){
+  const date=document.getElementById('sales-date')?.value||todayStr();
+  const todayEs=salesEntries.filter(e=>e.date===date);
+  const grand=todayEs.reduce((a,e)=>a+e.total,0);
+  document.getElementById('sales-sum').innerHTML=`<div class="mcard c-green"><div class="mcard-label">ยอดรวมทุกสาขา</div><div class="mcard-val">฿${fmt(grand)}</div><div class="mcard-sub">วันที่เลือก</div></div>${BRANCHES.map((b,i)=>{const e=todayEs.find(x=>x.branch===i);return`<div class="mcard ${['c-green','c-blue','c-amber'][i]}"><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(e?e.total:0)}</div><div class="mcard-sub">${e?'บันทึกแล้ว':'ยังไม่บันทึก'}</div></div>`;}).join('')}`;
+  const sorted=[...salesEntries].sort((a,b)=>b.date.localeCompare(a.date)||a.branch-b.branch);
+  document.getElementById('sales-hist-list').innerHTML=sorted.length===0?`<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีข้อมูล</div>`:sorted.map(e=>{const pills=payTypes.filter(p=>parseFloat(e.amounts[p])>0).map(p=>`<span class="pill">${p}: ฿${fmt(e.amounts[p])}</span>`).join('');return`<div class="hist-item"><div class="hi-head"><div><span style="font-weight:700;color:${BCOLORS[e.branch]}">สาขา${BRANCHES[e.branch]}</span> <span style="font-size:12px;color:var(--text3)">${e.date}</span></div><span style="font-size:16px;font-weight:700;color:${BCOLORS[e.branch]}">฿${fmt(e.total)}</span></div><div style="display:flex;flex-wrap:wrap;gap:5px">${pills}</div>${e.note?`<div style="font-size:12px;color:var(--text3);margin-top:6px">📝 ${e.note}</div>`:''}</div>`;}).join('');
+}
+
+// ===== MEMBERS =====
+window.loadMembers=async function(){
+  const tbody=document.getElementById('mem-tbody');
+  if(!tbody)return;
+  if(!isAdmin){tbody.innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
+  tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
+  try{
+    console.log('Loading members, isAdmin=',isAdmin,'uid=',currentUser?.uid);
+    const snap=await getDocs(collection(db,'members'));
+    console.log('Got',snap.size,'members');
+    allMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));
+    filterMembers();
+  }catch(e){
+    console.error('loadMembers error:',e);
+    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red-t)">โหลดไม่ได้: ${e.code||e.message}<br><small style="color:var(--text3)">${e.code==='permission-denied'?'กรุณาตรวจสอบ Firestore Rules':''}</small></td></tr>`;
+  }
+};
+window.filterMembers=function(){
+  const q=document.getElementById('mem-search')?.value.toLowerCase()||'';
+  const f=document.getElementById('mem-filter')?.value||'all';
+  const filtered=allMembers.filter(m=>{
+    const n=`${m.firstName||''} ${m.lastName||''} ${m.email||''}`.toLowerCase();
+    return(!q||n.includes(q))&&(f==='all'||m.status===f);
+  });
+  document.getElementById('mem-count').textContent=`แสดง ${filtered.length} จาก ${allMembers.length} รายการ`;
+  document.getElementById('mem-tbody').innerHTML=filtered.length===0?'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">ไม่พบรายการ</td></tr>':filtered.map(m=>{
+    const name=`${m.firstName||''} ${m.lastName||''}`.trim()||m.email;
+    const dob=m.dateOfBirth?new Date(m.dateOfBirth).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):'—';
+    const roleBadge=m.role==='admin'?'<span class="badge badge-purple">Admin</span>':'<span class="badge badge-green">สมาชิก</span>';
+    const sta=m.status==='active'?'<span class="sta-on">ใช้งาน</span>':'<span class="sta-off">ระงับ</span>';
+    return`<tr><td><div style="display:flex;align-items:center;gap:10px"><div class="mem-av">${name.charAt(0)}</div><div><div style="font-weight:600">${name}</div><div style="font-size:11px;color:var(--text3)">${m.email}</div></div></div></td><td>${dob}</td><td>${dob}</td><td>${roleBadge}</td><td>${sta}</td><td><div style="display:flex;gap:6px"><button class="btn btn-sm btn-blue" onclick="viewMember('${m.uid}')">จัดการ</button><button class="btn btn-sm ${m.status==='active'?'btn-danger':'btn-primary'}" onclick="toggleMember('${m.uid}','${m.status}')">${m.status==='active'?'ระงับ':'เปิดใช้'}</button></div></td></tr>`;
+  }).join('');
+};
+window.viewMember=function(uid){
+  const m=allMembers.find(x=>x.uid===uid);if(!m)return;
+  const name=`${m.firstName||''} ${m.lastName||''}`.trim();
+  const perms=m.permissions||{dashboard:true,schedule:false,sales:false,members:false,payroll_self:true};
+  const dob=m.dateOfBirth?new Date(m.dateOfBirth).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—';
+  const permChecks=Object.entries(PERM_LABELS).map(([k,v])=>`
+    <div class="perm-check">
+      <input type="checkbox" id="perm-${k}" ${perms[k]?'checked':''} ${k==='payroll_self'&&m.role==='admin'?'disabled':''}>
+      <label for="perm-${k}">${v}</label>
+    </div>`).join('');
+  const salaryType=m.salary?.type||'fixed';
+  openModal(`<div class="modal-title">จัดการสมาชิก — ${name}</div>
+    <div style="background:var(--bg);border-radius:10px;padding:1rem;margin-bottom:1.25rem">
+      <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">ข้อมูลส่วนตัว</div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse">
+        <tr><td style="color:var(--text3);padding:4px 0;width:90px">ชื่อ</td><td style="font-weight:500">${name||'—'}</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0">อีเมล</td><td>${m.email}</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0">วันเกิด</td><td>${dob}</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0">บัตรประชาชน</td><td>${m.nationalId?'***'+m.nationalId.slice(-4):'—'}</td></tr>
+      </table>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:.75rem">บทบาท</div>
+    <div class="field">
+      <select id="m-role">
+        <option value="member" ${m.role==='member'?'selected':''}>สมาชิก</option>
+        <option value="admin" ${m.role==='admin'?'selected':''}>ผู้ดูแลระบบ (Admin)</option>
+      </select>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:.75rem">สิทธิ์การใช้งาน</div>
+    <div style="margin-bottom:1.25rem">${permChecks}</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:.75rem">ข้อมูลเงินเดือน</div>
+    <div class="field">
+      <label class="fl">ประเภทการจ่าย</label>
+      <select id="m-salary-type" onchange="toggleSalaryFields()">
+        <option value="fixed" ${salaryType==='fixed'?'selected':''}>เงินเดือนประจำ</option>
+        <option value="hourly" ${salaryType==='hourly'?'selected':''}>รายชั่วโมง</option>
+        <option value="both" ${salaryType==='both'?'selected':''}>ทั้งสองแบบ</option>
+      </select>
+    </div>
+    <div class="field-row">
+      <div class="field" id="f-base" style="${salaryType==='hourly'?'display:none':''}">
+        <label class="fl">เงินเดือนฐาน (บาท/เดือน)</label>
+        <input type="number" id="m-base" value="${m.salary?.base||0}" min="0">
+      </div>
+      <div class="field" id="f-hourly" style="${salaryType==='fixed'?'display:none':''}">
+        <label class="fl">ค่าชั่วโมง (บาท/ชั่วโมง)</label>
+        <input type="number" id="m-hourly" value="${m.salary?.hourlyRate||0}" min="0">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMD()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveMemberSettings('${uid}')">บันทึก</button>
+    </div>`);
+};
+window.toggleSalaryFields=function(){
+  const t=document.getElementById('m-salary-type').value;
+  document.getElementById('f-base').style.display=t==='hourly'?'none':'';
+  document.getElementById('f-hourly').style.display=t==='fixed'?'none':'';
+};
+window.saveMemberSettings=async function(uid){
+  const role=document.getElementById('m-role').value;
+  const perms={};
+  Object.keys(PERM_LABELS).forEach(k=>{perms[k]=document.getElementById('perm-'+k)?.checked||false;});
+  const salaryType=document.getElementById('m-salary-type').value;
+  const salary={type:salaryType,base:parseFloat(document.getElementById('m-base')?.value||0),hourlyRate:parseFloat(document.getElementById('m-hourly')?.value||0)};
+  try{
+    await updateDoc(doc(db,'members',uid),{role,permissions:perms,salary});
+    const m=allMembers.find(x=>x.uid===uid);
+    if(m){m.role=role;m.permissions=perms;m.salary=salary;}
+    // ถ้าแก้สิทธิ์ตัวเอง ให้ reload profile และ rebuild nav ทันที
+    if(uid===currentUser?.uid){
+      profile={...profile,role,permissions:perms,salary};
+      isAdmin=role==='admin';
+      buildNav();
+    }
+    closeMD();filterMembers();showToast('บันทึกสิทธิ์และข้อมูลเงินเดือนแล้ว');
+  }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+};
+window.toggleMember=async function(uid,status){
+  const newSt=status==='active'?'inactive':'active';
+  if(!confirm(`ยืนยัน${newSt==='active'?'เปิดใช้งาน':'ระงับ'}บัญชีนี้?`))return;
+  try{
+    await updateDoc(doc(db,'members',uid),{status:newSt});
+    const m=allMembers.find(x=>x.uid===uid);if(m)m.status=newSt;
+    filterMembers();showToast(`${newSt==='active'?'เปิดใช้งาน':'ระงับ'}บัญชีเรียบร้อย`);
+  }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+};
+
+// ===== PAYROLL PER-PERSON =====
+let prMonth=new Date().getMonth()+1, prYear=new Date().getFullYear();
+let prCurrentPerson=null; // uid ที่กำลังคำนวณ
+let prExtraItems=[]; // รายการพิเศษของคนนี้ [{name,type,amount}]
+let prData={}; // เก็บข้อมูลคำนวณของคนปัจจุบัน
+
+window.prMonthChanged=function(){
+  prMonth=parseInt(document.getElementById('pr-month').value);
+  prYear=parseInt(document.getElementById('pr-year').value);
+  if(prCurrentPerson)selectPRPerson(prCurrentPerson);
+};
+
+// ===== โหลดหน้า Payroll =====
+window.loadPayroll=async function(){
+  if(!isAdmin){document.getElementById('pr-person-select').innerHTML=accessDenied();return;}
+  // sync เดือน/ปี
+  if(document.getElementById('pr-month'))prMonth=parseInt(document.getElementById('pr-month').value);
+  if(document.getElementById('pr-year'))prYear=parseInt(document.getElementById('pr-year').value);
+  // โหลดสมาชิก
+  if(allMembers.length===0){
+    document.getElementById('pr-person-select').innerHTML='<div style="color:var(--text3);font-size:13px">กำลังโหลด...</div>';
+    await loadMembers();
+  }
+  renderPRPersonSelect();
+};
+
+function renderPRPersonSelect(){
+  const active=allMembers.filter(m=>m.status==='active');
+  const el=document.getElementById('pr-person-select');
+  if(!active.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีสมาชิก</div>';return;}
+  el.innerHTML=active.map(m=>{
+    const name=`${m.firstName||''} ${m.lastName||''}`.trim();
+    const sel=prCurrentPerson===m.uid?'selected':'';
+    return`<div class="pr-person-card ${sel}" onclick="selectPRPerson('${m.uid}')">
+      <div class="pr-person-av">${name.charAt(0)||'?'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+        <div style="font-size:11px;color:var(--text3)">${m.salary?.type==='fixed'?'ประจำ':m.salary?.type==='hourly'?'รายชั่วโมง':m.salary?.type==='both'?'ผสม':'ยังไม่ตั้ง'}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== เลือกพนักงานเพื่อคำนวณ =====
+window.selectPRPerson=async function(uid){
+  prCurrentPerson=uid;
+  renderPRPersonSelect();
+  const m=allMembers.find(x=>x.uid===uid);
+  if(!m)return;
+  loading(true);
+
+  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+  // คำนวณชั่วโมงทำงานจากตารางเวร
+  const myShifts=shifts.filter(s=>s.staffId===uid&&s.date?.startsWith(monthStr));
+  const hours=Math.round(myShifts.reduce((a,s)=>{
+    const[sh,sm]=s.start.split(':').map(Number);
+    const[eh,em]=s.end.split(':').map(Number);
+    return a+(eh+em/60-sh-sm/60);
+  },0)*10)/10;
+
+  // โหลด record ที่บันทึกไว้
+  let saved=null;
+  try{const pr=await getDoc(doc(db,'payroll',`${uid}_${monthStr}`));if(pr.exists())saved=pr.data();}catch(e){}
+
+  const salary=m.salary||{type:'fixed',base:0,hourlyRate:0};
+  prExtraItems=saved?.extraItems?[...saved.extraItems]:[];
+
+  prData={
+    uid,name:`${m.firstName||''} ${m.lastName||''}`.trim(),
+    salaryType:salary.type||'fixed',
+    base:salary.base||0,
+    hourlyRate:salary.hourlyRate||0,
+    hours:saved?.hoursOverride!=null?saved.hoursOverride:hours,
+    autoHours:hours,
+    status:saved?.status||'pending'
+  };
+  loading(false);
+  renderPRCalc();
+};
+
+function renderPRCalc(){
+  document.getElementById('pr-calc-area').style.display='block';
+  const d=prData;
+  const baseAmt=d.salaryType==='hourly'?0:d.base;
+  const hourlyAmt=d.salaryType==='fixed'?0:Math.round(d.hours*d.hourlyRate);
+  const extraAdd=prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0);
+  const extraDed=prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0);
+  const net=baseAmt+hourlyAmt+extraAdd-extraDed;
+  d.computedNet=net;d.baseAmt=baseAmt;d.hourlyAmt=hourlyAmt;
+
+  const extraRows=prExtraItems.map((item,i)=>`
+    <div class="pr-line">
+      <span class="pr-line-label">
+        <span class="payroll-item-type ${item.type==='add'?'type-add':'type-ded'}">${item.type==='add'?'+ รายรับ':'- หัก'}</span>
+        ${item.name}
+      </span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-weight:600;color:${item.type==='add'?'var(--green-d)':'var(--red-t)'}">${item.type==='add'?'+':'-'}฿${fmt(item.amount)}</span>
+        <button class="btn btn-sm btn-danger" onclick="removePRExtra(${i})" style="padding:3px 8px">×</button>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('pr-calc-card').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
+      <div class="pr-person-av" style="width:48px;height:48px;font-size:18px">${d.name.charAt(0)}</div>
+      <div style="flex:1">
+        <div style="font-size:17px;font-weight:700">${d.name}</div>
+        <div style="font-size:12px;color:var(--text3)">เงินเดือน ${MONTHS_TH[prMonth-1]} ${prYear} • ${d.salaryType==='fixed'?'ประจำ':d.salaryType==='hourly'?'รายชั่วโมง':'ผสม'}</div>
+      </div>
+      <span class="${d.status==='paid'?'sta-on':'sta-off'}">${d.status==='paid'?'จ่ายแล้ว':'รอดำเนินการ'}</span>
+    </div>
+
+    ${d.salaryType!=='hourly'?`
+    <div class="pr-line">
+      <span class="pr-line-label">💰 เงินเดือนฐาน</span>
+      <input type="number" class="pr-line-input" value="${d.base}" min="0" onchange="updatePRField('base',this.value)">
+    </div>`:''}
+
+    ${d.salaryType!=='fixed'?`
+    <div class="pr-line">
+      <span class="pr-line-label">⏱️ ชั่วโมงทำงาน <span style="font-size:11px;color:var(--text3)">(อัตโนมัติ: ${d.autoHours} ชม.)</span></span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" class="pr-line-input" style="width:90px" value="${d.hours}" min="0" step="0.5" onchange="updatePRField('hours',this.value)">
+        <span style="font-size:12px;color:var(--text3)">ชม.</span>
+      </div>
+    </div>
+    <div class="pr-line">
+      <span class="pr-line-label">💵 ค่าชั่วโมง (฿/ชม.)</span>
+      <input type="number" class="pr-line-input" value="${d.hourlyRate}" min="0" onchange="updatePRField('hourlyRate',this.value)">
+    </div>
+    <div class="pr-line">
+      <span class="pr-line-label" style="color:var(--text3)">= ค่าแรงรายชั่วโมง</span>
+      <span style="font-weight:600">฿${fmt(hourlyAmt)}</span>
+    </div>`:''}
+
+    <div style="margin:1.25rem 0 .75rem;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between">
+      <span>รายการเพิ่มเติม (ค่ารถ, Incentive, ภาษี, ประกันสังคม ฯลฯ)</span>
+    </div>
+    ${extraRows||'<div style="font-size:12px;color:var(--text3);padding:8px 0">ยังไม่มีรายการเพิ่มเติม</div>'}
+
+    <div class="pr-extra-row" style="margin-top:.75rem">
+      <input type="text" id="pr-extra-name" placeholder="ชื่อรายการ เช่น ค่ารถ" style="flex:1;min-width:120px">
+      <select id="pr-extra-type" style="width:auto;padding:9px 12px">
+        <option value="add">+ รายรับ</option>
+        <option value="ded">- หัก</option>
+      </select>
+      <input type="number" id="pr-extra-amt" placeholder="บาท" style="width:110px" min="0">
+      <button class="btn btn-primary btn-sm" onclick="addPRExtra()">+ เพิ่ม</button>
+    </div>
+
+    <div class="pr-net-box">
+      <div>
+        <div class="lbl">เงินเดือนสุทธิ</div>
+        <div style="font-size:11px;opacity:.6;margin-top:2px">ฐาน ฿${fmt(baseAmt)} ${hourlyAmt?`+ รายชั่วโมง ฿${fmt(hourlyAmt)}`:''} ${extraAdd?`+ พิเศษ ฿${fmt(extraAdd)}`:''} ${extraDed?`− หัก ฿${fmt(extraDed)}`:''}</div>
+      </div>
+      <div class="val">฿${fmt(net)}</div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="savePRPerson()" style="flex:1">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        บันทึกและจ่ายเงินเดือน
+      </button>
+      <button class="btn" onclick="exportPersonSlip()">📥 สลิป PDF</button>
+    </div>
+  `;
+}
+
+window.updatePRField=function(field,val){
+  prData[field]=parseFloat(val)||0;
+  renderPRCalc();
+};
+
+window.addPRExtra=function(){
+  const name=document.getElementById('pr-extra-name').value.trim();
+  const type=document.getElementById('pr-extra-type').value;
+  const amount=parseFloat(document.getElementById('pr-extra-amt').value)||0;
+  if(!name||!amount){showToast('กรุณากรอกชื่อและจำนวนเงิน','err');return;}
+  prExtraItems.push({name,type,amount});
+  renderPRCalc();
+  showToast(`เพิ่ม "${name}" แล้ว`);
+};
+
+window.removePRExtra=function(i){
+  prExtraItems.splice(i,1);
+  renderPRCalc();
+};
+
+window.savePRPerson=async function(){
+  if(!prCurrentPerson)return;
+  loading(true);
+  try{
+    const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+    const d=prData;
+    await setDoc(doc(db,'payroll',`${prCurrentPerson}_${monthStr}`),{
+      uid:prCurrentPerson,name:d.name,month:prMonth,year:prYear,monthStr,
+      salaryType:d.salaryType,baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,
+      hours:d.hours,hoursOverride:d.hours,
+      bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
+      deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
+      extraItems:prExtraItems,
+      net:d.computedNet,status:'paid',
+      updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
+    });
+    prData.status='paid';
+    showToast(`บันทึกเงินเดือน ${d.name} เรียบร้อย`);
+    renderPRCalc();
+  }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+  loading(false);
+};
+
+window.exportPersonSlip=function(){
+  const d=prData;if(!d.uid){showToast('กรุณาเลือกพนักงานก่อน','err');return;}
+  const m=allMembers.find(x=>x.uid===d.uid);
+  const rec={
+    month:prMonth,year:prYear,salaryType:d.salaryType,
+    baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,hours:d.hours,
+    bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
+    deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
+    net:d.computedNet,status:d.status,extraItems:prExtraItems
+  };
+  const role=m?.role||'';
+  downloadHTML(buildMonthSlip(rec,d.name,role,d.uid),`สลิป_${d.name}_${MONTHS_TH[prMonth-1]}_${prYear}.html`);
+  showToast('ดาวน์โหลดสลิปแล้ว');
+};
+
+// ===== MY PAYROLL (member — เฉพาะปีปัจจุบัน) =====
+let myPayrollRecords=[];
+window.loadMyPayroll=async function(){
+  if(!hasPerm('payroll_self')){showToast('คุณไม่มีสิทธิ์ดูข้อมูลนี้','err');return;}
+  const currentYear=new Date().getFullYear();
+  const selectedYear=parseInt(document.getElementById('mpr-year').value);
+  // สมาชิกดูได้เฉพาะปีปัจจุบัน
+  const warning=document.getElementById('mpr-year-warning');
+  if(!isAdmin && selectedYear!==currentYear){
+    warning.style.display='block';
+    document.getElementById('mpr-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--amber-t)">ไม่สามารถดูประวัติปีอื่นได้</td></tr>';
+    document.getElementById('mpr-metrics').innerHTML='';
+    return;
+  }
+  warning.style.display='none';
+  loading(true);
+  try{
+    const snap=await getDocs(query(collection(db,'payroll'),where('uid','==',currentUser.uid)));
+    myPayrollRecords=snap.docs.map(d=>d.data()).filter(r=>r.year===selectedYear).sort((a,b)=>a.month-b.month);
+    const totalNet=myPayrollRecords.reduce((a,r)=>a+r.net,0);
+    const totalPaid=myPayrollRecords.filter(r=>r.status==='paid').reduce((a,r)=>a+r.net,0);
+    const totalBonus=myPayrollRecords.reduce((a,r)=>a+(r.bonus||0),0);
+    document.getElementById('mpr-metrics').innerHTML=`
+      <div class="mcard c-green"><div class="mcard-label">รายได้รวมปี ${selectedYear}</div><div class="mcard-val">฿${fmt(totalNet)}</div><div class="mcard-sub">${myPayrollRecords.length} เดือน</div></div>
+      <div class="mcard c-blue"><div class="mcard-label">ได้รับแล้ว</div><div class="mcard-val">฿${fmt(totalPaid)}</div><div class="mcard-sub">${myPayrollRecords.filter(r=>r.status==='paid').length} เดือน</div></div>
+      <div class="mcard c-amber"><div class="mcard-label">โบนัสรวม</div><div class="mcard-val">฿${fmt(totalBonus)}</div><div class="mcard-sub">ทั้งปี</div></div>
+    `;
+    document.getElementById('mpr-tbody').innerHTML=myPayrollRecords.length===0
+      ?`<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีประวัติเงินเดือนในปี ${selectedYear}</td></tr>`
+      :myPayrollRecords.map((r,i)=>`<tr>
+        <td style="font-weight:600">${MONTHS_TH[r.month-1]} ${r.year}</td>
+        <td><span class="badge ${r.salaryType==='fixed'?'badge-blue':r.salaryType==='hourly'?'badge-amber':'badge-purple'}">${r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'ชั่วโมง':'ผสม'}</span></td>
+        <td>฿${fmt(r.baseAmt)}</td>
+        <td>${r.hours||0} ชม.<div style="font-size:11px;color:var(--text3)">฿${fmt(r.hourlyAmt||0)}</div></td>
+        <td style="color:var(--green-d)">+฿${fmt(r.bonus||0)}</td>
+        <td style="color:var(--red-t)">-฿${fmt(r.deduction||0)}</td>
+        <td style="font-weight:700;color:var(--green-dd)">฿${fmt(r.net)}</td>
+        <td><span class="${r.status==='paid'?'sta-on':'sta-off'}">${r.status==='paid'?'ได้รับแล้ว':'รอดำเนินการ'}</span></td>
+        <td>${r.status==='paid'?`<button class="btn btn-sm btn-blue" onclick="downloadMonthSlip(${i})">📥 สลิป</button>`:'<span style="font-size:11px;color:var(--text3)">ยังไม่จ่าย</span>'}</td>
+      </tr>`).join('');
+  }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+  loading(false);
+};
+
+// ===== ADMIN PAYROLL HISTORY =====
+let adminHistRecords=[];
+async function populateHistMemberSelect(){
+  const sel=document.getElementById('pr-hist-member');if(!sel)return;
+  if(allMembers.length===0){
+    try{const snap=await getDocs(collection(db,'members'));allMembers=snap.docs.map(d=>d.data());}catch(e){}
+  }
+  const current=sel.value;
+  sel.innerHTML='<option value="all">ทุกคน</option>'+allMembers.filter(m=>m.status==='active').map(m=>`<option value="${m.uid}">${m.firstName||''} ${m.lastName||''}</option>`).join('');
+  if(current)sel.value=current;
+}
+
+window.loadAdminPayrollHistory=async function(){
+  if(!isAdmin)return;
+  const year=parseInt(document.getElementById('pr-hist-year').value);
+  const memberUid=document.getElementById('pr-hist-member').value;
+  loading(true);
+  try{
+    let snap;
+    if(memberUid==='all'){
+      snap=await getDocs(query(collection(db,'payroll'),where('year','==',year)));
+    }else{
+      snap=await getDocs(query(collection(db,'payroll'),where('uid','==',memberUid),where('year','==',year)));
+    }
+    adminHistRecords=snap.docs.map(d=>d.data()).sort((a,b)=>a.month-b.month||a.name?.localeCompare(b.name));
+
+    const totalNet=adminHistRecords.reduce((a,r)=>a+r.net,0);
+    const totalBonus=adminHistRecords.reduce((a,r)=>a+(r.bonus||0),0);
+    const totalDeduct=adminHistRecords.reduce((a,r)=>a+(r.deduction||0),0);
+    const uniqueMembers=new Set(adminHistRecords.map(r=>r.uid)).size;
+    document.getElementById('pr-hist-metrics').innerHTML=`
+      <div class="mcard c-green"><div class="mcard-label">รายจ่ายรวมปี ${year}</div><div class="mcard-val">฿${fmt(totalNet)}</div><div class="mcard-sub">${adminHistRecords.length} รายการ</div></div>
+      <div class="mcard c-blue"><div class="mcard-label">พนักงาน</div><div class="mcard-val">${uniqueMembers}</div><div class="mcard-sub">คน</div></div>
+      <div class="mcard c-amber"><div class="mcard-label">โบนัสรวม</div><div class="mcard-val">฿${fmt(totalBonus)}</div><div class="mcard-sub">ทั้งปี</div></div>
+      <div class="mcard c-red"><div class="mcard-label">หักรวม</div><div class="mcard-val">฿${fmt(totalDeduct)}</div><div class="mcard-sub">ทั้งปี</div></div>
+    `;
+
+    if(adminHistRecords.length===0){
+      document.getElementById('pr-hist-content').innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ไม่พบข้อมูลในปี '+year+'</div>';
+    }else if(memberUid==='all'){
+      // กลุ่มตามชื่อพนักงาน
+      const byMember={};
+      adminHistRecords.forEach(r=>{if(!byMember[r.uid])byMember[r.uid]={name:r.name,records:[]};byMember[r.uid].records.push(r);});
+      document.getElementById('pr-hist-content').innerHTML=Object.values(byMember).map(m=>{
+        const mTotal=m.records.reduce((a,r)=>a+r.net,0);
+        const rows=m.records.map(r=>`<tr>
+          <td>${MONTHS_TH[r.month-1]}</td>
+          <td><span class="badge ${r.salaryType==='fixed'?'badge-blue':r.salaryType==='hourly'?'badge-amber':'badge-purple'}">${r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'ชั่วโมง':'ผสม'}</span></td>
+          <td>฿${fmt(r.baseAmt)}</td><td>${r.hours||0} ชม.</td>
+          <td style="color:var(--green-d)">+฿${fmt(r.bonus||0)}</td>
+          <td style="color:var(--red-t)">-฿${fmt(r.deduction||0)}</td>
+          <td style="font-weight:700;color:var(--green-dd)">฿${fmt(r.net)}</td>
+          <td><span class="${r.status==='paid'?'sta-on':'sta-off'}">${r.status==='paid'?'จ่ายแล้ว':'รอ'}</span></td>
+        </tr>`).join('');
+        return`<div style="margin-bottom:1.5rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem">
+            <div style="font-size:14px;font-weight:700">${m.name}</div>
+            <div style="font-size:13px;font-weight:600;color:var(--green-d)">รวม ฿${fmt(mTotal)}</div>
+          </div>
+          <div style="overflow-x:auto"><table class="payroll-table">
+            <thead><tr><th>เดือน</th><th>ประเภท</th><th>ฐาน</th><th>ชั่วโมง</th><th>โบนัส</th><th>หัก</th><th>รวม</th><th>สถานะ</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table></div>
+        </div>`;
+      }).join('<div class="divider"></div>');
+    }else{
+      const rows=adminHistRecords.map(r=>`<tr>
+        <td style="font-weight:600">${MONTHS_TH[r.month-1]} ${r.year}</td>
+        <td><span class="badge ${r.salaryType==='fixed'?'badge-blue':r.salaryType==='hourly'?'badge-amber':'badge-purple'}">${r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'ชั่วโมง':'ผสม'}</span></td>
+        <td>฿${fmt(r.baseAmt)}</td><td>${r.hours||0} ชม.<div style="font-size:11px;color:var(--text3)">฿${fmt(r.hourlyAmt||0)}</div></td>
+        <td style="color:var(--green-d)">+฿${fmt(r.bonus||0)}</td>
+        <td style="color:var(--red-t)">-฿${fmt(r.deduction||0)}</td>
+        <td style="font-weight:700;color:var(--green-dd)">฿${fmt(r.net)}</td>
+        <td><span class="${r.status==='paid'?'sta-on':'sta-off'}">${r.status==='paid'?'จ่ายแล้ว':'รอ'}</span></td>
+      </tr>`).join('');
+      document.getElementById('pr-hist-content').innerHTML=`<div style="overflow-x:auto"><table class="payroll-table">
+        <thead><tr><th>เดือน</th><th>ประเภท</th><th>ฐาน</th><th>ชั่วโมง</th><th>โบนัส</th><th>หัก</th><th>รวม</th><th>สถานะ</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
+    }
+  }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+  loading(false);
+};
+
+// ===== PDF EXPORT =====
+// ===== PDF / SLIP ENGINE =====
+function downloadHTML(html, filename){
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=filename;a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+function slipCSS(){
+  return`
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans Thai',sans-serif;background:#F4F6F5;padding:24px;color:#18211F;font-size:13px;min-height:100vh}
+    .slip{background:#fff;max-width:680px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.1)}
+    .slip-header{background:linear-gradient(135deg,#085041,#1D9E75);padding:28px 32px;color:#fff}
+    .slip-logo{font-size:24px;margin-bottom:4px}
+    .slip-title{font-size:20px;font-weight:700;margin-bottom:2px}
+    .slip-sub{font-size:12px;opacity:.7}
+    .slip-body{padding:28px 32px}
+    .slip-name{font-size:18px;font-weight:700;margin-bottom:4px}
+    .slip-role{font-size:12px;color:#9AADA9;margin-bottom:20px}
+    .slip-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+    .slip-item{background:#F4F6F5;border-radius:10px;padding:12px 14px}
+    .slip-item label{font-size:11px;color:#9AADA9;display:block;margin-bottom:4px;font-weight:600;letter-spacing:.04em}
+    .slip-item span{font-size:15px;font-weight:600;color:#18211F}
+    .slip-item.highlight{background:#E1F5EE}
+    .slip-item.highlight span{color:#085041}
+    .slip-item.red{background:#FCEBEB}
+    .slip-item.red span{color:#A32D2D}
+    .divider{height:1px;background:#E8ECEB;margin:20px 0}
+    .slip-total{background:linear-gradient(135deg,#085041,#1D9E75);border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:20px}
+    .slip-total label{font-size:13px;opacity:.8}
+    .slip-total span{font-size:28px;font-weight:700}
+    .slip-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px}
+    .sta-paid{background:#E1F5EE;color:#085041}
+    .sta-pending{background:#FAEEDA;color:#633806}
+    .slip-footer{background:#F8FAF9;padding:16px 32px;font-size:11px;color:#9AADA9;text-align:center;border-top:1px solid #E8ECEB}
+    .slip-table{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px}
+    .slip-table th{background:#F8FAF9;padding:8px 10px;text-align:left;font-weight:700;color:#9AADA9;border-bottom:1px solid #E8ECEB;font-size:11px;letter-spacing:.04em}
+    .slip-table td{padding:10px;border-bottom:1px solid #E8ECEB}
+    .slip-table tfoot td{font-weight:700;background:#F0FAF6;color:#085041}
+    .section-label{font-size:12px;font-weight:700;color:#9AADA9;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+    .member-section{margin-bottom:28px;padding-bottom:28px;border-bottom:2px solid #E8ECEB}
+    .member-section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+    @media print{body{background:#fff;padding:0}.slip{box-shadow:none;border-radius:0}}
+  `;
+}
+
+// สลิปรายเดือนเดี่ยว (สำหรับสมาชิกโหลด)
+function empCode(uid){
+  // สร้างรหัสพนักงานจาก uid เช่น EMP-A1B2
+  if(!uid)return 'EMP-0000';
+  const s=String(uid).replace(/[^a-zA-Z0-9]/g,'').toUpperCase();
+  return 'EMP-'+s.slice(0,4).padEnd(4,'0');
+}
+
+function buildMonthSlip(r, memberName, memberRole, uid){
+  const typeLabel=r.salaryType==='fixed'?'เงินเดือนประจำ':r.salaryType==='hourly'?'รายชั่วโมง':'ประจำ + รายชั่วโมง';
+  const statusLabel=r.status==='paid'?'จ่ายเงินแล้ว':'รอดำเนินการ';
+  const code=empCode(uid||r.uid);
+  // งวดที่จ่าย = วันสุดท้ายของเดือน
+  const lastDay=new Date(r.year,r.month,0).getDate();
+  const period=`${MONTHS_TH[r.month-1]} ${r.year}`;
+  const payDate=`${lastDay} ${MONTHS_TH[r.month-1]} ${r.year}`;
+  const printAt=new Date().toLocaleString('th-TH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  // แยกรายการ รายรับ / รายหัก
+  const addItems=(r.extraItems||[]).filter(x=>x.type==='add');
+  const dedItems=(r.extraItems||[]).filter(x=>x.type==='ded');
+  // ถ้าไม่มี extraItems ใช้ bonus/deduction แทน
+  if(!r.extraItems||!r.extraItems.length){
+    if(r.bonus)addItems.push({name:'รายรับเพิ่มเติม',amount:r.bonus});
+    if(r.deduction)dedItems.push({name:'รายการหัก',amount:r.deduction});
+  }
+
+  const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+addItems.reduce((a,x)=>a+x.amount,0);
+  const totalDed=dedItems.reduce((a,x)=>a+x.amount,0);
+
+  // สร้างแถวรายรับ
+  const earnRows=[];
+  if(r.salaryType!=='hourly')earnRows.push(['เงินเดือนฐาน','',fmt(r.baseAmt)]);
+  if(r.salaryType!=='fixed')earnRows.push(['ค่าล่วงเวลา (OT)',`${r.hours||0} ชม.`,fmt(r.hourlyAmt||0)]);
+  addItems.forEach(x=>earnRows.push([x.name,'',fmt(x.amount)]));
+  // สร้างแถวรายหัก
+  const dedRows=dedItems.map(x=>[x.name,'',fmt(x.amount)]);
+
+  // ทำให้สองคอลัมน์สูงเท่ากัน
+  const maxRows=Math.max(earnRows.length,dedRows.length,1);
+  while(earnRows.length<maxRows)earnRows.push(['','','']);
+  while(dedRows.length<maxRows)dedRows.push(['','','']);
+
+  return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>สลิปเงินเดือน ${period} — ${memberName}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:16px;color:#18211F}
+    .payslip{background:#fff;width:148mm;min-height:210mm;margin:0 auto;padding:14mm 12mm;box-shadow:0 4px 24px rgba(0,0,0,.12);position:relative}
+    .ps-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1D9E75;padding-bottom:12px;margin-bottom:16px}
+    .ps-logo-area{display:flex;align-items:center;gap:10px}
+    .ps-logo{width:44px;height:44px;background:#E1F5EE;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
+    .ps-company{font-size:18px;font-weight:700;color:#085041}
+    .ps-company-sub{font-size:11px;color:#9AADA9}
+    .ps-doc-title{text-align:right}
+    .ps-doc-title .t{font-size:15px;font-weight:700;color:#18211F}
+    .ps-doc-title .s{font-size:11px;color:#9AADA9;margin-top:2px}
+    .ps-info{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:18px;font-size:12px}
+    .ps-info-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dotted #D4DAD8}
+    .ps-info-row label{color:#5A6B67}
+    .ps-info-row span{font-weight:600;color:#18211F}
+    .ps-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+    .ps-col-title{font-size:12px;font-weight:700;color:#fff;padding:6px 10px;border-radius:6px 6px 0 0}
+    .ps-col-title.earn{background:#1D9E75}
+    .ps-col-title.ded{background:#E24B4A}
+    .ps-table{width:100%;border-collapse:collapse;font-size:11px}
+    .ps-table td{padding:6px 10px;border-bottom:1px solid #F0F2F1}
+    .ps-table td:last-child{text-align:right;font-weight:600;white-space:nowrap}
+    .ps-table td:nth-child(2){color:#9AADA9;font-size:10px;text-align:center}
+    .ps-col-box{border:1px solid #E8ECEB;border-radius:0 0 8px 8px;overflow:hidden}
+    .ps-subtotal{display:flex;justify-content:space-between;padding:8px 10px;font-size:12px;font-weight:700;background:#F8FAF9;border-top:2px solid #E8ECEB}
+    .ps-subtotal.earn{color:#085041}.ps-subtotal.ded{color:#A32D2D}
+    .ps-net{background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;border-radius:10px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+    .ps-net .lbl{font-size:13px;opacity:.85}
+    .ps-net .sub{font-size:10px;opacity:.6;margin-top:2px}
+    .ps-net .amt{font-size:26px;font-weight:700}
+    .ps-status{display:inline-block;font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;background:#E1F5EE;color:#085041}
+    .ps-foot{position:absolute;bottom:14mm;left:12mm;right:12mm;border-top:1px solid #E8ECEB;padding-top:10px;font-size:10px;color:#9AADA9;display:flex;justify-content:space-between}
+    .ps-sign{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:40px;font-size:11px}
+    .ps-sign-box{text-align:center;border-top:1px dotted #9AADA9;padding-top:6px;color:#5A6B67}
+    .print-btn{display:block;margin:16px auto;padding:10px 28px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+    @media print{
+      body{background:#fff;padding:0}
+      .payslip{box-shadow:none;width:100%;min-height:auto;padding:10mm}
+      .print-btn{display:none}
+      @page{size:A5;margin:0}
+    }
+  </style></head><body>
+  <div class="payslip">
+    <div class="ps-head">
+      <div class="ps-logo-area">
+        <div class="ps-logo">💊</div>
+        <div>
+          <div class="ps-company">ใหม่เภสัช</div>
+          <div class="ps-company-sub">ร้านขายยา • 3 สาขา</div>
+        </div>
+      </div>
+      <div class="ps-doc-title">
+        <div class="t">สลิปเงินเดือน</div>
+        <div class="s">PAYSLIP</div>
+      </div>
+    </div>
+
+    <div class="ps-info">
+      <div class="ps-info-row"><label>รหัสพนักงาน</label><span>${code}</span></div>
+      <div class="ps-info-row"><label>งวดที่จ่าย</label><span>${period}</span></div>
+      <div class="ps-info-row"><label>ชื่อ-นามสกุล</label><span>${memberName}</span></div>
+      <div class="ps-info-row"><label>วันที่จ่าย</label><span>${payDate}</span></div>
+      <div class="ps-info-row"><label>ตำแหน่ง</label><span>${memberRole==='admin'?'ผู้ดูแลระบบ':'พนักงาน'}</span></div>
+      <div class="ps-info-row"><label>ประเภทการจ้าง</label><span>${typeLabel}</span></div>
+    </div>
+
+    <div class="ps-cols">
+      <div>
+        <div class="ps-col-title earn">รายรับ (EARNINGS)</div>
+        <div class="ps-col-box">
+          <table class="ps-table"><tbody>
+            ${earnRows.map(([a,b,c])=>`<tr><td>${a||'&nbsp;'}</td><td>${b}</td><td>${c?'฿'+c:''}</td></tr>`).join('')}
+          </tbody></table>
+          <div class="ps-subtotal earn"><span>รวมรายรับ</span><span>฿${fmt(grossEarnings)}</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="ps-col-title ded">รายการหัก (DEDUCTIONS)</div>
+        <div class="ps-col-box">
+          <table class="ps-table"><tbody>
+            ${dedRows.map(([a,b,c])=>`<tr><td>${a||'&nbsp;'}</td><td>${b}</td><td>${c?'฿'+c:''}</td></tr>`).join('')}
+          </tbody></table>
+          <div class="ps-subtotal ded"><span>รวมรายการหัก</span><span>฿${fmt(totalDed)}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ps-net">
+      <div>
+        <div class="lbl">เงินเดือนสุทธิ (NET PAY)</div>
+        <div class="sub">รายรับ ฿${fmt(grossEarnings)} − รายการหัก ฿${fmt(totalDed)}</div>
+      </div>
+      <div class="amt">฿${fmt(r.net)}</div>
+    </div>
+
+    <div><span class="ps-status">${statusLabel}</span></div>
+
+    <div class="ps-sign">
+      <div class="ps-sign-box">ผู้รับเงิน</div>
+      <div class="ps-sign-box">ผู้จ่ายเงิน</div>
+    </div>
+
+    <div class="ps-foot">
+      <span>พิมพ์เมื่อ: ${printAt}</span>
+      <span>เอกสารออกโดยระบบ ใหม่เภสัช</span>
+    </div>
+  </div>
+  <button class="print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
+  </body></html>`;
+}
+
+// สลิปรวมทุกเดือน (สำหรับสมาชิกโหลดทั้งปี)
+function buildYearSlip(records, memberName, memberRole, year){
+  const totalNet=records.reduce((a,r)=>a+r.net,0);
+  const totalBonus=records.reduce((a,r)=>a+(r.bonus||0),0);
+  const totalDeduct=records.reduce((a,r)=>a+(r.deduction||0),0);
+  const rows=records.map(r=>`<tr>
+    <td style="font-weight:600">${MONTHS_TH[r.month-1]}</td>
+    <td>฿${fmt(r.baseAmt)}</td>
+    <td>${r.hours||0} ชม.</td>
+    <td style="color:#085041">+฿${fmt(r.bonus||0)}</td>
+    <td style="color:#A32D2D">-฿${fmt(r.deduction||0)}</td>
+    <td style="font-weight:700">฿${fmt(r.net)}</td>
+    <td><span class="slip-status ${r.status==='paid'?'sta-paid':'sta-pending'}" style="font-size:10px;padding:2px 8px">${r.status==='paid'?'จ่ายแล้ว':'รอ'}</span></td>
+  </tr>`).join('');
+  const now=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  return`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ประวัติเงินเดือน ${year} — ${memberName}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>${slipCSS()}</style></head><body>
+  <div class="slip">
+    <div class="slip-header">
+      <div class="slip-logo">💊</div>
+      <div class="slip-title">ประวัติเงินเดือน ปี ${year}</div>
+      <div class="slip-sub">ใหม่เภสัช • ${memberName}</div>
+    </div>
+    <div class="slip-body">
+      <div class="slip-name">${memberName}</div>
+      <div class="slip-role">${memberRole||'พนักงาน'}</div>
+      <div class="slip-grid" style="margin-top:16px">
+        <div class="slip-item highlight"><label>รายได้รวมทั้งปี</label><span>฿${fmt(totalNet)}</span></div>
+        <div class="slip-item"><label>จำนวนเดือน</label><span>${records.length} เดือน</span></div>
+        <div class="slip-item"><label>โบนัสรวม</label><span>฿${fmt(totalBonus)}</span></div>
+        <div class="slip-item red"><label>หักรวม</label><span>฿${fmt(totalDeduct)}</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="section-label">รายละเอียดรายเดือน</div>
+      <table class="slip-table">
+        <thead><tr><th>เดือน</th><th>ฐานเงินเดือน</th><th>ชั่วโมง</th><th>โบนัส</th><th>หัก</th><th>รวมสุทธิ</th><th>สถานะ</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr><td style="font-weight:700">รวมทั้งหมด</td><td></td><td></td><td>฿${fmt(totalBonus)}</td><td>฿${fmt(totalDeduct)}</td><td>฿${fmt(totalNet)}</td><td></td></tr></tfoot>
+      </table>
+      <div style="font-size:12px;color:#9AADA9">วันที่ออกเอกสาร: ${now}</div>
+    </div>
+    <div class="slip-footer">เอกสารนี้ออกโดยระบบ ใหม่เภสัช • กรุณาเก็บไว้เป็นหลักฐาน</div>
+  </div>
+  <div style="text-align:center;margin-top:16px">
+    <button onclick="window.print()" style="padding:10px 24px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์เอกสาร</button>
+  </div>
+  </body></html>`;
+}
+
+// Admin: export รายเดือนทุกคน
+function buildAdminPayrollSlip(rows, month, year){
+  const totalNet=rows.reduce((a,r)=>a+r.net,0);
+  const now=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const tableRows=rows.map(r=>`<tr>
+    <td style="font-weight:600">${r.name}</td>
+    <td>฿${fmt(r.baseAmt)}</td>
+    <td>${r.hours} ชม. (฿${fmt(r.hourlyAmt||0)})</td>
+    <td style="color:#085041">+฿${fmt(r.bonus||0)}</td>
+    <td style="color:#A32D2D">-฿${fmt(r.deduction||0)}</td>
+    <td style="font-weight:700">฿${fmt(r.net)}</td>
+    <td><span class="slip-status ${r.status==='paid'?'sta-paid':'sta-pending'}" style="font-size:10px;padding:2px 8px">${r.status==='paid'?'จ่ายแล้ว':'รอ'}</span></td>
+  </tr>`).join('');
+  return`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Payroll ${MONTHS_TH[month-1]} ${year}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>${slipCSS()}</style></head><body>
+  <div class="slip">
+    <div class="slip-header">
+      <div class="slip-logo">💊</div>
+      <div class="slip-title">รายงาน Payroll</div>
+      <div class="slip-sub">ใหม่เภสัช • ${MONTHS_TH[month-1]} ${year}</div>
+    </div>
+    <div class="slip-body">
+      <div class="slip-grid">
+        <div class="slip-item highlight"><label>ยอดรวมเงินเดือน</label><span>฿${fmt(totalNet)}</span></div>
+        <div class="slip-item"><label>พนักงานทั้งหมด</label><span>${rows.length} คน</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="section-label">รายละเอียดพนักงาน</div>
+      <table class="slip-table">
+        <thead><tr><th>ชื่อ-นามสกุล</th><th>ฐานเงินเดือน</th><th>ชั่วโมง/ค่าชม.</th><th>โบนัส</th><th>หัก</th><th>รวมสุทธิ</th><th>สถานะ</th></tr></thead>
+        <tbody>${tableRows}</tbody>
+        <tfoot><tr><td style="font-weight:700">รวมทั้งหมด</td><td></td><td></td><td></td><td></td><td>฿${fmt(totalNet)}</td><td></td></tr></tfoot>
+      </table>
+      <div style="font-size:12px;color:#9AADA9">ออกโดย Admin • ${now}</div>
+    </div>
+    <div class="slip-footer">เอกสารนี้ออกโดยระบบ ใหม่เภสัช • เฉพาะผู้มีสิทธิ์เท่านั้น</div>
+  </div>
+  <div style="text-align:center;margin-top:16px">
+    <button onclick="window.print()" style="padding:10px 24px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์รายงาน</button>
+  </div>
+  </body></html>`;
+}
+
+window.exportPayrollPDF=function(){
+  if(!payrollData.rows||!payrollData.rows.length){showToast('ยังไม่มีข้อมูล กรุณาคำนวณก่อน','err');return;}
+  const{month,year,rows}=payrollData;
+  downloadHTML(buildAdminPayrollSlip(rows,month,year),`payroll_${year}_${String(month).padStart(2,'0')}.html`);
+  showToast('ดาวน์โหลดรายงาน Payroll แล้ว');
+};
+
+window.exportHistoryPDF=function(){
+  if(!adminHistRecords.length){showToast('ยังไม่มีข้อมูล กรุณาดูประวัติก่อน','err');return;}
+  const year=document.getElementById('pr-hist-year').value;
+  const memberSel=document.getElementById('pr-hist-member');
+  const memberUid=memberSel.value;
+  const memberName=memberSel.options[memberSel.selectedIndex]?.text||'ทุกคน';
+  const totalNet=adminHistRecords.reduce((a,r)=>a+r.net,0);
+  const byMember={};
+  adminHistRecords.forEach(r=>{if(!byMember[r.uid])byMember[r.uid]={name:r.name,records:[]};byMember[r.uid].records.push(r);});
+  const now=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+  const membersHTML=Object.values(byMember).map(m=>{
+    const mTotal=m.records.reduce((a,r)=>a+r.net,0);
+    const rows=m.records.map(r=>`<tr>
+      <td style="font-weight:600">${MONTHS_TH[r.month-1]}</td>
+      <td>฿${fmt(r.baseAmt)}</td><td>${r.hours||0} ชม.</td>
+      <td style="color:#085041">+฿${fmt(r.bonus||0)}</td>
+      <td style="color:#A32D2D">-฿${fmt(r.deduction||0)}</td>
+      <td style="font-weight:700">฿${fmt(r.net)}</td>
+      <td><span class="slip-status ${r.status==='paid'?'sta-paid':'sta-pending'}" style="font-size:10px;padding:2px 8px">${r.status==='paid'?'จ่ายแล้ว':'รอ'}</span></td>
+    </tr>`).join('');
+    return`<div class="member-section">
+      <div class="slip-name">${m.name}</div>
+      <div class="slip-role" style="margin-bottom:12px">รายได้รวม ฿${fmt(mTotal)}</div>
+      <table class="slip-table">
+        <thead><tr><th>เดือน</th><th>ฐาน</th><th>ชั่วโมง</th><th>โบนัส</th><th>หัก</th><th>รวม</th><th>สถานะ</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }).join('');
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8">
+  <title>ประวัติ Payroll ปี ${year}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>${slipCSS()}</style></head><body>
+  <div class="slip">
+    <div class="slip-header">
+      <div class="slip-logo">💊</div>
+      <div class="slip-title">ประวัติ Payroll ปี ${year}</div>
+      <div class="slip-sub">ใหม่เภสัช • ${memberName}</div>
+    </div>
+    <div class="slip-body">
+      <div class="slip-grid">
+        <div class="slip-item highlight"><label>รายจ่ายรวมทั้งหมด</label><span>฿${fmt(totalNet)}</span></div>
+        <div class="slip-item"><label>รายการทั้งหมด</label><span>${adminHistRecords.length} เดือน</span></div>
+      </div>
+      <div class="divider"></div>
+      ${membersHTML}
+      <div style="font-size:12px;color:#9AADA9;margin-top:16px">ออกโดย Admin • ${now}</div>
+    </div>
+    <div class="slip-footer">เอกสารนี้ออกโดยระบบ ใหม่เภสัช • เฉพาะผู้มีสิทธิ์เท่านั้น</div>
+  </div>
+  <div style="text-align:center;margin-top:16px">
+    <button onclick="window.print()" style="padding:10px 24px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์รายงาน</button>
+  </div>
+  </body></html>`;
+  downloadHTML(html,`payroll_history_${year}_${memberUid==='all'?'all':memberName}.html`);
+  showToast('ดาวน์โหลดประวัติ Payroll แล้ว');
+};
+
+window.exportMyPayrollPDF=function(){
+  if(!myPayrollRecords.length){showToast('ยังไม่มีข้อมูล กรุณาดูประวัติก่อน','err');return;}
+  const year=document.getElementById('mpr-year').value;
+  const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'—';
+  const role=profile?.role||'';
+  downloadHTML(buildYearSlip(myPayrollRecords,name,role,year),`สลิปเงินเดือน_${name}_${year}.html`);
+  showToast('ดาวน์โหลดสลิปเงินเดือนแล้ว');
+};
+
+// โหลดสลิปรายเดือน (สมาชิกกดจากตาราง)
+window.downloadMonthSlip=function(idx){
+  const r=myPayrollRecords[idx];
+  if(!r){showToast('ไม่พบข้อมูล','err');return;}
+  const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'—';
+  const role=profile?.role||'';
+  downloadHTML(buildMonthSlip(r,name,role,currentUser?.uid),`สลิป_${name}_${MONTHS_TH[r.month-1]}_${r.year}.html`);
+  showToast(`ดาวน์โหลดสลิป ${MONTHS_TH[r.month-1]} ${r.year} แล้ว`);
+};
+
+// ===== SETTINGS =====
+function renderPayTypeSettings(){document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('');}
+window.addPayType=function(){const inp=document.getElementById('new-pay-name');const name=inp.value.trim();if(!name||payTypes.includes(name)){showToast('ชื่อซ้ำหรือว่างเปล่า','err');return;}payTypes.push(name);inp.value='';saveLocal();renderPayTypeSettings();showToast('เพิ่มประเภทการชำระแล้ว');};
+window.removePayType=function(i){payTypes.splice(i,1);saveLocal();renderPayTypeSettings();showToast('ลบแล้ว');};
+function renderStaffSettings(){document.getElementById('staff-list-s').innerHTML=staff.map(e=>`<div class="staff-row"><div class="staff-av">${e.name.slice(0,2)}</div><div style="flex:1"><div style="font-weight:600;font-size:13px">${e.name}</div><div style="font-size:11px;color:var(--text3)">${e.role}</div></div><button class="btn btn-danger btn-sm" onclick="removeStaff(${e.id})">ลบ</button></div>`).join('');}
+window.addStaff=function(){const name=document.getElementById('new-staff-name').value.trim();const role=document.getElementById('new-staff-role').value.trim();if(!name){showToast('กรุณากรอกชื่อ','err');return;}staff.push({id:nextStaffId++,name,role:role||'พนักงาน'});document.getElementById('new-staff-name').value='';document.getElementById('new-staff-role').value='';saveLocal();renderStaffSettings();showToast('เพิ่มพนักงานแล้ว');};
+window.removeStaff=function(id){if(!confirm('ยืนยันลบพนักงานนี้?'))return;staff=staff.filter(s=>s.id!==id);shifts=shifts.filter(s=>s.staffId!==id);saveLocal();renderStaffSettings();showToast('ลบพนักงานแล้ว');};
+function renderMyProfile(){
+  if(!profile){document.getElementById('my-profile').innerHTML='<p style="font-size:13px;color:var(--text3)">ไม่พบข้อมูล</p>';return;}
+  const dob=profile.dateOfBirth?new Date(profile.dateOfBirth).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—';
+  document.getElementById('my-profile').innerHTML=`<table style="width:100%;font-size:13px;border-collapse:collapse">
+    <tr><td style="padding:7px 0;color:var(--text3);width:100px">ชื่อ-นามสกุล</td><td style="font-weight:500">${profile.firstName||''} ${profile.lastName||''}</td></tr>
+    <tr><td style="padding:7px 0;color:var(--text3);border-top:1px solid var(--border)">อีเมล</td><td style="border-top:1px solid var(--border)">${profile.email||'—'}</td></tr>
+    <tr><td style="padding:7px 0;color:var(--text3);border-top:1px solid var(--border)">วันเกิด</td><td style="border-top:1px solid var(--border)">${dob}</td></tr>
+    <tr><td style="padding:7px 0;color:var(--text3);border-top:1px solid var(--border)">บทบาท</td><td style="border-top:1px solid var(--border)"><span class="badge ${isAdmin?'badge-purple':'badge-green'}">${isAdmin?'Admin':'สมาชิก'}</span></td></tr>
+  </table>`;
+}
+
+function accessDenied(){return`<div class="access-denied"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3>ไม่มีสิทธิ์เข้าถึง</h3><p>กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์</p></div>`;}
+
+document.getElementById('sales-date').value=todayStr();
+</script>
+</body>
+</html>

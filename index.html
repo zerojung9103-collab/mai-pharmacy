@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ใหม่เภสัช — เข้าสู่ระบบ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#1D9E75;--green-d:#0F6E56;--green-dd:#085041;
+  --green-l:#E1F5EE;--red-l:#FCEBEB;--red-t:#A32D2D;
+  --border2:#D4DAD8;--text:#18211F;--text2:#5A6B67;--text3:#9AADA9;
+  --font:'Noto Sans Thai',system-ui,sans-serif;
+}
+body{font-family:var(--font);min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#085041 0%,#1D9E75 55%,#2DC98F 100%);padding:1rem;position:relative;overflow:hidden}
+body::before{content:'';position:absolute;top:-120px;right:-120px;width:500px;height:500px;background:rgba(255,255,255,.04);border-radius:50%}
+body::after{content:'';position:absolute;bottom:-80px;left:-80px;width:350px;height:350px;background:rgba(255,255,255,.04);border-radius:50%}
+.card{background:#fff;border-radius:20px;padding:2.5rem;width:100%;max-width:430px;box-shadow:0 24px 80px rgba(0,0,0,.2);position:relative;z-index:1}
+.logo{text-align:center;margin-bottom:2rem}
+.logo-icon{width:70px;height:70px;background:var(--green-l);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:32px}
+.logo h1{font-size:23px;font-weight:700;color:var(--text)}
+.logo p{font-size:13px;color:var(--text3);margin-top:3px}
+.view{display:none}.view.active{display:block}
+.view-title{font-size:15px;font-weight:700;margin-bottom:.35rem;color:var(--text)}
+.view-sub{font-size:13px;color:var(--text3);margin-bottom:1.5rem;line-height:1.6}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:5px;letter-spacing:.03em}
+.field input{width:100%;font-family:var(--font);font-size:14px;padding:10px 14px;border:1.5px solid var(--border2);border-radius:10px;background:#FAFBFB;color:var(--text);outline:none;transition:.15s}
+.field input:focus{border-color:var(--green);background:#fff;box-shadow:0 0 0 3px rgba(29,158,117,.12)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{width:100%;padding:12px;background:var(--green);border:none;border-radius:10px;color:#fff;font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;transition:.15s;margin-top:.5rem;letter-spacing:.02em}
+.btn:hover{background:var(--green-d)}.btn:active{transform:scale(.98)}.btn:disabled{background:var(--text3);cursor:not-allowed}
+.alert{border-radius:9px;padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:1rem;display:none}
+.alert.err{background:var(--red-l);color:var(--red-t);border:1px solid #F09595}
+.alert.ok{background:var(--green-l);color:var(--green-dd);border:1px solid rgba(29,158,117,.3)}
+.link-row{text-align:center;font-size:13px;color:var(--text3);margin-top:1.1rem}
+.link-row a{color:var(--green-d);cursor:pointer;font-weight:600;text-decoration:none}
+.link-row a:hover{text-decoration:underline}
+.divider{display:flex;align-items:center;gap:10px;margin:1rem 0;color:var(--text3);font-size:12px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:#E8ECEB}
+.loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:50;align-items:center;justify-content:center;flex-direction:column;gap:1rem;backdrop-filter:blur(2px)}
+.loading.show{display:flex}
+.spinner{width:40px;height:40px;border:3px solid #E8ECEB;border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:480px){.field-row{grid-template-columns:1fr}.card{padding:1.75rem}}
+</style>
+</head>
+<body>
+<div class="loading" id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--text2);font-weight:500">กำลังโหลด...</div></div>
+
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">💊</div>
+    <h1>ใหม่เภสัช</h1>
+    <p>ระบบจัดการร้าน 3 สาขา</p>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="view active" id="v-login">
+    <div id="a-login" class="alert err"></div>
+    <div class="field"><label>อีเมล</label><input type="email" id="login-email" placeholder="example@email.com" autocomplete="email"></div>
+    <div class="field"><label>รหัสผ่าน</label><input type="password" id="login-pass" placeholder="รหัสผ่าน" autocomplete="current-password"></div>
+    <button class="btn" id="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="link-row" style="margin-top:.75rem"><a onclick="show('forgot')">ลืมรหัสผ่าน?</a></div>
+    <div class="divider">หรือ</div>
+    <div class="link-row" style="margin-top:0">ยังไม่มีบัญชี? <a onclick="show('register')">สมัครสมาชิก</a></div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="view" id="v-register">
+    <div class="view-title">สมัครสมาชิก</div>
+    <div class="view-sub">กรอกข้อมูลให้ครบถ้วนเพื่อสมัครใช้งาน</div>
+    <div id="a-reg" class="alert err"></div>
+    <div class="field-row">
+      <div class="field"><label>ชื่อ</label><input type="text" id="r-fname" placeholder="ชื่อ"></div>
+      <div class="field"><label>นามสกุล</label><input type="text" id="r-lname" placeholder="นามสกุล"></div>
+    </div>
+    <div class="field"><label>อีเมล</label><input type="email" id="r-email" placeholder="example@email.com"></div>
+    <div class="field"><label>รหัสบัตรประชาชน (13 หลัก)</label><input type="text" id="r-cid" placeholder="0000000000000" maxlength="13" inputmode="numeric"></div>
+    <div class="field"><label>วันเดือนปีเกิด</label><input type="date" id="r-dob"></div>
+    <div class="field"><label>รหัสผ่าน (อย่างน้อย 6 ตัวอักษร)</label><input type="password" id="r-pass" placeholder="รหัสผ่าน"></div>
+    <div class="field"><label>ยืนยันรหัสผ่าน</label><input type="password" id="r-pass2" placeholder="ยืนยันรหัสผ่าน"></div>
+    <button class="btn" id="btn-reg" onclick="doRegister()">สมัครสมาชิก</button>
+    <div class="link-row">มีบัญชีแล้ว? <a onclick="show('login')">เข้าสู่ระบบ</a></div>
+  </div>
+
+  <!-- FORGOT -->
+  <div class="view" id="v-forgot">
+    <div class="view-title">รีเซ็ตรหัสผ่าน</div>
+    <div class="view-sub">กรอกอีเมลที่ลงทะเบียนไว้ ระบบจะส่งลิงก์รีเซ็ตรหัสผ่านไปให้ทันที</div>
+    <div id="a-forgot" class="alert err"></div>
+    <div class="field"><label>อีเมล</label><input type="email" id="f-email" placeholder="example@email.com"></div>
+    <button class="btn" id="btn-forgot" onclick="doForgot()">ส่งลิงก์รีเซ็ตรหัสผ่าน</button>
+    <div class="link-row"><a onclick="show('login')">← กลับหน้าเข้าสู่ระบบ</a></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
+  authDomain:"naimaphat-pharmacy.firebaseapp.com",
+  projectId:"naimaphat-pharmacy",
+  storageBucket:"naimaphat-pharmacy.firebasestorage.app",
+  messagingSenderId:"642082079849",
+  appId:"1:642082079849:web:54d00567f0654339414ef8"
+});
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+function loading(v){document.getElementById('loading').classList.toggle('show',v);}
+function showAlert(id,msg,type='err'){const e=document.getElementById(id);e.textContent=msg;e.className='alert '+type;e.style.display='block';}
+function hideAlert(id){const e=document.getElementById(id);if(e)e.style.display='none';}
+
+window.show=function(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  ['a-login','a-reg','a-forgot'].forEach(hideAlert);
+};
+
+let isRegistering=false;
+
+onAuthStateChanged(auth, user=>{
+  if(user && !isRegistering) window.location.href='app.html';
+  else if(!user) loading(false);
+});
+
+window.doLogin=async function(){
+  const email=document.getElementById('login-email').value.trim();
+  const pass=document.getElementById('login-pass').value;
+  if(!email||!pass){showAlert('a-login','กรุณากรอกข้อมูลให้ครบ');return;}
+  loading(true);document.getElementById('btn-login').disabled=true;
+  try{
+    await signInWithEmailAndPassword(auth,email,pass);
+  }catch(e){
+    loading(false);document.getElementById('btn-login').disabled=false;
+    const m={'auth/invalid-credential':'อีเมลหรือรหัสผ่านไม่ถูกต้อง','auth/user-not-found':'ไม่พบบัญชีนี้','auth/wrong-password':'รหัสผ่านไม่ถูกต้อง','auth/too-many-requests':'พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณารอสักครู่'};
+    showAlert('a-login',m[e.code]||'เกิดข้อผิดพลาด: '+e.message);
+  }
+};
+
+window.doRegister=async function(){
+  const fname=document.getElementById('r-fname').value.trim();
+  const lname=document.getElementById('r-lname').value.trim();
+  const email=document.getElementById('r-email').value.trim();
+  const cid=document.getElementById('r-cid').value.trim();
+  const dob=document.getElementById('r-dob').value;
+  const pass=document.getElementById('r-pass').value;
+  const pass2=document.getElementById('r-pass2').value;
+  if(!fname||!lname||!email||!cid||!dob||!pass){showAlert('a-reg','กรุณากรอกข้อมูลให้ครบทุกช่อง');return;}
+  if(!/^\d{13}$/.test(cid)){showAlert('a-reg','รหัสบัตรประชาชนต้องเป็นตัวเลข 13 หลัก');return;}
+  if(pass.length<6){showAlert('a-reg','รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร');return;}
+  if(pass!==pass2){showAlert('a-reg','รหัสผ่านไม่ตรงกัน');return;}
+  isRegistering=true;
+  loading(true);document.getElementById('btn-reg').disabled=true;
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await setDoc(doc(db,'members',cred.user.uid),{
+      uid:cred.user.uid,firstName:fname,lastName:lname,email,
+      nationalId:cid,dateOfBirth:dob,status:'active',
+      role:'member',
+      permissions:{dashboard:true,schedule:false,sales:false,members:false,payroll_self:true},
+      salary:{type:'fixed',base:0,hourlyRate:0},
+      createdAt:new Date().toISOString()
+    });
+    isRegistering=false;
+    window.location.href='app.html';
+  }catch(e){
+    isRegistering=false;
+    loading(false);document.getElementById('btn-reg').disabled=false;
+    const m={'auth/email-already-in-use':'อีเมลนี้ถูกใช้งานแล้ว','auth/invalid-email':'รูปแบบอีเมลไม่ถูกต้อง','auth/weak-password':'รหัสผ่านไม่ปลอดภัยพอ'};
+    showAlert('a-reg',m[e.code]||'เกิดข้อผิดพลาด: '+e.message);
+  }
+};
+
+window.doForgot=async function(){
+  const email=document.getElementById('f-email').value.trim();
+  if(!email){showAlert('a-forgot','กรุณากรอกอีเมล');return;}
+  loading(true);document.getElementById('btn-forgot').disabled=true;
+  try{
+    await sendPasswordResetEmail(auth,email);
+    loading(false);document.getElementById('btn-forgot').disabled=false;
+    showAlert('a-forgot','ส่งลิงก์ไปที่ '+email+' แล้ว กรุณาตรวจสอบอีเมล (รวมถึงโฟลเดอร์ spam)','ok');
+  }catch(e){
+    loading(false);document.getElementById('btn-forgot').disabled=false;
+    const m={'auth/user-not-found':'ไม่พบอีเมลนี้ในระบบ','auth/invalid-email':'รูปแบบอีเมลไม่ถูกต้อง'};
+    showAlert('a-forgot',m[e.code]||'เกิดข้อผิดพลาด: '+e.message);
+  }
+};
+
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('f-email').addEventListener('keydown',e=>{if(e.key==='Enter')doForgot();});
+</script>
+</body>
+</html>
