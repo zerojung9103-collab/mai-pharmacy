@@ -1011,7 +1011,9 @@ ${memberLines}
 กฎ:
 - ใช้ id พนักงานจากรายชื่อข้างบนเท่านั้น ห้ามแต่ง id เอง
 - date ต้องอยู่ในเดือน ${monthName} ${scYear}
-- ต้องจัดให้ครบทั้งเดือนหรือตามที่ admin ขอ อย่าทำครึ่งๆ กลางๆ
+- **เขียน JSON แบบกระชับที่สุด** — ไม่ต้องเว้นบรรทัด ไม่ต้องเว้นวรรค เพื่อประหยัดพื้นที่ (เช่น {"staffId":"x","date":"...","branch":0,"start":"08:00","end":"17:00"})
+- คำอธิบายภาษาไทยส่วนแรก **เขียนสั้นมากๆ 1-2 บรรทัดพอ** เพื่อเหลือพื้นที่ให้ JSON
+- ต้องจัดให้ครบตามที่ admin ขอ ถ้าจัดทั้งเดือนไม่พอพื้นที่ ให้จัดเท่าที่ทำได้แล้วจัดต่อในข้อความถัดไป
 - เวลามาตรฐาน: กะเช้า 08:00-17:00, กะบ่าย 13:00-22:00 (ปรับได้ตามที่สั่ง)
 - เฉพาะกรณี admin ถามคำถามเฉยๆ (ไม่ได้ขอให้จัด) จึงตอบเป็นข้อความได้ ไม่ต้องมี JSON`;
 
@@ -1051,15 +1053,32 @@ ${memberLines}
   btn.disabled=false;
 };
 
-// แยก JSON schedule จากคำตอบ AI
+// แยก JSON schedule จากคำตอบ AI (ทนต่อ JSON ที่ถูกตัดกลางคัน)
 function extractScheduleJSON(text){
+  // หาเนื้อ JSON: จาก code block ก่อน ถ้าไม่มีใช้ทั้งข้อความ
+  let raw='';
+  const m=text.match(/```json\s*([\s\S]*?)(?:```|$)/);
+  if(m){raw=m[1];}
+  else{const i=text.indexOf('"shifts"');if(i>=0)raw=text.slice(text.lastIndexOf('{',i));}
+  if(!raw)return null;
+
+  // ลอง parse ตรงๆ ก่อน
+  try{const j=JSON.parse(raw.trim());if(j&&j.shifts)return j;}catch(e){}
+
+  // ถ้า parse ไม่ได้ (น่าจะถูกตัดกลางคัน) — ดึงแต่ละ shift object ที่สมบูรณ์ออกมา
   try{
-    const m=text.match(/```json\s*([\s\S]*?)```/);
-    if(m)return JSON.parse(m[1].trim());
-    // เผื่อไม่มี code block แต่มี { }
-    const m2=text.match(/\{[\s\S]*"shifts"[\s\S]*\}/);
-    if(m2)return JSON.parse(m2[0]);
-  }catch(e){console.error('parse schedule error',e);}
+    const shifts=[];
+    // จับทุก {...} ที่มี staffId
+    const objRe=/\{[^{}]*?"staffId"[^{}]*?\}/g;
+    let mm;
+    while((mm=objRe.exec(raw))!==null){
+      try{
+        const o=JSON.parse(mm[0]);
+        if(o.staffId&&o.date&&o.start&&o.end&&o.branch!=null)shifts.push(o);
+      }catch(e){}
+    }
+    if(shifts.length)return{shifts};
+  }catch(e){console.error('recover schedule error',e);}
   return null;
 }
 
