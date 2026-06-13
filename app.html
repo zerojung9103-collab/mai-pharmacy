@@ -960,8 +960,10 @@ window.toggleAiPanel=function(){
   panel.style.display=panel.style.display==='none'?'block':'none';
 };
 
-// AI Chat สำหรับจัดตารางเวร
+// AI Chat สำหรับจัดตารางเวร (ลงตารางจริง)
 let aiMessages=[];
+
+
 window.sendAiMessage=async function(){
   const input=document.getElementById('ai-input');
   const msg=input.value.trim();
@@ -970,50 +972,136 @@ window.sendAiMessage=async function(){
   const btn=document.getElementById('ai-send-btn');
   btn.disabled=true;
 
-  // เพิ่มข้อความ user
   addAiMsg('user',msg);
   aiMessages.push({role:'user',content:msg});
-  addAiMsg('thinking','กำลังคิด...');
+  addAiMsg('thinking','กำลังจัดตาราง...');
 
-  // สร้าง context ของพนักงานและเวรปัจจุบัน
-  const staffList=allMembers.filter(m=>m.status==='active').map(m=>`${m.firstName||''} ${m.lastName||''}`.trim()).join(', ');
-  const systemPrompt=`คุณเป็น AI ผู้ช่วยจัดตารางเวรสำหรับร้านขายยา ใหม่เภสัช มี 3 สาขา: ทรัพย์พัฒนา, บางปู, อินดี้
-พนักงานปัจจุบัน: ${staffList}
-หน้าที่: ช่วยจัดตารางเวรตามความต้องการของ admin โดยคำนึงถึง:
-- วันหยุดที่แต่ละคนต้องการ
-- ข้อจำกัดในการทำงานร่วมกัน
-- ความสมดุลของชั่วโมงทำงาน
-ตอบเป็นภาษาไทย กระชับ ชัดเจน และแนะนำตารางเวรที่เป็นไปได้`;
+  // context: รายชื่อสมาชิก (พร้อม uid) + เดือนที่กำลังดู
+  const activeMembers=allMembers.filter(m=>m.status==='active');
+  const memberLines=activeMembers.map(m=>`- ${m.firstName||''} ${m.lastName||''} (id: ${m.uid})`).join('\n');
+  const monthName=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth];
+  const daysInMonth=new Date(scYear,scMonth+1,0).getDate();
+
+  const systemPrompt=`คุณเป็น AI ผู้ช่วยจัดตารางเวรร้านขายยา "ใหม่เภสัช" มี 3 สาขา (index: 0=ทรัพย์พัฒนา, 1=บางปู, 2=อินดี้)
+
+เดือนที่กำลังจัด: ${monthName} ${scYear} (มี ${daysInMonth} วัน)
+
+รายชื่อพนักงาน (ใช้ id ในการอ้างอิง):
+${memberLines}
+
+หน้าที่ของคุณ:
+1. จัดตารางเวรตามคำขอของ admin โดยคำนึงถึงวันหยุด ข้อจำกัดการทำงานร่วมกัน และความสมดุล
+2. **สำคัญ: JSON ที่คุณส่งจะถูกนำไปลงตารางจริงทันที** ดังนั้นต้องจัดให้ครบถ้วนสมบูรณ์ พร้อมใช้งานจริง
+3. ตอบกลับเป็น 2 ส่วนเสมอ:
+   - ส่วนแรก: คำอธิบายสั้นๆ เป็นภาษาไทยว่าจัดอย่างไร (เช่น ใครทำสาขาไหน วันไหนบ้าง)
+   - ส่วนที่สอง: JSON ของตารางเวร อยู่ในบล็อค \`\`\`json ... \`\`\`
+
+รูปแบบ JSON (ใช้ id พนักงานจริง, date เป็น YYYY-MM-DD, branch เป็น 0/1/2, เวลาแบบ 24 ชม.):
+\`\`\`json
+{
+  "shifts": [
+    {"staffId": "abc123", "date": "${scYear}-${String(scMonth+1).padStart(2,'0')}-01", "branch": 0, "start": "08:00", "end": "17:00"},
+    {"staffId": "def456", "date": "${scYear}-${String(scMonth+1).padStart(2,'0')}-01", "branch": 1, "start": "09:00", "end": "18:00"}
+  ]
+}
+\`\`\`
+
+กฎสำคัญ:
+- ใช้ id พนักงานที่ให้มาเท่านั้น ห้ามแต่งเอง
+- date ต้องอยู่ในเดือน ${monthName} ${scYear} เท่านั้น
+- ถ้า admin แค่ถามหรือยังไม่ขอให้จัด ให้ตอบเป็นข้อความปกติ ไม่ต้องมี JSON
+- เวลาปกติ: กะเช้า 08:00-17:00, กะบ่าย 13:00-22:00 (ปรับได้ตามที่ admin บอก)`;
 
   try{
-    // เรียกผ่าน Netlify Function (ปลอดภัย API key ซ่อนหลังบ้าน)
     const res=await fetch('/.netlify/functions/ai-schedule',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        system:systemPrompt,
-        messages:aiMessages
-      })
+      body:JSON.stringify({system:systemPrompt,messages:aiMessages})
     });
     const data=await res.json();
     const chatBox=document.getElementById('ai-chat-box');
     const thinking=chatBox.querySelector('.thinking');
     if(thinking)thinking.remove();
+
     if(!res.ok||data.error){
       addAiMsg('ai','ขอโทษครับ เกิดข้อผิดพลาด: '+(data.error||'ไม่สามารถเชื่อมต่อ AI ได้'));
     }else{
       const reply=data.reply||'ขอโทษครับ ไม่ได้รับคำตอบ';
-      addAiMsg('ai',reply);
       aiMessages.push({role:'assistant',content:reply});
+      // แยก JSON ออกจากข้อความ
+      const parsed=extractScheduleJSON(reply);
+      if(parsed&&parsed.shifts&&parsed.shifts.length){
+        // ลงตารางทันที (ไม่ต้องยืนยัน)
+        const textOnly=reply.replace(/```json[\s\S]*?```/g,'').trim();
+        if(textOnly)addAiMsg('ai',textOnly);
+        applyAiSchedule(parsed.shifts);
+      }else{
+        addAiMsg('ai',reply);
+      }
     }
   }catch(e){
     const chatBox=document.getElementById('ai-chat-box');
     const thinking=chatBox.querySelector('.thinking');
     if(thinking)thinking.remove();
-    addAiMsg('ai','ขอโทษครับ เชื่อมต่อ AI ไม่ได้ กรุณาตรวจสอบว่าตั้งค่า Netlify Function แล้ว');
+    addAiMsg('ai','ขอโทษครับ เชื่อมต่อ AI ไม่ได้ กรุณาตรวจสอบการตั้งค่า Netlify Function');
   }
   btn.disabled=false;
 };
+
+// แยก JSON schedule จากคำตอบ AI
+function extractScheduleJSON(text){
+  try{
+    const m=text.match(/```json\s*([\s\S]*?)```/);
+    if(m)return JSON.parse(m[1].trim());
+    // เผื่อไม่มี code block แต่มี { }
+    const m2=text.match(/\{[\s\S]*"shifts"[\s\S]*\}/);
+    if(m2)return JSON.parse(m2[0]);
+  }catch(e){console.error('parse schedule error',e);}
+  return null;
+}
+
+// ลงตารางที่ AI จัดทันที (ลบเวรเดิมของเดือนนั้นก่อน แล้วลงใหม่)
+function applyAiSchedule(proposedShifts){
+  // กรองเฉพาะ shift ที่ staffId มีจริง และวันที่อยู่ในเดือนที่ดูอยู่
+  const monthStr=`${scYear}-${String(scMonth+1).padStart(2,'0')}`;
+  const valid=proposedShifts.filter(s=>
+    allMembers.find(m=>m.uid===s.staffId) &&
+    s.date && s.start && s.end &&
+    [0,1,2].includes(Number(s.branch))
+  );
+  if(!valid.length){
+    addAiMsg('ai','ขอโทษครับ ไม่สามารถจัดตารางได้ ลองบอกรายละเอียดอีกครั้งนะครับ');
+    return;
+  }
+  const monthName=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth];
+
+  // ลบเวรเดิมของเดือนนี้ แล้วลงใหม่
+  shifts=shifts.filter(s=>!s.date?.startsWith(monthStr));
+  valid.forEach(s=>{
+    shifts.push({
+      id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+      staffId:s.staffId,branch:Number(s.branch),date:s.date,start:s.start,end:s.end
+    });
+  });
+  saveLocal();
+  scRender();
+
+  // สรุปสั้นๆ ว่าลงอะไรไปบ้าง
+  const byDate={};
+  valid.forEach(s=>{if(!byDate[s.date])byDate[s.date]=[];byDate[s.date].push(s);});
+  const dateCount=Object.keys(byDate).length;
+
+  const div=document.createElement('div');
+  div.className='ai-msg ai';
+  div.innerHTML=`<span style="max-width:100%;display:block">
+    <div style="font-weight:600;margin-bottom:6px">✅ ลงตารางเวร ${monthName} เรียบร้อยแล้ว</div>
+    <div style="font-size:12px;opacity:.8">ลงเวรทั้งหมด ${valid.length} เวร ใน ${dateCount} วัน — ดูได้ที่ปฏิทินด้านล่างเลยครับ</div>
+  </span>`;
+  const chatBox=document.getElementById('ai-chat-box');
+  chatBox.appendChild(div);
+  chatBox.scrollTop=chatBox.scrollHeight;
+  showToast(`AI ลงตารางเวร ${valid.length} เวรเรียบร้อย`);
+}
 
 function addAiMsg(type,text){
   const chatBox=document.getElementById('ai-chat-box');
@@ -1281,6 +1369,9 @@ window.selectPRPerson=async function(uid){
     hourlyRate:salary.hourlyRate||0,
     hours:saved?.hoursOverride!=null?saved.hoursOverride:hours,
     autoHours:hours,
+    shiftCount:myShifts.length,
+    otHours:saved?.otHours||0,
+    otRate:saved?.otRate||0,
     status:saved?.status||'pending'
   };
   loading(false);
@@ -1292,10 +1383,11 @@ function renderPRCalc(){
   const d=prData;
   const baseAmt=d.salaryType==='hourly'?0:d.base;
   const hourlyAmt=d.salaryType==='fixed'?0:Math.round(d.hours*d.hourlyRate);
+  const otAmt=Math.round((d.otHours||0)*(d.otRate||0));
   const extraAdd=prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0);
   const extraDed=prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0);
-  const net=baseAmt+hourlyAmt+extraAdd-extraDed;
-  d.computedNet=net;d.baseAmt=baseAmt;d.hourlyAmt=hourlyAmt;
+  const net=baseAmt+hourlyAmt+otAmt+extraAdd-extraDed;
+  d.computedNet=net;d.baseAmt=baseAmt;d.hourlyAmt=hourlyAmt;d.otAmt=otAmt;
 
   const extraRows=prExtraItems.map((item,i)=>`
     <div class="pr-line">
@@ -1319,6 +1411,17 @@ function renderPRCalc(){
       <span class="${d.status==='paid'?'sta-on':'sta-off'}">${d.status==='paid'?'จ่ายแล้ว':'รอดำเนินการ'}</span>
     </div>
 
+    <!-- สรุปชั่วโมงจากตารางเวร (แสดงทุกคน) -->
+    <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:10px;padding:12px 14px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:12px;color:var(--text3);font-weight:600">⏱️ ชั่วโมงทำงานจากตารางเวร</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${MONTHS_TH[prMonth-1]} ${prYear} • ${d.shiftCount||0} เวร</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:22px;font-weight:700;color:var(--green-dd)">${d.autoHours} ชม.</div>
+      </div>
+    </div>
+
     ${d.salaryType!=='hourly'?`
     <div class="pr-line">
       <span class="pr-line-label">💰 เงินเดือนฐาน</span>
@@ -1327,7 +1430,7 @@ function renderPRCalc(){
 
     ${d.salaryType!=='fixed'?`
     <div class="pr-line">
-      <span class="pr-line-label">⏱️ ชั่วโมงทำงาน <span style="font-size:11px;color:var(--text3)">(อัตโนมัติ: ${d.autoHours} ชม.)</span></span>
+      <span class="pr-line-label">⏱️ ชั่วโมงคิดเงิน <span style="font-size:11px;color:var(--text3)">(จากตาราง: ${d.autoHours})</span></span>
       <div style="display:flex;align-items:center;gap:6px">
         <input type="number" class="pr-line-input" style="width:90px" value="${d.hours}" min="0" step="0.5" onchange="updatePRField('hours',this.value)">
         <span style="font-size:12px;color:var(--text3)">ชม.</span>
@@ -1341,6 +1444,24 @@ function renderPRCalc(){
       <span class="pr-line-label" style="color:var(--text3)">= ค่าแรงรายชั่วโมง</span>
       <span style="font-weight:600">฿${fmt(hourlyAmt)}</span>
     </div>`:''}
+
+    <!-- OT (ทุกประเภทกรอกได้) -->
+    <div style="margin:1.25rem 0 .5rem;font-size:13px;font-weight:700">⏰ ค่าล่วงเวลา (OT)</div>
+    <div class="pr-line">
+      <span class="pr-line-label">จำนวนชั่วโมง OT</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" class="pr-line-input" style="width:90px" value="${d.otHours||0}" min="0" step="0.5" onchange="updatePRField('otHours',this.value)">
+        <span style="font-size:12px;color:var(--text3)">ชม.</span>
+      </div>
+    </div>
+    <div class="pr-line">
+      <span class="pr-line-label">เรท OT (฿/ชม.) <span style="font-size:11px;color:var(--text3)">— admin กรอกเอง</span></span>
+      <input type="number" class="pr-line-input" value="${d.otRate||0}" min="0" onchange="updatePRField('otRate',this.value)" placeholder="เช่น 60">
+    </div>
+    <div class="pr-line">
+      <span class="pr-line-label" style="color:var(--text3)">= ค่า OT รวม</span>
+      <span style="font-weight:600;color:var(--green-d)">฿${fmt(otAmt)}</span>
+    </div>
 
     <div style="margin:1.25rem 0 .75rem;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between">
       <span>รายการเพิ่มเติม (ค่ารถ, Incentive, ภาษี, ประกันสังคม ฯลฯ)</span>
@@ -1360,7 +1481,7 @@ function renderPRCalc(){
     <div class="pr-net-box">
       <div>
         <div class="lbl">เงินเดือนสุทธิ</div>
-        <div style="font-size:11px;opacity:.6;margin-top:2px">ฐาน ฿${fmt(baseAmt)} ${hourlyAmt?`+ รายชั่วโมง ฿${fmt(hourlyAmt)}`:''} ${extraAdd?`+ พิเศษ ฿${fmt(extraAdd)}`:''} ${extraDed?`− หัก ฿${fmt(extraDed)}`:''}</div>
+        <div style="font-size:11px;opacity:.6;margin-top:2px">ฐาน ฿${fmt(baseAmt)} ${hourlyAmt?`+ ชม. ฿${fmt(hourlyAmt)}`:''} ${otAmt?`+ OT ฿${fmt(otAmt)}`:''} ${extraAdd?`+ พิเศษ ฿${fmt(extraAdd)}`:''} ${extraDed?`− หัก ฿${fmt(extraDed)}`:''}</div>
       </div>
       <div class="val">฿${fmt(net)}</div>
     </div>
@@ -1404,7 +1525,8 @@ window.savePRPerson=async function(){
     await setDoc(doc(db,'payroll',`${prCurrentPerson}_${monthStr}`),{
       uid:prCurrentPerson,name:d.name,month:prMonth,year:prYear,monthStr,
       salaryType:d.salaryType,baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,
-      hours:d.hours,hoursOverride:d.hours,
+      hours:d.hours,hoursOverride:d.hours,autoHours:d.autoHours,
+      otHours:d.otHours||0,otRate:d.otRate||0,otAmt:d.otAmt||0,
       bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
       deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
       extraItems:prExtraItems,
@@ -1424,6 +1546,7 @@ window.exportPersonSlip=function(){
   const rec={
     month:prMonth,year:prYear,salaryType:d.salaryType,
     baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,hours:d.hours,
+    otHours:d.otHours||0,otRate:d.otRate||0,otAmt:d.otAmt||0,
     bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
     deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
     net:d.computedNet,status:d.status,extraItems:prExtraItems
@@ -1466,8 +1589,8 @@ window.loadMyPayroll=async function(){
         <td style="font-weight:600">${MONTHS_TH[r.month-1]} ${r.year}</td>
         <td><span class="badge ${r.salaryType==='fixed'?'badge-blue':r.salaryType==='hourly'?'badge-amber':'badge-purple'}">${r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'ชั่วโมง':'ผสม'}</span></td>
         <td>฿${fmt(r.baseAmt)}</td>
-        <td>${r.hours||0} ชม.<div style="font-size:11px;color:var(--text3)">฿${fmt(r.hourlyAmt||0)}</div></td>
-        <td style="color:var(--green-d)">+฿${fmt(r.bonus||0)}</td>
+        <td>${r.hours||0} ชม.<div style="font-size:11px;color:var(--text3)">${r.otHours?`OT ${r.otHours} ชม.`:`฿${fmt(r.hourlyAmt||0)}`}</div></td>
+        <td style="color:var(--green-d)">+฿${fmt((r.bonus||0)+(r.otAmt||0))}${r.otAmt?`<div style="font-size:10px;color:var(--text3)">รวม OT</div>`:''}</td>
         <td style="color:var(--red-t)">-฿${fmt(r.deduction||0)}</td>
         <td style="font-weight:700;color:var(--green-dd)">฿${fmt(r.net)}</td>
         <td><span class="${r.status==='paid'?'sta-on':'sta-off'}">${r.status==='paid'?'ได้รับแล้ว':'รอดำเนินการ'}</span></td>
@@ -1637,13 +1760,15 @@ function buildMonthSlip(r, memberName, memberRole, uid){
     if(r.deduction)dedItems.push({name:'รายการหัก',amount:r.deduction});
   }
 
-  const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+addItems.reduce((a,x)=>a+x.amount,0);
+  const otAmt=r.otAmt||0;
+  const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+otAmt+addItems.reduce((a,x)=>a+x.amount,0);
   const totalDed=dedItems.reduce((a,x)=>a+x.amount,0);
 
   // สร้างแถวรายรับ
   const earnRows=[];
   if(r.salaryType!=='hourly')earnRows.push(['เงินเดือนฐาน','',fmt(r.baseAmt)]);
-  if(r.salaryType!=='fixed')earnRows.push(['ค่าล่วงเวลา (OT)',`${r.hours||0} ชม.`,fmt(r.hourlyAmt||0)]);
+  if(r.salaryType!=='fixed')earnRows.push(['ค่าแรงรายชั่วโมง',`${r.hours||0} ชม.`,fmt(r.hourlyAmt||0)]);
+  if(otAmt>0)earnRows.push(['ค่าล่วงเวลา (OT)',`${r.otHours||0} ชม.`,fmt(otAmt)]);
   addItems.forEach(x=>earnRows.push([x.name,'',fmt(x.amount)]));
   // สร้างแถวรายหัก
   const dedRows=dedItems.map(x=>[x.name,'',fmt(x.amount)]);
