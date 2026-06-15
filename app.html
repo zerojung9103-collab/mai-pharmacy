@@ -1066,10 +1066,10 @@ window.prSetTab=function(tab,el){
 let dbMode='day',dbYear=new Date().getFullYear(),dbMonth=new Date().getMonth()+1,dbChart=null;
 function getDbData(){
   if(dbMode==='day'){const days=new Date(dbYear,dbMonth,0).getDate();return Array.from({length:days},(_,i)=>{const ds=`${dbYear}-${String(dbMonth).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;return{label:String(i+1),branches:BRANCHES.map((_,bi)=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===bi);return{total:e?e.total:0,pays:e?e.amounts:{}};})};});}
-  if(dbMode==='month'){return MONTHS_TH.map((m,mi)=>{const ms=String(mi+1).padStart(2,'0');return{label:m,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(`${dbYear}-${ms}`)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})};});}
+  if(dbMode==='month'){return MONTHS_TH.map((m,mi)=>{const ms=String(mi+1).padStart(2,'0');return{label:m,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(`${dbYear}-${ms}`)&&x.branch===bi);const total=es.reduce((a,x)=>a+(parseFloat(x.total)||0),0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(parseFloat(x.amounts[p])||0),0);});return{total,pays};})};});}
   const years=[...new Set(salesEntries.map(x=>x.date.slice(0,4)))].sort();
   if(!years.length)years.push(String(new Date().getFullYear()));
-  return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})}));
+  return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+(parseFloat(x.total)||0),0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(parseFloat(x.amounts[p])||0),0);});return{total,pays};})}));
 }
 window.dbSetMode=function(m,el){dbMode=m;document.querySelectorAll('#db-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');dbRender();};
 // สรุปภาพรวมวันนี้ (admin)
@@ -1114,7 +1114,7 @@ function dbRender(){
   const datasets=BRANCHES.map((b,bi)=>dbMode==='year'?{label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'CC',borderColor:BCOLORS[bi],borderWidth:0,borderRadius:5}:{label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'18',borderColor:BCOLORS[bi],borderWidth:2,pointRadius:dbMode==='day'?1:3,tension:0.35,fill:true});
   if(dbChart)dbChart.destroy();
   dbChart=new Chart(document.getElementById('dbChart'),{type:dbMode==='year'?'bar':'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ฿${fmt(ctx.parsed.y)}`},backgroundColor:'#18211F',padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{size:11},autoSkip:dbMode==='day',maxRotation:0,color:'#9AADA9'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11},callback:v=>fmtB(v),color:'#9AADA9'},border:{display:false}}}}});
-  document.getElementById('db-bcards').innerHTML=BRANCHES.map((b,bi)=>{const tot=totals[bi];const pct=Math.round(tot/maxT*100);const payRows=payTypes.map(p=>{const v=rows.reduce((a,r)=>a+(r.branches[bi].pays[p]||0),0);return v>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px"><span>${p}</span><span style="font-weight:500;color:var(--text2)">฿${fmt(v)}</span></div>`:''}).join('');return`<div class="bcard"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem"><span class="bcard-dot" style="background:${BCOLORS[bi]}"></span><span style="font-size:13px;font-weight:600">${b}</span></div><div style="font-size:22px;font-weight:700;margin-bottom:.5rem;color:${BCOLORS[bi]}">฿${fmt(tot)}</div><div class="bcard-bar-bg"><div class="bcard-bar" style="width:${pct}%;background:${BCOLORS[bi]}"></div></div>${payRows}</div>`;}).join('');
+  document.getElementById('db-bcards').innerHTML=BRANCHES.map((b,bi)=>{const tot=totals[bi];const pct=Math.round(tot/maxT*100);const payRows=payTypes.map(p=>{const v=rows.reduce((a,r)=>a+(parseFloat(r.branches[bi].pays[p])||0),0);return v>0?`<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:3px"><span>${p}</span><span style="font-weight:500;color:var(--text2)">฿${fmt(v)}</span></div>`:''}).join('');return`<div class="bcard"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem"><span class="bcard-dot" style="background:${BCOLORS[bi]}"></span><span style="font-size:13px;font-weight:600">${b}</span></div><div style="font-size:22px;font-weight:700;margin-bottom:.5rem;color:${BCOLORS[bi]}">฿${fmt(tot)}</div><div class="bcard-bar-bg"><div class="bcard-bar" style="width:${pct}%;background:${BCOLORS[bi]}"></div></div>${payRows}</div>`;}).join('');
 }
 
 // ===== SCHEDULE (CALENDAR) + BIRTHDAY + AI =====
@@ -1532,8 +1532,10 @@ window.salesSave=function(){
   salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';
   const date=document.getElementById('sales-date').value;
   if(!date){showToast('กรุณาเลือกวันที่','err');return;}
-  const amounts={...salesAmounts[salesBranch]};
-  const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
+  // แปลงทุกค่าเป็นตัวเลขเสมอ (กันบั๊ก string ต่อกัน)
+  const amounts={};
+  payTypes.forEach(p=>{amounts[p]=parseFloat(salesAmounts[salesBranch]?.[p])||0;});
+  const total=payTypes.reduce((a,p)=>a+amounts[p],0);
   const idx=salesEntries.findIndex(e=>e.date===date&&e.branch===salesBranch);
   const rec={date,branch:salesBranch,amounts,total,note:salesNotes[salesBranch]};
   if(idx>=0)salesEntries[idx]=rec;else salesEntries.push(rec);
@@ -1549,7 +1551,14 @@ window.salesSave=function(){
 async function loadSalesFromCloud(){
   try{
     const snap=await getDocs(collection(db,'sales'));
-    salesEntries=snap.docs.map(d=>{const x=d.data();return{date:x.date,branch:x.branch,amounts:x.amounts||{},total:x.total||0,note:x.note||''};});
+    salesEntries=snap.docs.map(d=>{
+      const x=d.data();
+      // แปลง amounts เป็นตัวเลขเสมอ (กันข้อมูลเก่าที่เป็น string)
+      const amounts={};
+      Object.keys(x.amounts||{}).forEach(k=>{amounts[k]=parseFloat(x.amounts[k])||0;});
+      const total=Object.values(amounts).reduce((a,v)=>a+v,0);
+      return{date:x.date,branch:x.branch,amounts,total,note:x.note||''};
+    });
     saveLocal();
     // รีเฟรชหน้าจอถ้ากำลังดูอยู่
     if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderHistory();
