@@ -1704,7 +1704,6 @@ window.viewMember=function(uid){
         <tr><td style="color:var(--text3);padding:4px 0">อีเมล</td><td style="word-break:break-all">${m.email}</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">User ID</td><td style="font-family:monospace;font-size:11px;word-break:break-all;color:var(--text2)">${m.uid}</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">วันเกิด</td><td>${dob}</td></tr>
-        <tr><td style="color:var(--text3);padding:4px 0">บัตรประชาชน</td><td>${m.nationalId?'***'+m.nationalId.slice(-4):'—'}</td></tr>
       </table>
       <button class="btn btn-sm" style="margin-top:.75rem;width:100%" onclick="sendResetPassword('${(m.email||'').replace(/'/g,"\\'")}')">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -1715,6 +1714,43 @@ window.viewMember=function(uid){
     <div class="field">
       <input type="text" id="m-nickname" value="${(m.nickname||'').replace(/"/g,'&quot;')}" placeholder="เช่น ต้อง, แนน (ไว้เรียกง่ายๆ ในตาราง)">
     </div>
+
+    <div style="font-size:13px;font-weight:600;margin-bottom:.75rem">ข้อมูลพนักงาน</div>
+    <div class="field-row">
+      <div class="field">
+        <label class="fl">รหัสพนักงาน (กำหนดเอง)</label>
+        <input type="text" id="m-empid" value="${(m.empId||'').replace(/"/g,'&quot;')}" placeholder="เช่น EMP-001, P01">
+      </div>
+      <div class="field">
+        <label class="fl">ตำแหน่งงาน</label>
+        <input type="text" id="m-position" value="${(m.position||'').replace(/"/g,'&quot;')}" placeholder="เช่น เภสัชกร, ผู้ช่วยเภสัชกร, แคชเชียร์" list="position-list">
+        <datalist id="position-list"><option value="เภสัชกร"><option value="ผู้ช่วยเภสัชกร"><option value="แคชเชียร์"><option value="พนักงานขาย"><option value="พนักงานทั่วไป"></datalist>
+      </div>
+    </div>
+    <div class="field">
+      <label class="fl">เบอร์โทรศัพท์</label>
+      <input type="tel" id="m-phone" value="${(m.phone||'').replace(/"/g,'&quot;')}" placeholder="08X-XXX-XXXX">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="fl">เลขบัญชีธนาคาร (โอนเงินเดือน)</label>
+        <input type="text" id="m-bankacc" value="${(m.bankAccount||'').replace(/"/g,'&quot;')}" placeholder="XXX-X-XXXXX-X">
+      </div>
+      <div class="field">
+        <label class="fl">ธนาคาร</label>
+        <input type="text" id="m-bankname" value="${(m.bankName||'').replace(/"/g,'&quot;')}" placeholder="เช่น กสิกรไทย, ไทยพาณิชย์" list="bank-list">
+        <datalist id="bank-list"><option value="กสิกรไทย"><option value="ไทยพาณิชย์"><option value="กรุงเทพ"><option value="กรุงไทย"><option value="กรุงศรีอยุธยา"><option value="ทหารไทยธนชาต"><option value="ออมสิน"></datalist>
+      </div>
+    </div>
+    <div class="field">
+      <label class="fl">เลขบัตรประชาชน</label>
+      <input type="text" id="m-natid" value="${(m.nationalId||'').replace(/"/g,'&quot;')}" placeholder="X-XXXX-XXXXX-XX-X" maxlength="17">
+    </div>
+    <div class="field">
+      <label class="fl">ที่อยู่</label>
+      <textarea id="m-address" rows="2" placeholder="บ้านเลขที่ ถนน ตำบล อำเภอ จังหวัด รหัสไปรษณีย์" style="width:100%;resize:vertical">${(m.address||'').replace(/</g,'&lt;')}</textarea>
+    </div>
+
     <div style="font-size:13px;font-weight:600;margin-bottom:.75rem">บทบาท</div>
     <div class="field">
       <select id="m-role">
@@ -1760,10 +1796,18 @@ window.saveMemberSettings=async function(uid){
   Object.keys(PERM_LABELS).forEach(k=>{perms[k]=document.getElementById('perm-'+k)?.checked||false;});
   const salaryType=document.getElementById('m-salary-type').value;
   const salary={type:salaryType,base:parseFloat(document.getElementById('m-base')?.value||0),hourlyRate:parseFloat(document.getElementById('m-hourly')?.value||0)};
+  // ข้อมูลพนักงานเพิ่มเติม
+  const empId=document.getElementById('m-empid')?.value.trim()||'';
+  const position=document.getElementById('m-position')?.value.trim()||'';
+  const phone=document.getElementById('m-phone')?.value.trim()||'';
+  const bankAccount=document.getElementById('m-bankacc')?.value.trim()||'';
+  const bankName=document.getElementById('m-bankname')?.value.trim()||'';
+  const nationalId=document.getElementById('m-natid')?.value.trim()||'';
+  const address=document.getElementById('m-address')?.value.trim()||'';
   try{
-    await updateDoc(doc(db,'members',uid),{role,nickname,permissions:perms,salary});
+    await updateDoc(doc(db,'members',uid),{role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address});
     const m=allMembers.find(x=>x.uid===uid);
-    if(m){m.role=role;m.nickname=nickname;m.permissions=perms;m.salary=salary;}
+    if(m){Object.assign(m,{role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address});}
     if(uid===currentUser?.uid){
       profile={...profile,role,nickname,permissions:perms,salary};
       isAdmin=role==='admin';
@@ -2132,23 +2176,25 @@ window.exportPayrollExcel=async function(){
     recs.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
 
     // สร้างตาราง HTML ที่ Excel เปิดได้ (.xls) — รองรับภาษาไทย ด้วย UTF-8 BOM
-    const headers=['ลำดับ','รหัสพนักงาน','ชื่อ-นามสกุล','ประเภท','เงินเดือนฐาน','ชั่วโมง','ค่าชั่วโมง','OT(ชม.)','ค่า OT','รายรับเพิ่ม','รายการหัก','เงินสุทธิ','สถานะ'];
+    const headers=['ลำดับ','รหัสพนักงาน','ชื่อ-นามสกุล','ตำแหน่ง','ประเภท','เงินเดือนฐาน','ชั่วโมง','ค่าชั่วโมง','OT(ชม.)','ค่า OT','รายรับเพิ่ม','รายการหัก','เงินสุทธิ','สถานะ'];
     let totalNet=0,totalBase=0,totalOt=0;
     const rows=recs.map((r,i)=>{
       const add=(r.extraItems||[]).filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0)||r.bonus||0;
       const ded=(r.extraItems||[]).filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0)||r.deduction||0;
       totalNet+=r.net||0;totalBase+=r.baseAmt||0;totalOt+=r.otAmt||0;
       const typeLabel=r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'รายชั่วโมง':'ผสม';
-      return [i+1,empCode(r.uid),r.name||'',typeLabel,r.baseAmt||0,r.hours||0,r.hourlyAmt||0,r.otHours||0,r.otAmt||0,add,ded,r.net||0,r.status==='paid'?'จ่ายแล้ว':'รอ'];
+      const mem=allMembers.find(x=>x.uid===r.uid);
+      const ecode=mem?.empId||empCode(r.uid);
+      const pos=mem?.position||'';
+      return [i+1,ecode,r.name||'',pos,typeLabel,r.baseAmt||0,r.hours||0,r.hourlyAmt||0,r.otHours||0,r.otAmt||0,add,ded,r.net||0,r.status==='paid'?'จ่ายแล้ว':'รอ'];
     });
 
     const th=headers.map(h=>`<th style="background:#16B981;color:#fff;border:1px solid #0F8A63;padding:6px 10px;font-weight:700">${h}</th>`).join('');
     const trs=rows.map(row=>`<tr>${row.map((cell,ci)=>{
-      const num=[4,6,8,11].includes(ci); // คอลัมน์ตัวเลขเงิน
-      const money=[4,6,8,9,10,11].includes(ci);
+      const money=[5,7,9,10,11,12].includes(ci); // คอลัมน์ตัวเลขเงิน (เลื่อนเพราะเพิ่มตำแหน่ง)
       return `<td style="border:1px solid #ccc;padding:5px 10px;${money?'text-align:right;mso-number-format:\\#\\,\\#\\#0':''}">${cell}</td>`;
     }).join('')}</tr>`).join('');
-    const totalRow=`<tr style="font-weight:700;background:#EFFCF7"><td colspan="4" style="border:1px solid #ccc;padding:6px 10px;text-align:right">รวมทั้งหมด</td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalBase}</td><td colspan="3" style="border:1px solid #ccc"></td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalOt}</td><td colspan="2" style="border:1px solid #ccc"></td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalNet}</td><td style="border:1px solid #ccc"></td></tr>`;
+    const totalRow=`<tr style="font-weight:700;background:#EFFCF7"><td colspan="5" style="border:1px solid #ccc;padding:6px 10px;text-align:right">รวมทั้งหมด</td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalBase}</td><td colspan="3" style="border:1px solid #ccc"></td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalOt}</td><td colspan="2" style="border:1px solid #ccc"></td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalNet}</td><td style="border:1px solid #ccc"></td></tr>`;
 
     const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
 <head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:'Noto Sans Thai',sans-serif;font-size:13px}</style></head>
@@ -2357,7 +2403,11 @@ function empCode(uid){
 function buildMonthSlip(r, memberName, memberRole, uid){
   const typeLabel=r.salaryType==='fixed'?'เงินเดือนประจำ':r.salaryType==='hourly'?'รายชั่วโมง':'ประจำ + รายชั่วโมง';
   const statusLabel=r.status==='paid'?'จ่ายเงินแล้ว':'รอดำเนินการ';
-  const code=empCode(uid||r.uid);
+  // หาข้อมูลพนักงานเพิ่มเติม (รหัสกำหนดเอง, ตำแหน่ง, บัญชีธนาคาร)
+  const mem=allMembers.find(x=>x.uid===(uid||r.uid));
+  const code=mem?.empId?mem.empId:empCode(uid||r.uid);
+  const positionLabel=mem?.position||(memberRole==='admin'?'ผู้ดูแลระบบ':'พนักงาน');
+  const bankInfo=mem?.bankAccount?`${mem.bankName||''} ${mem.bankAccount}`.trim():'';
   // งวดที่จ่าย = วันสุดท้ายของเดือน
   const lastDay=new Date(r.year,r.month,0).getDate();
   const period=`${MONTHS_TH[r.month-1]} ${r.year}`;
@@ -2440,13 +2490,14 @@ function buildMonthSlip(r, memberName, memberRole, uid){
         <td class="lbl">รหัส :</td><td class="val">${code}</td>
       </tr>
       <tr>
-        <td class="lbl">ตำแหน่ง :</td><td class="val">${memberRole==='admin'?'ผู้ดูแลระบบ':'พนักงาน'}</td>
+        <td class="lbl">ตำแหน่ง :</td><td class="val">${positionLabel}</td>
         <td class="lbl">ประเภทจ้าง :</td><td class="val">${typeLabel}</td>
       </tr>
       <tr>
         <td class="lbl">งวดเงินเดือน :</td><td class="val">${period}</td>
         <td class="lbl">วันที่จ่าย :</td><td class="val">${payDate}</td>
       </tr>
+      ${bankInfo?`<tr><td class="lbl">โอนเข้าบัญชี :</td><td class="val" colspan="3">${bankInfo}</td></tr>`:''}
     </table>
 
     <table class="ps-main-table">
