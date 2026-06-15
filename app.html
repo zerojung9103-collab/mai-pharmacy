@@ -209,6 +209,7 @@ textarea{resize:vertical;min-height:64px}
 .skel-line{height:14px;margin-bottom:8px}
 .bday-badge{display:inline-flex;align-items:center;gap:3px;background:#FFF0F5;color:#C2185B;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:600;border:1px solid #F8BBD0;margin-bottom:2px;width:100%}
 .cal-leave{font-size:9px;font-weight:700;background:#FFF4E0;color:#B26A00;border:1px solid #F5D9A8;border-radius:5px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
+.cal-checkin{font-size:9px;font-weight:700;background:#DCFAEF;color:#066046;border:1px solid #A7E8CE;border-radius:5px;padding:2px 5px;margin-bottom:2px;line-height:1.3;overflow:hidden}
 .perm-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
 .perm-toggle:last-child{border-bottom:none}
 .toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0}
@@ -632,6 +633,11 @@ textarea{resize:vertical;min-height:64px}
       <div class="card-title">บันทึกเวลาวันนี้</div>
       <div id="checkin-today"></div>
     </div>
+    <div class="card" style="margin-top:1rem">
+      <div class="card-title">ประวัติการลงเวลาของฉัน</div>
+      <div class="card-sub">30 ครั้งล่าสุด — หากผู้ดูแลแก้เวลา จะมีปุ่มแสดงประวัติให้ตรวจสอบ</div>
+      <div id="my-checkin-history"></div>
+    </div>
   </div>
 
   <!-- CHECK-IN HISTORY (admin) -->
@@ -647,8 +653,8 @@ textarea{resize:vertical;min-height:64px}
     <div class="card">
       <div style="overflow-x:auto">
         <table class="payroll-table">
-          <thead><tr><th>พนักงาน</th><th>วันที่</th><th>เข้างาน</th><th>ออกงาน</th><th>รวมเวลา</th><th>สถานะ</th></tr></thead>
-          <tbody id="cih-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">เลือกวันที่แล้วกด "ดู"</td></tr></tbody>
+          <thead><tr><th>พนักงาน</th><th>วันที่</th><th>เข้างาน</th><th>ออกงาน</th><th>รวมเวลา</th><th>สถานะ</th><th>แก้ไข</th></tr></thead>
+          <tbody id="cih-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">เลือกวันที่แล้วกด "ดู"</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1255,10 +1261,19 @@ function scRender(){
     }).join('');
     const moreCount=dayShifts.length-maxShow;
     const moreHtml=moreCount>0?`<div class="cal-more" onclick="event.stopPropagation();scDayDetail('${ds}')">+${moreCount} เพิ่มเติม</div>`:'';
+    // เช็คอินที่ไม่มีเวรในตาราง (เช็คอินโดยไม่ได้จัดเวร) — แสดงแยกต่างหาก
+    const dayCheckins=getCheckinsOnDate(ds);
+    const shiftUids=dayShifts.map(s=>s.staffId);
+    const orphanCheckins=dayCheckins.filter(c=>!shiftUids.includes(c.uid));
+    const ciExtraHtml=orphanCheckins.map(c=>{
+      const nm=memberShort(c.uid)||c.name||'—';
+      const brIn=c.branchIn!=null?BRANCHES[c.branchIn]:'';
+      return `<div class="cal-checkin" title="${c.name} เช็คอิน ${c.checkIn}${c.checkOut?'-'+c.checkOut:''} ${brIn}">✓ ${nm} ${c.checkIn}${c.checkOut?'-'+c.checkOut:''}${brIn?'<br>📍'+brIn:''}</div>`;
+    }).join('');
     const addBtn=canEdit?`<div class="cal-add" onclick="event.stopPropagation();scAddShift('','${ds}')">+</div>`:'';
     html+=`<div class="cal-cell${isToday?' today':''}" ${canEdit?`onclick="scDayDetail('${ds}')"`:''} style="cursor:${canEdit?'pointer':'default'}">
       <div class="cal-date${isToday?' is-today':''}">${day}${isToday?'<span style="font-size:9px;background:var(--green);color:#fff;padding:1px 5px;border-radius:8px">วันนี้</span>':''}</div>
-      ${bdayHtml}${leaveHtml}${shiftCards}${moreHtml}${addBtn}
+      ${bdayHtml}${leaveHtml}${shiftCards}${ciExtraHtml}${moreHtml}${addBtn}
     </div>`;
   }
   // ช่องว่างท้ายเดือน
@@ -1299,6 +1314,19 @@ window.scDayDetail=function(ds){
     ${bdayHtml}${leaveHtml}
     <div style="font-size:13px;font-weight:600;margin-bottom:10px">เวรทำงาน (${dayShifts.length})</div>
     ${shiftList}
+    ${(()=>{
+      const dayCheckins=getCheckinsOnDate(ds);
+      const shiftUids=dayShifts.map(s=>s.staffId);
+      const orphans=dayCheckins.filter(c=>!shiftUids.includes(c.uid));
+      if(!orphans.length)return '';
+      return `<div style="font-size:13px;font-weight:600;margin:14px 0 10px">เช็คอินนอกเวร (${orphans.length})</div>`+orphans.map(c=>{
+        const brIn=c.branchIn!=null?BRANCHES[c.branchIn]:'';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--green-ll);border-radius:9px;margin-bottom:8px;border:1px solid #A7E8CE">
+          <span class="badge badge-green">✓ เช็คอิน</span>
+          <div style="flex:1"><div style="font-weight:600;font-size:13px">${c.name||memberName(c.uid)}</div><div style="font-size:12px;color:var(--text3)">${c.checkIn}${c.checkOut?' - '+c.checkOut:' (ยังไม่เช็คเอาท์)'}${brIn?' ที่'+brIn:''}${c.checkIn&&c.checkOut?' • รวม '+calcWorkTime(c.checkIn,c.checkOut):''}</div></div>
+        </div>`;
+      }).join('');
+    })()}
     ${isAdmin?`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="scAddShift('','${ds}')">+ เพิ่มเวร</button></div>`:`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`}`);
 };
 
@@ -2717,8 +2745,53 @@ async function renderCheckinPage(){
     ${rec.checkIn?`<div>🟢 เข้างาน: <b>${rec.checkIn}</b> ${rec.branchIn!=null?'ที่ '+BRANCHES[rec.branchIn]:''}</div>`:''}
     ${rec.checkOut?`<div>🔵 ออกงาน: <b>${rec.checkOut}</b> ${rec.branchOut!=null?'ที่ '+BRANCHES[rec.branchOut]:''}</div>`:''}
     ${rec.checkIn&&rec.checkOut?`<div style="margin-top:8px;color:var(--green-d);font-weight:600">รวมเวลาทำงาน: ${calcWorkTime(rec.checkIn,rec.checkOut)}</div>`:''}
+    ${rec.editHistory?.length?`<div style="background:#FFF8E6;border:1px solid #F5D78E;border-radius:8px;padding:10px;margin-top:10px;font-size:12px;color:#7A4E06">
+      <b>✎ ผู้ดูแลระบบแก้ไขเวลานี้</b>${rec.editHistory.map(h=>`<div style="margin-top:4px;line-height:1.6">• ${new Date(h.at).toLocaleString('th-TH')} โดย ${h.by}<br>&nbsp;&nbsp;จาก ${h.old.checkIn||'—'}/${h.old.checkOut||'—'} → ${h.new.checkIn||'—'}/${h.new.checkOut||'—'}${h.reason?`<br>&nbsp;&nbsp;เหตุผล: ${h.reason}`:''}</div>`).join('')}
+    </div>`:''}
   </div>`:'<div style="color:var(--text3);font-size:13px">ยังไม่มีการลงเวลาวันนี้</div>';
+
+  // โหลดประวัติการลงเวลาของตัวเอง (ย้อนหลัง) + แสดงการแก้ไข
+  loadMyCheckinHistory();
 }
+
+// ประวัติการลงเวลาของพนักงานเอง (เห็นการแก้ไขของ admin)
+async function loadMyCheckinHistory(){
+  const el=document.getElementById('my-checkin-history');
+  if(!el)return;
+  el.innerHTML='<div style="color:var(--text3);font-size:13px">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'checkins'),where('uid','==',currentUser.uid)));
+    const recs=snap.docs.map(d=>d.data()).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,30);
+    if(!recs.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีประวัติการลงเวลา</div>';return;}
+    el.innerHTML=recs.map(r=>{
+      const edited=r.editHistory?.length;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">${new Date(r.date).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}</div>
+          <div style="font-size:12px;color:var(--text3)">${r.checkIn||'—'} - ${r.checkOut||'—'}${r.checkIn&&r.checkOut?' • '+calcWorkTime(r.checkIn,r.checkOut):''}</div>
+        </div>
+        ${edited?`<button class="btn btn-sm" style="color:#D4690E;border-color:#F5D78E" onclick="showMyEditHistory('${r.uid}_${r.date}')">✎ ถูกแก้ไข ${edited} ครั้ง</button>`:''}
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML=`<div style="color:var(--red-t);font-size:13px">${e.message}</div>`;}
+}
+
+window.showMyEditHistory=async function(id){
+  try{
+    const d=await getDoc(doc(db,'checkins',id));if(!d.exists())return;
+    const r=d.data();
+    openModal(`<div class="modal-title">ประวัติการแก้ไขเวลา</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ ${r.date}</div>
+      ${(r.editHistory||[]).map(h=>`<div style="background:#FFF8E6;border-radius:8px;padding:12px;margin-bottom:8px;font-size:12px;color:#7A4E06;line-height:1.7">
+        <b>${new Date(h.at).toLocaleString('th-TH')}</b><br>
+        แก้ไขโดย: ${h.by}<br>
+        เวลาเดิม: เข้า ${h.old.checkIn||'—'} ออก ${h.old.checkOut||'—'}<br>
+        เวลาใหม่: เข้า ${h.new.checkIn||'—'} ออก ${h.new.checkOut||'—'}<br>
+        ${h.reason?`เหตุผล: ${h.reason}`:'<i>ไม่ได้ระบุเหตุผล</i>'}
+      </div>`).join('')}
+      <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+  }catch(e){showToast(e.message,'err');}
+};
 
 function calcWorkTime(inT,outT){
   const[ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);
@@ -2775,22 +2848,77 @@ window.loadCheckinHistory=async function(){
   document.getElementById('cih-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
   try{
     const snap=await getDocs(query(collection(db,'checkins'),where('date','==',date)));
-    const recs=snap.docs.map(d=>d.data()).sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
+    const recs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
     const checkedIn=recs.filter(r=>r.checkIn).length;
     const checkedOut=recs.filter(r=>r.checkOut).length;
     document.getElementById('cih-metrics').innerHTML=`
       <div class="mcard c-green"><div class="mcard-label">เข้างานแล้ว</div><div class="mcard-val">${checkedIn}</div><div class="mcard-sub">คน</div></div>
       <div class="mcard c-blue"><div class="mcard-label">ออกงานแล้ว</div><div class="mcard-val">${checkedOut}</div><div class="mcard-sub">คน</div></div>
       <div class="mcard c-amber"><div class="mcard-label">ยังทำงานอยู่</div><div class="mcard-val">${checkedIn-checkedOut}</div><div class="mcard-sub">คน</div></div>`;
-    document.getElementById('cih-tbody').innerHTML=recs.length===0?'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">ไม่มีการลงเวลาในวันนี้</td></tr>':recs.map(r=>`<tr>
+    document.getElementById('cih-tbody').innerHTML=recs.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่มีการลงเวลาในวันนี้</td></tr>':recs.map(r=>`<tr>
       <td style="font-weight:600">${r.name||'—'}</td>
       <td>${r.date}</td>
       <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}</td>
       <td style="color:var(--blue-t)">${r.checkOut||'—'}${r.branchOut!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchOut]}</div>`:''}</td>
       <td>${r.checkIn&&r.checkOut?calcWorkTime(r.checkIn,r.checkOut):'—'}</td>
-      <td>${r.checkOut?'<span class="sta-on">เสร็จสิ้น</span>':r.checkIn?'<span class="badge badge-amber">ทำงานอยู่</span>':'<span class="sta-off">ยังไม่เข้า</span>'}</td>
+      <td>${r.checkOut?'<span class="sta-on">เสร็จสิ้น</span>':r.checkIn?'<span class="badge badge-amber">ทำงานอยู่</span>':'<span class="sta-off">ยังไม่เข้า</span>'}${r.editHistory?.length?`<div style="font-size:9px;color:#D4690E;margin-top:2px">✎ แก้ไข ${r.editHistory.length} ครั้ง</div>`:''}</td>
+      <td><button class="btn btn-sm btn-blue" onclick="editCheckin('${r.id}')">แก้เวลา</button></td>
     </tr>`).join('');
-  }catch(e){document.getElementById('cih-tbody').innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+  }catch(e){document.getElementById('cih-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+};
+
+// admin แก้เวลาเช็คอิน + บันทึกประวัติการแก้ไข
+window.editCheckin=async function(id){
+  if(!isAdmin)return;
+  let rec=null;
+  try{const d=await getDoc(doc(db,'checkins',id));if(d.exists())rec=d.data();}catch(e){}
+  if(!rec){showToast('ไม่พบข้อมูล','err');return;}
+  const branchOpts=(sel)=>BRANCHES.map((b,i)=>`<option value="${i}" ${sel===i?'selected':''}>${b}</option>`).join('');
+  openModal(`<div class="modal-title">แก้เวลาลงเวลา — ${rec.name||''}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ ${rec.date} • การแก้ไขจะถูกบันทึกประวัติให้พนักงานเห็น</div>
+    <div class="field-row">
+      <div class="field"><label class="fl">เวลาเข้างาน</label><input type="time" id="ec-in" value="${rec.checkIn||''}" step="60" lang="en-GB"></div>
+      <div class="field"><label class="fl">สาขาเข้างาน</label><select id="ec-bin">${branchOpts(rec.branchIn)}</select></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="fl">เวลาออกงาน</label><input type="time" id="ec-out" value="${rec.checkOut||''}" step="60" lang="en-GB"></div>
+      <div class="field"><label class="fl">สาขาออกงาน</label><select id="ec-bout">${branchOpts(rec.branchOut)}</select></div>
+    </div>
+    <div class="field"><label class="fl">เหตุผลที่แก้ (พนักงานจะเห็น)</label><input type="text" id="ec-reason" placeholder="เช่น พนักงานลืมเช็คเอาท์, GPS ผิดพลาด"></div>
+    ${rec.editHistory?.length?`<div style="background:#FFF8E6;border-radius:8px;padding:10px;margin-bottom:1rem;font-size:11px;color:#7A4E06">
+      <b>ประวัติการแก้ไขก่อนหน้า:</b>${rec.editHistory.map(h=>`<div style="margin-top:4px">• ${new Date(h.at).toLocaleString('th-TH')} โดย ${h.by}${h.reason?' — '+h.reason:''}</div>`).join('')}
+    </div>`:''}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveCheckinEdit('${id}')">บันทึกการแก้ไข</button></div>`);
+};
+
+window.saveCheckinEdit=async function(id){
+  const newIn=document.getElementById('ec-in').value;
+  const newOut=document.getElementById('ec-out').value;
+  const newBin=parseInt(document.getElementById('ec-bin').value);
+  const newBout=parseInt(document.getElementById('ec-bout').value);
+  const reason=document.getElementById('ec-reason').value.trim();
+  try{
+    const d=await getDoc(doc(db,'checkins',id));
+    if(!d.exists()){showToast('ไม่พบข้อมูล','err');return;}
+    const rec=d.data();
+    // สร้างบันทึกประวัติ (เก็บค่าเดิม)
+    const histEntry={
+      at:new Date().toISOString(),
+      by:profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin',
+      byUid:currentUser.uid,
+      reason,
+      old:{checkIn:rec.checkIn||'',checkOut:rec.checkOut||'',branchIn:rec.branchIn,branchOut:rec.branchOut},
+      new:{checkIn:newIn,checkOut:newOut,branchIn:newBin,branchOut:newBout}
+    };
+    const editHistory=[...(rec.editHistory||[]),histEntry];
+    await setDoc(doc(db,'checkins',id),{
+      ...rec,checkIn:newIn,checkOut:newOut,branchIn:newBin,branchOut:newBout,
+      editHistory,editedByAdmin:true
+    });
+    closeMD();showToast('บันทึกการแก้ไขแล้ว (มีประวัติให้พนักงานเห็น)');
+    loadCheckinHistory();
+    if(allCheckins.length)await loadCheckinsForSchedule();
+  }catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
 };
 
 // ===== ARTICLES =====
