@@ -324,6 +324,9 @@ textarea{resize:vertical;min-height:64px}
     <button class="sb-item hidden" id="nav-leave-admin" onclick="goto('leave-admin')">
       <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>รายการขอลา
     </button>
+    <button class="sb-item hidden" id="nav-activity" onclick="goto('activity')">
+      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>บันทึกการใช้งาน
+    </button>
     <div class="sb-sec">วิชาการ</div>
     <button class="sb-item" id="nav-articles" onclick="goto('articles')">
       <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>บทความ/คำแนะนำ
@@ -690,6 +693,32 @@ textarea{resize:vertical;min-height:64px}
     </div>
   </div>
 
+  <!-- ACTIVITY LOG (admin) -->
+  <div class="page" id="page-activity">
+    <div class="topbar"><div><div class="page-title">บันทึกการใช้งาน</div><div class="page-sub">ดูว่าใครเข้ามาทำอะไรในระบบบ้าง</div></div>
+      <button class="btn" onclick="loadActivityLog()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>รีเฟรช</button>
+    </div>
+    <div class="card" style="margin-bottom:1rem">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <label style="font-size:13px;color:var(--text2);font-weight:600">กรอง:</label>
+        <select id="act-filter-action" onchange="renderActivityLog()" style="width:auto;padding:7px 12px;font-size:13px">
+          <option value="">ทุกการกระทำ</option>
+          <option value="login">เข้าสู่ระบบ</option>
+          <option value="checkin">เช็คอิน</option>
+          <option value="checkout">เช็คเอาท์</option>
+          <option value="sales_save">บันทึกยอดขาย</option>
+          <option value="sales_delete">ลบยอดขาย</option>
+          <option value="leave_request">ขอลา</option>
+          <option value="member_edit">แก้ข้อมูลสมาชิก</option>
+          <option value="checkin_edit">แก้เวลาลงเวลา</option>
+          <option value="schedule_generate">สร้างตารางอัตโนมัติ</option>
+        </select>
+        <input type="text" id="act-filter-name" placeholder="🔍 ค้นชื่อคน" oninput="renderActivityLog()" style="width:160px;padding:7px 12px;font-size:13px">
+      </div>
+    </div>
+    <div id="activity-list"><div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
+  </div>
+
   <!-- ARTICLES -->
   <div class="page" id="page-articles">
     <div class="topbar">
@@ -855,6 +884,24 @@ async function loadShiftsFromCloud(){
 let currentUser=null, profile=null, isAdmin=false;
 let allMembers=[], payrollData={};
 
+// ===== ACTIVITY LOG =====
+// บันทึกการกระทำของผู้ใช้ลง Firestore (activityLogs)
+async function logActivity(action, detail){
+  if(!currentUser)return;
+  try{
+    const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():currentUser.email;
+    const id='log_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+    await setDoc(doc(db,'activityLogs',id),{
+      uid:currentUser.uid,
+      name:name||currentUser.email,
+      role:isAdmin?'admin':'member',
+      action,                       // ประเภทการกระทำ เช่น 'login','sales_save'
+      detail:detail||'',            // รายละเอียด เช่น 'สาขาบางปู 15/6'
+      at:new Date().toISOString()
+    });
+  }catch(e){/* log ไม่สำเร็จไม่ควรขัดการทำงานหลัก */}
+}
+
 // ===== HELPERS =====
 function loading(v){document.getElementById('loading').classList.toggle('show',v);}
 function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
@@ -891,6 +938,8 @@ function buildNav(){
   if(cih)cih.classList.toggle('hidden',!isAdmin);
   const laAdmin=document.getElementById('nav-leave-admin');
   if(laAdmin)laAdmin.classList.toggle('hidden',!isAdmin);
+  const actNav=document.getElementById('nav-activity');
+  if(actNav)actNav.classList.toggle('hidden',!isAdmin);
   const artBtn=document.getElementById('art-new-btn');
   if(artBtn)artBtn.style.display=isAdmin?'':'none';
   const doseBtn=document.getElementById('dose-new-btn');
@@ -953,6 +1002,11 @@ onAuthStateChanged(auth,async user=>{
   loadBranchLocations();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
   loadLeavesForSchedule();
+  // บันทึก log การเข้าใช้งาน (ครั้งเดียวต่อ session)
+  if(!sessionStorage.getItem('nm_logged_login')){
+    logActivity('login','เข้าสู่ระบบ');
+    sessionStorage.setItem('nm_logged_login','1');
+  }
   loading(false);
 });
 
@@ -982,6 +1036,7 @@ const PAGE_PERM={
   'checkin-history':'checkin_all',
   'leave':null,
   'leave-admin':'leave_admin',
+  'activity':'activity_admin',
   'articles':null,
   'dosecalc':null,
   'drugwarn':null,
@@ -995,6 +1050,7 @@ function canAccessPage(page){
   if(perm==='payroll_all')return false;
   if(perm==='checkin_all')return false;
   if(perm==='leave_admin')return false;
+  if(perm==='activity_admin')return false;
   if(perm==='dashboard_admin')return false;
   return hasPerm(perm);
 }
@@ -1036,6 +1092,7 @@ window.goto=function(page){
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
   if(page==='leave-admin')loadLeaveAdmin();
+  if(page==='activity')loadActivityLog();
   if(page==='articles')loadArticles();
   if(page==='dosecalc')loadDoseTools();
   if(page==='drugwarn')loadDrugWarnings();
@@ -1545,6 +1602,7 @@ window.generateAutoSchedule=async function(){
   scRender();
   document.getElementById('sc-auto-panel').style.display='none';
   showToast(`สร้างตารางเวรสำเร็จ ${added} เวร`);
+  logActivity('schedule_generate',`สร้างตารางอัตโนมัติ ${monthStr} (${added} เวร)`);
 };
 
 window.scAddShift=function(uid,ds){
@@ -1605,7 +1663,7 @@ window.salesSave=function(){
   // บันทึกลง Firestore (ใช้ร่วมกันทุกเครื่อง)
   const docId=`${date}_${salesBranch}`;
   setDoc(doc(db,'sales',docId),{...rec,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''})
-    .then(()=>showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย'))
+    .then(()=>{showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย');logActivity('sales_save',`ยอดขายสาขา${BRANCHES[salesBranch]} วันที่ ${date} = ฿${total.toLocaleString()}`);})
     .catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+e.message,'err'));
 };
 
@@ -1645,6 +1703,7 @@ window.salesDelete=async function(date,branch){
     salesEntries=salesEntries.filter(e=>!(e.date===date&&e.branch===branch));
     saveLocal();
     salesRenderHistory();
+    logActivity('sales_delete',`ลบยอดขายสาขา${BRANCHES[branch]} วันที่ ${date}`);
     showToast('ลบยอดขายแล้ว');
   }catch(e){showToast('ลบไม่ได้: '+e.message,'err');}
   loading(false);
@@ -1811,7 +1870,7 @@ window.saveMemberSettings=async function(uid){
       isAdmin=role==='admin';
       buildNav();
     }
-    closeMD();filterMembers();showToast('บันทึกข้อมูลสมาชิกแล้ว');
+    closeMD();filterMembers();logActivity('member_edit',`แก้ข้อมูลสมาชิก: ${m?`${m.firstName||''} ${m.lastName||''}`.trim():uid}`);showToast('บันทึกข้อมูลสมาชิกแล้ว');
   }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
 };
 
@@ -2856,6 +2915,7 @@ window.doCheckin=function(type){
       rec.uid=currentUser.uid;rec.name=name;rec.date=todayStr();
       await setDoc(doc(db,'checkins',id),rec);
       showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}`);
+      logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}`);
       renderCheckinPage();
     }catch(e){msg.innerHTML='<span style="color:var(--red-t)">บันทึกไม่ได้: '+e.message+'</span>';}
   },err=>{
@@ -2938,7 +2998,7 @@ window.saveCheckinEdit=async function(id){
       ...rec,checkIn:newIn,checkOut:newOut,branchIn:newBin,branchOut:newBout,
       editHistory,editedByAdmin:true
     });
-    closeMD();showToast('บันทึกการแก้ไขแล้ว (มีประวัติให้พนักงานเห็น)');
+    closeMD();logActivity('checkin_edit',`แก้เวลาลงเวลาของ ${rec.name||''} (${rec.date})`);showToast('บันทึกการแก้ไขแล้ว (มีประวัติให้พนักงานเห็น)');
     loadCheckinHistory();
     if(allCheckins.length)await loadCheckinsForSchedule();
   }catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
@@ -3398,6 +3458,7 @@ window.submitLeave=async function(){
     document.getElementById('leave-from').value='';
     document.getElementById('leave-to').value='';
     document.getElementById('leave-reason').value='';
+    logActivity('leave_request',`ขอลา ${from}${to!==from?' ถึง '+to:''}`);
     showToast(`ส่งคำขอลาแล้ว${removed>0?` (ตัดเวร ${removed} วันออก)`:''}`);
     loadMyLeaves();
   }catch(e){showToast('ส่งไม่ได้: '+e.message,'err');}
@@ -3485,6 +3546,61 @@ window.deleteLeaveAdmin=async function(id){
   if(!confirm('ลบคำขอลานี้?'))return;
   try{await deleteDoc(doc(db,'leaves',id));await loadLeavesForSchedule();if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();showToast('ลบแล้ว');loadLeaveAdmin();}
   catch(e){showToast(e.message,'err');}
+};
+
+// ===== ACTIVITY LOG (admin view) =====
+let allActivityLogs=[];
+const ACTION_LABELS={
+  login:['เข้าสู่ระบบ','#3B8EEA','🔑'],
+  checkin:['เช็คอิน','#16B981','🟢'],
+  checkout:['เช็คเอาท์','#1E63B5','🔵'],
+  sales_save:['บันทึกยอดขาย','#0F8A63','💰'],
+  sales_delete:['ลบยอดขาย','#A32D2D','🗑️'],
+  leave_request:['ขอลา','#7A4E06','🌴'],
+  member_edit:['แก้ข้อมูลสมาชิก','#3C3489','👤'],
+  checkin_edit:['แก้เวลาลงเวลา','#D4690E','✎'],
+  schedule_generate:['สร้างตารางอัตโนมัติ','#0B5E66','⚙️']
+};
+
+window.loadActivityLog=async function(){
+  if(!isAdmin){document.getElementById('activity-list').innerHTML=accessDenied();return;}
+  document.getElementById('activity-list').innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'activityLogs'));
+    allActivityLogs=snap.docs.map(d=>d.data()).sort((a,b)=>(b.at||'').localeCompare(a.at||'')).slice(0,500);
+    renderActivityLog();
+  }catch(e){document.getElementById('activity-list').innerHTML=`<div style="text-align:center;color:var(--red-t);font-size:13px">${e.message}</div>`;}
+};
+
+window.renderActivityLog=function(){
+  const el=document.getElementById('activity-list');if(!el)return;
+  const fAction=document.getElementById('act-filter-action')?.value||'';
+  const fName=(document.getElementById('act-filter-name')?.value||'').toLowerCase().trim();
+  let list=allActivityLogs;
+  if(fAction)list=list.filter(l=>l.action===fAction);
+  if(fName)list=list.filter(l=>(l.name||'').toLowerCase().includes(fName));
+  if(!list.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">ไม่มีบันทึกที่ตรงกับเงื่อนไข</div>';return;}
+  // จัดกลุ่มตามวัน
+  let html='',lastDate='';
+  list.forEach(l=>{
+    const d=new Date(l.at);
+    const dateStr=d.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    if(dateStr!==lastDate){
+      html+=`<div style="font-size:12px;font-weight:700;color:var(--text2);margin:14px 0 8px;padding-left:2px">${dateStr}</div>`;
+      lastDate=dateStr;
+    }
+    const[label,color,icon]=ACTION_LABELS[l.action]||[l.action,'#6E6E73','•'];
+    const time=d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    html+=`<div style="display:flex;align-items:flex-start;gap:12px;padding:11px 14px;background:var(--surface);border-radius:12px;margin-bottom:6px;box-shadow:var(--shadow)">
+      <div style="width:34px;height:34px;border-radius:10px;background:${color}1A;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px"><b>${l.name||'—'}</b> <span style="color:${color};font-weight:600">${label}</span></div>
+        ${l.detail?`<div style="font-size:12px;color:var(--text3);margin-top:1px">${l.detail}</div>`:''}
+      </div>
+      <div style="font-size:11px;color:var(--text3);white-space:nowrap;flex-shrink:0">${time}</div>
+    </div>`;
+  });
+  el.innerHTML=html;
 };
 
 function accessDenied(){return`<div class="access-denied"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3>ไม่มีสิทธิ์เข้าถึง</h3><p>กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์</p></div>`;}
