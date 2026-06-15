@@ -2820,33 +2820,92 @@ function renderGpsSettings(){
   const el=document.getElementById('gps-branch-list');
   el.innerHTML=BRANCHES.map((b,i)=>{
     const loc=branchLocations[i];
-    return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    return`<div style="padding:14px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <span style="font-weight:600;font-size:13px;color:${BCOLORS[i]}">${b}</span>
         ${loc?`<span class="badge badge-green">ตั้งแล้ว</span>`:`<span class="badge badge-red">ยังไม่ตั้ง</span>`}
       </div>
-      ${loc?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">พิกัด: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)} • รัศมี ${loc.radius} ม.</div>`:''}
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-sm btn-primary" onclick="setBranchGPS(${i})">📍 ใช้ตำแหน่งปัจจุบัน</button>
-        <input type="number" id="gps-radius-${i}" value="${loc?loc.radius:100}" min="20" style="width:90px;padding:5px 8px" placeholder="รัศมี(ม.)" title="รัศมีเมตร">
-        <span style="font-size:12px;color:var(--text3);align-self:center">เมตร</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <label style="font-size:11px;color:var(--text3)">ละติจูด (lat)</label>
+          <input type="number" id="gps-lat-${i}" value="${loc?loc.lat:''}" step="any" placeholder="13.12345" style="width:100%;padding:6px 8px;font-size:13px">
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--text3)">ลองจิจูด (lng)</label>
+          <input type="number" id="gps-lng-${i}" value="${loc?loc.lng:''}" step="any" placeholder="100.12345" style="width:100%;padding:6px 8px;font-size:13px">
+        </div>
       </div>
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px">
+        <div>
+          <label style="font-size:11px;color:var(--text3)">รัศมี (เมตร)</label>
+          <input type="number" id="gps-radius-${i}" value="${loc?loc.radius:100}" min="20" style="width:90px;padding:6px 8px;font-size:13px" title="รัศมีเมตร">
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="saveBranchGPSManual(${i})">💾 บันทึกพิกัด</button>
+        <button class="btn btn-sm" id="gps-btn-${i}" onclick="setBranchGPS(${i})" title="ใช้ตำแหน่งปัจจุบัน (ต้องอยู่ที่ร้าน)">📍 ตำแหน่งปัจจุบัน</button>
+      </div>
+      <div id="gps-status-${i}" style="font-size:12px;margin-top:4px;display:none"></div>
     </div>`;
   }).join('');
+  // เพิ่มคำแนะนำวิธีหาพิกัดจาก Google Maps
+  el.innerHTML+=`<div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px;margin-top:12px;font-size:12px;color:#1E40AF;line-height:1.7">
+    <b>💡 วิธีหาพิกัดร้านจาก Google Maps (ไม่ต้องไปที่ร้าน):</b><br>
+    1. เปิด Google Maps → ค้นหาร้าน หรือกดค้างที่ตำแหน่งร้านบนแผนที่<br>
+    2. จะมีพิกัดขึ้นมา เช่น <b>13.12345, 100.12345</b> (ตัวแรก=lat, ตัวสอง=lng)<br>
+    3. กดที่ตัวเลขเพื่อคัดลอก → นำมากรอกในช่อง lat/lng ด้านบน<br>
+    4. กด "บันทึกพิกัด"
+  </div>`;
 }
 
+// แสดงสถานะใต้สาขา
+function setGpsStatus(i,msg,type){
+  const el=document.getElementById('gps-status-'+i);
+  if(!el)return;
+  el.style.display='block';
+  const c={load:['#FFF8E6','#7A4E06','⏳'],ok:['var(--green-ll)','var(--green-dd)','✅'],err:['#FDEAEA','#A32D2D','⚠️']}[type]||['#FAFBFB','#5A6B7B',''];
+  el.style.background=c[0];el.style.color=c[1];el.style.borderRadius='8px';el.style.padding='8px 10px';
+  el.innerHTML=`${c[2]} ${msg}`;
+}
+
+// บันทึกพิกัดจากการกรอกมือ
+window.saveBranchGPSManual=function(i){
+  const lat=parseFloat(document.getElementById('gps-lat-'+i)?.value);
+  const lng=parseFloat(document.getElementById('gps-lng-'+i)?.value);
+  const radius=parseInt(document.getElementById('gps-radius-'+i)?.value)||100;
+  if(isNaN(lat)||isNaN(lng)){setGpsStatus(i,'กรุณากรอกละติจูดและลองจิจูดให้ถูกต้อง','err');return;}
+  if(lat<-90||lat>90||lng<-180||lng>180){setGpsStatus(i,'พิกัดไม่ถูกต้อง (lat: -90 ถึง 90, lng: -180 ถึง 180)','err');return;}
+  branchLocations[i]={lat,lng,radius};
+  localStorage.setItem('nm_branch_locations',JSON.stringify(branchLocations));
+  setGpsStatus(i,'กำลังบันทึก...','load');
+  setDoc(doc(db,'config','branchLocations'),{locations:branchLocations})
+    .then(()=>{setGpsStatus(i,`บันทึกพิกัด${BRANCHES[i]}เรียบร้อย ✓`,'ok');setTimeout(()=>renderGpsSettings(),1200);})
+    .catch(e=>setGpsStatus(i,'บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+e.message,'err'));
+};
+
 window.setBranchGPS=function(i){
-  if(!navigator.geolocation){showToast('เบราว์เซอร์ไม่รองรับ GPS','err');return;}
-  showToast('กำลังขอตำแหน่ง...');
+  const btn=document.getElementById('gps-btn-'+i);
+  if(!navigator.geolocation){setGpsStatus(i,'เบราว์เซอร์ไม่รองรับ GPS','err');return;}
+  if(btn){btn.disabled=true;btn.textContent='⏳ กำลังขอตำแหน่ง...';}
+  setGpsStatus(i,'กำลังขอตำแหน่ง GPS... (อาจใช้เวลา 2-5 วินาที กรุณารอ)','load');
   navigator.geolocation.getCurrentPosition(pos=>{
     const radius=parseInt(document.getElementById('gps-radius-'+i)?.value)||100;
+    const acc=Math.round(pos.coords.accuracy||0);
     branchLocations[i]={lat:pos.coords.latitude,lng:pos.coords.longitude,radius};
     localStorage.setItem('nm_branch_locations',JSON.stringify(branchLocations));
+    setGpsStatus(i,`ตั้งพิกัดสำเร็จ! (${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}) ความแม่นยำ ±${acc} ม. — กำลังบันทึก...`,'ok');
     // บันทึกลง Firestore ด้วยเพื่อ sync ทุกเครื่อง
-    setDoc(doc(db,'config','branchLocations'),{locations:branchLocations}).catch(()=>{});
-    showToast(`ตั้งพิกัด${BRANCHES[i]}แล้ว`);
-    renderGpsSettings();
-  },err=>{showToast('เข้าถึง GPS ไม่ได้ เปิดสิทธิ์ตำแหน่งก่อน','err');},{enableHighAccuracy:true,timeout:10000});
+    setDoc(doc(db,'config','branchLocations'),{locations:branchLocations})
+      .then(()=>{setGpsStatus(i,`บันทึกพิกัด${BRANCHES[i]}เรียบร้อย ✓ ความแม่นยำ ±${acc} ม.`,'ok');setTimeout(()=>renderGpsSettings(),1500);})
+      .catch(e=>{setGpsStatus(i,'ตั้งพิกัดในเครื่องแล้ว แต่ sync ขึ้น cloud ไม่ได้: '+e.message,'err');});
+  },err=>{
+    if(btn){btn.disabled=false;btn.textContent='📍 ใช้ตำแหน่งปัจจุบัน';}
+    // ข้อความ error เฉพาะเจาะจง (โดยเฉพาะ iPhone)
+    let msg='';
+    if(err.code===1)msg='ถูกปฏิเสธการเข้าถึงตำแหน่ง — iPhone: ไปที่ ตั้งค่า > Safari > ตำแหน่งที่ตั้ง > อนุญาต แล้วลองใหม่ (หรือถ้าใช้แอปที่ติดตั้ง ให้เช็ค ตั้งค่า > ความเป็นส่วนตัว > บริการหาตำแหน่ง)';
+    else if(err.code===2)msg='หาตำแหน่งไม่ได้ — ลองเปิด GPS/Location ในมือถือ แล้วออกไปที่โล่งๆ ลองใหม่';
+    else if(err.code===3)msg='หมดเวลารอ GPS — สัญญาณอาจอ่อน ลองใหม่อีกครั้งในที่โล่ง';
+    else msg='เข้าถึง GPS ไม่ได้: '+(err.message||'ไม่ทราบสาเหตุ');
+    setGpsStatus(i,msg,'err');
+  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
 };
 
 // โหลดพิกัดสาขาจาก Firestore
