@@ -1021,9 +1021,9 @@ window.goto=function(page){
   // sync bottom nav
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   if(typeof window.scrollTo==='function')window.scrollTo({top:0,behavior:'smooth'});
-  if(page==='dashboard')dbRender();
+  if(page==='dashboard'){dbRender();loadSalesFromCloud();}
   if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule()]).then(scRender);scRender();}
-  if(page==='sales'){salesRenderForm();salesRenderHistory();}
+  if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
@@ -1545,15 +1545,15 @@ window.salesSave=function(){
     .catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+e.message,'err'));
 };
 
-// โหลดยอดขายจาก Firestore (sync ทุกเครื่อง)
+// โหลดยอดขายจาก Firestore (sync ทุกเครื่อง — cloud คือแหล่งข้อมูลหลัก)
 async function loadSalesFromCloud(){
   try{
     const snap=await getDocs(collection(db,'sales'));
-    const cloud=snap.docs.map(d=>d.data());
-    if(cloud.length){
-      salesEntries=cloud.map(x=>({date:x.date,branch:x.branch,amounts:x.amounts||{},total:x.total||0,note:x.note||''}));
-      saveLocal();
-    }
+    salesEntries=snap.docs.map(d=>{const x=d.data();return{date:x.date,branch:x.branch,amounts:x.amounts||{},total:x.total||0,note:x.note||''};});
+    saveLocal();
+    // รีเฟรชหน้าจอถ้ากำลังดูอยู่
+    if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderHistory();
+    if(document.getElementById('page-dashboard')?.classList.contains('active'))dbRender();
   }catch(e){console.error('loadSales error',e);}
 }
 function salesRenderHistory(){
@@ -1562,8 +1562,22 @@ function salesRenderHistory(){
   const grand=todayEs.reduce((a,e)=>a+e.total,0);
   document.getElementById('sales-sum').innerHTML=`<div class="mcard c-green"><div class="mcard-label">ยอดรวมทุกสาขา</div><div class="mcard-val">฿${fmt(grand)}</div><div class="mcard-sub">วันที่เลือก</div></div>${BRANCHES.map((b,i)=>{const e=todayEs.find(x=>x.branch===i);return`<div class="mcard ${['c-green','c-blue','c-amber'][i]}"><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(e?e.total:0)}</div><div class="mcard-sub">${e?'บันทึกแล้ว':'ยังไม่บันทึก'}</div></div>`;}).join('')}`;
   const sorted=[...salesEntries].sort((a,b)=>b.date.localeCompare(a.date)||a.branch-b.branch);
-  document.getElementById('sales-hist-list').innerHTML=sorted.length===0?`<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีข้อมูล</div>`:sorted.map(e=>{const pills=payTypes.filter(p=>parseFloat(e.amounts[p])>0).map(p=>`<span class="pill">${p}: ฿${fmt(e.amounts[p])}</span>`).join('');return`<div class="hist-item"><div class="hi-head"><div><span style="font-weight:700;color:${BCOLORS[e.branch]}">สาขา${BRANCHES[e.branch]}</span> <span style="font-size:12px;color:var(--text3)">${e.date}</span></div><span style="font-size:16px;font-weight:700;color:${BCOLORS[e.branch]}">฿${fmt(e.total)}</span></div><div style="display:flex;flex-wrap:wrap;gap:5px">${pills}</div>${e.note?`<div style="font-size:12px;color:var(--text3);margin-top:6px">📝 ${e.note}</div>`:''}</div>`;}).join('');
+  document.getElementById('sales-hist-list').innerHTML=sorted.length===0?`<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีข้อมูล</div>`:sorted.map(e=>{const pills=payTypes.filter(p=>parseFloat(e.amounts[p])>0).map(p=>`<span class="pill">${p}: ฿${fmt(e.amounts[p])}</span>`).join('');return`<div class="hist-item"><div class="hi-head"><div><span style="font-weight:700;color:${BCOLORS[e.branch]}">สาขา${BRANCHES[e.branch]}</span> <span style="font-size:12px;color:var(--text3)">${e.date}</span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:700;color:${BCOLORS[e.branch]}">฿${fmt(e.total)}</span>${isAdmin?`<button class="btn btn-sm btn-danger" style="padding:3px 9px" onclick="salesDelete('${e.date}',${e.branch})">ลบ</button>`:''}</div></div><div style="display:flex;flex-wrap:wrap;gap:5px">${pills}</div>${e.note?`<div style="font-size:12px;color:var(--text3);margin-top:6px">📝 ${e.note}</div>`:''}</div>`;}).join('');
 }
+
+// ลบยอดขาย (ทั้ง Firestore + ในเครื่อง)
+window.salesDelete=async function(date,branch){
+  if(!confirm(`ลบยอดขายสาขา${BRANCHES[branch]} วันที่ ${date}?`))return;
+  loading(true);
+  try{
+    await deleteDoc(doc(db,'sales',`${date}_${branch}`));
+    salesEntries=salesEntries.filter(e=>!(e.date===date&&e.branch===branch));
+    saveLocal();
+    salesRenderHistory();
+    showToast('ลบยอดขายแล้ว');
+  }catch(e){showToast('ลบไม่ได้: '+e.message,'err');}
+  loading(false);
+};
 
 // ===== MEMBERS =====
 window.loadMembers=async function(){
