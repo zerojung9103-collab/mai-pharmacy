@@ -1022,7 +1022,7 @@ window.goto=function(page){
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   if(typeof window.scrollTo==='function')window.scrollTo({top:0,behavior:'smooth'});
   if(page==='dashboard'){dbRender();loadSalesFromCloud();}
-  if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule()]).then(scRender);scRender();}
+  if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
@@ -1123,6 +1123,7 @@ let scYear=new Date().getFullYear();
 let bdaySettings=JSON.parse(localStorage.getItem('nm_bday_settings')||'{}');
 let memberBdays=[];
 let allLeaves=[]; // วันลาทั้งหมด สำหรับแสดงในตารางเวร
+let allCheckins=[]; // การเช็คอินทั้งหมด สำหรับแสดงในตารางเวร + คำนวณ payroll
 
 // โหลดวันลาทั้งหมดจาก Firestore
 async function loadLeavesForSchedule(){
@@ -1132,10 +1133,27 @@ async function loadLeavesForSchedule(){
   }catch(e){allLeaves=[];}
 }
 
+// โหลดการเช็คอินทั้งหมดจาก Firestore
+async function loadCheckinsForSchedule(){
+  try{
+    const snap=await getDocs(collection(db,'checkins'));
+    allCheckins=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){allCheckins=[];}
+}
+
 // คืนรายการคนที่ลาในวันนั้น [{uid, name, type}]
 function getLeavesOnDate(ds){
   return allLeaves.filter(l=>l.from&&ds>=l.from&&ds<=(l.to||l.from))
     .map(l=>({uid:l.uid,name:l.name,type:l.type||'ลา'}));
+}
+
+// คืนการเช็คอินของวันนั้น [{uid, name, checkIn, checkOut, branchIn, branchOut}]
+function getCheckinsOnDate(ds){
+  return allCheckins.filter(c=>c.date===ds&&c.checkIn);
+}
+// หาเช็คอินของคน+วัน
+function getCheckinFor(uid,ds){
+  return allCheckins.find(c=>c.uid===uid&&c.date===ds&&c.checkIn);
 }
 
 window.scChangeMonth=function(d){
@@ -1225,7 +1243,15 @@ function scRender(){
     const shiftCards=dayShifts.slice(0,maxShow).map(s=>{
       const nm=memberShort(s.staffId);
       const br=BRANCHES[s.branch];
-      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${br}"><span style="font-weight:700">${nm}</span> ${s.start}<br><span style="font-weight:400;opacity:.85">📍${br}</span></div>`;
+      // เช็คว่าคนนี้เช็คอินวันนี้ไหม
+      const ci=getCheckinFor(s.staffId,ds);
+      let ciHtml='';
+      if(ci){
+        const branchInName=ci.branchIn!=null?BRANCHES[ci.branchIn]:'';
+        const sameBranch=ci.branchIn===s.branch;
+        ciHtml=`<br><span style="font-weight:600;color:${sameBranch?'#0F8A63':'#D4690E'}">✓ ${ci.checkIn}${ci.checkOut?'-'+ci.checkOut:''}${branchInName&&!sameBranch?' @'+branchInName:''}</span>`;
+      }
+      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${br}${ci?' • เช็คอิน '+ci.checkIn:''}"><span style="font-weight:700">${nm}</span> ${s.start}<br><span style="font-weight:400;opacity:.85">📍${br}</span>${ciHtml}</div>`;
     }).join('');
     const moreCount=dayShifts.length-maxShow;
     const moreHtml=moreCount>0?`<div class="cal-more" onclick="event.stopPropagation();scDayDetail('${ds}')">+${moreCount} เพิ่มเติม</div>`:'';
@@ -1253,12 +1279,22 @@ window.scDayDetail=function(ds){
   const bdayHtml=bdays.length?`<div style="background:#FFF0F5;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#C2185B;font-weight:600">🎂 วันเกิด: ${bdays.map(b=>`${b.firstName} ${b.lastName||''}`).join(', ')}</div>`:'';
   const dayLeaves=getLeavesOnDate(ds);
   const leaveHtml=dayLeaves.length?`<div style="background:#FFF4E0;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#B26A00;font-weight:600">🌴 ลางาน: ${dayLeaves.map(l=>`${l.name} (${l.type})`).join(', ')}</div>`:'';
-  const shiftList=dayShifts.length?dayShifts.map(s=>`
+  const shiftList=dayShifts.length?dayShifts.map(s=>{
+    const ci=getCheckinFor(s.staffId,ds);
+    let ciLine='';
+    if(ci){
+      const sameBranch=ci.branchIn===s.branch;
+      const brIn=ci.branchIn!=null?BRANCHES[ci.branchIn]:'';
+      ciLine=`<div style="font-size:11px;margin-top:3px;color:${sameBranch?'#0F8A63':'#D4690E'};font-weight:600">✓ เช็คอิน ${ci.checkIn}${ci.checkOut?' - '+ci.checkOut:' (ยังไม่เช็คเอาท์)'}${brIn?' ที่'+brIn:''}${!sameBranch&&brIn?' ⚠️ คนละสาขากับเวร':''}${ci.checkIn&&ci.checkOut?' • รวม '+calcWorkTime(ci.checkIn,ci.checkOut):''}</div>`;
+    }else{
+      ciLine=`<div style="font-size:11px;margin-top:3px;color:var(--text3)">○ ยังไม่เช็คอิน</div>`;
+    }
+    return `
     <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
       <span class="badge ${['badge-green','badge-blue','badge-amber'][s.branch]}">${BRANCHES[s.branch]}</span>
-      <div style="flex:1"><div style="font-weight:600;font-size:13px">${memberName(s.staffId)}</div><div style="font-size:12px;color:var(--text3)">${s.start} – ${s.end}</div></div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${memberName(s.staffId)}</div><div style="font-size:12px;color:var(--text3)">${s.start} – ${s.end}</div>${ciLine}</div>
       ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`:''}
-    </div>`).join(''):'<div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">ยังไม่มีเวรในวันนี้</div>';
+    </div>`;}).join(''):'<div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">ยังไม่มีเวรในวันนี้</div>';
   openModal(`<div class="modal-title">📅 ${dateStr}</div>
     ${bdayHtml}${leaveHtml}
     <div style="font-size:13px;font-weight:600;margin-bottom:10px">เวรทำงาน (${dayShifts.length})</div>
@@ -1783,13 +1819,24 @@ window.selectPRPerson=async function(uid){
   loading(true);
 
   const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
-  // คำนวณชั่วโมงทำงานจากตารางเวร
+  // โหลดการเช็คอินของเดือนนี้ (เพื่อหักสาย)
+  if(!allCheckins.length)await loadCheckinsForSchedule();
+  // คำนวณชั่วโมงทำงานจากตารางเวร + หักสายเกิน 30 นาที
   const myShifts=shifts.filter(s=>s.staffId===uid&&s.date?.startsWith(monthStr));
-  const hours=Math.round(myShifts.reduce((a,s)=>{
+  let rawHours=0, lateDeduction=0, lateCount=0;
+  myShifts.forEach(s=>{
     const[sh,sm]=s.start.split(':').map(Number);
     const[eh,em]=s.end.split(':').map(Number);
-    return a+(eh+em/60-sh-sm/60);
-  },0)*10)/10;
+    rawHours+=(eh+em/60-sh-sm/60);
+    // เช็คว่ามาสายเกิน 30 นาทีไหม
+    const ci=getCheckinFor(uid,s.date);
+    if(ci&&ci.checkIn){
+      const[cih,cim]=ci.checkIn.split(':').map(Number);
+      const lateMin=(cih*60+cim)-(sh*60+sm);
+      if(lateMin>30){lateDeduction+=0.5;lateCount++;}
+    }
+  });
+  const hours=Math.round((rawHours-lateDeduction)*10)/10;
 
   // โหลด record ที่บันทึกไว้
   let saved=null;
@@ -1805,6 +1852,9 @@ window.selectPRPerson=async function(uid){
     hourlyRate:salary.hourlyRate||0,
     hours:saved?.hoursOverride!=null?saved.hoursOverride:hours,
     autoHours:hours,
+    rawHours:Math.round(rawHours*10)/10,
+    lateDeduction,
+    lateCount,
     shiftCount:myShifts.length,
     otHours:saved?.otHours||0,
     otRate:saved?.otRate||0,
@@ -1848,14 +1898,20 @@ function renderPRCalc(){
     </div>
 
     <!-- สรุปชั่วโมงจากตารางเวร (แสดงทุกคน) -->
-    <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:10px;padding:12px 14px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:12px;color:var(--text3);font-weight:600">⏱️ ชั่วโมงทำงานจากตารางเวร</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:2px">${MONTHS_TH[prMonth-1]} ${prYear} • ${d.shiftCount||0} เวร</div>
+    <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:10px;padding:12px 14px;margin-bottom:1rem">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:12px;color:var(--text3);font-weight:600">⏱️ ชั่วโมงทำงาน (หลังหักสาย)</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:2px">${MONTHS_TH[prMonth-1]} ${prYear} • ${d.shiftCount||0} เวร</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:22px;font-weight:700;color:var(--green-dd)">${d.autoHours} ชม.</div>
+        </div>
       </div>
-      <div style="text-align:right">
-        <div style="font-size:22px;font-weight:700;color:var(--green-dd)">${d.autoHours} ชม.</div>
-      </div>
+      ${d.lateDeduction>0?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(29,158,117,.15);font-size:11px;color:var(--text3);display:flex;justify-content:space-between">
+        <span>ตามตาราง ${d.rawHours} ชม. − สาย ${d.lateCount} ครั้ง (หักครั้งละ 30 นาที)</span>
+        <span style="color:#D4690E;font-weight:600">−${d.lateDeduction} ชม.</span>
+      </div>`:`<div style="margin-top:6px;font-size:11px;color:var(--text3)">✓ ไม่มีการมาสายเกิน 30 นาที</div>`}
     </div>
 
     ${d.salaryType!=='hourly'?`
