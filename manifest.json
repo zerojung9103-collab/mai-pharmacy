@@ -1,0 +1,26 @@
+{
+  "name": "ใหม่เภสัช - ระบบจัดการร้าน",
+  "short_name": "ใหม่เภสัช",
+  "description": "ระบบจัดการร้านขายยา ใหม่เภสัช - ตารางเวร เช็คอิน ยอดขาย เงินเดือน",
+  "start_url": "./app.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F3F6F8",
+  "theme_color": "#16B981",
+  "lang": "th",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -2,26 +2,39 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ใหม่เภสัช — ระบบหลัก</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#16B981">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ใหม่เภสัช">
+<link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#1D9E75;--green-d:#0F6E56;--green-dd:#085041;--green-l:#E1F5EE;--green-ll:#F0FAF6;
-  --blue:#378ADD;--blue-d:#185FA5;--blue-l:#E6F1FB;--blue-t:#0C447C;
-  --amber:#EF9F27;--amber-l:#FAEEDA;--amber-t:#633806;
-  --purple:#7F77DD;--purple-l:#EEEDFE;--purple-t:#3C3489;
-  --red:#E24B4A;--red-l:#FCEBEB;--red-t:#A32D2D;
-  --bg:#F4F6F5;--surface:#fff;--border:#E8ECEB;--border2:#D4DAD8;
-  --text:#18211F;--text2:#5A6B67;--text3:#9AADA9;
-  --r:12px;--rl:16px;--font:'Noto Sans Thai',system-ui,sans-serif;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
-  --shadow-md:0 2px 8px rgba(0,0,0,.08),0 8px 32px rgba(0,0,0,.06);
+  --green:#16B981;--green-d:#0F8A63;--green-dd:#066046;--green-l:#DCFAEF;--green-ll:#EFFCF7;
+  --blue:#3B8EEA;--blue-d:#1E63B5;--blue-l:#E3F0FE;--blue-t:#0C447C;
+  --amber:#F7A823;--amber-l:#FDF0D8;--amber-t:#7A4E06;
+  --purple:#8B7FF0;--purple-l:#EFEDFE;--purple-t:#3C3489;
+  --red:#F0524F;--red-l:#FDEAEA;--red-t:#A32D2D;
+  --pink:#EC4899;--pink-l:#FCE7F3;--pink-t:#9D174D;
+  --teal:#14B8C4;--teal-l:#D7F6F8;--teal-t:#0B5E66;
+  --bg:#F3F6F8;--surface:#fff;--border:#EAEEF1;--border2:#D4DAD8;
+  --text:#16202E;--text2:#5A6B7B;--text3:#94A3B3;
+  --r:14px;--rl:18px;--font:'Noto Sans Thai',system-ui,sans-serif;
+  --shadow:0 1px 3px rgba(20,40,80,.05),0 4px 16px rgba(20,40,80,.05);
+  --shadow-md:0 2px 10px rgba(20,40,80,.08),0 10px 34px rgba(20,40,80,.07);
+  --grad-green:linear-gradient(135deg,#16B981,#0EA472);
+  --grad-blue:linear-gradient(135deg,#3B8EEA,#2D6FD4);
+  --grad-amber:linear-gradient(135deg,#F7A823,#F08C1A);
+  --grad-purple:linear-gradient(135deg,#8B7FF0,#6F5FE6);
+  --grad-pink:linear-gradient(135deg,#EC4899,#DB2777);
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:#18211F;display:flex;flex-direction:column;z-index:100}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(165deg,#0F2922,#16202E 60%,#1A1530);display:flex;flex-direction:column;z-index:100}
 .sb-brand{padding:1.5rem 1.25rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.07)}
 .sb-icon{width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.75rem}
 .sb-brand h1{font-size:16px;font-weight:700;color:#fff}
@@ -30,7 +43,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sb-sec{font-size:10px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:.1em;text-transform:uppercase;padding:.75rem .75rem .35rem;margin-top:.25rem}
 .sb-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;transition:.12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
-.sb-item.active{background:var(--green);color:#fff}
+.sb-item.active{background:var(--grad-green);color:#fff;box-shadow:0 4px 14px rgba(22,185,129,.4)}
 .sb-item.hidden{display:none}
 .sb-item svg{width:17px;height:17px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.07)}
@@ -42,28 +55,36 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sb-logout:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
 .sb-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
 .main{margin-left:240px;padding:2rem;min-height:100vh}
-.page{display:none}.page.active{display:block}
+.page{display:none}
+.page.active{display:block;animation:pageIn .35s cubic-bezier(.22,.61,.36,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px}
-.page-title{font-size:22px;font-weight:700;color:var(--text)}
+.page-title{font-size:23px;font-weight:800;color:var(--text);letter-spacing:-.01em}
 .page-sub{font-size:13px;color:var(--text3);margin-top:3px}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;box-shadow:var(--shadow)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
 .card-title{font-size:15px;font-weight:700;margin-bottom:.25rem}
 .card-sub{font-size:12px;color:var(--text3);margin-bottom:1rem}
-.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.25rem}
-.mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--rl) var(--rl) 0 0}
-.mcard.c-green::before{background:var(--green)}.mcard.c-blue::before{background:var(--blue)}.mcard.c-amber::before{background:var(--amber)}.mcard.c-purple::before{background:var(--purple)}.mcard.c-red::before{background:var(--red)}
+.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:1.25rem}
+.mcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.3rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+.mcard:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.mcard::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.mcard::after{content:'';position:absolute;top:-30px;right:-30px;width:90px;height:90px;border-radius:50%;opacity:.08}
+.mcard.c-green::before{background:var(--grad-green)}.mcard.c-green::after{background:var(--green)}
+.mcard.c-blue::before{background:var(--grad-blue)}.mcard.c-blue::after{background:var(--blue)}
+.mcard.c-amber::before{background:var(--grad-amber)}.mcard.c-amber::after{background:var(--amber)}
+.mcard.c-purple::before{background:var(--grad-purple)}.mcard.c-purple::after{background:var(--purple)}
+.mcard.c-red::before{background:var(--red)}.mcard.c-red::after{background:var(--red)}
 .mcard-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:.75rem}
 .mcard-icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.mcard-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.02em;margin-bottom:4px}
-.mcard-val{font-size:22px;font-weight:700;color:var(--text)}
-.mcard-sub{font-size:11px;color:var(--text3);margin-top:3px}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);transition:.12s;font-family:var(--font);white-space:nowrap}
-.btn:hover{background:var(--bg)}.btn:active{transform:scale(.97)}
-.btn-primary{background:var(--green);border-color:var(--green);color:#fff}.btn-primary:hover{background:var(--green-d)}
+.mcard-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:.02em;margin-bottom:4px;position:relative}
+.mcard-val{font-size:24px;font-weight:800;color:var(--text);position:relative;letter-spacing:-.02em}
+.mcard-sub{font-size:11px;color:var(--text3);margin-top:3px;position:relative}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);transition:all .15s ease;font-family:var(--font);white-space:nowrap}
+.btn:hover{background:var(--bg);transform:translateY(-1px)}.btn:active{transform:scale(.96)}
+.btn-primary{background:var(--grad-green);border-color:transparent;color:#fff;box-shadow:0 2px 8px rgba(22,185,129,.3)}.btn-primary:hover{box-shadow:0 4px 14px rgba(22,185,129,.4);background:var(--grad-green)}
 .btn-danger{background:var(--red-l);border-color:#F09595;color:var(--red-t)}.btn-danger:hover{background:#F7C1C1}
-.btn-blue{background:var(--blue-l);border-color:var(--blue);color:var(--blue-t)}
-.btn-sm{padding:5px 12px;font-size:12px;border-radius:7px}
+.btn-blue{background:var(--grad-blue);border-color:transparent;color:#fff;box-shadow:0 2px 8px rgba(59,142,234,.3)}.btn-blue:hover{box-shadow:0 4px 14px rgba(59,142,234,.4)}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
 .btn-group{display:flex;gap:8px;flex-wrap:wrap}
 .tabs{display:flex;gap:2px;background:var(--border);border-radius:11px;padding:3px;width:fit-content}
 .tab{padding:6px 16px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--text2);font-family:var(--font);transition:.12s}
@@ -140,9 +161,6 @@ textarea{resize:vertical;min-height:64px}
 .payroll-table tr:last-child td{border-bottom:none}
 .payroll-table tr:hover td{background:#FAFBFB}
 .payroll-sum{background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:var(--r);padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
-.staff-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
-.staff-row:last-child{border-bottom:none}
-.staff-av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;background:var(--green-l);color:var(--green-dd)}
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:.75rem 1.25rem;border-radius:10px;font-size:13px;font-weight:500;z-index:400;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.15)}
 .toast.show{opacity:1;transform:translateY(0)}.toast.err{background:var(--red-t)}.toast.ok{background:var(--green-d)}
 .loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:1rem;backdrop-filter:blur(2px)}
@@ -153,7 +171,7 @@ textarea{resize:vertical;min-height:64px}
 .access-denied svg{width:56px;height:56px;stroke:var(--border2);fill:none;stroke-width:1.5;margin:0 auto 1rem;display:block}
 .access-denied h3{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:.5rem}
 /* === Mobile components (base styles first) === */
-.mobile-topbar{position:fixed;top:0;left:0;right:0;height:56px;background:#18211F;z-index:90;align-items:center;padding:0 1rem;gap:12px;display:none}
+.mobile-topbar{position:fixed;top:0;left:0;right:0;height:56px;background:linear-gradient(120deg,#0F2922,#1A1530);z-index:90;align-items:center;padding:0 1rem;gap:12px;display:none}
 .mobile-topbar-title{font-size:15px;font-weight:700;color:#fff;flex:1}
 .hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center}
 .hamburger:hover{background:rgba(255,255,255,.1)}
@@ -169,26 +187,28 @@ textarea{resize:vertical;min-height:64px}
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);transition:transform .25s ease}
   .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0;padding:1rem;padding-top:72px}
+  .main{margin-left:0;padding:1rem;padding-top:72px;padding-bottom:84px}
   .field-row,.field-row3{grid-template-columns:1fr}
   .mobile-topbar{display:flex!important}
   .schedule-grid{grid-template-columns:90px repeat(7,1fr)}
+  .bottom-nav{display:flex!important}
 }
+/* Bottom Navigation (mobile) */
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:95;align-items:center;justify-content:space-around;padding:0 4px;box-shadow:0 -2px 16px rgba(20,40,80,.06)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;font-weight:600;padding:6px 2px;border-radius:12px;transition:.15s;position:relative;max-width:80px}
+.bn-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:.15s}
+.bn-item.active{color:var(--green)}
+.bn-item.active svg{transform:translateY(-2px) scale(1.08)}
+.bn-item.active::before{content:'';position:absolute;top:0;width:28px;height:3px;border-radius:0 0 4px 4px;background:var(--grad-green)}
+.bn-item:active{transform:scale(.92)}
+@media(min-width:769px){.bottom-nav{display:none!important}}
+/* Skeleton loading */
+.skeleton{background:linear-gradient(90deg,#EAEEF1 25%,#F3F6F8 50%,#EAEEF1 75%);background-size:200% 100%;animation:skel 1.3s ease-in-out infinite;border-radius:8px}
+@keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-card{height:90px;margin-bottom:12px}
+.skel-line{height:14px;margin-bottom:8px}
 .bday-badge{display:inline-flex;align-items:center;gap:3px;background:#FFF0F5;color:#C2185B;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:600;border:1px solid #F8BBD0;margin-bottom:2px;width:100%}
-.ai-panel{background:linear-gradient(135deg,#18211F,#1D3A35);border-radius:var(--rl);padding:1.5rem;margin-bottom:1rem;border:1px solid rgba(29,158,117,.3)}
-.ai-panel-title{color:#fff;font-size:15px;font-weight:700;margin-bottom:.5rem;display:flex;align-items:center;gap:8px}
-.ai-panel-sub{color:rgba(255,255,255,.5);font-size:12px;margin-bottom:1rem}
-.ai-chat{background:rgba(255,255,255,.05);border-radius:var(--r);padding:1rem;min-height:120px;max-height:300px;overflow-y:auto;margin-bottom:.75rem;border:1px solid rgba(255,255,255,.08)}
-.ai-msg{margin-bottom:.75rem;font-size:13px;line-height:1.6}
-.ai-msg.user{text-align:right}.ai-msg.user span{background:var(--green);color:#fff;padding:6px 12px;border-radius:12px 12px 3px 12px;display:inline-block;max-width:85%}
-.ai-msg.ai span{background:rgba(255,255,255,.1);color:#fff;padding:6px 12px;border-radius:12px 12px 12px 3px;display:inline-block;max-width:85%;text-align:left}
-.ai-msg.thinking span{color:rgba(255,255,255,.4);font-style:italic;font-size:12px}
-.ai-input-row{display:flex;gap:8px}
-.ai-input{flex:1;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:9px 12px;color:#fff;font-family:var(--font);font-size:13px;outline:none}
-.ai-input::placeholder{color:rgba(255,255,255,.3)}
-.ai-input:focus{border-color:var(--green);background:rgba(255,255,255,.12)}
-.ai-send{padding:9px 16px;background:var(--green);border:none;border-radius:9px;color:#fff;cursor:pointer;font-family:var(--font);font-size:13px;font-weight:600;transition:.15s;white-space:nowrap}
-.ai-send:hover{background:var(--green-d)}.ai-send:disabled{background:var(--text3);cursor:not-allowed}
+.cal-leave{font-size:9px;font-weight:700;background:#FFF4E0;color:#B26A00;border:1px solid #F5D9A8;border-radius:5px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
 .perm-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
 .perm-toggle:last-child{border-bottom:none}
 .toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0}
@@ -292,12 +312,39 @@ textarea{resize:vertical;min-height:64px}
     <button class="sb-item" id="nav-my-payroll" onclick="goto('my-payroll')">
       <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="2"/></svg>ประวัติเงินเดือน
     </button>
+    <div class="sb-sec">ลงเวลา</div>
+    <button class="sb-item" id="nav-checkin" onclick="goto('checkin')">
+      <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>เช็คอินเข้างาน
+    </button>
+    <button class="sb-item hidden" id="nav-checkin-history" onclick="goto('checkin-history')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ประวัติลงเวลา
+    </button>
+    <button class="sb-item" id="nav-leave" onclick="goto('leave')">
+      <svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><line x1="9" y1="16" x2="15" y2="16"/></svg>ขอลา
+    </button>
+    <button class="sb-item hidden" id="nav-leave-admin" onclick="goto('leave-admin')">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>รายการขอลา
+    </button>
+    <div class="sb-sec">วิชาการ</div>
+    <button class="sb-item" id="nav-articles" onclick="goto('articles')">
+      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>บทความ/คำแนะนำ
+    </button>
+    <button class="sb-item" id="nav-dosecalc" onclick="goto('dosecalc')">
+      <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/></svg>คำนวณโดสยา
+    </button>
+    <button class="sb-item" id="nav-drugwarn" onclick="goto('drugwarn')">
+      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>คำเตือนยา
+    </button>
     <div class="sb-sec">ระบบ</div>
     <button class="sb-item" id="nav-settings" onclick="goto('settings')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>ตั้งค่า
     </button>
   </div>
   <div class="sb-footer">
+    <button id="install-app-btn" onclick="installApp()" style="display:none;align-items:center;gap:8px;width:100%;background:var(--grad-green);border:none;border-radius:10px;padding:10px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 14px rgba(22,185,129,.4)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      ติดตั้งแอพลงเครื่อง
+    </button>
     <div class="sb-user">
       <div class="sb-avatar" id="sb-av">?</div>
       <div style="flex:1;overflow:hidden">
@@ -312,16 +359,18 @@ textarea{resize:vertical;min-height:64px}
 </nav>
 
 <main class="main">
+  <div id="alert-banner" style="display:none"></div>
   <!-- DASHBOARD -->
   <div class="page" id="page-dashboard">
     <div class="topbar">
-      <div><div class="page-title">แดชบอร์ดยอดขาย</div><div class="page-sub">ภาพรวมยอดขายทุกสาขา</div></div>
+      <div><div class="page-title">ภาพรวมร้าน</div><div class="page-sub">สรุปวันนี้และยอดขายทุกสาขา</div></div>
       <div class="tabs" id="db-tabs">
         <button class="tab active" onclick="dbSetMode('day',this)">รายวัน</button>
         <button class="tab" onclick="dbSetMode('month',this)">รายเดือน</button>
         <button class="tab" onclick="dbSetMode('year',this)">รายปี</button>
       </div>
     </div>
+    <div id="db-today-overview" style="margin-bottom:1.25rem"></div>
     <div id="db-filter" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem"></div>
     <div class="metric-grid" id="db-metrics"></div>
     <div class="card">
@@ -349,7 +398,7 @@ textarea{resize:vertical;min-height:64px}
           <option value="2">อินดี้</option>
         </select>
         <button class="btn btn-sm" id="sc-bday-btn" onclick="toggleBdayPanel()">🎂 วันเกิด</button>
-        <button class="btn btn-sm" id="sc-ai-btn" style="display:none" onclick="toggleAiPanel()">✨ AI จัดเวร</button>
+        <button class="btn btn-sm btn-primary" id="sc-auto-btn" style="display:none" onclick="toggleAutoPanel()">⚙️ สร้างตารางอัตโนมัติ</button>
       </div>
     </div>
 
@@ -362,19 +411,18 @@ textarea{resize:vertical;min-height:64px}
       </div>
     </div>
 
-    <div id="sc-ai-panel" style="display:none;margin-bottom:1rem">
-      <div class="ai-panel">
-        <div class="ai-panel-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          AI จัดตารางเวร
-        </div>
-        <div class="ai-panel-sub">บอก AI ว่าต้องการจัดเวรอย่างไร เช่น ใครหยุดวันไหน ใครไม่อยากทำงานร่วมกัน ต้องการกะเช้า/บ่าย</div>
-        <div class="ai-chat" id="ai-chat-box">
-          <div class="ai-msg ai"><span>สวัสดีครับ! ผมช่วยจัดตารางเวรให้ได้เลย บอกผมได้เลยว่า<br>• ต้องการจัดเวรเดือนไหน?<br>• ใครต้องการหยุดวันไหนบ้าง?<br>• มีข้อจำกัดพิเศษไหม? เช่น ไม่อยากทำงานคู่กัน หรือต้องการกะเช้า/บ่ายเท่านั้น</span></div>
-        </div>
-        <div class="ai-input-row">
-          <input class="ai-input" id="ai-input" placeholder="เช่น: จัดเวรเดือนกรกฎาคม สุภาพรหยุด 5,10,15 วิชัยไม่อยากทำงานกับนภา..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMessage()}">
-          <button class="ai-send" id="ai-send-btn" onclick="sendAiMessage()">ส่ง</button>
+    <div id="sc-auto-panel" style="display:none;margin-bottom:1rem">
+      <div class="card">
+        <div style="font-size:15px;font-weight:700;margin-bottom:.25rem">⚙️ สร้างตารางเวรอัตโนมัติ</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">ตั้งเงื่อนไขแต่ละคน แล้วกดสร้าง ระบบจะลงเวรทั้งเดือนให้ (ลบเวรเดิมของเดือนนี้ก่อน)</div>
+        <div id="auto-member-list"></div>
+        <div class="divider"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+          <div style="font-size:12px;color:var(--text3)">เดือนที่จะสร้าง: <b id="auto-month-label"></b></div>
+          <button class="btn btn-primary" onclick="generateAutoSchedule()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            สร้างตารางทั้งเดือน
+          </button>
         </div>
       </div>
     </div>
@@ -473,6 +521,21 @@ textarea{resize:vertical;min-height:64px}
         <select id="pr-year" onchange="prMonthChanged()" style="width:auto;padding:7px 12px;font-size:13px"></select>
       </div>
 
+      <div style="background:var(--green-ll);border:1px solid rgba(22,185,129,.2);border-radius:12px;padding:14px;margin-bottom:1.25rem">
+        <div style="font-size:13px;font-weight:700;margin-bottom:4px">📤 ส่งให้ฝ่ายบัญชี / พนักงาน (ทั้งเดือน)</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">รวมเงินเดือนทุกคนที่บันทึกแล้วในเดือนนี้ ไว้ส่งทีเดียว</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary btn-sm" onclick="exportAllSlips()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            สลิปทั้งเดือน (รวมไฟล์เดียว)
+          </button>
+          <button class="btn btn-sm" onclick="exportPayrollExcel()" style="background:#1D6F42;color:#fff;border-color:#1D6F42">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+            สรุป Excel (ให้บัญชี)
+          </button>
+        </div>
+      </div>
+
       <div class="card-title" style="margin-bottom:.75rem">เลือกพนักงานที่ต้องการคำนวณ</div>
       <div class="pr-person-select" id="pr-person-select"></div>
 
@@ -549,32 +612,166 @@ textarea{resize:vertical;min-height:64px}
         </div>
       </div>
       <div class="card">
-        <div class="card-title">พนักงาน (ตารางเวร)</div>
-        <div class="card-sub">จัดการรายชื่อพนักงาน</div>
-        <div id="staff-list-s"></div>
-        <div class="divider"></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <input type="text" id="new-staff-name" placeholder="ชื่อ-นามสกุล" style="flex:1;min-width:120px">
-          <input type="text" id="new-staff-role" placeholder="ตำแหน่ง" style="flex:1;min-width:100px">
-          <button class="btn btn-primary btn-sm" onclick="addStaff()">+ เพิ่ม</button>
-        </div>
-      </div>
-      <div class="card">
         <div class="card-title">โปรไฟล์ของฉัน</div>
         <div class="card-sub">ข้อมูลบัญชีที่ลงทะเบียนไว้</div>
         <div id="my-profile"></div>
       </div>
+      <div class="card" id="gps-settings-card" style="display:none">
+        <div class="card-title">📍 พิกัด GPS สาขา (สำหรับเช็คอิน)</div>
+        <div class="card-sub">ตั้งพิกัดและรัศมีแต่ละสาขา พนักงานต้องอยู่ในรัศมีจึงเช็คอินได้</div>
+        <div id="gps-branch-list"></div>
+      </div>
     </div>
+  </div>
+
+  <!-- CHECK-IN -->
+  <div class="page" id="page-checkin">
+    <div class="topbar"><div><div class="page-title">เช็คอินเข้างาน</div><div class="page-sub">ลงเวลาเข้า-ออกงาน ต้องอยู่ในบริเวณร้าน</div></div></div>
+    <div id="checkin-status-card"></div>
+    <div class="card" style="margin-top:1rem">
+      <div class="card-title">บันทึกเวลาวันนี้</div>
+      <div id="checkin-today"></div>
+    </div>
+  </div>
+
+  <!-- CHECK-IN HISTORY (admin) -->
+  <div class="page" id="page-checkin-history">
+    <div class="topbar">
+      <div><div class="page-title">ประวัติการลงเวลา</div><div class="page-sub">บันทึกเข้า-ออกงานของพนักงานทุกคน</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="date" id="cih-date" style="width:auto;padding:7px 12px" onchange="loadCheckinHistory()">
+        <button class="btn btn-primary" onclick="loadCheckinHistory()">ดู</button>
+      </div>
+    </div>
+    <div class="metric-grid" id="cih-metrics"></div>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="payroll-table">
+          <thead><tr><th>พนักงาน</th><th>วันที่</th><th>เข้างาน</th><th>ออกงาน</th><th>รวมเวลา</th><th>สถานะ</th></tr></thead>
+          <tbody id="cih-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">เลือกวันที่แล้วกด "ดู"</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEAVE REQUEST (member) -->
+  <div class="page" id="page-leave">
+    <div class="topbar"><div><div class="page-title">ขอลา</div><div class="page-sub">แจ้งวันลาของคุณ ระบบจะตัดเวรวันนั้นออกให้อัตโนมัติ</div></div></div>
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">ยื่นคำขอลา</div>
+      <div class="field-row">
+        <div class="field"><label class="fl">วันที่เริ่มลา</label><input type="date" id="leave-from"></div>
+        <div class="field"><label class="fl">ถึงวันที่</label><input type="date" id="leave-to"></div>
+      </div>
+      <div class="field"><label class="fl">เหตุผล</label><input type="text" id="leave-reason" placeholder="เช่น มีธุระ, ไม่สบาย, ลากิจ"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="submitLeave()">📩 ส่งคำขอลา</button>
+    </div>
+    <div class="card">
+      <div class="card-title">ประวัติการลาของคุณ</div>
+      <div id="my-leave-list"><div style="color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
+    </div>
+  </div>
+
+  <!-- LEAVE ADMIN -->
+  <div class="page" id="page-leave-admin">
+    <div class="topbar"><div><div class="page-title">รายการขอลา</div><div class="page-sub">คำขอลาของพนักงานทั้งหมด</div></div></div>
+    <div class="metric-grid" id="la-metrics"></div>
+    <div class="card">
+      <div style="overflow-x:auto">
+        <table class="payroll-table">
+          <thead><tr><th>พนักงาน</th><th>วันที่ลา</th><th>จำนวนวัน</th><th>เหตุผล</th><th>ประเภท</th><th>จัดการ</th></tr></thead>
+          <tbody id="la-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARTICLES -->
+  <div class="page" id="page-articles">
+    <div class="topbar">
+      <div><div class="page-title">บทความ / คำแนะนำวิชาการ</div><div class="page-sub">ความรู้การจ่ายยาและวิชาการสำหรับทีมงาน</div></div>
+      <button class="btn btn-primary" id="art-new-btn" onclick="openArticleEditor()" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>เขียนบทความ
+      </button>
+    </div>
+    <div id="articles-list"><div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
+  </div>
+
+  <!-- DOSE CALCULATOR -->
+  <div class="page" id="page-dosecalc">
+    <div class="topbar">
+      <div><div class="page-title">คำนวณโดสยา</div><div class="page-sub">คำนวณปริมาณยาตามน้ำหนัก/อายุ</div></div>
+      <button class="btn btn-primary" id="dose-new-btn" onclick="openDoseEditor()" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>เพิ่มสูตรยา
+      </button>
+    </div>
+    <div style="background:#FFF8E6;border:1px solid #F5D78E;border-radius:10px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#7A5C00">
+      ⚠️ เครื่องมือนี้เป็นตัวช่วยคำนวณเท่านั้น เภสัชกรต้องตรวจสอบขนาดยากับตำราอ้างอิงทุกครั้งก่อนจ่ายยา
+    </div>
+    <div class="card" style="margin-bottom:1rem">
+      <div class="card-title">คำนวณ</div>
+      <div class="field"><label class="fl">เลือกยา</label><select id="dose-drug" onchange="onDoseDrugChange()"><option value="">— เลือกสูตรยา —</option></select></div>
+      <div id="dose-formula-info" style="display:none;font-size:12px;color:var(--text3);background:#FAFBFB;border-radius:8px;padding:10px;margin-bottom:1rem"></div>
+      <div class="field-row">
+        <div class="field"><label class="fl">น้ำหนัก (กก.)</label><input type="number" id="dose-weight" min="0" step="0.1" placeholder="เช่น 15" oninput="calcDose()"></div>
+        <div class="field"><label class="fl">อายุ (ปี) — ถ้าจำเป็น</label><input type="number" id="dose-age" min="0" step="0.1" placeholder="เช่น 5" oninput="calcDose()"></div>
+      </div>
+      <div id="dose-result"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">รายการสูตรยา</div>
+      <div id="dose-list"><div style="color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
+    </div>
+  </div>
+
+  <!-- DRUG WARNINGS -->
+  <div class="page" id="page-drugwarn">
+    <div class="topbar">
+      <div><div class="page-title">คำเตือนยา</div><div class="page-sub">ข้อควรระวัง โรคประจำตัว ยาตีกัน คนท้อง/ให้นม</div></div>
+      <button class="btn btn-primary" id="warn-new-btn" onclick="openWarnEditor()" style="display:none">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>เพิ่มข้อมูลยา
+      </button>
+    </div>
+    <div style="background:#FFF8E6;border:1px solid #F5D78E;border-radius:10px;padding:10px 14px;margin-bottom:1rem;font-size:12px;color:#7A5C00">
+      ⚠️ ข้อมูลนี้เป็นเพียงตัวช่วยเตือนที่เภสัชกรบันทึกเอง <b>ต้องตรวจสอบกับตำราอ้างอิง (MIMS, คู่มือยา) อีกครั้งเสมอ</b> ก่อนตัดสินใจจ่ายยา
+    </div>
+    <div class="card" style="margin-bottom:1rem">
+      <input type="text" id="warn-search" placeholder="🔍 ค้นชื่อยา เช่น Ibuprofen, Amoxicillin..." oninput="renderWarnList()" style="width:100%">
+    </div>
+    <div id="warn-list"><div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
   </div>
 </main>
 
 <div class="modal-overlay" id="modal-overlay" onclick="closeMO(event)"><div class="modal" id="modal-box"></div></div>
 <div class="toast" id="toast"></div>
 
+<!-- Bottom Navigation (mobile) -->
+<nav class="bottom-nav" id="bottom-nav"></nav>
+
 <script type="module">
+// PWA — ลงทะเบียน Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+}
+// PWA — ปุ่มติดตั้งแอพ
+let deferredInstall=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstall=e;
+  const btn=document.getElementById('install-app-btn');
+  if(btn)btn.style.display='flex';
+});
+window.installApp=async function(){
+  if(!deferredInstall)return;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice;
+  deferredInstall=null;
+  const btn=document.getElementById('install-app-btn');
+  if(btn)btn.style.display='none';
+};
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
@@ -593,21 +790,61 @@ const BCOLORS=['#1D9E75','#378ADD','#EF9F27'];
 const BCOLORS_L=['#E1F5EE','#E6F1FB','#FAEEDA'];
 const DAYNAMES=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
 const MONTHS_TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const PERM_LABELS={dashboard:'ดูแดชบอร์ด',schedule:'ดู/แก้ไขตารางเวร',sales:'บันทึกยอดขาย',members:'จัดการสมาชิก',payroll_self:'ดูเงินเดือนตัวเอง'};
+const PERM_LABELS={schedule:'ดู/แก้ไขตารางเวร',sales:'บันทึกยอดขาย',members:'จัดการสมาชิก',payroll_self:'ดูเงินเดือนตัวเอง'};
 
 // ===== LOCAL DATA =====
 let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","โอนธนาคาร","บัตรเครดิต","QR Code"]');
-let staff=JSON.parse(localStorage.getItem('nm_staff')||JSON.stringify([{id:1,name:'สุภาพร ใจดี',role:'เภสัชกร'},{id:2,name:'วิชัย มงคล',role:'ผู้ช่วยเภสัชกร'},{id:3,name:'นภา สวัสดิ์',role:'พนักงานขาย'},{id:4,name:'กานต์ พิมล',role:'พนักงานขาย'},{id:5,name:'มนัส ทองดี',role:'พนักงานส่งยา'},{id:6,name:'ปิยะ รุ่งเรือง',role:'แคชเชียร์'}]));
 let shifts=JSON.parse(localStorage.getItem('nm_shifts')||'[]');
 let salesEntries=JSON.parse(localStorage.getItem('nm_sales')||'[]');
 let nextShiftId=Math.max(0,...shifts.map(s=>s.id),100)+1;
-let nextStaffId=Math.max(0,...staff.map(s=>s.id))+1;
 
 function saveLocal(){
   localStorage.setItem('nm_payTypes',JSON.stringify(payTypes));
-  localStorage.setItem('nm_staff',JSON.stringify(staff));
   localStorage.setItem('nm_shifts',JSON.stringify(shifts));
   localStorage.setItem('nm_sales',JSON.stringify(salesEntries));
+}
+
+// ===== SHIFTS CLOUD SYNC (Firestore) =====
+// เก็บเวรทั้งหมดของแต่ละเดือนใน 1 document: schedules/{YYYY-MM}
+let shiftsSyncing=false;
+async function syncShiftsToCloud(){
+  if(shiftsSyncing)return;
+  shiftsSyncing=true;
+  try{
+    // จัดกลุ่มเวรตามเดือน
+    const byMonth={};
+    shifts.forEach(s=>{
+      const mk=(s.date||'').slice(0,7); // YYYY-MM
+      if(!mk)return;
+      if(!byMonth[mk])byMonth[mk]=[];
+      byMonth[mk].push(s);
+    });
+    // บันทึกเฉพาะเดือนที่กำลังดูอยู่ + เดือนที่มีข้อมูล (เขียนทุกเดือนที่เปลี่ยน)
+    const writes=Object.entries(byMonth).map(([mk,arr])=>
+      setDoc(doc(db,'schedules',mk),{month:mk,shifts:arr,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''})
+    );
+    // ลบเดือนปัจจุบันถ้าไม่มีเวรเหลือ (เคลียร์ตาราง)
+    const curMonth=`${scYear}-${String(scMonth+1).padStart(2,'0')}`;
+    if(!byMonth[curMonth]){
+      writes.push(setDoc(doc(db,'schedules',curMonth),{month:curMonth,shifts:[],updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''}));
+    }
+    await Promise.all(writes);
+  }catch(e){console.error('syncShifts error',e);showToast('ตารางบันทึกในเครื่องแล้ว แต่ sync ขึ้น cloud ไม่ได้','err');}
+  shiftsSyncing=false;
+}
+
+// โหลดเวรทั้งหมดจาก Firestore
+async function loadShiftsFromCloud(){
+  try{
+    const snap=await getDocs(collection(db,'schedules'));
+    const all=[];
+    snap.docs.forEach(d=>{
+      const data=d.data();
+      if(Array.isArray(data.shifts))all.push(...data.shifts);
+    });
+    shifts=all;
+    localStorage.setItem('nm_shifts',JSON.stringify(shifts));
+  }catch(e){console.error('loadShifts error',e);}
 }
 
 // ===== STATE =====
@@ -623,13 +860,12 @@ window.closeMD=function(){document.getElementById('modal-overlay').classList.rem
 function fmt(n){return Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});}
 function fmtB(n){if(n>=1e6)return'฿'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'฿'+(n/1e3).toFixed(0)+'K';return'฿'+fmt(n);}
 function todayStr(){return new Date().toISOString().slice(0,10);}
-function seedRand(s){let x=s;return()=>{x=(x*16807)%2147483647;return(x-1)/2147483646;};}
 function hasPerm(p){if(isAdmin)return true;return profile?.permissions?.[p]===true;}
 
 // ===== SIDEBAR by permissions =====
 function buildNav(){
   const navMap={
-    dashboard:{perm:'dashboard'},
+    dashboard:{adminOnly:true},
     schedule:{perm:'schedule'},
     sales:{perm:'sales'},
     members:{perm:'members'},
@@ -646,11 +882,49 @@ function buildNav(){
     else show=isAdmin||hasPerm(cfg.perm);
     el.classList.toggle('hidden',!show);
   });
+  // เมนูเฉพาะ admin
+  const cih=document.getElementById('nav-checkin-history');
+  if(cih)cih.classList.toggle('hidden',!isAdmin);
+  const laAdmin=document.getElementById('nav-leave-admin');
+  if(laAdmin)laAdmin.classList.toggle('hidden',!isAdmin);
+  const artBtn=document.getElementById('art-new-btn');
+  if(artBtn)artBtn.style.display=isAdmin?'':'none';
+  const doseBtn=document.getElementById('dose-new-btn');
+  if(doseBtn)doseBtn.style.display=isAdmin?'':'none';
+  const warnBtn=document.getElementById('warn-new-btn');
+  if(warnBtn)warnBtn.style.display=isAdmin?'':'none';
   // โหลด member bdays สำหรับตารางเวร
   loadMemberBdays();
+  buildBottomNav();
   // ไปหน้าแรกที่มีสิทธิ์
   const first=document.querySelector('.sb-item:not(.hidden)');
   if(first){const pg=first.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];if(pg)goto(pg);}
+}
+
+// สร้าง Bottom Nav (มือถือ) — เลือกหน้าสำคัญสูงสุด 5 หน้า
+function buildBottomNav(){
+  const nav=document.getElementById('bottom-nav');
+  if(!nav)return;
+  const ic={
+    dashboard:'<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',
+    checkin:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+    schedule:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    sales:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
+    'my-payroll':'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+    members:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
+    articles:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+  };
+  const lbl={dashboard:'ภาพรวม',checkin:'ลงเวลา',schedule:'ตารางเวร',sales:'ยอดขาย','my-payroll':'เงินเดือน',members:'สมาชิก',articles:'บทความ',settings:'ตั้งค่า'};
+  // ลำดับความสำคัญ
+  let candidates=isAdmin
+    ? ['dashboard','checkin','schedule','sales','settings']
+    : ['checkin','schedule','my-payroll','articles','settings'];
+  // กรองเฉพาะหน้าที่เข้าถึงได้
+  candidates=candidates.filter(p=>canAccessPage(p)).slice(0,5);
+  nav.innerHTML=candidates.map(p=>`<button class="bn-item" data-page="${p}" onclick="goto('${p}')">
+    <svg viewBox="0 0 24 24">${ic[p]||''}</svg><span>${lbl[p]||p}</span>
+  </button>`).join('');
 }
 
 // ===== AUTH =====
@@ -671,6 +945,10 @@ onAuthStateChanged(auth,async user=>{
   if(mAv)mAv.textContent=name.charAt(0).toUpperCase();
   initYearSelects();
   buildNav();
+  loadSalesFromCloud();
+  loadBranchLocations();
+  loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
+  loadLeavesForSchedule();
   loading(false);
 });
 
@@ -690,12 +968,19 @@ window.closeSidebar=function(){
 
 // ===== PERMISSION MAP =====
 const PAGE_PERM={
-  'dashboard':'dashboard',
+  'dashboard':'dashboard_admin',
   'schedule':'schedule',
   'sales':'sales',
   'members':'members',
   'payroll':'payroll_all',
   'my-payroll':'payroll_self',
+  'checkin':null,
+  'checkin-history':'checkin_all',
+  'leave':null,
+  'leave-admin':'leave_admin',
+  'articles':null,
+  'dosecalc':null,
+  'drugwarn':null,
   'settings':null,
 };
 function canAccessPage(page){
@@ -704,6 +989,9 @@ function canAccessPage(page){
   const perm=PAGE_PERM[page];
   if(perm===null)return true;
   if(perm==='payroll_all')return false;
+  if(perm==='checkin_all')return false;
+  if(perm==='leave_admin')return false;
+  if(perm==='dashboard_admin')return false;
   return hasPerm(perm);
 }
 
@@ -730,13 +1018,23 @@ window.goto=function(page){
   const navEl=document.getElementById('nav-'+page);
   if(pageEl)pageEl.classList.add('active');
   if(navEl)navEl.classList.add('active');
+  // sync bottom nav
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  if(typeof window.scrollTo==='function')window.scrollTo({top:0,behavior:'smooth'});
   if(page==='dashboard')dbRender();
-  if(page==='schedule')scRender();
+  if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();}
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderStaffSettings();renderMyProfile();}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();}
+  if(page==='checkin')renderCheckinPage();
+  if(page==='checkin-history')loadCheckinHistory();
+  if(page==='leave')loadMyLeaves();
+  if(page==='leave-admin')loadLeaveAdmin();
+  if(page==='articles')loadArticles();
+  if(page==='dosecalc')loadDoseTools();
+  if(page==='drugwarn')loadDrugWarnings();
 };
 
 // ===== YEAR SELECTS =====
@@ -767,21 +1065,41 @@ window.prSetTab=function(tab,el){
 // ===== DASHBOARD =====
 let dbMode='day',dbYear=new Date().getFullYear(),dbMonth=new Date().getMonth()+1,dbChart=null;
 function getDbData(){
-  if(salesEntries.length>0){
-    if(dbMode==='day'){const days=new Date(dbYear,dbMonth,0).getDate();return Array.from({length:days},(_,i)=>{const ds=`${dbYear}-${String(dbMonth).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;return{label:String(i+1),branches:BRANCHES.map((_,bi)=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===bi);return{total:e?e.total:0,pays:e?e.amounts:{}};})};});}
-    if(dbMode==='month'){return MONTHS_TH.map((m,mi)=>{const ms=String(mi+1).padStart(2,'0');return{label:m,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(`${dbYear}-${ms}`)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})};});}
-    const years=[...new Set(salesEntries.map(x=>x.date.slice(0,4)))].sort();
-    if(!years.length)years.push(String(new Date().getFullYear()));
-    return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})}));
-  }
-  const rng=seedRand(dbYear*100+dbMonth+dbMode.length);
-  if(dbMode==='day'){const days=new Date(dbYear,dbMonth,0).getDate();return Array.from({length:days},(_,i)=>({label:String(i+1),branches:BRANCHES.map((_,bi)=>{const base=[18000,15000,12000][bi];const total=Math.round(base*(0.4+rng()*0.9));const pays={};let rem=total;payTypes.forEach((p,pi)=>{if(pi===payTypes.length-1){pays[p]=rem;}else{const v=Math.round(rem*(0.2+rng()*0.4));pays[p]=v;rem-=v;}});return{total,pays};})}));}
-  if(dbMode==='month'){return MONTHS_TH.map(m=>({label:m,branches:BRANCHES.map((_,bi)=>{const base=[540000,450000,360000][bi];const total=Math.round(base*(0.7+rng()*0.6));const pays={};let rem=total;payTypes.forEach((p,pi)=>{if(pi===payTypes.length-1){pays[p]=rem;}else{const v=Math.round(rem*(0.2+rng()*0.4));pays[p]=v;rem-=v;}});return{total,pays};})}));}
-  return [2024,2025,2026].map(y=>({label:String(y),branches:BRANCHES.map((_,bi)=>{const base=[6480000,5400000,4320000][bi];const total=Math.round(base*(0.8+rng()*0.4));const pays={};let rem=total;payTypes.forEach((p,pi)=>{if(pi===payTypes.length-1){pays[p]=rem;}else{const v=Math.round(rem*(0.2+rng()*0.4));pays[p]=v;rem-=v;}});return{total,pays};})}));
+  if(dbMode==='day'){const days=new Date(dbYear,dbMonth,0).getDate();return Array.from({length:days},(_,i)=>{const ds=`${dbYear}-${String(dbMonth).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;return{label:String(i+1),branches:BRANCHES.map((_,bi)=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===bi);return{total:e?e.total:0,pays:e?e.amounts:{}};})};});}
+  if(dbMode==='month'){return MONTHS_TH.map((m,mi)=>{const ms=String(mi+1).padStart(2,'0');return{label:m,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(`${dbYear}-${ms}`)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})};});}
+  const years=[...new Set(salesEntries.map(x=>x.date.slice(0,4)))].sort();
+  if(!years.length)years.push(String(new Date().getFullYear()));
+  return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+x.total,0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(x.amounts[p]||0),0);});return{total,pays};})}));
 }
 window.dbSetMode=function(m,el){dbMode=m;document.querySelectorAll('#db-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');dbRender();};
+// สรุปภาพรวมวันนี้ (admin)
+async function renderTodayOverview(){
+  const el=document.getElementById('db-today-overview');
+  if(!el)return;
+  const today=todayStr();
+  // เวรวันนี้
+  const todayShifts=shifts.filter(s=>s.date===today);
+  // วันเกิดเดือนนี้
+  const thisMonth=new Date().getMonth()+1;
+  const bdays=allMembers.filter(m=>{if(!m.dateOfBirth)return false;return new Date(m.dateOfBirth).getMonth()+1===thisMonth;});
+  // check-in วันนี้
+  let checkedInCount=0;
+  try{const snap=await getDocs(query(collection(db,'checkins'),where('date','==',today)));checkedInCount=snap.docs.filter(d=>d.data().checkIn).length;}catch(e){}
+  // ยอดขายเมื่อวาน
+  const yst=new Date();yst.setDate(yst.getDate()-1);const ystStr=yst.toISOString().slice(0,10);
+  const ystSales=salesEntries.filter(e=>e.date===ystStr).reduce((a,e)=>a+e.total,0);
+
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+    <div class="mcard c-green"><div class="mcard-label">เข้างานวันนี้</div><div class="mcard-val">${checkedInCount} คน</div><div class="mcard-sub">${todayShifts.length} เวรในตาราง</div></div>
+    <div class="mcard c-blue"><div class="mcard-label">ยอดขายเมื่อวาน</div><div class="mcard-val">฿${fmt(ystSales)}</div><div class="mcard-sub">${ystStr}</div></div>
+    <div class="mcard c-amber"><div class="mcard-label">🎂 วันเกิดเดือนนี้</div><div class="mcard-val">${bdays.length} คน</div><div class="mcard-sub">${bdays.slice(0,2).map(m=>m.nickname||m.firstName).join(', ')||'—'}${bdays.length>2?'...':''}</div></div>
+    <div class="mcard c-purple"><div class="mcard-label">เวรวันนี้</div><div class="mcard-val">${todayShifts.length}</div><div class="mcard-sub">${BRANCHES.map((b,i)=>`${b.slice(0,4)} ${todayShifts.filter(s=>s.branch===i).length}`).join(' • ')}</div></div>
+  </div>`;
+}
+
 function dbRender(){
-  if(!hasPerm('dashboard')){document.getElementById('page-dashboard').innerHTML=accessDenied();return;}
+  if(!isAdmin){document.getElementById('page-dashboard').innerHTML=accessDenied();return;}
+  renderTodayOverview();
   const rows=getDbData();
   const totals=BRANCHES.map((_,bi)=>rows.reduce((a,r)=>a+r.branches[bi].total,0));
   const grand=totals.reduce((a,v)=>a+v,0);const maxT=Math.max(...totals,1);
@@ -804,6 +1122,21 @@ let scMonth=new Date().getMonth();
 let scYear=new Date().getFullYear();
 let bdaySettings=JSON.parse(localStorage.getItem('nm_bday_settings')||'{}');
 let memberBdays=[];
+let allLeaves=[]; // วันลาทั้งหมด สำหรับแสดงในตารางเวร
+
+// โหลดวันลาทั้งหมดจาก Firestore
+async function loadLeavesForSchedule(){
+  try{
+    const snap=await getDocs(collection(db,'leaves'));
+    allLeaves=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){allLeaves=[];}
+}
+
+// คืนรายการคนที่ลาในวันนั้น [{uid, name, type}]
+function getLeavesOnDate(ds){
+  return allLeaves.filter(l=>l.from&&ds>=l.from&&ds<=(l.to||l.from))
+    .map(l=>({uid:l.uid,name:l.name,type:l.type||'ลา'}));
+}
 
 window.scChangeMonth=function(d){
   scMonth+=d;
@@ -833,13 +1166,21 @@ function getBdayOnDate(dateStr){
 
 function memberName(uid){
   const m=allMembers.find(x=>x.uid===uid);
-  return m?`${m.firstName||''} ${m.lastName||''}`.trim():uid;
+  if(!m)return uid;
+  const full=`${m.firstName||''} ${m.lastName||''}`.trim();
+  return m.nickname?`${full} (${m.nickname})`:full;
+}
+// ชื่อสั้นสำหรับปฏิทิน: ใช้ชื่อเล่นถ้ามี ไม่งั้นใช้ชื่อจริง
+function memberShort(uid){
+  const m=allMembers.find(x=>x.uid===uid);
+  if(!m)return uid;
+  return m.nickname||(m.firstName||'').trim()||'—';
 }
 
 function scRender(){
   const canEdit=isAdmin;
-  const aiBtn=document.getElementById('sc-ai-btn');
-  if(aiBtn)aiBtn.style.display=isAdmin?'':'none';
+  const autoBtn=document.getElementById('sc-auto-btn');
+  if(autoBtn)autoBtn.style.display=isAdmin?'':'none';
 
   document.getElementById('sc-month-lbl').textContent=`${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth]} ${scYear}`;
 
@@ -874,9 +1215,15 @@ function scRender(){
     if(branchFilter!=='all')dayShifts=dayShifts.filter(s=>String(s.branch)===branchFilter);
     const bdays=getBdayOnDate(ds);
     const bdayHtml=bdays.map(b=>`<div class="cal-bday">🎂 ${b.firstName}</div>`).join('');
+    // ป้ายวันลา
+    const dayLeaves=getLeavesOnDate(ds);
+    const leaveHtml=dayLeaves.map(l=>{
+      const nm=memberShort(l.uid)||l.name||'—';
+      return `<div class="cal-leave" title="${l.name} ${l.type}">🌴 ${nm} — ${l.type}</div>`;
+    }).join('');
     const maxShow=3;
     const shiftCards=dayShifts.slice(0,maxShow).map(s=>{
-      const nm=memberName(s.staffId).split(' ')[0];
+      const nm=memberShort(s.staffId);
       const br=BRANCHES[s.branch];
       return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${br}"><span style="font-weight:700">${nm}</span> ${s.start}<br><span style="font-weight:400;opacity:.85">📍${br}</span></div>`;
     }).join('');
@@ -885,7 +1232,7 @@ function scRender(){
     const addBtn=canEdit?`<div class="cal-add" onclick="event.stopPropagation();scAddShift('','${ds}')">+</div>`:'';
     html+=`<div class="cal-cell${isToday?' today':''}" ${canEdit?`onclick="scDayDetail('${ds}')"`:''} style="cursor:${canEdit?'pointer':'default'}">
       <div class="cal-date${isToday?' is-today':''}">${day}${isToday?'<span style="font-size:9px;background:var(--green);color:#fff;padding:1px 5px;border-radius:8px">วันนี้</span>':''}</div>
-      ${bdayHtml}${shiftCards}${moreHtml}${addBtn}
+      ${bdayHtml}${leaveHtml}${shiftCards}${moreHtml}${addBtn}
     </div>`;
   }
   // ช่องว่างท้ายเดือน
@@ -904,6 +1251,8 @@ window.scDayDetail=function(ds){
   const dayShifts=shifts.filter(s=>s.date===ds);
   const bdays=getBdayOnDate(ds);
   const bdayHtml=bdays.length?`<div style="background:#FFF0F5;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#C2185B;font-weight:600">🎂 วันเกิด: ${bdays.map(b=>`${b.firstName} ${b.lastName||''}`).join(', ')}</div>`:'';
+  const dayLeaves=getLeavesOnDate(ds);
+  const leaveHtml=dayLeaves.length?`<div style="background:#FFF4E0;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#B26A00;font-weight:600">🌴 ลางาน: ${dayLeaves.map(l=>`${l.name} (${l.type})`).join(', ')}</div>`:'';
   const shiftList=dayShifts.length?dayShifts.map(s=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
       <span class="badge ${['badge-green','badge-blue','badge-amber'][s.branch]}">${BRANCHES[s.branch]}</span>
@@ -911,7 +1260,7 @@ window.scDayDetail=function(ds){
       ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`:''}
     </div>`).join(''):'<div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">ยังไม่มีเวรในวันนี้</div>';
   openModal(`<div class="modal-title">📅 ${dateStr}</div>
-    ${bdayHtml}
+    ${bdayHtml}${leaveHtml}
     <div style="font-size:13px;font-weight:600;margin-bottom:10px">เวรทำงาน (${dayShifts.length})</div>
     ${shiftList}
     ${isAdmin?`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="scAddShift('','${ds}')">+ เพิ่มเวร</button></div>`:`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`}`);
@@ -956,184 +1305,186 @@ window.toggleBday=function(uid,val){
 };
 
 // AI Panel toggle
-window.toggleAiPanel=function(){
-  const panel=document.getElementById('sc-ai-panel');
-  panel.style.display=panel.style.display==='none'?'block':'none';
+// ===== AUTO-SCHEDULE (ไม่ใช้ AI) =====
+// ตั้งค่ารายคน เก็บใน Firestore: scheduleConfig/{uid} = {branches:[0,1], start, end, daysOff:[0=จันทร์...6=อาทิตย์], exceptions:{date:{type:'off'|'time', start, end}}}
+let autoConfig={}; // {uid: {...}}
+
+window.toggleAutoPanel=async function(){
+  const panel=document.getElementById('sc-auto-panel');
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'block';
+  if(!open){
+    if(allMembers.length===0)await loadMembers();
+    await loadAutoConfig();
+    renderAutoMemberList();
+    document.getElementById('auto-month-label').textContent=`${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth]} ${scYear}`;
+  }
 };
 
-// AI Chat สำหรับจัดตารางเวร (ลงตารางจริง)
-let aiMessages=[];
-
-
-window.sendAiMessage=async function(){
-  const input=document.getElementById('ai-input');
-  const msg=input.value.trim();
-  if(!msg)return;
-  input.value='';
-  const btn=document.getElementById('ai-send-btn');
-  btn.disabled=true;
-
-  addAiMsg('user',msg);
-  aiMessages.push({role:'user',content:msg});
-  addAiMsg('thinking','กำลังจัดตาราง...');
-
-  // context: รายชื่อสมาชิก (พร้อม uid) + เดือนที่กำลังดู
-  const activeMembers=allMembers.filter(m=>m.status==='active');
-  const memberLines=activeMembers.map(m=>`- ${m.firstName||''} ${m.lastName||''} (id: ${m.uid})`).join('\n');
-  const monthName=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth];
-  const daysInMonth=new Date(scYear,scMonth+1,0).getDate();
-
-  const systemPrompt=`คุณคือเครื่องมือจัดตารางเวรอัตโนมัติของระบบบริหารร้านขายยา "ใหม่เภสัช" (ไม่ใช่ผู้ช่วยทั่วไป)
-
-**สำคัญที่สุด — อ่านให้เข้าใจ:**
-ระบบนี้เชื่อมต่อกับฐานข้อมูลตารางเวรเรียบร้อยแล้ว เมื่อคุณส่ง JSON ในบล็อค \`\`\`json ระบบจะอ่าน JSON นั้นไปลงตารางปฏิทินให้โดยอัตโนมัติทันที — คุณ "ลงตารางได้จริง" ผ่านการส่ง JSON
-ดังนั้น **ห้ามตอบว่าคุณทำไม่ได้ ห้ามบอกให้ไปกรอกใน Excel/Google Sheets ห้ามบอกว่าต้องเชื่อม API เพิ่ม** เพราะระบบพร้อมรับ JSON จากคุณแล้ว หน้าที่ของคุณคือสร้าง JSON ที่ถูกต้องเท่านั้น
-
-ข้อมูลร้าน:
-- 3 สาขา (index: 0=ทรัพย์พัฒนา, 1=บางปู, 2=อินดี้)
-- เดือนที่กำลังจัด: ${monthName} ${scYear} (มี ${daysInMonth} วัน)
-
-รายชื่อพนักงาน (ใช้ id จริงในการอ้างอิง):
-${memberLines}
-
-วิธีตอบ — ตอบ 2 ส่วนเสมอเมื่อ admin ขอให้จัดตาราง:
-1. ข้อความสั้นๆ ภาษาไทย อธิบายว่าจัดอย่างไร
-2. JSON ในบล็อค \`\`\`json (ระบบจะนำไปลงตารางทันที)
-
-รูปแบบ JSON (date = YYYY-MM-DD, branch = 0/1/2, เวลาแบบ 24 ชม.):
-\`\`\`json
-{
-  "shifts": [
-    {"staffId": "ใส่ id จริงจากรายชื่อ", "date": "${scYear}-${String(scMonth+1).padStart(2,'0')}-01", "branch": 0, "start": "08:00", "end": "17:00"}
-  ]
-}
-\`\`\`
-
-กฎ:
-- ใช้ id พนักงานจากรายชื่อข้างบนเท่านั้น ห้ามแต่ง id เอง
-- date ต้องอยู่ในเดือน ${monthName} ${scYear}
-- **เขียน JSON แบบกระชับที่สุด** — ไม่ต้องเว้นบรรทัด ไม่ต้องเว้นวรรค เพื่อประหยัดพื้นที่ (เช่น {"staffId":"x","date":"...","branch":0,"start":"08:00","end":"17:00"})
-- คำอธิบายภาษาไทยส่วนแรก **เขียนสั้นมากๆ 1-2 บรรทัดพอ** เพื่อเหลือพื้นที่ให้ JSON
-- ต้องจัดให้ครบตามที่ admin ขอ ถ้าจัดทั้งเดือนไม่พอพื้นที่ ให้จัดเท่าที่ทำได้แล้วจัดต่อในข้อความถัดไป
-- เวลามาตรฐาน: กะเช้า 08:00-17:00, กะบ่าย 13:00-22:00 (ปรับได้ตามที่สั่ง)
-- เฉพาะกรณี admin ถามคำถามเฉยๆ (ไม่ได้ขอให้จัด) จึงตอบเป็นข้อความได้ ไม่ต้องมี JSON`;
-
+async function loadAutoConfig(){
   try{
-    const res=await fetch('/.netlify/functions/ai-schedule',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({system:systemPrompt,messages:aiMessages})
-    });
-    const data=await res.json();
-    const chatBox=document.getElementById('ai-chat-box');
-    const thinking=chatBox.querySelector('.thinking');
-    if(thinking)thinking.remove();
-
-    if(!res.ok||data.error){
-      addAiMsg('ai','ขอโทษครับ เกิดข้อผิดพลาด: '+(data.error||'ไม่สามารถเชื่อมต่อ AI ได้'));
-    }else{
-      const reply=data.reply||'ขอโทษครับ ไม่ได้รับคำตอบ';
-      aiMessages.push({role:'assistant',content:reply});
-      // แยก JSON ออกจากข้อความ
-      const parsed=extractScheduleJSON(reply);
-      if(parsed&&parsed.shifts&&parsed.shifts.length){
-        // ลงตารางทันที (ไม่ต้องยืนยัน)
-        const textOnly=reply.replace(/```json[\s\S]*?```/g,'').trim();
-        if(textOnly)addAiMsg('ai',textOnly);
-        applyAiSchedule(parsed.shifts);
-      }else{
-        addAiMsg('ai',reply);
-      }
-    }
-  }catch(e){
-    const chatBox=document.getElementById('ai-chat-box');
-    const thinking=chatBox.querySelector('.thinking');
-    if(thinking)thinking.remove();
-    addAiMsg('ai','ขอโทษครับ เชื่อมต่อ AI ไม่ได้ กรุณาตรวจสอบการตั้งค่า Netlify Function');
-  }
-  btn.disabled=false;
-};
-
-// แยก JSON schedule จากคำตอบ AI (ทนต่อ JSON ที่ถูกตัดกลางคัน)
-function extractScheduleJSON(text){
-  // หาเนื้อ JSON: จาก code block ก่อน ถ้าไม่มีใช้ทั้งข้อความ
-  let raw='';
-  const m=text.match(/```json\s*([\s\S]*?)(?:```|$)/);
-  if(m){raw=m[1];}
-  else{const i=text.indexOf('"shifts"');if(i>=0)raw=text.slice(text.lastIndexOf('{',i));}
-  if(!raw)return null;
-
-  // ลอง parse ตรงๆ ก่อน
-  try{const j=JSON.parse(raw.trim());if(j&&j.shifts)return j;}catch(e){}
-
-  // ถ้า parse ไม่ได้ (น่าจะถูกตัดกลางคัน) — ดึงแต่ละ shift object ที่สมบูรณ์ออกมา
-  try{
-    const shifts=[];
-    // จับทุก {...} ที่มี staffId
-    const objRe=/\{[^{}]*?"staffId"[^{}]*?\}/g;
-    let mm;
-    while((mm=objRe.exec(raw))!==null){
-      try{
-        const o=JSON.parse(mm[0]);
-        if(o.staffId&&o.date&&o.start&&o.end&&o.branch!=null)shifts.push(o);
-      }catch(e){}
-    }
-    if(shifts.length)return{shifts};
-  }catch(e){console.error('recover schedule error',e);}
-  return null;
+    const snap=await getDocs(collection(db,'scheduleConfig'));
+    autoConfig={};
+    snap.docs.forEach(d=>{autoConfig[d.id]=d.data();});
+  }catch(e){console.error('loadAutoConfig',e);}
 }
 
-// ลงตารางที่ AI จัดทันที (ลบเวรเดิมของเดือนนั้นก่อน แล้วลงใหม่)
-function applyAiSchedule(proposedShifts){
-  // กรองเฉพาะ shift ที่ staffId มีจริง และวันที่อยู่ในเดือนที่ดูอยู่
-  const monthStr=`${scYear}-${String(scMonth+1).padStart(2,'0')}`;
-  const valid=proposedShifts.filter(s=>
-    allMembers.find(m=>m.uid===s.staffId) &&
-    s.date && s.start && s.end &&
-    [0,1,2].includes(Number(s.branch))
-  );
-  if(!valid.length){
-    addAiMsg('ai','ขอโทษครับ ไม่สามารถจัดตารางได้ ลองบอกรายละเอียดอีกครั้งนะครับ');
-    return;
-  }
-  const monthName=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth];
+const DOW=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
+function renderAutoMemberList(){
+  const active=allMembers.filter(m=>m.status==='active');
+  const el=document.getElementById('auto-member-list');
+  if(!active.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีสมาชิก</div>';return;}
+  el.innerHTML=active.map(m=>{
+    const cfg=autoConfig[m.uid]||{branches:[],start:'08:00',end:'17:00',daysOff:[]};
+    const nm=m.nickname?`${m.firstName} (${m.nickname})`:`${m.firstName||''} ${m.lastName||''}`.trim();
+    const branchChecks=BRANCHES.map((b,i)=>`<label style="display:inline-flex;align-items:center;gap:3px;font-size:11px;margin-right:8px;cursor:pointer"><input type="checkbox" class="ac-branch" data-uid="${m.uid}" value="${i}" ${cfg.branches?.includes(i)?'checked':''} style="width:14px;height:14px;accent-color:${BCOLORS[i]}">${b}</label>`).join('');
+    const dowChecks=DOW.map((d,i)=>`<label style="display:inline-flex;align-items:center;gap:2px;font-size:11px;margin-right:6px;cursor:pointer"><input type="checkbox" class="ac-dayoff" data-uid="${m.uid}" value="${i}" ${cfg.daysOff?.includes(i)?'checked':''} style="width:13px;height:13px;accent-color:var(--red)">${d}</label>`).join('');
+    return`<div style="padding:12px;background:#FAFBFB;border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">${nm}</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:3px">สาขาที่ทำ (เลือกหลายได้ = หมุนเวียน)</div>
+      <div style="margin-bottom:8px">${branchChecks}</div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap">
+        <div><div style="font-size:11px;color:var(--text3)">เข้างาน</div><input type="time" class="ac-start" data-uid="${m.uid}" value="${cfg.start||'08:00'}" step="60" lang="en-GB" style="padding:5px 8px;width:auto"></div>
+        <div><div style="font-size:11px;color:var(--text3)">เลิกงาน</div><input type="time" class="ac-end" data-uid="${m.uid}" value="${cfg.end||'17:00'}" step="60" lang="en-GB" style="padding:5px 8px;width:auto"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:3px">วันหยุดประจำสัปดาห์</div>
+      <div>${dowChecks}</div>
+      <button class="btn btn-sm" style="margin-top:8px" onclick="openExceptions('${m.uid}')">📅 ข้อยกเว้นรายวัน${cfg.exceptions&&Object.keys(cfg.exceptions).length?` (${Object.keys(cfg.exceptions).length})`:''}</button>
+    </div>`;
+  }).join('');
+}
 
-  // ลบเวรเดิมของเดือนนี้ แล้วลงใหม่
-  shifts=shifts.filter(s=>!s.date?.startsWith(monthStr));
-  valid.forEach(s=>{
-    shifts.push({
-      id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
-      staffId:s.staffId,branch:Number(s.branch),date:s.date,start:s.start,end:s.end
-    });
+// อ่านค่าจากฟอร์มเก็บเข้า autoConfig + บันทึก Firestore
+async function saveAutoConfigFromForm(){
+  const active=allMembers.filter(m=>m.status==='active');
+  active.forEach(m=>{
+    const branches=[...document.querySelectorAll(`.ac-branch[data-uid="${m.uid}"]:checked`)].map(x=>parseInt(x.value));
+    const daysOff=[...document.querySelectorAll(`.ac-dayoff[data-uid="${m.uid}"]:checked`)].map(x=>parseInt(x.value));
+    const start=document.querySelector(`.ac-start[data-uid="${m.uid}"]`)?.value||'08:00';
+    const end=document.querySelector(`.ac-end[data-uid="${m.uid}"]`)?.value||'17:00';
+    const prev=autoConfig[m.uid]||{};
+    autoConfig[m.uid]={...prev,branches,daysOff,start,end};
   });
+  // บันทึกลง Firestore
+  try{
+    await Promise.all(Object.entries(autoConfig).map(([uid,cfg])=>setDoc(doc(db,'scheduleConfig',uid),cfg)));
+  }catch(e){console.error('saveAutoConfig',e);}
+}
+
+// ข้อยกเว้นรายวัน
+window.openExceptions=async function(uid){
+  await saveAutoConfigFromForm(); // เก็บค่าปัจจุบันก่อน
+  const m=allMembers.find(x=>x.uid===uid);
+  const cfg=autoConfig[uid]||{};
+  const exc=cfg.exceptions||{};
+  const nm=m.nickname?`${m.firstName} (${m.nickname})`:`${m.firstName||''} ${m.lastName||''}`.trim();
+  const rows=Object.entries(exc).sort().map(([date,e])=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#FAFBFB;border-radius:8px;margin-bottom:6px">
+      <div style="flex:1;font-size:12px"><b>${new Date(date).getDate()}/${new Date(date).getMonth()+1}</b> ${e.type==='off'?'<span style="color:var(--red-t)">หยุด</span>':`<span style="color:var(--green-d)">${e.start}-${e.end}</span>`}</div>
+      <button class="btn btn-sm btn-danger" style="padding:2px 8px" onclick="removeException('${uid}','${date}')">×</button>
+    </div>`).join('')||'<div style="font-size:12px;color:var(--text3)">ยังไม่มีข้อยกเว้น</div>';
+  openModal(`<div class="modal-title">ข้อยกเว้น — ${nm}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ต่างจากปกติ เช่น ขอหยุด หรือเข้า-เลิกเวลาพิเศษ</div>
+    <div style="margin-bottom:1rem">${rows}</div>
+    <div class="divider"></div>
+    <div class="field"><label class="fl">วันที่</label><input type="date" id="exc-date" min="${scYear}-${String(scMonth+1).padStart(2,'0')}-01" max="${scYear}-${String(scMonth+1).padStart(2,'0')}-${String(new Date(scYear,scMonth+1,0).getDate()).padStart(2,'0')}"></div>
+    <div class="field"><label class="fl">ประเภท</label><select id="exc-type" onchange="document.getElementById('exc-times').style.display=this.value==='time'?'flex':'none'"><option value="off">ขอหยุด</option><option value="time">เข้า-เลิกเวลาพิเศษ</option></select></div>
+    <div class="field-row" id="exc-times" style="display:none">
+      <div class="field"><label class="fl">เข้างาน</label><input type="time" id="exc-start" value="08:00" step="60" lang="en-GB"></div>
+      <div class="field"><label class="fl">เลิกงาน</label><input type="time" id="exc-end" value="17:00" step="60" lang="en-GB"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="addException('${uid}')">+ เพิ่มข้อยกเว้น</button></div>`);
+};
+
+window.addException=async function(uid){
+  const date=document.getElementById('exc-date').value;
+  const type=document.getElementById('exc-type').value;
+  if(!date){showToast('เลือกวันที่ก่อน','err');return;}
+  if(!autoConfig[uid])autoConfig[uid]={};
+  if(!autoConfig[uid].exceptions)autoConfig[uid].exceptions={};
+  if(type==='off')autoConfig[uid].exceptions[date]={type:'off'};
+  else autoConfig[uid].exceptions[date]={type:'time',start:document.getElementById('exc-start').value,end:document.getElementById('exc-end').value};
+  try{await setDoc(doc(db,'scheduleConfig',uid),autoConfig[uid]);}catch(e){}
+  openExceptions(uid);
+  showToast('เพิ่มข้อยกเว้นแล้ว');
+};
+
+window.removeException=async function(uid,date){
+  if(autoConfig[uid]?.exceptions)delete autoConfig[uid].exceptions[date];
+  try{await setDoc(doc(db,'scheduleConfig',uid),autoConfig[uid]);}catch(e){}
+  openExceptions(uid);
+};
+
+// สร้างตารางทั้งเดือน
+window.generateAutoSchedule=async function(){
+  await saveAutoConfigFromForm();
+  const monthStr=`${scYear}-${String(scMonth+1).padStart(2,'0')}`;
+  const daysInMonth=new Date(scYear,scMonth+1,0).getDate();
+  const active=allMembers.filter(m=>m.status==='active');
+
+  // เช็คว่ามีใครตั้งค่าสาขาบ้าง
+  const configured=active.filter(m=>autoConfig[m.uid]?.branches?.length);
+  if(!configured.length){showToast('กรุณาเลือกสาขาให้สมาชิกอย่างน้อย 1 คน','err');return;}
+
+  if(!confirm(`สร้างตารางเวรเดือนนี้ใหม่?\nระบบจะลบเวรเดิมของเดือน ${monthStr} แล้วลงใหม่ตามเงื่อนไข`))return;
+
+  // โหลดวันลาของเดือนนี้ เพื่อไม่ลงเวรในวันที่ลา
+  let leaveMap={}; // {uid: Set(date)}
+  try{
+    const snap=await getDocs(collection(db,'leaves'));
+    snap.docs.forEach(d=>{
+      const l=d.data();
+      if(!l.uid||!l.from)return;
+      const f=new Date(l.from),t=new Date(l.to||l.from);
+      for(let dt=new Date(f);dt<=t;dt.setDate(dt.getDate()+1)){
+        const ds=dt.toISOString().slice(0,10);
+        if(!ds.startsWith(monthStr))continue;
+        if(!leaveMap[l.uid])leaveMap[l.uid]=new Set();
+        leaveMap[l.uid].add(ds);
+      }
+    });
+  }catch(e){}
+
+  // ลบเวรเดิมของเดือนนี้
+  shifts=shifts.filter(s=>!s.date?.startsWith(monthStr));
+
+  // ตัวนับสำหรับหมุนเวียนสาขาแต่ละคน
+  const rotIdx={};
+  let added=0;
+
+  for(let day=1;day<=daysInMonth;day++){
+    const dateObj=new Date(scYear,scMonth,day);
+    const dow=(dateObj.getDay()+6)%7; // 0=จันทร์
+    const ds=`${monthStr}-${String(day).padStart(2,'0')}`;
+
+    configured.forEach(m=>{
+      const cfg=autoConfig[m.uid];
+      const exc=cfg.exceptions?.[ds];
+      // วันลา — ข้าม
+      if(leaveMap[m.uid]?.has(ds))return;
+      // ข้อยกเว้น: ขอหยุด
+      if(exc?.type==='off')return;
+      // วันหยุดประจำ (ถ้าไม่มี exception แบบ time มา override)
+      if(cfg.daysOff?.includes(dow) && exc?.type!=='time')return;
+      // เลือกสาขา (หมุนเวียน)
+      if(rotIdx[m.uid]===undefined)rotIdx[m.uid]=0;
+      const branch=cfg.branches[rotIdx[m.uid]%cfg.branches.length];
+      rotIdx[m.uid]++;
+      // เวลา (ใช้ exception time ถ้ามี)
+      const start=exc?.type==='time'?exc.start:cfg.start;
+      const end=exc?.type==='time'?exc.end:cfg.end;
+      shifts.push({id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),staffId:m.uid,branch,date:ds,start,end});
+      added++;
+    });
+  }
+
   saveLocal();
+  await syncShiftsToCloud();
   scRender();
+  document.getElementById('sc-auto-panel').style.display='none';
+  showToast(`สร้างตารางเวรสำเร็จ ${added} เวร`);
+};
 
-  // สรุปสั้นๆ ว่าลงอะไรไปบ้าง
-  const byDate={};
-  valid.forEach(s=>{if(!byDate[s.date])byDate[s.date]=[];byDate[s.date].push(s);});
-  const dateCount=Object.keys(byDate).length;
-
-  const div=document.createElement('div');
-  div.className='ai-msg ai';
-  div.innerHTML=`<span style="max-width:100%;display:block">
-    <div style="font-weight:600;margin-bottom:6px">✅ ลงตารางเวร ${monthName} เรียบร้อยแล้ว</div>
-    <div style="font-size:12px;opacity:.8">ลงเวรทั้งหมด ${valid.length} เวร ใน ${dateCount} วัน — ดูได้ที่ปฏิทินด้านล่างเลยครับ</div>
-  </span>`;
-  const chatBox=document.getElementById('ai-chat-box');
-  chatBox.appendChild(div);
-  chatBox.scrollTop=chatBox.scrollHeight;
-  showToast(`AI ลงตารางเวร ${valid.length} เวรเรียบร้อย`);
-}
-
-function addAiMsg(type,text){
-  const chatBox=document.getElementById('ai-chat-box');
-  const div=document.createElement('div');
-  div.className=`ai-msg ${type}`;
-  div.innerHTML=`<span>${text.replace(/\n/g,'<br>')}</span>`;
-  chatBox.appendChild(div);
-  chatBox.scrollTop=chatBox.scrollHeight;
-}
 window.scAddShift=function(uid,ds){
   const activeMembers=allMembers.filter(m=>m.status==='active');
   const d=new Date(ds);
@@ -1151,7 +1502,7 @@ window.scSaveNew=function(ds){
   const end=document.getElementById('m-end').value;
   const shiftId='s_'+Date.now();
   shifts.push({id:shiftId,staffId:uid,branch,date:ds,start,end});
-  saveLocal();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
+  saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
 };
 window.scEditShift=function(sid){
   const s=shifts.find(x=>x.id===sid);if(!s)return;
@@ -1162,8 +1513,8 @@ window.scEditShift=function(sid){
     <div class="field-row"><div class="field"><label class="fl">เริ่ม</label><input type="time" id="m-start" value="${s.start}" step="60" lang="en-GB"></div><div class="field"><label class="fl">เลิก</label><input type="time" id="m-end" value="${s.end}" step="60" lang="en-GB"></div></div>
     <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">บันทึก</button></div>`);
 };
-window.scSaveEdit=function(sid){const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=document.getElementById('m-start').value;s.end=document.getElementById('m-end').value;saveLocal();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
-window.scDel=function(sid){shifts=shifts.filter(s=>s.id!==sid);saveLocal();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
+window.scSaveEdit=function(sid){const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=document.getElementById('m-start').value;s.end=document.getElementById('m-end').value;saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
+window.scDel=function(sid){shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
 
 // ===== SALES =====
 let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''};
@@ -1186,8 +1537,25 @@ window.salesSave=function(){
   const idx=salesEntries.findIndex(e=>e.date===date&&e.branch===salesBranch);
   const rec={date,branch:salesBranch,amounts,total,note:salesNotes[salesBranch]};
   if(idx>=0)salesEntries[idx]=rec;else salesEntries.push(rec);
-  saveLocal();showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย');
+  saveLocal();
+  // บันทึกลง Firestore (ใช้ร่วมกันทุกเครื่อง)
+  const docId=`${date}_${salesBranch}`;
+  setDoc(doc(db,'sales',docId),{...rec,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''})
+    .then(()=>showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย'))
+    .catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+e.message,'err'));
 };
+
+// โหลดยอดขายจาก Firestore (sync ทุกเครื่อง)
+async function loadSalesFromCloud(){
+  try{
+    const snap=await getDocs(collection(db,'sales'));
+    const cloud=snap.docs.map(d=>d.data());
+    if(cloud.length){
+      salesEntries=cloud.map(x=>({date:x.date,branch:x.branch,amounts:x.amounts||{},total:x.total||0,note:x.note||''}));
+      saveLocal();
+    }
+  }catch(e){console.error('loadSales error',e);}
+}
 function salesRenderHistory(){
   const date=document.getElementById('sales-date')?.value||todayStr();
   const todayEs=salesEntries.filter(e=>e.date===date);
@@ -1246,10 +1614,19 @@ window.viewMember=function(uid){
       <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">ข้อมูลส่วนตัว</div>
       <table style="width:100%;font-size:12px;border-collapse:collapse">
         <tr><td style="color:var(--text3);padding:4px 0;width:90px">ชื่อ</td><td style="font-weight:500">${name||'—'}</td></tr>
-        <tr><td style="color:var(--text3);padding:4px 0">อีเมล</td><td>${m.email}</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0">อีเมล</td><td style="word-break:break-all">${m.email}</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0">User ID</td><td style="font-family:monospace;font-size:11px;word-break:break-all;color:var(--text2)">${m.uid}</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">วันเกิด</td><td>${dob}</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">บัตรประชาชน</td><td>${m.nationalId?'***'+m.nationalId.slice(-4):'—'}</td></tr>
       </table>
+      <button class="btn btn-sm" style="margin-top:.75rem;width:100%" onclick="sendResetPassword('${(m.email||'').replace(/'/g,"\\'")}')">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        ส่งอีเมลรีเซ็ตรหัสผ่านให้สมาชิก
+      </button>
+    </div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">ชื่อเล่น</div>
+    <div class="field">
+      <input type="text" id="m-nickname" value="${(m.nickname||'').replace(/"/g,'&quot;')}" placeholder="เช่น ต้อง, แนน (ไว้เรียกง่ายๆ ในตาราง)">
     </div>
     <div style="font-size:13px;font-weight:600;margin-bottom:.75rem">บทบาท</div>
     <div class="field">
@@ -1291,22 +1668,35 @@ window.toggleSalaryFields=function(){
 };
 window.saveMemberSettings=async function(uid){
   const role=document.getElementById('m-role').value;
+  const nickname=document.getElementById('m-nickname')?.value.trim()||'';
   const perms={};
   Object.keys(PERM_LABELS).forEach(k=>{perms[k]=document.getElementById('perm-'+k)?.checked||false;});
   const salaryType=document.getElementById('m-salary-type').value;
   const salary={type:salaryType,base:parseFloat(document.getElementById('m-base')?.value||0),hourlyRate:parseFloat(document.getElementById('m-hourly')?.value||0)};
   try{
-    await updateDoc(doc(db,'members',uid),{role,permissions:perms,salary});
+    await updateDoc(doc(db,'members',uid),{role,nickname,permissions:perms,salary});
     const m=allMembers.find(x=>x.uid===uid);
-    if(m){m.role=role;m.permissions=perms;m.salary=salary;}
-    // ถ้าแก้สิทธิ์ตัวเอง ให้ reload profile และ rebuild nav ทันที
+    if(m){m.role=role;m.nickname=nickname;m.permissions=perms;m.salary=salary;}
     if(uid===currentUser?.uid){
-      profile={...profile,role,permissions:perms,salary};
+      profile={...profile,role,nickname,permissions:perms,salary};
       isAdmin=role==='admin';
       buildNav();
     }
-    closeMD();filterMembers();showToast('บันทึกสิทธิ์และข้อมูลเงินเดือนแล้ว');
+    closeMD();filterMembers();showToast('บันทึกข้อมูลสมาชิกแล้ว');
   }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+};
+
+// ส่งอีเมลรีเซ็ตรหัสผ่านให้สมาชิก (admin กด)
+window.sendResetPassword=async function(email){
+  if(!email){showToast('ไม่พบอีเมลของสมาชิกนี้','err');return;}
+  if(!confirm(`ส่งลิงก์รีเซ็ตรหัสผ่านไปที่ ${email}?`))return;
+  try{
+    await sendPasswordResetEmail(auth,email);
+    showToast('ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว');
+  }catch(e){
+    const msg={'auth/user-not-found':'ไม่พบบัญชีนี้','auth/invalid-email':'อีเมลไม่ถูกต้อง'};
+    showToast(msg[e.code]||'ส่งไม่ได้: '+e.message,'err');
+  }
 };
 window.toggleMember=async function(uid,status){
   const newSt=status==='active'?'inactive':'active';
@@ -1577,6 +1967,99 @@ window.exportPersonSlip=function(){
   const role=m?.role||'';
   downloadHTML(buildMonthSlip(rec,d.name,role,d.uid),`สลิป_${d.name}_${MONTHS_TH[prMonth-1]}_${prYear}.html`);
   showToast('ดาวน์โหลดสลิปแล้ว');
+};
+
+// โหลด payroll ทุกคนของเดือนที่เลือก (ที่บันทึกแล้ว)
+async function loadMonthPayroll(){
+  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+  const snap=await getDocs(collection(db,'payroll'));
+  return snap.docs.map(d=>d.data()).filter(r=>r.monthStr===monthStr);
+}
+
+// 1. ดาวน์โหลดสลิปทั้งเดือน รวมไฟล์เดียว
+window.exportAllSlips=async function(){
+  loading(true);
+  try{
+    const recs=await loadMonthPayroll();
+    if(!recs.length){showToast('เดือนนี้ยังไม่มีใครบันทึกเงินเดือน','err');loading(false);return;}
+    // เรียงตามชื่อ
+    recs.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+    // สร้างสลิปแต่ละคน ต่อกันในหน้าเดียว (แต่ละสลิปขึ้นหน้าใหม่ตอนพิมพ์)
+    const slips=recs.map(r=>{
+      const m=allMembers.find(x=>x.uid===r.uid);
+      const role=m?.role||'';
+      const inner=buildMonthSlip(r,r.name,role,r.uid);
+      // ดึงเฉพาะ body ของสลิป (ตัด html/head ออก เพื่อรวมหลายอันในไฟล์เดียว)
+      const bodyMatch=inner.match(/<body>([\s\S]*?)<\/body>/);
+      let body=bodyMatch?bodyMatch[1]:inner;
+      // เอาปุ่มพิมพ์ของแต่ละสลิปออก (จะมีปุ่มรวมอันเดียว)
+      body=body.replace(/<button class="print-btn"[\s\S]*?<\/button>/g,'');
+      return `<div class="slip-page">${body}</div>`;
+    }).join('');
+
+    const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>สลิปเงินเดือน ${MONTHS_TH[prMonth-1]} ${prYear} (${recs.length} คน)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:16px}
+  .slip-page{margin:0 auto 20px;max-width:148mm}
+  .print-all-btn{display:block;margin:0 auto 20px;padding:12px 28px;background:#16B981;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(22,185,129,.4)}
+  @media print{body{background:#fff;padding:0}.slip-page{margin:0;max-width:100%;page-break-after:always}.slip-page:last-child{page-break-after:auto}.print-all-btn{display:none}@page{size:A5;margin:0}}
+</style></head><body>
+<button class="print-all-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกสลิปทั้งหมดเป็น PDF (${recs.length} คน)</button>
+${slips}
+</body></html>`;
+    downloadHTML(html,`สลิปเงินเดือน_${MONTHS_TH[prMonth-1]}_${prYear}_ทั้งเดือน.html`);
+    showToast(`รวมสลิป ${recs.length} คนเรียบร้อย`);
+  }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+  loading(false);
+};
+
+// 2. Export Excel สรุปเงินเดือน (ให้บัญชี)
+window.exportPayrollExcel=async function(){
+  loading(true);
+  try{
+    const recs=await loadMonthPayroll();
+    if(!recs.length){showToast('เดือนนี้ยังไม่มีใครบันทึกเงินเดือน','err');loading(false);return;}
+    recs.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+
+    // สร้างตาราง HTML ที่ Excel เปิดได้ (.xls) — รองรับภาษาไทย ด้วย UTF-8 BOM
+    const headers=['ลำดับ','รหัสพนักงาน','ชื่อ-นามสกุล','ประเภท','เงินเดือนฐาน','ชั่วโมง','ค่าชั่วโมง','OT(ชม.)','ค่า OT','รายรับเพิ่ม','รายการหัก','เงินสุทธิ','สถานะ'];
+    let totalNet=0,totalBase=0,totalOt=0;
+    const rows=recs.map((r,i)=>{
+      const add=(r.extraItems||[]).filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0)||r.bonus||0;
+      const ded=(r.extraItems||[]).filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0)||r.deduction||0;
+      totalNet+=r.net||0;totalBase+=r.baseAmt||0;totalOt+=r.otAmt||0;
+      const typeLabel=r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'รายชั่วโมง':'ผสม';
+      return [i+1,empCode(r.uid),r.name||'',typeLabel,r.baseAmt||0,r.hours||0,r.hourlyAmt||0,r.otHours||0,r.otAmt||0,add,ded,r.net||0,r.status==='paid'?'จ่ายแล้ว':'รอ'];
+    });
+
+    const th=headers.map(h=>`<th style="background:#16B981;color:#fff;border:1px solid #0F8A63;padding:6px 10px;font-weight:700">${h}</th>`).join('');
+    const trs=rows.map(row=>`<tr>${row.map((cell,ci)=>{
+      const num=[4,6,8,11].includes(ci); // คอลัมน์ตัวเลขเงิน
+      const money=[4,6,8,9,10,11].includes(ci);
+      return `<td style="border:1px solid #ccc;padding:5px 10px;${money?'text-align:right;mso-number-format:\\#\\,\\#\\#0':''}">${cell}</td>`;
+    }).join('')}</tr>`).join('');
+    const totalRow=`<tr style="font-weight:700;background:#EFFCF7"><td colspan="4" style="border:1px solid #ccc;padding:6px 10px;text-align:right">รวมทั้งหมด</td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalBase}</td><td colspan="3" style="border:1px solid #ccc"></td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalOt}</td><td colspan="2" style="border:1px solid #ccc"></td><td style="border:1px solid #ccc;padding:6px 10px;text-align:right">${totalNet}</td><td style="border:1px solid #ccc"></td></tr>`;
+
+    const html=`<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><style>table{border-collapse:collapse;font-family:'Noto Sans Thai',sans-serif;font-size:13px}</style></head>
+<body>
+<h3 style="font-family:sans-serif">สรุปเงินเดือน ${MONTHS_TH[prMonth-1]} ${prYear} — ใหม่เภสัช</h3>
+<p style="font-family:sans-serif;font-size:12px;color:#666">จำนวนพนักงาน ${recs.length} คน • ยอดรวมสุทธิ ${totalNet.toLocaleString()} บาท • ออกเอกสาร ${new Date().toLocaleDateString('th-TH')}</p>
+<table><thead><tr>${th}</tr></thead><tbody>${trs}${totalRow}</tbody></table>
+</body></html>`;
+
+    // ดาวน์โหลดเป็น .xls (Excel เปิดได้ ภาษาไทยไม่เพี้ยน)
+    const blob=new Blob(['\ufeff'+html],{type:'application/vnd.ms-excel;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=`สรุปเงินเดือน_${MONTHS_TH[prMonth-1]}_${prYear}.xls`;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    showToast(`Export สรุป ${recs.length} คนเรียบร้อย`);
+  }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+  loading(false);
 };
 
 // ===== MY PAYROLL (member — เฉพาะปีปัจจุบัน) =====
@@ -2100,9 +2583,6 @@ window.downloadMonthSlip=function(idx){
 function renderPayTypeSettings(){document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('');}
 window.addPayType=function(){const inp=document.getElementById('new-pay-name');const name=inp.value.trim();if(!name||payTypes.includes(name)){showToast('ชื่อซ้ำหรือว่างเปล่า','err');return;}payTypes.push(name);inp.value='';saveLocal();renderPayTypeSettings();showToast('เพิ่มประเภทการชำระแล้ว');};
 window.removePayType=function(i){payTypes.splice(i,1);saveLocal();renderPayTypeSettings();showToast('ลบแล้ว');};
-function renderStaffSettings(){document.getElementById('staff-list-s').innerHTML=staff.map(e=>`<div class="staff-row"><div class="staff-av">${e.name.slice(0,2)}</div><div style="flex:1"><div style="font-weight:600;font-size:13px">${e.name}</div><div style="font-size:11px;color:var(--text3)">${e.role}</div></div><button class="btn btn-danger btn-sm" onclick="removeStaff(${e.id})">ลบ</button></div>`).join('');}
-window.addStaff=function(){const name=document.getElementById('new-staff-name').value.trim();const role=document.getElementById('new-staff-role').value.trim();if(!name){showToast('กรุณากรอกชื่อ','err');return;}staff.push({id:nextStaffId++,name,role:role||'พนักงาน'});document.getElementById('new-staff-name').value='';document.getElementById('new-staff-role').value='';saveLocal();renderStaffSettings();showToast('เพิ่มพนักงานแล้ว');};
-window.removeStaff=function(id){if(!confirm('ยืนยันลบพนักงานนี้?'))return;staff=staff.filter(s=>s.id!==id);shifts=shifts.filter(s=>s.staffId!==id);saveLocal();renderStaffSettings();showToast('ลบพนักงานแล้ว');};
 function renderMyProfile(){
   if(!profile){document.getElementById('my-profile').innerHTML='<p style="font-size:13px;color:var(--text3)">ไม่พบข้อมูล</p>';return;}
   const dob=profile.dateOfBirth?new Date(profile.dateOfBirth).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—';
@@ -2113,6 +2593,610 @@ function renderMyProfile(){
     <tr><td style="padding:7px 0;color:var(--text3);border-top:1px solid var(--border)">บทบาท</td><td style="border-top:1px solid var(--border)"><span class="badge ${isAdmin?'badge-purple':'badge-green'}">${isAdmin?'Admin':'สมาชิก'}</span></td></tr>
   </table>`;
 }
+
+// ===== CHECK-IN (GPS) =====
+// พิกัดสาขา (admin ตั้งใน settings) เก็บใน localStorage
+let branchLocations=JSON.parse(localStorage.getItem('nm_branch_locations')||'[]');
+// โครงสร้าง: [{lat,lng,radius}] index ตรงกับ BRANCHES
+function getBranchLoc(i){return branchLocations[i]||null;}
+
+// คำนวณระยะทาง (เมตร) ระหว่าง 2 พิกัด — Haversine
+function distanceM(lat1,lng1,lat2,lng2){
+  const R=6371000,toR=x=>x*Math.PI/180;
+  const dLat=toR(lat2-lat1),dLng=toR(lng2-lng1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toR(lat1))*Math.cos(toR(lat2))*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function todayCheckinId(){return `${currentUser?.uid}_${todayStr()}`;}
+
+async function renderCheckinPage(){
+  const card=document.getElementById('checkin-status-card');
+  const today=document.getElementById('checkin-today');
+  card.innerHTML='<div class="card" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</div>';
+  // โหลดสถานะวันนี้
+  let rec=null;
+  try{const d=await getDoc(doc(db,'checkins',todayCheckinId()));if(d.exists())rec=d.data();}catch(e){}
+
+  const hasIn=rec&&rec.checkIn;
+  const hasOut=rec&&rec.checkOut;
+
+  card.innerHTML=`<div class="card" style="text-align:center">
+    <div style="font-size:13px;color:var(--text3);margin-bottom:.5rem">${new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+    <div style="display:flex;justify-content:center;gap:2rem;margin:1.25rem 0">
+      <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">เข้างาน</div><div style="font-size:24px;font-weight:700;color:${hasIn?'var(--green-d)':'var(--text3)'}">${hasIn?rec.checkIn:'--:--'}</div></div>
+      <div style="width:1px;background:var(--border)"></div>
+      <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">ออกงาน</div><div style="font-size:24px;font-weight:700;color:${hasOut?'var(--blue-t)':'var(--text3)'}">${hasOut?rec.checkOut:'--:--'}</div></div>
+    </div>
+    ${!hasIn?`<button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="doCheckin('in')">📍 เช็คอินเข้างาน</button>`
+      :!hasOut?`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="doCheckin('out')">📍 เช็คเอาท์ออกงาน</button>`
+      :`<div style="background:var(--green-ll);border-radius:10px;padding:1rem;color:var(--green-dd);font-weight:600">✅ ลงเวลาครบแล้ววันนี้</div>`}
+    <div id="checkin-msg" style="font-size:12px;color:var(--text3);margin-top:.75rem"></div>
+  </div>`;
+
+  today.innerHTML=rec?`<div style="font-size:13px;line-height:2">
+    ${rec.checkIn?`<div>🟢 เข้างาน: <b>${rec.checkIn}</b> ${rec.branchIn!=null?'ที่ '+BRANCHES[rec.branchIn]:''}</div>`:''}
+    ${rec.checkOut?`<div>🔵 ออกงาน: <b>${rec.checkOut}</b> ${rec.branchOut!=null?'ที่ '+BRANCHES[rec.branchOut]:''}</div>`:''}
+    ${rec.checkIn&&rec.checkOut?`<div style="margin-top:8px;color:var(--green-d);font-weight:600">รวมเวลาทำงาน: ${calcWorkTime(rec.checkIn,rec.checkOut)}</div>`:''}
+  </div>`:'<div style="color:var(--text3);font-size:13px">ยังไม่มีการลงเวลาวันนี้</div>';
+}
+
+function calcWorkTime(inT,outT){
+  const[ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);
+  let mins=(oh*60+om)-(ih*60+im);if(mins<0)mins+=1440;
+  return `${Math.floor(mins/60)} ชม. ${mins%60} นาที`;
+}
+
+window.doCheckin=function(type){
+  const msg=document.getElementById('checkin-msg');
+  msg.textContent='กำลังขอตำแหน่ง GPS...';
+  if(!navigator.geolocation){msg.textContent='เบราว์เซอร์ไม่รองรับ GPS';return;}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const{latitude,longitude}=pos.coords;
+    // หาสาขาที่อยู่ในรัศมี
+    let matchedBranch=null,minDist=Infinity;
+    branchLocations.forEach((loc,i)=>{
+      if(!loc)return;
+      const d=distanceM(latitude,longitude,loc.lat,loc.lng);
+      if(d<=(loc.radius||100)&&d<minDist){minDist=d;matchedBranch=i;}
+    });
+    if(matchedBranch===null){
+      // หาสาขาใกล้สุดเพื่อบอกระยะ
+      let nearest=null,nd=Infinity;
+      branchLocations.forEach((loc,i)=>{if(!loc)return;const d=distanceM(latitude,longitude,loc.lat,loc.lng);if(d<nd){nd=d;nearest=i;}});
+      if(nearest===null)msg.innerHTML='<span style="color:var(--red-t)">⚠️ ยังไม่ได้ตั้งพิกัดสาขา กรุณาแจ้ง admin</span>';
+      else msg.innerHTML=`<span style="color:var(--red-t)">⚠️ คุณอยู่ห่างจากสาขา${BRANCHES[nearest]} ${Math.round(nd)} เมตร (ต้องอยู่ในรัศมีร้าน)</span>`;
+      return;
+    }
+    // บันทึก
+    const now=new Date();
+    const timeStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const id=todayCheckinId();
+    try{
+      let rec={};
+      const ex=await getDoc(doc(db,'checkins',id));if(ex.exists())rec=ex.data();
+      const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'';
+      if(type==='in'){rec.checkIn=timeStr;rec.branchIn=matchedBranch;}
+      else{rec.checkOut=timeStr;rec.branchOut=matchedBranch;}
+      rec.uid=currentUser.uid;rec.name=name;rec.date=todayStr();
+      await setDoc(doc(db,'checkins',id),rec);
+      showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}`);
+      renderCheckinPage();
+    }catch(e){msg.innerHTML='<span style="color:var(--red-t)">บันทึกไม่ได้: '+e.message+'</span>';}
+  },err=>{
+    msg.innerHTML='<span style="color:var(--red-t)">ไม่สามารถเข้าถึง GPS ได้ กรุณาเปิดสิทธิ์ตำแหน่งในเบราว์เซอร์</span>';
+  },{enableHighAccuracy:true,timeout:10000});
+};
+
+// ประวัติ check-in (admin)
+window.loadCheckinHistory=async function(){
+  if(!isAdmin){document.getElementById('cih-tbody').innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
+  const date=document.getElementById('cih-date')?.value||todayStr();
+  if(!document.getElementById('cih-date').value)document.getElementById('cih-date').value=date;
+  document.getElementById('cih-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
+  try{
+    const snap=await getDocs(query(collection(db,'checkins'),where('date','==',date)));
+    const recs=snap.docs.map(d=>d.data()).sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
+    const checkedIn=recs.filter(r=>r.checkIn).length;
+    const checkedOut=recs.filter(r=>r.checkOut).length;
+    document.getElementById('cih-metrics').innerHTML=`
+      <div class="mcard c-green"><div class="mcard-label">เข้างานแล้ว</div><div class="mcard-val">${checkedIn}</div><div class="mcard-sub">คน</div></div>
+      <div class="mcard c-blue"><div class="mcard-label">ออกงานแล้ว</div><div class="mcard-val">${checkedOut}</div><div class="mcard-sub">คน</div></div>
+      <div class="mcard c-amber"><div class="mcard-label">ยังทำงานอยู่</div><div class="mcard-val">${checkedIn-checkedOut}</div><div class="mcard-sub">คน</div></div>`;
+    document.getElementById('cih-tbody').innerHTML=recs.length===0?'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">ไม่มีการลงเวลาในวันนี้</td></tr>':recs.map(r=>`<tr>
+      <td style="font-weight:600">${r.name||'—'}</td>
+      <td>${r.date}</td>
+      <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}</td>
+      <td style="color:var(--blue-t)">${r.checkOut||'—'}${r.branchOut!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchOut]}</div>`:''}</td>
+      <td>${r.checkIn&&r.checkOut?calcWorkTime(r.checkIn,r.checkOut):'—'}</td>
+      <td>${r.checkOut?'<span class="sta-on">เสร็จสิ้น</span>':r.checkIn?'<span class="badge badge-amber">ทำงานอยู่</span>':'<span class="sta-off">ยังไม่เข้า</span>'}</td>
+    </tr>`).join('');
+  }catch(e){document.getElementById('cih-tbody').innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+};
+
+// ===== ARTICLES =====
+window.loadArticles=async function(){
+  const list=document.getElementById('articles-list');
+  list.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(collection(db,'articles'));
+    const arts=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+    if(!arts.length){list.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีบทความ'+(isAdmin?' — กดปุ่ม "เขียนบทความ" เพื่อเริ่ม':'')+'</div>';return;}
+    list.innerHTML=arts.map(a=>`<div class="card" style="margin-bottom:1rem;cursor:pointer" onclick="viewArticle('${a.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:700;margin-bottom:4px">${a.title}</div>
+          <div style="font-size:12px;color:var(--text3)">โดย ${a.author||'—'} • ${a.createdAt?new Date(a.createdAt).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):''}</div>
+          <div style="font-size:13px;color:var(--text2);margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${(a.body||'').replace(/<[^>]*>/g,'').slice(0,150)}</div>
+        </div>
+        ${a.category?`<span class="badge badge-green">${a.category}</span>`:''}
+      </div>
+    </div>`).join('');
+  }catch(e){list.innerHTML=`<div style="text-align:center;color:var(--red-t);padding:2rem">${e.message}</div>`;}
+};
+
+window.viewArticle=async function(id){
+  try{
+    const d=await getDoc(doc(db,'articles',id));if(!d.exists())return;
+    const a=d.data();
+    openModal(`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px">
+        <div class="modal-title" style="margin:0">${a.title}</div>
+        ${a.category?`<span class="badge badge-green">${a.category}</span>`:''}
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">โดย ${a.author||'—'} • ${a.createdAt?new Date(a.createdAt).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):''}</div>
+      <div style="font-size:14px;line-height:1.8;color:var(--text);white-space:pre-wrap">${(a.body||'').replace(/</g,'&lt;')}</div>
+      <div class="modal-footer">
+        ${isAdmin?`<button class="btn btn-danger" onclick="deleteArticle('${id}')">ลบ</button><button class="btn" onclick="openArticleEditor('${id}')">แก้ไข</button>`:''}
+        <button class="btn btn-primary" onclick="closeMD()">ปิด</button>
+      </div>`);
+  }catch(e){showToast('เปิดบทความไม่ได้','err');}
+};
+
+window.openArticleEditor=async function(id){
+  if(!isAdmin){showToast('เฉพาะ admin เท่านั้น','err');return;}
+  let a={title:'',category:'',body:''};
+  if(id){try{const d=await getDoc(doc(db,'articles',id));if(d.exists())a=d.data();}catch(e){}}
+  openModal(`<div class="modal-title">${id?'แก้ไขบทความ':'เขียนบทความใหม่'}</div>
+    <div class="field"><label class="fl">หัวข้อ</label><input type="text" id="art-title" value="${(a.title||'').replace(/"/g,'&quot;')}" placeholder="เช่น การจ่ายยาแก้ปวดอย่างปลอดภัย"></div>
+    <div class="field"><label class="fl">หมวดหมู่</label><input type="text" id="art-cat" value="${(a.category||'').replace(/"/g,'&quot;')}" placeholder="เช่น การจ่ายยา, วิชาการ, ข่าวสาร"></div>
+    <div class="field"><label class="fl">เนื้อหา</label><textarea id="art-body" style="min-height:240px" placeholder="เขียนเนื้อหาบทความที่นี่...">${(a.body||'').replace(/</g,'&lt;')}</textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMD()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveArticle('${id||''}')">${id?'บันทึกการแก้ไข':'เผยแพร่'}</button>
+    </div>`);
+};
+
+window.saveArticle=async function(id){
+  const title=document.getElementById('art-title').value.trim();
+  const category=document.getElementById('art-cat').value.trim();
+  const body=document.getElementById('art-body').value.trim();
+  if(!title||!body){showToast('กรุณากรอกหัวข้อและเนื้อหา','err');return;}
+  const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin';
+  try{
+    const docId=id||('art_'+Date.now());
+    const data={title,category,body,author:name,authorUid:currentUser.uid,updatedAt:new Date().toISOString()};
+    if(!id)data.createdAt=new Date().toISOString();
+    else{const ex=await getDoc(doc(db,'articles',docId));if(ex.exists())data.createdAt=ex.data().createdAt;}
+    await setDoc(doc(db,'articles',docId),data,{merge:true});
+    closeMD();showToast(id?'แก้ไขบทความแล้ว':'เผยแพร่บทความแล้ว');loadArticles();
+  }catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
+};
+
+window.deleteArticle=async function(id){
+  if(!confirm('ยืนยันลบบทความนี้?'))return;
+  try{await deleteDoc(doc(db,'articles',id));closeMD();showToast('ลบบทความแล้ว');loadArticles();}
+  catch(e){showToast('ลบไม่ได้: '+e.message,'err');}
+};
+
+// ===== GPS BRANCH SETTINGS (admin) =====
+function renderGpsSettings(){
+  const card=document.getElementById('gps-settings-card');
+  if(!card)return;
+  card.style.display=isAdmin?'':'none';
+  if(!isAdmin)return;
+  const el=document.getElementById('gps-branch-list');
+  el.innerHTML=BRANCHES.map((b,i)=>{
+    const loc=branchLocations[i];
+    return`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span style="font-weight:600;font-size:13px;color:${BCOLORS[i]}">${b}</span>
+        ${loc?`<span class="badge badge-green">ตั้งแล้ว</span>`:`<span class="badge badge-red">ยังไม่ตั้ง</span>`}
+      </div>
+      ${loc?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">พิกัด: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)} • รัศมี ${loc.radius} ม.</div>`:''}
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="setBranchGPS(${i})">📍 ใช้ตำแหน่งปัจจุบัน</button>
+        <input type="number" id="gps-radius-${i}" value="${loc?loc.radius:100}" min="20" style="width:90px;padding:5px 8px" placeholder="รัศมี(ม.)" title="รัศมีเมตร">
+        <span style="font-size:12px;color:var(--text3);align-self:center">เมตร</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.setBranchGPS=function(i){
+  if(!navigator.geolocation){showToast('เบราว์เซอร์ไม่รองรับ GPS','err');return;}
+  showToast('กำลังขอตำแหน่ง...');
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const radius=parseInt(document.getElementById('gps-radius-'+i)?.value)||100;
+    branchLocations[i]={lat:pos.coords.latitude,lng:pos.coords.longitude,radius};
+    localStorage.setItem('nm_branch_locations',JSON.stringify(branchLocations));
+    // บันทึกลง Firestore ด้วยเพื่อ sync ทุกเครื่อง
+    setDoc(doc(db,'config','branchLocations'),{locations:branchLocations}).catch(()=>{});
+    showToast(`ตั้งพิกัด${BRANCHES[i]}แล้ว`);
+    renderGpsSettings();
+  },err=>{showToast('เข้าถึง GPS ไม่ได้ เปิดสิทธิ์ตำแหน่งก่อน','err');},{enableHighAccuracy:true,timeout:10000});
+};
+
+// โหลดพิกัดสาขาจาก Firestore
+async function loadBranchLocations(){
+  try{
+    const d=await getDoc(doc(db,'config','branchLocations'));
+    if(d.exists()&&d.data().locations){
+      branchLocations=d.data().locations;
+      localStorage.setItem('nm_branch_locations',JSON.stringify(branchLocations));
+    }
+  }catch(e){}
+}
+
+// ===== IN-APP NOTIFICATIONS =====
+async function checkNotifications(){
+  const banner=document.getElementById('alert-banner');
+  if(!banner)return;
+  const alerts=[];
+  const today=todayStr();
+  const dow=(new Date().getDay()+6)%7; // 0=จันทร์
+
+  try{
+    // 1. เตือนพนักงานยังไม่ลงเวลา (เว้นวันหยุดของเขา)
+    if(!isAdmin){
+      // เช็คว่าวันนี้มีเวรของเราไหม (ถ้ามีเวร = วันทำงาน)
+      const myShiftToday=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
+      if(myShiftToday){
+        let checkedIn=false;
+        try{const d=await getDoc(doc(db,'checkins',`${currentUser.uid}_${today}`));if(d.exists()&&d.data().checkIn)checkedIn=true;}catch(e){}
+        if(!checkedIn){
+          alerts.push({color:'amber',icon:'⏰',text:'วันนี้คุณยังไม่ได้ลงเวลาเข้างาน',action:`<button class="btn btn-sm btn-primary" onclick="goto('checkin')" style="margin-left:auto">ลงเวลา</button>`});
+        }
+      }
+    }
+
+    // 2. เตือน admin: สาขาไหนยังไม่บันทึกยอดขายเมื่อวาน
+    if(isAdmin){
+      const yst=new Date();yst.setDate(yst.getDate()-1);
+      const ystStr=yst.toISOString().slice(0,10);
+      const missing=BRANCHES.map((b,i)=>({b,i})).filter(({i})=>!salesEntries.find(e=>e.date===ystStr&&e.branch===i));
+      if(missing.length){
+        alerts.push({color:'blue',icon:'💰',text:`เมื่อวานยังไม่บันทึกยอดขาย: ${missing.map(x=>x.b).join(', ')}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('sales')" style="margin-left:auto">บันทึก</button>`});
+      }
+      // เตือนวันลาที่กำลังจะถึง (ภายใน 7 วัน)
+      try{
+        const snap=await getDocs(collection(db,'leaves'));
+        const in7=new Date();in7.setDate(in7.getDate()+7);const in7Str=in7.toISOString().slice(0,10);
+        const upcoming=snap.docs.map(d=>d.data()).filter(l=>l.from>=today&&l.from<=in7Str);
+        if(upcoming.length){
+          const names=[...new Set(upcoming.map(l=>l.name))].slice(0,3).join(', ');
+          alerts.push({color:'amber',icon:'📅',text:`มีคำขอลาเร็วๆ นี้: ${names}${upcoming.length>3?' และอื่นๆ':''}`,action:`<button class="btn btn-sm" onclick="goto('leave-admin')" style="margin-left:auto">ดู</button>`});
+        }
+      }catch(e){}
+    }
+  }catch(e){console.error('checkNotifications',e);}
+
+  if(!alerts.length){banner.style.display='none';return;}
+  banner.style.display='block';
+  banner.innerHTML=alerts.map(a=>{
+    const colors={amber:['var(--amber-l)','var(--amber)','var(--amber-t)'],blue:['var(--blue-l)','var(--blue)','var(--blue-t)'],red:['var(--red-l)','#F09595','var(--red-t)']}[a.color];
+    return`<div style="display:flex;align-items:center;gap:10px;background:${colors[0]};border:1px solid ${colors[1]};border-radius:12px;padding:12px 16px;margin-bottom:10px;font-size:13px;color:${colors[2]};font-weight:500">
+      <span style="font-size:18px">${a.icon}</span><span>${a.text}</span>${a.action||''}
+    </div>`;
+  }).join('');
+}
+
+// ===== DOSE CALCULATOR =====
+// สูตรยาเก็บใน Firestore: doseFormulas/{id} = {name, perKgLow, perKgHigh, unit, maxDose, freq, note, concMg, concMl}
+let doseFormulas=[];
+async function loadDoseTools(){
+  try{
+    const snap=await getDocs(collection(db,'doseFormulas'));
+    doseFormulas=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  }catch(e){doseFormulas=[];}
+  // เติม dropdown
+  const sel=document.getElementById('dose-drug');
+  if(sel)sel.innerHTML='<option value="">— เลือกสูตรยา —</option>'+doseFormulas.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  renderDoseList();
+}
+
+function renderDoseList(){
+  const el=document.getElementById('dose-list');if(!el)return;
+  if(!doseFormulas.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีสูตรยา'+(isAdmin?' — กดปุ่ม "เพิ่มสูตรยา"':'')+'</div>';return;}
+  el.innerHTML=doseFormulas.map(d=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+    <div style="flex:1">
+      <div style="font-weight:600;font-size:13px">${d.name}</div>
+      <div style="font-size:11px;color:var(--text3)">${d.perKgLow}${d.perKgHigh&&d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./ครั้ง${d.freq?' • '+d.freq:''}${d.maxDose?' • สูงสุด '+d.maxDose+' '+d.unit:''}</div>
+    </div>
+    ${isAdmin?`<button class="btn btn-sm" onclick="openDoseEditor('${d.id}')">แก้</button><button class="btn btn-sm btn-danger" onclick="deleteDose('${d.id}')">ลบ</button>`:''}
+  </div>`).join('');
+}
+
+window.onDoseDrugChange=function(){
+  const id=document.getElementById('dose-drug').value;
+  const info=document.getElementById('dose-formula-info');
+  const d=doseFormulas.find(x=>x.id===id);
+  if(!d){info.style.display='none';document.getElementById('dose-result').innerHTML='';return;}
+  info.style.display='block';
+  info.innerHTML=`<b>${d.name}</b><br>ขนาด: ${d.perKgLow}${d.perKgHigh&&d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./ครั้ง${d.freq?'<br>ความถี่: '+d.freq:''}${d.maxDose?'<br>ขนาดสูงสุด: '+d.maxDose+' '+d.unit+'/ครั้ง':''}${d.concMg&&d.concMl?'<br>ความเข้มข้น: '+d.concMg+' mg/'+d.concMl+' ml':''}${d.note?'<br>หมายเหตุ: '+d.note:''}`;
+  calcDose();
+};
+
+window.calcDose=function(){
+  const id=document.getElementById('dose-drug').value;
+  const d=doseFormulas.find(x=>x.id===id);
+  const w=parseFloat(document.getElementById('dose-weight').value);
+  const res=document.getElementById('dose-result');
+  if(!d||!w){res.innerHTML='';return;}
+  let low=d.perKgLow*w, high=(d.perKgHigh||d.perKgLow)*w;
+  let capped=false;
+  if(d.maxDose){if(low>d.maxDose){low=d.maxDose;capped=true;}if(high>d.maxDose){high=d.maxDose;capped=true;}}
+  const rng=low===high?`${low.toFixed(1)}`:`${low.toFixed(1)} - ${high.toFixed(1)}`;
+  let mlHtml='';
+  if(d.concMg&&d.concMl){
+    const mlLow=(low/d.concMg*d.concMl), mlHigh=(high/d.concMg*d.concMl);
+    const mlRng=mlLow===mlHigh?`${mlLow.toFixed(1)}`:`${mlLow.toFixed(1)} - ${mlHigh.toFixed(1)}`;
+    mlHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.2)"><div style="font-size:12px;opacity:.8">ปริมาณยาน้ำ (${d.concMg}mg/${d.concMl}ml)</div><div style="font-size:20px;font-weight:700">${mlRng} ml/ครั้ง</div></div>`;
+  }
+  res.innerHTML=`<div class="pr-net-box" style="background:linear-gradient(135deg,#085041,#1D9E75)">
+    <div>
+      <div class="lbl">ขนาดยาที่คำนวณได้ (น้ำหนัก ${w} กก.)</div>
+      <div class="val" style="font-size:24px">${rng} ${d.unit}/ครั้ง</div>
+      ${d.freq?`<div style="font-size:11px;opacity:.7;margin-top:2px">${d.freq}</div>`:''}
+      ${capped?`<div style="font-size:11px;opacity:.9;margin-top:4px">⚠️ ปรับลดตามขนาดสูงสุด ${d.maxDose} ${d.unit}</div>`:''}
+      ${mlHtml}
+    </div>
+  </div>
+  <div style="font-size:11px;color:var(--amber-t);margin-top:8px">⚠️ ตรวจสอบกับตำราอ้างอิงก่อนจ่ายยาทุกครั้ง</div>`;
+};
+
+window.openDoseEditor=async function(id){
+  if(!isAdmin)return;
+  let d={name:'',perKgLow:'',perKgHigh:'',unit:'mg',maxDose:'',freq:'',note:'',concMg:'',concMl:''};
+  if(id){const f=doseFormulas.find(x=>x.id===id);if(f)d=f;}
+  openModal(`<div class="modal-title">${id?'แก้ไขสูตรยา':'เพิ่มสูตรยา'}</div>
+    <div class="field"><label class="fl">ชื่อยา *</label><input type="text" id="d-name" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="เช่น Paracetamol"></div>
+    <div class="field-row">
+      <div class="field"><label class="fl">ขนาดต่ำสุด (ต่อกก./ครั้ง) *</label><input type="number" id="d-low" value="${d.perKgLow}" step="0.1" placeholder="10"></div>
+      <div class="field"><label class="fl">ขนาดสูงสุด (ต่อกก./ครั้ง)</label><input type="number" id="d-high" value="${d.perKgHigh}" step="0.1" placeholder="15"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label class="fl">หน่วย</label><input type="text" id="d-unit" value="${d.unit||'mg'}" placeholder="mg"></div>
+      <div class="field"><label class="fl">ขนาดสูงสุด/ครั้ง</label><input type="number" id="d-max" value="${d.maxDose}" step="0.1" placeholder="500"></div>
+    </div>
+    <div class="field"><label class="fl">ความถี่</label><input type="text" id="d-freq" value="${(d.freq||'').replace(/"/g,'&quot;')}" placeholder="เช่น ทุก 4-6 ชม."></div>
+    <div style="font-size:12px;font-weight:600;margin:.5rem 0">ความเข้มข้นยาน้ำ (ถ้ามี — เพื่อคำนวณเป็น ml)</div>
+    <div class="field-row">
+      <div class="field"><label class="fl">มก. (mg)</label><input type="number" id="d-cmg" value="${d.concMg}" step="0.1" placeholder="120"></div>
+      <div class="field"><label class="fl">ต่อ ml</label><input type="number" id="d-cml" value="${d.concMl}" step="0.1" placeholder="5"></div>
+    </div>
+    <div class="field"><label class="fl">หมายเหตุ</label><input type="text" id="d-note" value="${(d.note||'').replace(/"/g,'&quot;')}" placeholder="ข้อควรระวังเพิ่มเติม"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveDose('${id||''}')">บันทึก</button></div>`);
+};
+
+window.saveDose=async function(id){
+  const name=document.getElementById('d-name').value.trim();
+  const perKgLow=parseFloat(document.getElementById('d-low').value);
+  if(!name||isNaN(perKgLow)){showToast('กรอกชื่อยาและขนาดต่ำสุด','err');return;}
+  const data={
+    name,perKgLow,
+    perKgHigh:parseFloat(document.getElementById('d-high').value)||perKgLow,
+    unit:document.getElementById('d-unit').value.trim()||'mg',
+    maxDose:parseFloat(document.getElementById('d-max').value)||0,
+    freq:document.getElementById('d-freq').value.trim(),
+    concMg:parseFloat(document.getElementById('d-cmg').value)||0,
+    concMl:parseFloat(document.getElementById('d-cml').value)||0,
+    note:document.getElementById('d-note').value.trim()
+  };
+  try{await setDoc(doc(db,'doseFormulas',id||('dose_'+Date.now())),data);closeMD();showToast('บันทึกสูตรยาแล้ว');loadDoseTools();}
+  catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
+};
+
+window.deleteDose=async function(id){
+  if(!confirm('ลบสูตรยานี้?'))return;
+  try{await deleteDoc(doc(db,'doseFormulas',id));showToast('ลบแล้ว');loadDoseTools();}catch(e){showToast(e.message,'err');}
+};
+
+// ===== DRUG WARNINGS =====
+// เก็บใน Firestore: drugWarnings/{id} = {name, conditions:{kidney,liver,heart}, interactions:[], pregnancy, lactation, note}
+let drugWarnings=[];
+async function loadDrugWarnings(){
+  try{
+    const snap=await getDocs(collection(db,'drugWarnings'));
+    drugWarnings=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  }catch(e){drugWarnings=[];}
+  renderWarnList();
+}
+
+function renderWarnList(){
+  const el=document.getElementById('warn-list');if(!el)return;
+  const q=(document.getElementById('warn-search')?.value||'').toLowerCase().trim();
+  let list=drugWarnings;
+  if(q)list=drugWarnings.filter(d=>d.name?.toLowerCase().includes(q)||d.interactions?.some(x=>x.toLowerCase().includes(q)));
+  if(!list.length){el.innerHTML=`<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">${q?'ไม่พบยาที่ค้นหา':'ยังไม่มีข้อมูลยา'+(isAdmin?' — กดปุ่ม "เพิ่มข้อมูลยา"':'')}</div>`;return;}
+  el.innerHTML=list.map(d=>{
+    const cond=[];
+    if(d.conditions?.kidney)cond.push(`<span style="background:#FDECEC;color:#A32D2D;padding:2px 8px;border-radius:5px;font-size:11px">⚠️ โรคไต: ${d.conditions.kidney}</span>`);
+    if(d.conditions?.liver)cond.push(`<span style="background:#FDF0E3;color:#7A4A00;padding:2px 8px;border-radius:5px;font-size:11px">⚠️ โรคตับ: ${d.conditions.liver}</span>`);
+    if(d.conditions?.heart)cond.push(`<span style="background:#FCE9F0;color:#9C1C50;padding:2px 8px;border-radius:5px;font-size:11px">⚠️ โรคหัวใจ: ${d.conditions.heart}</span>`);
+    return`<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px">
+        <div style="font-size:15px;font-weight:700">${d.name}</div>
+        ${isAdmin?`<div style="display:flex;gap:4px"><button class="btn btn-sm" onclick="openWarnEditor('${d.id}')">แก้</button><button class="btn btn-sm btn-danger" onclick="deleteWarn('${d.id}')">ลบ</button></div>`:''}
+      </div>
+      ${cond.length?`<div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px">${cond.join('')}</div>`:''}
+      ${d.pregnancy?`<div style="font-size:12px;margin-bottom:4px"><b style="color:#C2185B">🤰 คนท้อง:</b> ${d.pregnancy}</div>`:''}
+      ${d.lactation?`<div style="font-size:12px;margin-bottom:4px"><b style="color:#7B5EA7">🍼 ให้นมบุตร:</b> ${d.lactation}</div>`:''}
+      ${d.interactions?.length?`<div style="font-size:12px;margin-bottom:4px"><b style="color:#D4690E">💊 ยาตีกัน:</b> ${d.interactions.join(', ')}</div>`:''}
+      ${d.note?`<div style="font-size:12px;color:var(--text3);margin-top:4px">📝 ${d.note}</div>`:''}
+      ${(d.source||d.updatedDate)?`<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--text3)">
+        ${d.source?`<span>📚 อ้างอิง: <b style="color:var(--text2)">${d.source}</b></span>`:''}
+        ${d.updatedDate?`<span>🕐 อัปเดต: ${d.updatedDate}</span>`:''}
+      </div>`:'<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:11px;color:var(--amber-t)">⚠️ ยังไม่ระบุแหล่งอ้างอิง</div>'}
+    </div>`;
+  }).join('');
+}
+
+window.openWarnEditor=async function(id){
+  if(!isAdmin)return;
+  let d={name:'',conditions:{kidney:'',liver:'',heart:''},interactions:[],pregnancy:'',lactation:'',note:'',source:'',updatedDate:''};
+  if(id){const f=drugWarnings.find(x=>x.id===id);if(f)d={...d,...f,conditions:{...d.conditions,...(f.conditions||{})}};}
+  const todayISO=new Date().toISOString().slice(0,10);
+  openModal(`<div class="modal-title">${id?'แก้ไขข้อมูลยา':'เพิ่มข้อมูลยา'}</div>
+    <div class="field"><label class="fl">ชื่อยา *</label><input type="text" id="w-name" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="เช่น Ibuprofen"></div>
+    <div style="font-size:13px;font-weight:600;margin:.75rem 0 .25rem">⚠️ โรคประจำตัว (เว้นว่างถ้าใช้ได้ปกติ)</div>
+    <div class="field"><label class="fl">โรคไต</label><input type="text" id="w-kidney" value="${(d.conditions.kidney||'').replace(/"/g,'&quot;')}" placeholder="เช่น ห้ามใช้ / ปรับขนาด"></div>
+    <div class="field"><label class="fl">โรคตับ</label><input type="text" id="w-liver" value="${(d.conditions.liver||'').replace(/"/g,'&quot;')}" placeholder="เช่น ใช้ด้วยความระวัง"></div>
+    <div class="field"><label class="fl">โรคหัวใจ</label><input type="text" id="w-heart" value="${(d.conditions.heart||'').replace(/"/g,'&quot;')}" placeholder="เช่น หลีกเลี่ยง"></div>
+    <div style="font-size:13px;font-weight:600;margin:.75rem 0 .25rem">🤰 คนท้อง / ให้นมบุตร</div>
+    <div class="field"><label class="fl">คนท้อง</label><input type="text" id="w-preg" value="${(d.pregnancy||'').replace(/"/g,'&quot;')}" placeholder="เช่น ห้ามใช้ไตรมาส 3"></div>
+    <div class="field"><label class="fl">ให้นมบุตร</label><input type="text" id="w-lact" value="${(d.lactation||'').replace(/"/g,'&quot;')}" placeholder="เช่น ใช้ได้ / หลีกเลี่ยง"></div>
+    <div style="font-size:13px;font-weight:600;margin:.75rem 0 .25rem">💊 ยาที่ตีกัน</div>
+    <div class="field"><label class="fl">รายชื่อยา (คั่นด้วยจุลภาค ,)</label><input type="text" id="w-inter" value="${(d.interactions||[]).join(', ').replace(/"/g,'&quot;')}" placeholder="เช่น Warfarin, Aspirin, Methotrexate"></div>
+    <div class="field"><label class="fl">หมายเหตุ</label><input type="text" id="w-note" value="${(d.note||'').replace(/"/g,'&quot;')}" placeholder="ข้อมูลเพิ่มเติม"></div>
+    <div style="font-size:13px;font-weight:600;margin:.75rem 0 .25rem;color:var(--green-d)">📚 แหล่งอ้างอิง (สำคัญ)</div>
+    <div class="field"><label class="fl">แหล่งอ้างอิง</label><input type="text" id="w-source" value="${(d.source||'').replace(/"/g,'&quot;')}" placeholder="เช่น MIMS Thailand 2024, คู่มือสภาเภสัชฯ, Drugs.com"></div>
+    <div class="field"><label class="fl">วันที่อัปเดตข้อมูล</label><input type="date" id="w-updated" value="${d.updatedDate||todayISO}"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveWarn('${id||''}')">บันทึก</button></div>`);
+};
+
+window.saveWarn=async function(id){
+  const name=document.getElementById('w-name').value.trim();
+  if(!name){showToast('กรอกชื่อยา','err');return;}
+  const data={
+    name,
+    conditions:{
+      kidney:document.getElementById('w-kidney').value.trim(),
+      liver:document.getElementById('w-liver').value.trim(),
+      heart:document.getElementById('w-heart').value.trim()
+    },
+    pregnancy:document.getElementById('w-preg').value.trim(),
+    lactation:document.getElementById('w-lact').value.trim(),
+    interactions:document.getElementById('w-inter').value.split(',').map(x=>x.trim()).filter(Boolean),
+    note:document.getElementById('w-note').value.trim(),
+    source:document.getElementById('w-source').value.trim(),
+    updatedDate:document.getElementById('w-updated').value
+  };
+  try{await setDoc(doc(db,'drugWarnings',id||('warn_'+Date.now())),data);closeMD();showToast('บันทึกข้อมูลยาแล้ว');loadDrugWarnings();}
+  catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
+};
+
+window.deleteWarn=async function(id){
+  if(!confirm('ลบข้อมูลยานี้?'))return;
+  try{await deleteDoc(doc(db,'drugWarnings',id));showToast('ลบแล้ว');loadDrugWarnings();}catch(e){showToast(e.message,'err');}
+};
+
+// ===== LEAVE REQUESTS =====
+// เก็บใน Firestore: leaves/{id} = {uid, name, from, to, reason, type, createdAt}
+window.submitLeave=async function(){
+  const from=document.getElementById('leave-from').value;
+  const to=document.getElementById('leave-to').value||from;
+  const reason=document.getElementById('leave-reason').value.trim();
+  if(!from){showToast('เลือกวันที่เริ่มลา','err');return;}
+  if(to<from){showToast('วันสิ้นสุดต้องไม่ก่อนวันเริ่ม','err');return;}
+  const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():currentUser.email;
+  loading(true);
+  try{
+    const id='leave_'+Date.now();
+    await setDoc(doc(db,'leaves',id),{uid:currentUser.uid,name,from,to,reason,type:'',createdAt:new Date().toISOString()});
+    // ตัดเวรในช่วงวันลาออกจากตาราง
+    const removed=await removeShiftsForLeave(currentUser.uid,from,to);
+    await loadLeavesForSchedule();
+    document.getElementById('leave-from').value='';
+    document.getElementById('leave-to').value='';
+    document.getElementById('leave-reason').value='';
+    showToast(`ส่งคำขอลาแล้ว${removed>0?` (ตัดเวร ${removed} วันออก)`:''}`);
+    loadMyLeaves();
+  }catch(e){showToast('ส่งไม่ได้: '+e.message,'err');}
+  loading(false);
+};
+
+// ตัดเวรของ uid ในช่วง from-to ออก แล้ว sync
+async function removeShiftsForLeave(uid,from,to){
+  const before=shifts.length;
+  shifts=shifts.filter(s=>!(s.staffId===uid && s.date>=from && s.date<=to));
+  const removed=before-shifts.length;
+  if(removed>0){saveLocal();await syncShiftsToCloud();if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();}
+  return removed;
+}
+
+window.loadMyLeaves=async function(){
+  const el=document.getElementById('my-leave-list');
+  el.innerHTML='<div style="color:var(--text3);font-size:13px">กำลังโหลด...</div>';
+  try{
+    const snap=await getDocs(query(collection(db,'leaves'),where('uid','==',currentUser.uid)));
+    const list=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.from||'').localeCompare(a.from||''));
+    if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีประวัติการลา</div>';return;}
+    el.innerHTML=list.map(l=>{
+      const days=leaveDayCount(l.from,l.to);
+      return`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+        <div style="flex:1">
+          <div style="font-weight:600;font-size:13px">${fmtLeaveDate(l.from,l.to)} <span style="font-size:11px;color:var(--text3)">(${days} วัน)</span></div>
+          <div style="font-size:12px;color:var(--text3)">${l.reason||'ไม่ระบุเหตุผล'}${l.type?` • ${l.type}`:''}</div>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="cancelLeave('${l.id}')">ยกเลิก</button>
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML=`<div style="color:var(--red-t);font-size:13px">${e.message}</div>`;}
+};
+
+window.cancelLeave=async function(id){
+  if(!confirm('ยกเลิกคำขอลานี้?'))return;
+  try{await deleteDoc(doc(db,'leaves',id));await loadLeavesForSchedule();if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();showToast('ยกเลิกคำขอลาแล้ว');loadMyLeaves();}
+  catch(e){showToast(e.message,'err');}
+};
+
+function leaveDayCount(from,to){
+  const d1=new Date(from),d2=new Date(to||from);
+  return Math.round((d2-d1)/86400000)+1;
+}
+function fmtLeaveDate(from,to){
+  const f=new Date(from),t=new Date(to||from);
+  const fmt2=d=>d.toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+  if(from===to||!to)return fmt2(f);
+  return `${fmt2(f)} - ${fmt2(t)}`;
+}
+
+// Admin: รายการขอลาทั้งหมด
+window.loadLeaveAdmin=async function(){
+  if(!isAdmin){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
+  document.getElementById('la-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
+  try{
+    const snap=await getDocs(collection(db,'leaves'));
+    const list=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.from||'').localeCompare(a.from||''));
+    // metrics: เดือนนี้
+    const thisMonth=new Date().toISOString().slice(0,7);
+    const thisMonthLeaves=list.filter(l=>l.from?.startsWith(thisMonth));
+    const totalDays=thisMonthLeaves.reduce((a,l)=>a+leaveDayCount(l.from,l.to),0);
+    document.getElementById('la-metrics').innerHTML=`
+      <div class="mcard c-amber"><div class="mcard-label">คำขอลาเดือนนี้</div><div class="mcard-val">${thisMonthLeaves.length}</div><div class="mcard-sub">รายการ</div></div>
+      <div class="mcard c-blue"><div class="mcard-label">รวมวันลาเดือนนี้</div><div class="mcard-val">${totalDays}</div><div class="mcard-sub">วัน</div></div>
+      <div class="mcard c-green"><div class="mcard-label">คำขอทั้งหมด</div><div class="mcard-val">${list.length}</div><div class="mcard-sub">รายการ</div></div>`;
+    document.getElementById('la-tbody').innerHTML=list.length===0?'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีคำขอลา</td></tr>':list.map(l=>`<tr>
+      <td style="font-weight:600">${l.name||'—'}</td>
+      <td>${fmtLeaveDate(l.from,l.to)}</td>
+      <td>${leaveDayCount(l.from,l.to)} วัน</td>
+      <td style="font-size:12px">${l.reason||'—'}</td>
+      <td><input type="text" value="${(l.type||'').replace(/"/g,'&quot;')}" placeholder="ใส่ประเภท" style="width:110px;padding:4px 8px;font-size:12px" onchange="setLeaveType('${l.id}',this.value)"></td>
+      <td><button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${l.id}')">ลบ</button></td>
+    </tr>`).join('');
+  }catch(e){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+};
+
+window.setLeaveType=async function(id,type){
+  try{await updateDoc(doc(db,'leaves',id),{type:type.trim()});await loadLeavesForSchedule();showToast('บันทึกประเภทการลาแล้ว');}
+  catch(e){showToast(e.message,'err');}
+};
+
+window.deleteLeaveAdmin=async function(id){
+  if(!confirm('ลบคำขอลานี้?'))return;
+  try{await deleteDoc(doc(db,'leaves',id));await loadLeavesForSchedule();if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();showToast('ลบแล้ว');loadLeaveAdmin();}
+  catch(e){showToast(e.message,'err');}
+};
 
 function accessDenied(){return`<div class="access-denied"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><h3>ไม่มีสิทธิ์เข้าถึง</h3><p>กรุณาติดต่อผู้ดูแลระบบเพื่อขอสิทธิ์</p></div>`;}
 
