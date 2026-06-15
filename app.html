@@ -35,7 +35,7 @@
 }
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(165deg,#0F2922,#16202E 60%,#1A1530);display:flex;flex-direction:column;z-index:100}
-.sb-brand{padding:1.5rem 1.25rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-brand{padding:1.5rem 1.25rem 1.25rem;padding-top:calc(1.5rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.07)}
 .sb-icon{width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.75rem}
 .sb-brand h1{font-size:16px;font-weight:700;color:#fff}
 .sb-brand p{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
@@ -169,7 +169,7 @@ textarea{resize:vertical;min-height:64px}
 .access-denied svg{width:56px;height:56px;stroke:var(--border2);fill:none;stroke-width:1.5;margin:0 auto 1rem;display:block}
 .access-denied h3{font-size:16px;font-weight:600;color:var(--text2);margin-bottom:.5rem}
 /* === Mobile components (base styles first) === */
-.mobile-topbar{position:fixed;top:0;left:0;right:0;height:56px;background:linear-gradient(120deg,#0F2922,#1A1530);z-index:90;align-items:center;padding:0 1rem;gap:12px;display:none}
+.mobile-topbar{position:fixed;top:0;left:0;right:0;height:calc(56px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);background:linear-gradient(120deg,#0F2922,#1A1530);z-index:90;align-items:center;padding-left:1rem;padding-right:1rem;gap:12px;display:none}
 .mobile-topbar-title{font-size:15px;font-weight:700;color:#fff;flex:1}
 .hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center}
 .hamburger:hover{background:rgba(255,255,255,.1)}
@@ -185,14 +185,14 @@ textarea{resize:vertical;min-height:64px}
 @media(max-width:768px){
   .sidebar{transform:translateX(-100%);transition:transform .25s ease}
   .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0;padding:1rem;padding-top:72px;padding-bottom:84px}
+  .main{margin-left:0;padding:1rem;padding-top:calc(72px + env(safe-area-inset-top));padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   .field-row,.field-row3{grid-template-columns:1fr}
   .mobile-topbar{display:flex!important}
   .schedule-grid{grid-template-columns:90px repeat(7,1fr)}
   .bottom-nav{display:flex!important}
 }
 /* Bottom Navigation (mobile) */
-.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:64px;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:95;align-items:center;justify-content:space-around;padding:0 4px;box-shadow:0 -2px 16px rgba(20,40,80,.06)}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:95;align-items:center;justify-content:space-around;padding-left:4px;padding-right:4px;box-shadow:0 -2px 16px rgba(20,40,80,.06)}
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;font-weight:600;padding:6px 2px;border-radius:12px;transition:.15s;position:relative;max-width:80px}
 .bn-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:.15s}
 .bn-item.active{color:var(--green)}
@@ -903,6 +903,29 @@ async function logActivity(action, detail){
 }
 
 // ===== HELPERS =====
+// สร้าง dropdown เลือกเวลาแบบ 24 ชั่วโมง (กัน iPhone แสดง AM/PM)
+function time24Picker(id, value){
+  const [h,m]=(value||'').split(':');
+  const hh=h!==undefined?parseInt(h):'';
+  const mm=m!==undefined?parseInt(m):'';
+  let hOpts='<option value="">--</option>';
+  for(let i=0;i<24;i++){hOpts+=`<option value="${String(i).padStart(2,'0')}" ${i===hh?'selected':''}>${String(i).padStart(2,'0')}</option>`;}
+  let mOpts='<option value="">--</option>';
+  for(let i=0;i<60;i++){mOpts+=`<option value="${String(i).padStart(2,'0')}" ${i===mm?'selected':''}>${String(i).padStart(2,'0')}</option>`;}
+  return `<span style="display:inline-flex;align-items:center;gap:4px">
+    <select id="${id}-h" style="padding:7px 6px;width:auto">${hOpts}</select>
+    <span style="font-weight:700;color:var(--text3)">:</span>
+    <select id="${id}-m" style="padding:7px 6px;width:auto">${mOpts}</select>
+    <span style="font-size:11px;color:var(--text3);margin-left:2px">น.</span>
+  </span>`;
+}
+// อ่านค่าจาก dropdown เวลา → "HH:MM" หรือ "" ถ้าไม่ครบ
+function readTime24(id){
+  const h=document.getElementById(id+'-h')?.value;
+  const m=document.getElementById(id+'-m')?.value;
+  if(h===''||m===''||h===undefined||m===undefined)return '';
+  return `${h}:${m}`;
+}
 function loading(v){document.getElementById('loading').classList.toggle('show',v);}
 function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3500);}
 function openModal(html){document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-overlay').classList.add('open');}
@@ -1464,8 +1487,8 @@ function renderAutoMemberList(){
       <div style="font-size:11px;color:var(--text3);margin-bottom:3px">สาขาที่ทำ (เลือกหลายได้ = หมุนเวียน)</div>
       <div style="margin-bottom:8px">${branchChecks}</div>
       <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap">
-        <div><div style="font-size:11px;color:var(--text3)">เข้างาน</div><input type="time" class="ac-start" data-uid="${m.uid}" value="${cfg.start||'08:00'}" step="60" lang="en-GB" style="padding:5px 8px;width:auto"></div>
-        <div><div style="font-size:11px;color:var(--text3)">เลิกงาน</div><input type="time" class="ac-end" data-uid="${m.uid}" value="${cfg.end||'17:00'}" step="60" lang="en-GB" style="padding:5px 8px;width:auto"></div>
+        <div><div style="font-size:11px;color:var(--text3)">เข้างาน</div>${time24Picker('acs-'+m.uid,cfg.start||'08:00')}</div>
+        <div><div style="font-size:11px;color:var(--text3)">เลิกงาน</div>${time24Picker('ace-'+m.uid,cfg.end||'17:00')}</div>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:3px">วันหยุดประจำสัปดาห์</div>
       <div>${dowChecks}</div>
@@ -1480,8 +1503,8 @@ async function saveAutoConfigFromForm(){
   active.forEach(m=>{
     const branches=[...document.querySelectorAll(`.ac-branch[data-uid="${m.uid}"]:checked`)].map(x=>parseInt(x.value));
     const daysOff=[...document.querySelectorAll(`.ac-dayoff[data-uid="${m.uid}"]:checked`)].map(x=>parseInt(x.value));
-    const start=document.querySelector(`.ac-start[data-uid="${m.uid}"]`)?.value||'08:00';
-    const end=document.querySelector(`.ac-end[data-uid="${m.uid}"]`)?.value||'17:00';
+    const start=readTime24('acs-'+m.uid)||'08:00';
+    const end=readTime24('ace-'+m.uid)||'17:00';
     const prev=autoConfig[m.uid]||{};
     autoConfig[m.uid]={...prev,branches,daysOff,start,end};
   });
@@ -1510,8 +1533,8 @@ window.openExceptions=async function(uid){
     <div class="field"><label class="fl">วันที่</label><input type="date" id="exc-date" min="${scYear}-${String(scMonth+1).padStart(2,'0')}-01" max="${scYear}-${String(scMonth+1).padStart(2,'0')}-${String(new Date(scYear,scMonth+1,0).getDate()).padStart(2,'0')}"></div>
     <div class="field"><label class="fl">ประเภท</label><select id="exc-type" onchange="document.getElementById('exc-times').style.display=this.value==='time'?'flex':'none'"><option value="off">ขอหยุด</option><option value="time">เข้า-เลิกเวลาพิเศษ</option></select></div>
     <div class="field-row" id="exc-times" style="display:none">
-      <div class="field"><label class="fl">เข้างาน</label><input type="time" id="exc-start" value="08:00" step="60" lang="en-GB"></div>
-      <div class="field"><label class="fl">เลิกงาน</label><input type="time" id="exc-end" value="17:00" step="60" lang="en-GB"></div>
+      <div class="field"><label class="fl">เข้างาน</label>${time24Picker('exc-start','08:00')}</div>
+      <div class="field"><label class="fl">เลิกงาน</label>${time24Picker('exc-end','17:00')}</div>
     </div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="addException('${uid}')">+ เพิ่มข้อยกเว้น</button></div>`);
 };
@@ -1523,7 +1546,7 @@ window.addException=async function(uid){
   if(!autoConfig[uid])autoConfig[uid]={};
   if(!autoConfig[uid].exceptions)autoConfig[uid].exceptions={};
   if(type==='off')autoConfig[uid].exceptions[date]={type:'off'};
-  else autoConfig[uid].exceptions[date]={type:'time',start:document.getElementById('exc-start').value,end:document.getElementById('exc-end').value};
+  else autoConfig[uid].exceptions[date]={type:'time',start:readTime24('exc-start'),end:readTime24('exc-end')};
   try{await setDoc(doc(db,'scheduleConfig',uid),autoConfig[uid]);}catch(e){}
   openExceptions(uid);
   showToast('เพิ่มข้อยกเว้นแล้ว');
@@ -1613,14 +1636,14 @@ window.scAddShift=function(uid,ds){
   openModal(`<div class="modal-title">เพิ่มเวร — ${dateStr}</div>
     <div class="field"><label class="fl">สมาชิก</label><select id="m-staff">${activeMembers.map(e=>`<option value="${e.uid}"${e.uid===uid?' selected':''}>${e.firstName||''} ${e.lastName||''}</option>`).join('')}</select></div>
     <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('')}</select></div>
-    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label><input type="time" id="m-start" value="08:00" step="60" lang="en-GB"></div><div class="field"><label class="fl">เลิก</label><input type="time" id="m-end" value="17:00" step="60" lang="en-GB"></div></div>
+    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('m-start','08:00')}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('m-end','17:00')}</div></div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveNew('${ds}')">บันทึก</button></div>`);
 };
 window.scSaveNew=function(ds){
   const uid=document.getElementById('m-staff').value;
   const branch=parseInt(document.getElementById('m-branch').value);
-  const start=document.getElementById('m-start').value;
-  const end=document.getElementById('m-end').value;
+  const start=readTime24('m-start');
+  const end=readTime24('m-end');
   const shiftId='s_'+Date.now();
   shifts.push({id:shiftId,staffId:uid,branch,date:ds,start,end});
   saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
@@ -1631,10 +1654,10 @@ window.scEditShift=function(sid){
   const name=mem?`${mem.firstName||''} ${mem.lastName||''}`.trim():s.staffId;
   openModal(`<div class="modal-title">แก้ไขเวร — ${name}</div>
     <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}"${i===s.branch?' selected':''}>${b}</option>`).join('')}</select></div>
-    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label><input type="time" id="m-start" value="${s.start}" step="60" lang="en-GB"></div><div class="field"><label class="fl">เลิก</label><input type="time" id="m-end" value="${s.end}" step="60" lang="en-GB"></div></div>
+    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('m-start',s.start)}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('m-end',s.end)}</div></div>
     <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">บันทึก</button></div>`);
 };
-window.scSaveEdit=function(sid){const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=document.getElementById('m-start').value;s.end=document.getElementById('m-end').value;saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
+window.scSaveEdit=function(sid){const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
 window.scDel=function(sid){shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
 
 // ===== SALES =====
@@ -2973,15 +2996,15 @@ window.editCheckin=async function(id){
   let rec=null;
   try{const d=await getDoc(doc(db,'checkins',id));if(d.exists())rec=d.data();}catch(e){}
   if(!rec){showToast('ไม่พบข้อมูล','err');return;}
-  const branchOpts=(sel)=>BRANCHES.map((b,i)=>`<option value="${i}" ${sel===i?'selected':''}>${b}</option>`).join('');
+  const branchOpts=(sel)=>`<option value="">— ไม่ระบุ —</option>`+BRANCHES.map((b,i)=>`<option value="${i}" ${sel===i?'selected':''}>${b}</option>`).join('');
   openModal(`<div class="modal-title">แก้เวลาลงเวลา — ${rec.name||''}</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ ${rec.date} • การแก้ไขจะถูกบันทึกประวัติให้พนักงานเห็น</div>
     <div class="field-row">
-      <div class="field"><label class="fl">เวลาเข้างาน</label><input type="time" id="ec-in" value="${rec.checkIn||''}" step="60" lang="en-GB"></div>
+      <div class="field"><label class="fl">เวลาเข้างาน</label>${time24Picker('ec-in',rec.checkIn)}</div>
       <div class="field"><label class="fl">สาขาเข้างาน</label><select id="ec-bin">${branchOpts(rec.branchIn)}</select></div>
     </div>
     <div class="field-row">
-      <div class="field"><label class="fl">เวลาออกงาน</label><input type="time" id="ec-out" value="${rec.checkOut||''}" step="60" lang="en-GB"></div>
+      <div class="field"><label class="fl">เวลาออกงาน</label>${time24Picker('ec-out',rec.checkOut)}</div>
       <div class="field"><label class="fl">สาขาออกงาน</label><select id="ec-bout">${branchOpts(rec.branchOut)}</select></div>
     </div>
     <div class="field"><label class="fl">เหตุผลที่แก้ (พนักงานจะเห็น)</label><input type="text" id="ec-reason" placeholder="เช่น พนักงานลืมเช็คเอาท์, GPS ผิดพลาด"></div>
@@ -2992,29 +3015,44 @@ window.editCheckin=async function(id){
 };
 
 window.saveCheckinEdit=async function(id){
-  const newIn=document.getElementById('ec-in').value;
-  const newOut=document.getElementById('ec-out').value;
-  const newBin=parseInt(document.getElementById('ec-bin').value);
-  const newBout=parseInt(document.getElementById('ec-bout').value);
+  const newIn=readTime24('ec-in');
+  const newOut=readTime24('ec-out');
+  const binRaw=document.getElementById('ec-bin').value;
+  const boutRaw=document.getElementById('ec-bout').value;
   const reason=document.getElementById('ec-reason').value.trim();
+  // แปลงสาขาเป็นตัวเลข ถ้าว่าง/ไม่มีค่า ให้เป็น null (Firestore ไม่รับ undefined/NaN)
+  const newBin=binRaw!==''&&!isNaN(parseInt(binRaw))?parseInt(binRaw):null;
+  // สาขาออกงาน: ถ้าไม่มีเวลาออกงาน ก็ไม่ต้องมีสาขาออกงาน
+  const newBout=newOut&&boutRaw!==''&&!isNaN(parseInt(boutRaw))?parseInt(boutRaw):null;
   try{
     const d=await getDoc(doc(db,'checkins',id));
     if(!d.exists()){showToast('ไม่พบข้อมูล','err');return;}
     const rec=d.data();
-    // สร้างบันทึกประวัติ (เก็บค่าเดิม)
+    // ฟังก์ชันแปลงค่า undefined เป็น null/ค่าว่าง (กัน Firestore error)
+    const clean=v=>v===undefined?null:v;
+    // สร้างบันทึกประวัติ (เก็บค่าเดิม) — ไม่ให้มี undefined
     const histEntry={
       at:new Date().toISOString(),
       by:profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin',
       byUid:currentUser.uid,
-      reason,
-      old:{checkIn:rec.checkIn||'',checkOut:rec.checkOut||'',branchIn:rec.branchIn,branchOut:rec.branchOut},
+      reason:reason||'',
+      old:{checkIn:rec.checkIn||'',checkOut:rec.checkOut||'',branchIn:clean(rec.branchIn),branchOut:clean(rec.branchOut)},
       new:{checkIn:newIn,checkOut:newOut,branchIn:newBin,branchOut:newBout}
     };
     const editHistory=[...(rec.editHistory||[]),histEntry];
-    await setDoc(doc(db,'checkins',id),{
-      ...rec,checkIn:newIn,checkOut:newOut,branchIn:newBin,branchOut:newBout,
-      editHistory,editedByAdmin:true
-    });
+    // สร้าง object ใหม่ที่สะอาด ไม่ spread ...rec (กันฟิลด์ undefined เก่าหลุดมา)
+    const updated={
+      uid:rec.uid||'',
+      name:rec.name||'',
+      date:rec.date||'',
+      checkIn:newIn,
+      checkOut:newOut,
+      branchIn:newBin,
+      branchOut:newBout,
+      editHistory,
+      editedByAdmin:true
+    };
+    await setDoc(doc(db,'checkins',id),updated);
     closeMD();logActivity('checkin_edit',`แก้เวลาลงเวลาของ ${rec.name||''} (${rec.date})`);showToast('บันทึกการแก้ไขแล้ว (มีประวัติให้พนักงานเห็น)');
     loadCheckinHistory();
     if(allCheckins.length)await loadCheckinsForSchedule();
