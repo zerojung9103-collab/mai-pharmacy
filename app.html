@@ -949,7 +949,7 @@ onAuthStateChanged(auth,async user=>{
   if(mAv)mAv.textContent=name.charAt(0).toUpperCase();
   initYearSelects();
   buildNav();
-  loadSalesFromCloud();
+  if(isAdmin)loadSalesFromCloud();
   loadBranchLocations();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
   loadLeavesForSchedule();
