@@ -2396,105 +2396,79 @@ function buildMonthSlip(r, memberName, memberRole, uid){
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:16px;color:#18211F}
-    .payslip{background:#fff;width:148mm;min-height:210mm;margin:0 auto;padding:14mm 12mm;box-shadow:0 4px 24px rgba(0,0,0,.12);position:relative}
-    .ps-head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1D9E75;padding-bottom:12px;margin-bottom:16px}
-    .ps-logo-area{display:flex;align-items:center;gap:10px}
-    .ps-logo{width:44px;height:44px;background:#E1F5EE;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px}
-    .ps-company{font-size:18px;font-weight:700;color:#085041}
-    .ps-company-sub{font-size:11px;color:#9AADA9}
-    .ps-doc-title{text-align:right}
-    .ps-doc-title .t{font-size:15px;font-weight:700;color:#18211F}
-    .ps-doc-title .s{font-size:11px;color:#9AADA9;margin-top:2px}
-    .ps-info{display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;margin-bottom:18px;font-size:12px}
-    .ps-info-row{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dotted #D4DAD8}
-    .ps-info-row label{color:#5A6B67}
-    .ps-info-row span{font-weight:600;color:#18211F}
-    .ps-cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
-    .ps-col-title{font-size:12px;font-weight:700;color:#fff;padding:6px 10px;border-radius:6px 6px 0 0}
-    .ps-col-title.earn{background:#1D9E75}
-    .ps-col-title.ded{background:#E24B4A}
-    .ps-table{width:100%;border-collapse:collapse;font-size:11px}
-    .ps-table td{padding:6px 10px;border-bottom:1px solid #F0F2F1}
-    .ps-table td:last-child{text-align:right;font-weight:600;white-space:nowrap}
-    .ps-table td:nth-child(2){color:#9AADA9;font-size:10px;text-align:center}
-    .ps-col-box{border:1px solid #E8ECEB;border-radius:0 0 8px 8px;overflow:hidden}
-    .ps-subtotal{display:flex;justify-content:space-between;padding:8px 10px;font-size:12px;font-weight:700;background:#F8FAF9;border-top:2px solid #E8ECEB}
-    .ps-subtotal.earn{color:#085041}.ps-subtotal.ded{color:#A32D2D}
-    .ps-net{background:linear-gradient(135deg,#085041,#1D9E75);color:#fff;border-radius:10px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-    .ps-net .lbl{font-size:13px;opacity:.85}
-    .ps-net .sub{font-size:10px;opacity:.6;margin-top:2px}
-    .ps-net .amt{font-size:26px;font-weight:700}
-    .ps-status{display:inline-block;font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;background:#E1F5EE;color:#085041}
-    .ps-foot{position:absolute;bottom:14mm;left:12mm;right:12mm;border-top:1px solid #E8ECEB;padding-top:10px;font-size:10px;color:#9AADA9;display:flex;justify-content:space-between}
-    .ps-sign{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:40px;font-size:11px}
-    .ps-sign-box{text-align:center;border-top:1px dotted #9AADA9;padding-top:6px;color:#5A6B67}
-    .print-btn{display:block;margin:16px auto;padding:10px 28px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+    body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:16px;color:#16202E}
+    .payslip{background:#fff;width:148mm;min-height:210mm;margin:0 auto;padding:12mm;border:1.5px solid #16202E;position:relative}
+    .ps-title{text-align:center;border-bottom:1.5px solid #16202E;padding-bottom:12px;margin-bottom:14px}
+    .ps-title .company{font-size:18px;font-weight:700}
+    .ps-title .doc{font-size:12px;color:#5A6B7B;margin-top:2px}
+    .ps-title .branch{font-size:10px;color:#94A3B3;margin-top:2px}
+    .ps-info-table{width:100%;font-size:12px;margin-bottom:14px;border-collapse:collapse}
+    .ps-info-table td{padding:4px 0}
+    .ps-info-table .lbl{color:#5A6B7B;width:24%}
+    .ps-info-table .val{font-weight:600;width:26%}
+    .ps-main-table{width:100%;border-collapse:collapse;font-size:12px;border:1px solid #B4B2A9}
+    .ps-main-table th{background:#F1EFE8;padding:7px 10px;font-weight:700;border:1px solid #B4B2A9;font-size:11px}
+    .ps-main-table th.r,.ps-main-table td.r{text-align:right}
+    .ps-main-table td{padding:6px 10px;border:1px solid #D4DAD8}
+    .ps-main-table tr.total td{background:#F1EFE8;font-weight:700;border-color:#B4B2A9}
+    .ps-net{text-align:right;margin-top:14px;padding-top:12px;border-top:2px solid #16202E}
+    .ps-net .lbl{font-size:13px;color:#5A6B7B}
+    .ps-net .amt{font-size:20px;font-weight:700;margin-left:8px}
+    .ps-status{display:inline-block;font-size:11px;font-weight:600;padding:3px 12px;border-radius:4px;background:#F1EFE8;color:#444441;margin-top:10px}
+    .ps-sign{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:38px;font-size:11px}
+    .ps-sign-box{text-align:center;color:#5A6B7B}
+    .ps-sign-line{border-top:1px dotted #888780;margin-bottom:6px;padding-top:30px}
+    .ps-foot{position:absolute;bottom:10mm;left:12mm;right:12mm;border-top:1px solid #D4DAD8;padding-top:8px;font-size:10px;color:#94A3B3;display:flex;justify-content:space-between}
+    .print-btn{display:block;margin:16px auto;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
     @media print{
       body{background:#fff;padding:0}
-      .payslip{box-shadow:none;width:100%;min-height:auto;padding:10mm}
+      .payslip{width:100%;min-height:auto;padding:10mm;border:1.5px solid #16202E}
       .print-btn{display:none}
-      @page{size:A5;margin:0}
+      @page{size:A5;margin:8mm}
     }
   </style></head><body>
   <div class="payslip">
-    <div class="ps-head">
-      <div class="ps-logo-area">
-        <div class="ps-logo">💊</div>
-        <div>
-          <div class="ps-company">ใหม่เภสัช</div>
-          <div class="ps-company-sub">ร้านขายยา • 3 สาขา</div>
-        </div>
-      </div>
-      <div class="ps-doc-title">
-        <div class="t">สลิปเงินเดือน</div>
-        <div class="s">PAYSLIP</div>
-      </div>
+    <div class="ps-title">
+      <div class="company">ร้านขายยา ใหม่เภสัช</div>
+      <div class="doc">ใบแจ้งเงินเดือน (PAY SLIP)</div>
+      <div class="branch">3 สาขา • ทรัพย์พัฒนา / บางปู / อินดี้</div>
     </div>
 
-    <div class="ps-info">
-      <div class="ps-info-row"><label>รหัสพนักงาน</label><span>${code}</span></div>
-      <div class="ps-info-row"><label>งวดที่จ่าย</label><span>${period}</span></div>
-      <div class="ps-info-row"><label>ชื่อ-นามสกุล</label><span>${memberName}</span></div>
-      <div class="ps-info-row"><label>วันที่จ่าย</label><span>${payDate}</span></div>
-      <div class="ps-info-row"><label>ตำแหน่ง</label><span>${memberRole==='admin'?'ผู้ดูแลระบบ':'พนักงาน'}</span></div>
-      <div class="ps-info-row"><label>ประเภทการจ้าง</label><span>${typeLabel}</span></div>
-    </div>
+    <table class="ps-info-table">
+      <tr>
+        <td class="lbl">ชื่อพนักงาน :</td><td class="val">${memberName}</td>
+        <td class="lbl">รหัส :</td><td class="val">${code}</td>
+      </tr>
+      <tr>
+        <td class="lbl">ตำแหน่ง :</td><td class="val">${memberRole==='admin'?'ผู้ดูแลระบบ':'พนักงาน'}</td>
+        <td class="lbl">ประเภทจ้าง :</td><td class="val">${typeLabel}</td>
+      </tr>
+      <tr>
+        <td class="lbl">งวดเงินเดือน :</td><td class="val">${period}</td>
+        <td class="lbl">วันที่จ่าย :</td><td class="val">${payDate}</td>
+      </tr>
+    </table>
 
-    <div class="ps-cols">
-      <div>
-        <div class="ps-col-title earn">รายรับ (EARNINGS)</div>
-        <div class="ps-col-box">
-          <table class="ps-table"><tbody>
-            ${earnRows.map(([a,b,c])=>`<tr><td>${a||'&nbsp;'}</td><td>${b}</td><td>${c?'฿'+c:''}</td></tr>`).join('')}
-          </tbody></table>
-          <div class="ps-subtotal earn"><span>รวมรายรับ</span><span>฿${fmt(grossEarnings)}</span></div>
-        </div>
-      </div>
-      <div>
-        <div class="ps-col-title ded">รายการหัก (DEDUCTIONS)</div>
-        <div class="ps-col-box">
-          <table class="ps-table"><tbody>
-            ${dedRows.map(([a,b,c])=>`<tr><td>${a||'&nbsp;'}</td><td>${b}</td><td>${c?'฿'+c:''}</td></tr>`).join('')}
-          </tbody></table>
-          <div class="ps-subtotal ded"><span>รวมรายการหัก</span><span>฿${fmt(totalDed)}</span></div>
-        </div>
-      </div>
-    </div>
+    <table class="ps-main-table">
+      <thead><tr><th style="text-align:left">รายการ</th><th class="r">รายรับ (บาท)</th><th class="r">รายหัก (บาท)</th></tr></thead>
+      <tbody>
+        ${r.salaryType!=='hourly'?`<tr><td>เงินเดือนฐาน</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>`:''}
+        ${r.salaryType!=='fixed'?`<tr><td>ค่าแรงรายชั่วโมง (${r.hours||0} ชม.)</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`:''}
+        ${otAmt>0?`<tr><td>ค่าล่วงเวลา OT (${r.otHours||0} ชม.)</td><td class="r">${fmt(otAmt)}</td><td class="r"></td></tr>`:''}
+        ${addItems.map(x=>`<tr><td>${x.name}</td><td class="r">${fmt(x.amount)}</td><td class="r"></td></tr>`).join('')}
+        ${dedItems.map(x=>`<tr><td>${x.name}</td><td class="r"></td><td class="r">${fmt(x.amount)}</td></tr>`).join('')}
+        <tr class="total"><td>รวม</td><td class="r">${fmt(grossEarnings)}</td><td class="r">${fmt(totalDed)}</td></tr>
+      </tbody>
+    </table>
 
     <div class="ps-net">
-      <div>
-        <div class="lbl">เงินเดือนสุทธิ (NET PAY)</div>
-        <div class="sub">รายรับ ฿${fmt(grossEarnings)} − รายการหัก ฿${fmt(totalDed)}</div>
-      </div>
-      <div class="amt">฿${fmt(r.net)}</div>
+      <span class="lbl">เงินสุทธิที่ได้รับ :</span><span class="amt">฿${fmt(r.net)}</span>
+      <div><span class="ps-status">${statusLabel}</span></div>
     </div>
 
-    <div><span class="ps-status">${statusLabel}</span></div>
-
     <div class="ps-sign">
-      <div class="ps-sign-box">ผู้รับเงิน</div>
-      <div class="ps-sign-box">ผู้จ่ายเงิน</div>
+      <div class="ps-sign-box"><div class="ps-sign-line"></div>ผู้จ่ายเงิน</div>
+      <div class="ps-sign-box"><div class="ps-sign-line"></div>ผู้รับเงิน</div>
     </div>
 
     <div class="ps-foot">
