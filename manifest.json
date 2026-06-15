@@ -2,7 +2,7 @@
   "name": "ใหม่เภสัช - ระบบจัดการร้าน",
   "short_name": "ใหม่เภสัช",
   "description": "ระบบจัดการร้านขายยา ใหม่เภสัช - ตารางเวร เช็คอิน ยอดขาย เงินเดือน",
-  "start_url": "./app.html",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
