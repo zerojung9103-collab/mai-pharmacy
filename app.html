@@ -281,7 +281,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.5.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.6.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -822,8 +822,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.5.0';
+const APP_VERSION='1.6.0';
 const CHANGELOG=[
+  {v:'1.6.0',date:'2026-06-16',changes:['Dashboard รายวันแยกวันได้จริง (เลือกวันแล้วเปลี่ยนตาม)','เลือกวัน/เดือนที่ไม่มีข้อมูล จะขึ้น "ยังไม่มีข้อมูล" แทนกราฟเปล่า','รายเดือนเลือกช่วงเดือนได้ (จาก-ถึง)']},
   {v:'1.5.0',date:'2026-06-15',changes:['เพิ่มระบบเวอร์ชัน + บันทึกการเปลี่ยนแปลง','เพิ่มสถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม)']},
   {v:'1.4.0',date:'2026-06-15',changes:['ปรับ Dashboard ไม่ให้ข้อมูลซ้ำซ้อน','รายวันเน้นวันที่เลือก + เลือกช่วงเดือนได้','เพิ่มรายละเอียดว่าใครลงยอดขาย + เวลา']},
   {v:'1.3.0',date:'2026-06-15',changes:['เพิ่ม popup เตือนเมื่อเช็คอินสาย','บันทึกสถิติการมาสาย','เช็คเอาท์นอกรัศมีได้ (บันทึกแยกใน/นอก)']},
