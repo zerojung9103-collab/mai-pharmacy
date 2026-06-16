@@ -1160,10 +1160,25 @@ window.prSetTab=function(tab,el){
 };
 
 // ===== DASHBOARD =====
-let dbMode='day',dbYear=new Date().getFullYear(),dbMonth=new Date().getMonth()+1,dbChart=null,dbDayPick='',dbRangeFrom=1,dbRangeTo=new Date().getMonth()+1;
+let dbMode='day',dbYear=new Date().getFullYear(),dbMonth=new Date().getMonth()+1,dbChart=null,dbDayPick=todayStr(),dbMonthView=new Date().getMonth()+1;
 function getDbData(){
-  if(dbMode==='day'){const days=new Date(dbYear,dbMonth,0).getDate();return Array.from({length:days},(_,i)=>{const ds=`${dbYear}-${String(dbMonth).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;return{label:String(i+1),branches:BRANCHES.map((_,bi)=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===bi);return{total:e?e.total:0,pays:e?e.amounts:{}};})};});}
-  if(dbMode==='month'){return MONTHS_TH.map((m,mi)=>{const ms=String(mi+1).padStart(2,'0');return{label:m,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(`${dbYear}-${ms}`)&&x.branch===bi);const total=es.reduce((a,x)=>a+(parseFloat(x.total)||0),0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(parseFloat(x.amounts[p])||0),0);});return{total,pays};})};});}
+  // รายวัน: แสดงเฉพาะวันที่เลือก (default = วันนี้) เทียบ 3 สาขา
+  if(dbMode==='day'){
+    const ds=dbDayPick||todayStr();
+    return BRANCHES.map((b,bi)=>{
+      const e=salesEntries.find(x=>x.date===ds&&x.branch===bi);
+      return{label:b,branch:bi,total:e?parseFloat(e.total)||0:0,pays:e?e.amounts:{}};
+    });
+  }
+  // รายเดือน: แสดงเฉพาะเดือนที่เลือก แยกเป็นรายวันในเดือนนั้น
+  if(dbMode==='month'){
+    const days=new Date(dbYear,dbMonthView,0).getDate();
+    return Array.from({length:days},(_,i)=>{
+      const ds=`${dbYear}-${String(dbMonthView).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;
+      return{label:String(i+1),branches:BRANCHES.map((_,bi)=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===bi);return{total:e?parseFloat(e.total)||0:0,pays:e?e.amounts:{}};})};
+    });
+  }
+  // รายปี: เทียบทุกปี
   const years=[...new Set(salesEntries.map(x=>x.date.slice(0,4)))].sort();
   if(!years.length)years.push(String(new Date().getFullYear()));
   return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+(parseFloat(x.total)||0),0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(parseFloat(x.amounts[p])||0),0);});return{total,pays};})}));
@@ -1217,53 +1232,91 @@ function dbRender(){
   if(!isAdmin){document.getElementById('page-dashboard').innerHTML=accessDenied();return;}
   renderTodayOverview();
   const rows=getDbData();
-  const totals=BRANCHES.map((_,bi)=>rows.reduce((a,r)=>a+r.branches[bi].total,0));
-  const grand=totals.reduce((a,v)=>a+v,0);const maxT=Math.max(...totals,1);
-  let fHtml='';
-  if(dbMode==='day'){fHtml=`<span style="font-size:13px;color:var(--text2);font-weight:600;align-self:center">เลือกวันที่:</span><input type="date" id="db-day-pick" value="${dbDayPick||''}" onchange="dbDayPick=this.value;dbPickDate(this.value)" style="font-size:13px;padding:7px 12px;width:auto" title="ดูรายละเอียดเจาะจงวัน">`;}
-  else if(dbMode==='month'){fHtml=`<select onchange="dbYear=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select>
-    <span style="font-size:12px;color:var(--text3);align-self:center">ช่วง:</span>
-    <select id="db-range-from" onchange="dbRangeFrom=parseInt(this.value);renderMonthDetail()" style="font-size:13px;padding:7px 10px;width:auto" title="จากเดือน">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbRangeFrom?' selected':''}>${m}</option>`).join('')}</select>
-    <span style="font-size:12px;color:var(--text3);align-self:center">ถึง</span>
-    <select id="db-range-to" onchange="dbRangeTo=parseInt(this.value);renderMonthDetail()" style="font-size:13px;padding:7px 10px;width:auto" title="ถึงเดือน">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbRangeTo?' selected':''}>${m}</option>`).join('')}</select>`;}
-  else fHtml=`<span style="font-size:13px;color:var(--text3)">เปรียบเทียบยอดขายทุกปี</span>`;
-  document.getElementById('db-filter').innerHTML=fHtml;
-  // ในโหมดรายวัน ถ้าเลือกวันเจาะจง → การ์ดบนแสดงยอด "ของวันนั้น" (ไม่ใช่ทั้งเดือน)
-  let displayTotals=totals, grandShow=grand, periodLabel;
-  if(dbMode==='day'&&dbDayPick){
-    displayTotals=BRANCHES.map((_,bi)=>{const e=salesEntries.find(x=>x.date===dbDayPick&&x.branch===bi);return e?parseFloat(e.total)||0:0;});
-    grandShow=displayTotals.reduce((a,v)=>a+v,0);
-    periodLabel=new Date(dbDayPick).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+
+  // ===== คำนวณยอดแต่ละสาขา ตามโหมด =====
+  let totals;
+  if(dbMode==='day'){
+    // day: rows = [{branch,total,pays}] ต่อสาขา
+    totals=BRANCHES.map((_,bi)=>{const r=rows.find(x=>x.branch===bi);return r?r.total:0;});
   }else{
-    periodLabel=dbMode==='day'?MONTHS_TH[dbMonth-1]+' '+dbYear+' (ทั้งเดือน)':dbMode==='month'?'ปี '+dbYear:'ทุกปี';
+    // month/year: rows = [{label,branches:[{total,pays}]}]
+    totals=BRANCHES.map((_,bi)=>rows.reduce((a,r)=>a+r.branches[bi].total,0));
   }
-  document.getElementById('db-metrics').innerHTML=`<div class="mcard c-green"><div class="mcard-icon" style="background:var(--green-l);color:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="mcard-label">ยอดรวมทุกสาขา</div><div class="mcard-val">฿${fmt(grandShow)}</div><div class="mcard-sub">${periodLabel}</div></div>${BRANCHES.map((b,bi)=>`<div class="mcard ${['c-green','c-blue','c-amber'][bi]}"><div class="mcard-icon" style="background:${BCOLORS_L[bi]};color:${BCOLORS[bi]}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(displayTotals[bi])}</div><div class="mcard-sub">${grandShow?Math.round(displayTotals[bi]/grandShow*100):0}%</div></div>`).join('')}`;
+  const grand=totals.reduce((a,v)=>a+v,0);
+
+  // ===== ตัวเลือก (filter) =====
+  let fHtml='';
+  if(dbMode==='day'){
+    fHtml=`<span style="font-size:13px;color:var(--text2);font-weight:600;align-self:center">เลือกวันที่:</span>
+      <input type="date" id="db-day-pick" value="${dbDayPick||todayStr()}" onchange="dbDayPick=this.value;dbRender()" style="font-size:13px;padding:7px 12px;width:auto">
+      <button class="btn btn-sm" onclick="dbDayPick=todayStr();dbRender()" style="font-size:12px">วันนี้</button>`;
+  }else if(dbMode==='month'){
+    fHtml=`<span style="font-size:13px;color:var(--text2);font-weight:600;align-self:center">เลือกเดือน:</span>
+      <select onchange="dbMonthView=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbMonthView?' selected':''}>${m}</option>`).join('')}</select>
+      <select onchange="dbYear=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select>`;
+  }else{
+    fHtml=`<span style="font-size:13px;color:var(--text3)">เปรียบเทียบยอดขายทุกปี</span>`;
+  }
+  document.getElementById('db-filter').innerHTML=fHtml;
+
+  // ===== การ์ดยอดรวม =====
+  let periodLabel;
+  if(dbMode==='day')periodLabel=new Date(dbDayPick||todayStr()).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  else if(dbMode==='month')periodLabel=`${MONTHS_TH[dbMonthView-1]} ${dbYear}`;
+  else periodLabel='ทุกปี';
+  document.getElementById('db-metrics').innerHTML=`<div class="mcard c-green"><div class="mcard-icon" style="background:var(--green-l);color:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="mcard-label">ยอดรวมทุกสาขา</div><div class="mcard-val">฿${fmt(grand)}</div><div class="mcard-sub">${periodLabel}</div></div>${BRANCHES.map((b,bi)=>`<div class="mcard ${['c-green','c-blue','c-amber'][bi]}"><div class="mcard-icon" style="background:${BCOLORS_L[bi]};color:${BCOLORS[bi]}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(totals[bi])}</div><div class="mcard-sub">${grand?Math.round(totals[bi]/grand*100):0}%</div></div>`).join('')}`;
+
   document.getElementById('db-legend').innerHTML=BRANCHES.map((b,bi)=>`<div class="legend-item"><span class="legend-dot" style="background:${BCOLORS[bi]}"></span>${b}</div>`).join('');
   const subEl=document.getElementById('db-chart-sub');
-  if(subEl)subEl.textContent=dbMode==='day'?`ยอดรายวันของ ${MONTHS_TH[dbMonth-1]} ${dbYear}`:dbMode==='month'?`ยอดรายเดือนของปี ${dbYear}`:'ยอดรายปี (เทียบทุกปี)';
-  const labels=rows.map(r=>r.label);
-  // ในโหมดรายวัน เน้นจุดของวันที่เลือก
-  const pickedDay=(dbMode==='day'&&dbDayPick)?parseInt(dbDayPick.slice(8,10)):null;
-  const datasets=BRANCHES.map((b,bi)=>dbMode==='year'?{label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'CC',borderColor:BCOLORS[bi],borderWidth:0,borderRadius:5}:{label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'18',borderColor:BCOLORS[bi],borderWidth:2,pointRadius:dbMode==='day'?rows.map((r,ri)=>pickedDay&&ri+1===pickedDay?6:1):3,pointBackgroundColor:dbMode==='day'?rows.map((r,ri)=>pickedDay&&ri+1===pickedDay?BCOLORS[bi]:BCOLORS[bi]+'88'):BCOLORS[bi],tension:0.35,fill:true});
+  if(subEl)subEl.textContent=dbMode==='day'?`ยอดวันที่ ${periodLabel} (เทียบ 3 สาขา)`:dbMode==='month'?`ยอดรายวันใน ${periodLabel}`:'ยอดรายปี (เทียบทุกปี)';
+
+  // ===== กราฟ =====
+  let labels,datasets,chartType;
+  if(dbMode==='day'){
+    // กราฟแท่ง เทียบ 3 สาขาในวันเดียว
+    chartType='bar';
+    labels=BRANCHES;
+    datasets=[{label:'ยอดขาย',data:totals,backgroundColor:BRANCHES.map((_,bi)=>BCOLORS[bi]+'CC'),borderColor:BRANCHES.map((_,bi)=>BCOLORS[bi]),borderWidth:0,borderRadius:6}];
+  }else if(dbMode==='month'){
+    // กราฟเส้น รายวันในเดือนที่เลือก
+    chartType='line';
+    labels=rows.map(r=>r.label);
+    datasets=BRANCHES.map((b,bi)=>({label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'18',borderColor:BCOLORS[bi],borderWidth:2,pointRadius:2,tension:0.35,fill:true}));
+  }else{
+    // กราฟแท่ง เทียบรายปี
+    chartType='bar';
+    labels=rows.map(r=>r.label);
+    datasets=BRANCHES.map((b,bi)=>({label:b,data:rows.map(r=>r.branches[bi].total),backgroundColor:BCOLORS[bi]+'CC',borderColor:BCOLORS[bi],borderWidth:0,borderRadius:5}));
+  }
   if(dbChart)dbChart.destroy();
-  dbChart=new Chart(document.getElementById('dbChart'),{type:dbMode==='year'?'bar':'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ฿${fmt(ctx.parsed.y)}`},backgroundColor:'#18211F',padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{size:11},autoSkip:dbMode==='day',maxRotation:0,color:'#9AADA9'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11},callback:v=>fmtB(v),color:'#9AADA9'},border:{display:false}}}}});
-  // การ์ดสาขาด้านล่าง = แสดงแยกประเภทการชำระ (ไม่ซ้ำกับการ์ดบนที่มียอดรวม+%)
-  const hasPayData=BRANCHES.some((_,bi)=>payTypes.some(p=>rows.reduce((a,r)=>a+(parseFloat(r.branches[bi].pays[p])||0),0)>0));
-  document.getElementById('db-bcards').innerHTML=hasPayData?`<div style="grid-column:1/-1;font-size:13px;font-weight:600;margin-bottom:4px">แยกตามประเภทการชำระ</div>`+BRANCHES.map((b,bi)=>{const tot=totals[bi];const payRows=payTypes.map(p=>{const v=rows.reduce((a,r)=>a+(parseFloat(r.branches[bi].pays[p])||0),0);return v>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text3)">${p}</span><span style="font-weight:500">฿${fmt(v)}</span></div>`:''}).join('');return payRows?`<div class="bcard"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem"><span class="bcard-dot" style="background:${BCOLORS[bi]}"></span><span style="font-size:13px;font-weight:600">${b}</span><span style="margin-left:auto;font-size:12px;font-weight:700;color:${BCOLORS[bi]}">฿${fmt(tot)}</span></div>${payRows}</div>`:'';}).join(''):'';
-  renderPayStat(rows);
+  dbChart=new Chart(document.getElementById('dbChart'),{type:chartType,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ฿${fmt(ctx.parsed.y)}`},backgroundColor:'#18211F',padding:10,cornerRadius:8}},scales:{x:{grid:{display:false},ticks:{font:{size:11},autoSkip:dbMode==='month',maxRotation:0,color:'#9AADA9'}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11},callback:v=>fmtB(v),color:'#9AADA9'},border:{display:false}}}}});
+
+  // ===== การ์ดสาขาด้านล่าง = แยกประเภทการชำระ =====
+  const payByBranch=BRANCHES.map((_,bi)=>{
+    const pays={};
+    payTypes.forEach(p=>{
+      if(dbMode==='day'){const r=rows.find(x=>x.branch===bi);pays[p]=r?(parseFloat(r.pays[p])||0):0;}
+      else{pays[p]=rows.reduce((a,r)=>a+(parseFloat(r.branches[bi].pays[p])||0),0);}
+    });
+    return pays;
+  });
+  const hasPayData=payByBranch.some(pays=>Object.values(pays).some(v=>v>0));
+  document.getElementById('db-bcards').innerHTML=hasPayData?`<div style="grid-column:1/-1;font-size:13px;font-weight:600;margin-bottom:4px">แยกตามประเภทการชำระ</div>`+BRANCHES.map((b,bi)=>{const tot=totals[bi];const payRows=payTypes.map(p=>{const v=payByBranch[bi][p];return v>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text3)">${p}</span><span style="font-weight:500">฿${fmt(v)}</span></div>`:''}).join('');return payRows?`<div class="bcard"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem"><span class="bcard-dot" style="background:${BCOLORS[bi]}"></span><span style="font-size:13px;font-weight:600">${b}</span><span style="margin-left:auto;font-size:12px;font-weight:700;color:${BCOLORS[bi]}">฿${fmt(tot)}</span></div>${payRows}</div>`:'';}).join(''):'';
+
+  renderPayStat(payByBranch);
   renderDayDetail();
   renderMonthDetail();
 }
 
 // สถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม + รายการ)
 let payStatChart=null;
-function renderPayStat(rows){
+function renderPayStat(payByBranch){
   const el=document.getElementById('db-paystat');
   if(!el)return;
   // รวมยอดแต่ละประเภทการชำระ (ทุกสาขา)
   const payTotals={};let grandPay=0;
   payTypes.forEach(p=>{
-    const v=rows.reduce((a,r)=>a+BRANCHES.reduce((b,_,bi)=>b+(parseFloat(r.branches[bi].pays[p])||0),0),0);
+    const v=payByBranch.reduce((a,pays)=>a+(parseFloat(pays[p])||0),0);
     payTotals[p]=v;grandPay+=v;
   });
   if(grandPay<=0){el.innerHTML='';if(payStatChart){payStatChart.destroy();payStatChart=null;}return;}
@@ -1296,53 +1349,32 @@ function renderPayStat(rows){
   });
 }
 
-// แสดงรายละเอียดยอดขายช่วงเดือน (จากเดือน → ถึงเดือน) แยกสาขา + ประเภทการชำระ
+// แสดงรายละเอียดยอดขายของเดือนที่เลือก แยกสาขา + ประเภทการชำระ
 window.renderMonthDetail=function(){
   const el=document.getElementById('db-day-detail');
   if(!el)return;
   if(dbMode!=='month'){return;} // renderDayDetail จัดการ day mode
-  // ถ้าจาก > ถึง สลับให้
-  let mFrom=Math.min(dbRangeFrom,dbRangeTo), mTo=Math.max(dbRangeFrom,dbRangeTo);
-  // กรองรายการในช่วงเดือนที่เลือก (ปีเดียวกัน)
-  const inRange=salesEntries.filter(e=>{
-    if(!e.date.startsWith(dbYear+'-'))return false;
-    const mm=parseInt(e.date.slice(5,7));
-    return mm>=mFrom&&mm<=mTo;
-  });
-  const rangeLabel=mFrom===mTo?`${MONTHS_TH[mFrom-1]} ${dbYear}`:`${MONTHS_TH[mFrom-1]} – ${MONTHS_TH[mTo-1]} ${dbYear}`;
-  if(!inRange.length){
-    el.innerHTML=`<div class="card"><div class="card-title">📋 รายละเอียดช่วง ${rangeLabel}</div><div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">ยังไม่มีการบันทึกยอดขายในช่วงนี้</div></div>`;
+  const ms=String(dbMonthView).padStart(2,'0');
+  const monthEntries=salesEntries.filter(e=>e.date.startsWith(`${dbYear}-${ms}`));
+  const monthLabel=`${MONTHS_TH[dbMonthView-1]} ${dbYear}`;
+  if(!monthEntries.length){
+    el.innerHTML=`<div class="card"><div class="card-title">📋 รายละเอียดเดือน ${monthLabel}</div><div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:13px">ยังไม่มีการบันทึกยอดขายในเดือนนี้</div></div>`;
     return;
   }
-  const rangeTotal=inRange.reduce((a,e)=>a+(parseFloat(e.total)||0),0);
-  let html=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem"><div class="card-title" style="margin:0">📋 รายละเอียดช่วง ${rangeLabel}</div><div style="font-size:18px;font-weight:700;color:var(--green-d)">฿${fmt(rangeTotal)}</div></div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">รวม ${mTo-mFrom+1} เดือน</div>`;
-
-  // สรุปรายเดือนในช่วง (ตาราง)
-  html+=`<div style="font-size:13px;font-weight:600;margin-bottom:8px">ยอดรายเดือน</div>`;
-  for(let mm=mFrom;mm<=mTo;mm++){
-    const monthEntries=inRange.filter(e=>parseInt(e.date.slice(5,7))===mm);
-    const mTotal=monthEntries.reduce((a,e)=>a+(parseFloat(e.total)||0),0);
-    if(mTotal>0){
-      const brBreak=BRANCHES.map((b,bi)=>{const bt=monthEntries.filter(e=>e.branch===bi).reduce((a,e)=>a+(parseFloat(e.total)||0),0);return bt>0?`<span style="color:${BCOLORS[bi]};font-size:11px">${b} ฿${fmt(bt)}</span>`:'';}).filter(Boolean).join(' · ');
-      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
-        <div><span style="font-weight:600;font-size:13px">${MONTHS_TH[mm-1]}</span><div style="margin-top:2px">${brBreak}</div></div>
-        <span style="font-weight:700;color:var(--green-d)">฿${fmt(mTotal)}</span>
-      </div>`;
-    }
-  }
-
-  // สรุปแยกสาขา (รวมทั้งช่วง) + ประเภทการชำระ
-  html+=`<div style="font-size:13px;font-weight:600;margin:16px 0 8px">สรุปแยกสาขา (รวมทั้งช่วง)</div>`;
+  const monthTotal=monthEntries.reduce((a,e)=>a+(parseFloat(e.total)||0),0);
+  const daysWithSales=[...new Set(monthEntries.map(e=>e.date))].length;
+  let html=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem"><div class="card-title" style="margin:0">📋 รายละเอียดเดือน ${monthLabel}</div><div style="font-size:18px;font-weight:700;color:var(--green-d)">฿${fmt(monthTotal)}</div></div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">มีการบันทึกยอด ${daysWithSales} วัน</div>`;
+  // สรุปแยกสาขา (รวมทั้งเดือน) + ประเภทการชำระ
   BRANCHES.forEach((b,bi)=>{
-    const brEntries=inRange.filter(e=>e.branch===bi);
+    const brEntries=monthEntries.filter(e=>e.branch===bi);
     if(!brEntries.length)return;
     const brTotal=brEntries.reduce((a,e)=>a+(parseFloat(e.total)||0),0);
     const payTotals={};payTypes.forEach(p=>{payTotals[p]=brEntries.reduce((a,e)=>a+(parseFloat(e.amounts[p])||0),0);});
     const payRows=payTypes.filter(p=>payTotals[p]>0).map(p=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text3)">${p}</span><span style="font-weight:500">฿${fmt(payTotals[p])}</span></div>`).join('');
     html+=`<div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-weight:700;color:${BCOLORS[bi]}">สาขา${b}</span>
+        <span style="font-weight:700;color:${BCOLORS[bi]}">สาขา${b} <span style="font-size:11px;color:var(--text3);font-weight:400">(${brEntries.length} วัน)</span></span>
         <span style="font-size:16px;font-weight:700;color:${BCOLORS[bi]}">฿${fmt(brTotal)}</span>
       </div>
       ${payRows||'<div style="font-size:12px;color:var(--text3)">ไม่มียอดแยกประเภท</div>'}
@@ -1353,14 +1385,6 @@ window.renderMonthDetail=function(){
 };
 
 // เมื่อเลือกวันที่ → อัปเดตเดือน/ปีของกราฟให้ตรง แล้ว render ใหม่
-window.dbPickDate=function(ds){
-  if(ds){
-    dbYear=parseInt(ds.slice(0,4));
-    dbMonth=parseInt(ds.slice(5,7));
-  }
-  dbRender();
-};
-
 // แสดงรายละเอียดยอดขายเจาะจงวัน (ใครลง + ประเภทการชำระ)
 window.renderDayDetail=function(){
   const el=document.getElementById('db-day-detail');
