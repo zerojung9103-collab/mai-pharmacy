@@ -281,7 +281,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.6.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.6.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -822,8 +822,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.6.0';
+const APP_VERSION='1.6.1';
 const CHANGELOG=[
+  {v:'1.6.1',date:'2026-06-16',changes:['เพิ่มปุ่ม "ดู" ในแดชบอร์ด (เลือกวัน/เดือนแล้วกดดูผล ชัดเจนขึ้น)']},
   {v:'1.6.0',date:'2026-06-16',changes:['Dashboard รายวันแยกวันได้จริง (เลือกวันแล้วเปลี่ยนตาม)','เลือกวัน/เดือนที่ไม่มีข้อมูล จะขึ้น "ยังไม่มีข้อมูล" แทนกราฟเปล่า','รายเดือนเลือกช่วงเดือนได้ (จาก-ถึง)']},
   {v:'1.5.0',date:'2026-06-15',changes:['เพิ่มระบบเวอร์ชัน + บันทึกการเปลี่ยนแปลง','เพิ่มสถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม)']},
   {v:'1.4.0',date:'2026-06-15',changes:['ปรับ Dashboard ไม่ให้ข้อมูลซ้ำซ้อน','รายวันเน้นวันที่เลือก + เลือกช่วงเดือนได้','เพิ่มรายละเอียดว่าใครลงยอดขาย + เวลา']},
@@ -1187,6 +1188,17 @@ function getDbData(){
   return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+(parseFloat(x.total)||0),0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(parseFloat(x.amounts[p])||0),0);});return{total,pays};})}));
 }
 window.dbSetMode=function(m,el){dbMode=m;document.querySelectorAll('#db-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');dbRender();};
+// ปุ่ม "ดู" — อ่านค่าจาก dropdown แล้วค่อย render (ชัวร์กว่า onchange)
+window.dbApplyDay=function(){const v=document.getElementById('db-day-pick')?.value;if(v)dbDayPick=v;dbRender();};
+window.dbApplyMonth=function(){
+  const y=document.getElementById('db-year-sel')?.value;
+  const f=document.getElementById('db-from-sel')?.value;
+  const t=document.getElementById('db-to-sel')?.value;
+  if(y)dbYear=parseInt(y);
+  if(f)dbRangeFrom=parseInt(f);
+  if(t)dbRangeTo=parseInt(t);
+  dbRender();
+};
 
 // แสดงประวัติการเปลี่ยนแปลง (changelog)
 window.showChangelog=function(){
@@ -1251,14 +1263,16 @@ function dbRender(){
   let fHtml='';
   if(dbMode==='day'){
     fHtml=`<span style="font-size:13px;color:var(--text2);font-weight:600;align-self:center">เลือกวันที่:</span>
-      <input type="date" id="db-day-pick" value="${dbDayPick||todayStr()}" onchange="dbDayPick=this.value;dbRender()" style="font-size:13px;padding:7px 12px;width:auto">
+      <input type="date" id="db-day-pick" value="${dbDayPick||todayStr()}" style="font-size:13px;padding:7px 12px;width:auto">
+      <button class="btn btn-sm btn-primary" onclick="dbApplyDay()" style="font-size:13px">ดู</button>
       <button class="btn btn-sm" onclick="dbDayPick=todayStr();dbRender()" style="font-size:12px">วันนี้</button>`;
   }else if(dbMode==='month'){
-    fHtml=`<select onchange="dbYear=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select>
+    fHtml=`<select id="db-year-sel" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select>
       <span style="font-size:13px;color:var(--text2);font-weight:600;align-self:center">เดือน:</span>
-      <select onchange="dbRangeFrom=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 10px;width:auto" title="จากเดือน">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbRangeFrom?' selected':''}>${m}</option>`).join('')}</select>
+      <select id="db-from-sel" style="font-size:13px;padding:7px 10px;width:auto" title="จากเดือน">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbRangeFrom?' selected':''}>${m}</option>`).join('')}</select>
       <span style="font-size:12px;color:var(--text3);align-self:center">ถึง</span>
-      <select onchange="dbRangeTo=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 10px;width:auto" title="ถึงเดือน">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbRangeTo?' selected':''}>${m}</option>`).join('')}</select>`;
+      <select id="db-to-sel" style="font-size:13px;padding:7px 10px;width:auto" title="ถึงเดือน">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbRangeTo?' selected':''}>${m}</option>`).join('')}</select>
+      <button class="btn btn-sm btn-primary" onclick="dbApplyMonth()" style="font-size:13px">ดู</button>`;
   }else{
     fHtml=`<span style="font-size:13px;color:var(--text3)">เปรียบเทียบยอดขายทุกปี</span>`;
   }
