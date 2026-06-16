@@ -281,7 +281,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน</p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.5.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -383,6 +383,7 @@ textarea{resize:vertical;min-height:64px}
       <div class="chart-wrap"><canvas id="dbChart" role="img" aria-label="กราฟยอดขาย"></canvas></div>
     </div>
     <div class="branch-cards" id="db-bcards" style="margin-top:1rem"></div>
+    <div id="db-paystat" style="margin-top:1rem"></div>
     <div id="db-day-detail" style="margin-top:1rem"></div>
   </div>
 
@@ -820,6 +821,16 @@ const db = getFirestore(app);
 
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
+// ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
+const APP_VERSION='1.5.0';
+const CHANGELOG=[
+  {v:'1.5.0',date:'2026-06-15',changes:['เพิ่มระบบเวอร์ชัน + บันทึกการเปลี่ยนแปลง','เพิ่มสถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม)']},
+  {v:'1.4.0',date:'2026-06-15',changes:['ปรับ Dashboard ไม่ให้ข้อมูลซ้ำซ้อน','รายวันเน้นวันที่เลือก + เลือกช่วงเดือนได้','เพิ่มรายละเอียดว่าใครลงยอดขาย + เวลา']},
+  {v:'1.3.0',date:'2026-06-15',changes:['เพิ่ม popup เตือนเมื่อเช็คอินสาย','บันทึกสถิติการมาสาย','เช็คเอาท์นอกรัศมีได้ (บันทึกแยกใน/นอก)']},
+  {v:'1.2.0',date:'2026-06-14',changes:['เพิ่มระบบบันทึกการใช้งาน (ใครทำอะไร)','admin แก้เวลาเช็คอินได้ + มีประวัติให้พนักงานเห็น','เปลี่ยนเวลาเป็นระบบ 24 ชั่วโมง']},
+  {v:'1.1.0',date:'2026-06-14',changes:['เพิ่มข้อมูลพนักงาน (รหัส/ตำแหน่ง/บัญชี)','สลิปเงินเดือนแบบทางการ','รัดกุมความปลอดภัย Firestore']},
+  {v:'1.0.0',date:'2026-06-13',changes:['เปิดใช้งานระบบ: ตารางเวร เช็คอิน GPS ยอดขาย เงินเดือน ขอลา']}
+];
 const BCOLORS=['#1D9E75','#378ADD','#EF9F27'];
 const BCOLORS_L=['#E1F5EE','#E6F1FB','#FAEEDA'];
 const DAYNAMES=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
@@ -1158,6 +1169,25 @@ function getDbData(){
   return years.map(y=>({label:y,branches:BRANCHES.map((_,bi)=>{const es=salesEntries.filter(x=>x.date.startsWith(y)&&x.branch===bi);const total=es.reduce((a,x)=>a+(parseFloat(x.total)||0),0);const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,x)=>a+(parseFloat(x.amounts[p])||0),0);});return{total,pays};})}));
 }
 window.dbSetMode=function(m,el){dbMode=m;document.querySelectorAll('#db-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');dbRender();};
+
+// แสดงประวัติการเปลี่ยนแปลง (changelog)
+window.showChangelog=function(){
+  openModal(`<div class="modal-title">📋 ประวัติการอัปเดต</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">เวอร์ชันปัจจุบัน v${APP_VERSION}</div>
+    <div style="max-height:60vh;overflow-y:auto">
+    ${CHANGELOG.map((c,idx)=>`<div style="margin-bottom:1rem;padding-bottom:1rem;${idx<CHANGELOG.length-1?'border-bottom:1px solid var(--border)':''}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="background:${idx===0?'var(--green)':'var(--bg)'};color:${idx===0?'#fff':'var(--text2)'};font-size:12px;font-weight:700;padding:3px 10px;border-radius:8px">v${c.v}</span>
+        <span style="font-size:11px;color:var(--text3)">${c.date}</span>
+        ${idx===0?'<span style="font-size:10px;color:var(--green-d);font-weight:600">ล่าสุด</span>':''}
+      </div>
+      <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text2);line-height:1.8">
+        ${c.changes.map(ch=>`<li>${ch}</li>`).join('')}
+      </ul>
+    </div>`).join('')}
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+};
 // สรุปภาพรวมวันนี้ (admin)
 async function renderTodayOverview(){
   const el=document.getElementById('db-today-overview');
@@ -1220,8 +1250,50 @@ function dbRender(){
   // การ์ดสาขาด้านล่าง = แสดงแยกประเภทการชำระ (ไม่ซ้ำกับการ์ดบนที่มียอดรวม+%)
   const hasPayData=BRANCHES.some((_,bi)=>payTypes.some(p=>rows.reduce((a,r)=>a+(parseFloat(r.branches[bi].pays[p])||0),0)>0));
   document.getElementById('db-bcards').innerHTML=hasPayData?`<div style="grid-column:1/-1;font-size:13px;font-weight:600;margin-bottom:4px">แยกตามประเภทการชำระ</div>`+BRANCHES.map((b,bi)=>{const tot=totals[bi];const payRows=payTypes.map(p=>{const v=rows.reduce((a,r)=>a+(parseFloat(r.branches[bi].pays[p])||0),0);return v>0?`<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--text3)">${p}</span><span style="font-weight:500">฿${fmt(v)}</span></div>`:''}).join('');return payRows?`<div class="bcard"><div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem"><span class="bcard-dot" style="background:${BCOLORS[bi]}"></span><span style="font-size:13px;font-weight:600">${b}</span><span style="margin-left:auto;font-size:12px;font-weight:700;color:${BCOLORS[bi]}">฿${fmt(tot)}</span></div>${payRows}</div>`:'';}).join(''):'';
+  renderPayStat(rows);
   renderDayDetail();
   renderMonthDetail();
+}
+
+// สถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม + รายการ)
+let payStatChart=null;
+function renderPayStat(rows){
+  const el=document.getElementById('db-paystat');
+  if(!el)return;
+  // รวมยอดแต่ละประเภทการชำระ (ทุกสาขา)
+  const payTotals={};let grandPay=0;
+  payTypes.forEach(p=>{
+    const v=rows.reduce((a,r)=>a+BRANCHES.reduce((b,_,bi)=>b+(parseFloat(r.branches[bi].pays[p])||0),0),0);
+    payTotals[p]=v;grandPay+=v;
+  });
+  if(grandPay<=0){el.innerHTML='';if(payStatChart){payStatChart.destroy();payStatChart=null;}return;}
+  const PAY_COLORS=['#16B981','#3B8EEA','#F7A823','#8B7FF0','#EC4899','#14B8C4','#F0524F'];
+  const sorted=payTypes.map((p,i)=>({name:p,val:payTotals[p],color:PAY_COLORS[i%PAY_COLORS.length]})).filter(x=>x.val>0).sort((a,b)=>b.val-a.val);
+  el.innerHTML=`<div class="card">
+    <div class="card-title">💳 สถิติการชำระเงิน</div>
+    <div class="card-sub">สัดส่วนแต่ละประเภทการชำระ (ทุกสาขารวมกัน)</div>
+    <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap">
+      <div style="width:180px;height:180px;flex-shrink:0"><canvas id="payStatChart"></canvas></div>
+      <div style="flex:1;min-width:200px">
+        ${sorted.map(x=>{const pct=Math.round(x.val/grandPay*100);return`<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-bottom:3px">
+            <span style="display:flex;align-items:center;gap:7px"><span style="width:11px;height:11px;border-radius:3px;background:${x.color}"></span>${x.name}</span>
+            <span style="font-weight:700">฿${fmt(x.val)} <span style="color:var(--text3);font-weight:400;font-size:11px">(${pct}%)</span></span>
+          </div>
+          <div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${x.color};border-radius:3px"></div></div>
+        </div>`;}).join('')}
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:14px;font-weight:700">
+          <span>รวมทั้งหมด</span><span style="color:var(--green-d)">฿${fmt(grandPay)}</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  if(payStatChart)payStatChart.destroy();
+  payStatChart=new Chart(document.getElementById('payStatChart'),{
+    type:'doughnut',
+    data:{labels:sorted.map(x=>x.name),datasets:[{data:sorted.map(x=>x.val),backgroundColor:sorted.map(x=>x.color),borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ฿${fmt(ctx.parsed)} (${Math.round(ctx.parsed/grandPay*100)}%)`},backgroundColor:'#18211F',padding:10,cornerRadius:8}}}
+  });
 }
 
 // แสดงรายละเอียดยอดขายช่วงเดือน (จากเดือน → ถึงเดือน) แยกสาขา + ประเภทการชำระ
