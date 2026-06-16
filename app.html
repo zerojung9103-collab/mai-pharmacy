@@ -2934,13 +2934,25 @@ window.doCheckin=function(type){
       const d=distanceM(latitude,longitude,loc.lat,loc.lng);
       if(d<=(loc.radius||100)&&d<minDist){minDist=d;matchedBranch=i;}
     });
+    let inRadius=matchedBranch!==null;   // อยู่ในรัศมีไหม
+    let outDist=null;                     // ระยะห่าง (ถ้านอกรัศมี)
     if(matchedBranch===null){
-      // หาสาขาใกล้สุดเพื่อบอกระยะ
+      // หาสาขาใกล้สุด + ระยะ
       let nearest=null,nd=Infinity;
       branchLocations.forEach((loc,i)=>{if(!loc)return;const d=distanceM(latitude,longitude,loc.lat,loc.lng);if(d<nd){nd=d;nearest=i;}});
-      if(nearest===null)msg.innerHTML='<span style="color:var(--red-t)">⚠️ ยังไม่ได้ตั้งพิกัดสาขา กรุณาแจ้ง admin</span>';
-      else msg.innerHTML=`<span style="color:var(--red-t)">⚠️ คุณอยู่ห่างจากสาขา${BRANCHES[nearest]} ${Math.round(nd)} เมตร (ต้องอยู่ในรัศมีร้าน)</span>`;
-      return;
+      if(type==='out'){
+        // เช็คเอาท์: นอกรัศมีก็ได้ — ใช้สาขาที่เช็คอินไว้ หรือสาขาใกล้สุด
+        let rec0={};
+        try{const ex0=await getDoc(doc(db,'checkins',todayCheckinId()));if(ex0.exists())rec0=ex0.data();}catch(e){}
+        matchedBranch=rec0.branchIn!=null?rec0.branchIn:(nearest!=null?nearest:0);
+        outDist=nearest!=null?Math.round(nd):null;
+        inRadius=false;
+      }else{
+        // เช็คอินเข้างาน: ต้องอยู่ในรัศมีเท่านั้น
+        if(nearest===null)msg.innerHTML='<span style="color:var(--red-t)">⚠️ ยังไม่ได้ตั้งพิกัดสาขา กรุณาแจ้ง admin</span>';
+        else msg.innerHTML=`<span style="color:var(--red-t)">⚠️ คุณอยู่ห่างจากสาขา${BRANCHES[nearest]} ${Math.round(nd)} เมตร (ต้องอยู่ในรัศมีร้าน)</span>`;
+        return;
+      }
     }
     // บันทึก
     const now=new Date();
@@ -2950,41 +2962,72 @@ window.doCheckin=function(type){
       let rec={};
       const ex=await getDoc(doc(db,'checkins',id));if(ex.exists())rec=ex.data();
       const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'';
-      if(type==='in'){rec.checkIn=timeStr;rec.branchIn=matchedBranch;}
-      else{rec.checkOut=timeStr;rec.branchOut=matchedBranch;}
-      rec.uid=currentUser.uid;rec.name=name;rec.date=todayStr();
-      await setDoc(doc(db,'checkins',id),rec);
-      showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}`);
-      logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}`);
-      renderCheckinPage();
-      // ===== แจ้งเตือนสาย (เฉพาะตอนเช็คอินเข้างาน) =====
       if(type==='in'){
-        // หาเวรของวันนี้ที่ admin จัดไว้ให้คนนี้
-        const ds=todayStr();
-        const myShiftToday=shifts.find(s=>s.staffId===currentUser.uid&&s.date===ds);
+        rec.checkIn=timeStr;rec.branchIn=matchedBranch;rec.checkInInRadius=true;
+      }else{
+        rec.checkOut=timeStr;rec.branchOut=matchedBranch;
+        rec.checkOutInRadius=inRadius;
+        rec.checkOutDistance=outDist;  // ระยะห่าง (เมตร) ถ้านอกรัศมี, null ถ้าในรัศมี
+      }
+      rec.uid=currentUser.uid;rec.name=name;rec.date=todayStr();
+
+      // ===== คำนวณ + บันทึกสถิติสาย (ตอนเช็คอิน) =====
+      let lateInfo=null;
+      if(type==='in'){
+        const myShiftToday=shifts.find(s=>s.staffId===currentUser.uid&&s.date===rec.date);
         if(myShiftToday&&myShiftToday.start){
           const[sh,sm]=myShiftToday.start.split(':').map(Number);
           const lateMin=(now.getHours()*60+now.getMinutes())-(sh*60+sm);
           if(lateMin>0){
-            // สายแม้นาทีเดียวก็เตือน
-            const hh=Math.floor(lateMin/60), mm=lateMin%60;
-            const lateText=hh>0?`${hh} ชั่วโมง ${mm} นาที`:`${mm} นาที`;
-            openModal(`<div style="text-align:center;padding:.5rem 0">
-              <div style="font-size:44px;margin-bottom:8px">⏰</div>
-              <div class="modal-title" style="color:var(--red-t)">คุณเช็คอินสาย</div>
-              <div style="font-size:14px;color:var(--text2);margin:12px 0;line-height:1.8">
-                เวรเริ่ม <b>${myShiftToday.start} น.</b><br>
-                คุณเช็คอิน <b>${timeStr} น.</b><br>
-                <span style="display:inline-block;margin-top:8px;background:var(--red-l);color:var(--red-t);padding:5px 16px;border-radius:20px;font-weight:700">สาย ${lateText}</span>
-              </div>
-              <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">${lateMin>30?'⚠️ สายเกิน 30 นาที อาจถูกหักเวลาทำงาน 30 นาที':'ครั้งนี้ยังไม่ถูกหักเวลา แต่พยายามมาให้ทันเวลานะคะ'}</div>
-              <button class="btn btn-primary" style="width:100%" onclick="closeMD()">รับทราบ</button>
-            </div>`);
-          }
+            lateInfo={shiftStart:myShiftToday.start,lateMin};
+            rec.isLate=true;rec.lateMinutes=lateMin;rec.shiftStart=myShiftToday.start;
+          }else{rec.isLate=false;rec.lateMinutes=0;}
         }
       }
+
+      await setDoc(doc(db,'checkins',id),rec);
+      // toast บอกสถานะรัศมีตอนเช็คเอาท์
+      const radiusNote=(type==='out'&&!inRadius)?` (นอกรัศมี${outDist?' ~'+outDist+'ม.':''})`:'';
+      showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}`);
+      logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}${type==='in'&&rec.isLate?` (สาย ${rec.lateMinutes} นาที)`:''}`);
+      renderCheckinPage();
+      // ===== แจ้งเตือนสาย (popup) =====
+      if(type==='in'&&lateInfo){
+        const hh=Math.floor(lateInfo.lateMin/60), mm=lateInfo.lateMin%60;
+        const lateText=hh>0?`${hh} ชั่วโมง ${mm} นาที`:`${mm} นาที`;
+        openModal(`<div style="text-align:center;padding:.5rem 0">
+          <div style="font-size:44px;margin-bottom:8px">⏰</div>
+          <div class="modal-title" style="color:var(--red-t)">คุณเช็คอินสาย</div>
+          <div style="font-size:14px;color:var(--text2);margin:12px 0;line-height:1.8">
+            เวรเริ่ม <b>${lateInfo.shiftStart} น.</b><br>
+            คุณเช็คอิน <b>${timeStr} น.</b><br>
+            <span style="display:inline-block;margin-top:8px;background:var(--red-l);color:var(--red-t);padding:5px 16px;border-radius:20px;font-weight:700">สาย ${lateText}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">${lateInfo.lateMin>30?'⚠️ สายเกิน 30 นาที อาจถูกหักเวลาทำงาน 30 นาที':'ครั้งนี้ยังไม่ถูกหักเวลา แต่พยายามมาให้ทันเวลานะคะ'}</div>
+          <button class="btn btn-primary" style="width:100%" onclick="closeMD()">รับทราบ</button>
+        </div>`);
+      }
     }catch(e){msg.innerHTML='<span style="color:var(--red-t)">บันทึกไม่ได้: '+e.message+'</span>';}
-  },err=>{
+  },async err=>{
+    // เช็คเอาท์: ถ้า GPS ใช้ไม่ได้ ก็ยังให้ออกงานได้ (บันทึกว่าไม่มี GPS)
+    if(type==='out'){
+      const now=new Date();
+      const timeStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      const id=todayCheckinId();
+      try{
+        let rec={};
+        const ex=await getDoc(doc(db,'checkins',id));if(ex.exists())rec=ex.data();
+        rec.checkOut=timeStr;
+        rec.branchOut=rec.branchIn!=null?rec.branchIn:0;
+        rec.checkOutInRadius=false;rec.checkOutDistance=null;rec.checkOutNoGPS=true;
+        rec.uid=currentUser.uid;rec.name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'';rec.date=todayStr();
+        await setDoc(doc(db,'checkins',id),rec);
+        showToast(`เช็คเอาท์สำเร็จ ${timeStr} (ไม่มีตำแหน่ง GPS)`);
+        logActivity('checkout',`ออกงาน ${timeStr} (ไม่มี GPS)`);
+        renderCheckinPage();
+      }catch(e){msg.innerHTML='<span style="color:var(--red-t)">บันทึกไม่ได้: '+e.message+'</span>';}
+      return;
+    }
     msg.innerHTML='<span style="color:var(--red-t)">ไม่สามารถเข้าถึง GPS ได้ กรุณาเปิดสิทธิ์ตำแหน่งในเบราว์เซอร์</span>';
   },{enableHighAccuracy:true,timeout:10000});
 };
@@ -3000,15 +3043,16 @@ window.loadCheckinHistory=async function(){
     const recs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
     const checkedIn=recs.filter(r=>r.checkIn).length;
     const checkedOut=recs.filter(r=>r.checkOut).length;
+    const lateCount=recs.filter(r=>r.isLate).length;
     document.getElementById('cih-metrics').innerHTML=`
       <div class="mcard c-green"><div class="mcard-label">เข้างานแล้ว</div><div class="mcard-val">${checkedIn}</div><div class="mcard-sub">คน</div></div>
       <div class="mcard c-blue"><div class="mcard-label">ออกงานแล้ว</div><div class="mcard-val">${checkedOut}</div><div class="mcard-sub">คน</div></div>
-      <div class="mcard c-amber"><div class="mcard-label">ยังทำงานอยู่</div><div class="mcard-val">${checkedIn-checkedOut}</div><div class="mcard-sub">คน</div></div>`;
+      <div class="mcard c-amber"><div class="mcard-label">มาสายวันนี้</div><div class="mcard-val">${lateCount}</div><div class="mcard-sub">คน</div></div>`;
     document.getElementById('cih-tbody').innerHTML=recs.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่มีการลงเวลาในวันนี้</td></tr>':recs.map(r=>`<tr>
       <td style="font-weight:600">${r.name||'—'}</td>
       <td>${r.date}</td>
-      <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}</td>
-      <td style="color:var(--blue-t)">${r.checkOut||'—'}${r.branchOut!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchOut]}</div>`:''}</td>
+      <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}${r.isLate?`<div style="font-size:9px;color:#D4690E;font-weight:700">⏰ สาย ${r.lateMinutes} นาที</div>`:''}</td>
+      <td style="color:var(--blue-t)">${r.checkOut||'—'}${r.branchOut!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchOut]}</div>`:''}${r.checkOut&&r.checkOutInRadius===false?`<div style="font-size:9px;color:#D4690E;font-weight:700">📍 นอกรัศมี${r.checkOutDistance?' ~'+r.checkOutDistance+'ม.':''}</div>`:r.checkOut&&r.checkOutInRadius===true?`<div style="font-size:9px;color:var(--green-d)">✓ ในรัศมี</div>`:''}</td>
       <td>${r.checkIn&&r.checkOut?calcWorkTime(r.checkIn,r.checkOut):'—'}</td>
       <td>${r.checkOut?'<span class="sta-on">เสร็จสิ้น</span>':r.checkIn?'<span class="badge badge-amber">ทำงานอยู่</span>':'<span class="sta-off">ยังไม่เข้า</span>'}${r.editHistory?.length?`<div style="font-size:9px;color:#D4690E;margin-top:2px">✎ แก้ไข ${r.editHistory.length} ครั้ง</div>`:''}</td>
       <td><button class="btn btn-sm btn-blue" onclick="editCheckin('${r.id}')">แก้เวลา</button></td>
