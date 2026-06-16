@@ -603,9 +603,9 @@ textarea{resize:vertical;min-height:64px}
   <div class="page" id="page-settings">
     <div class="topbar"><div><div class="page-title">ตั้งค่าระบบ</div><div class="page-sub">จัดการพนักงาน ประเภทการชำระ และโปรไฟล์</div></div></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
-      <div class="card">
+      <div class="card" id="paytype-card">
         <div class="card-title">ประเภทการชำระ</div>
-        <div class="card-sub">เพิ่ม/ลบประเภทได้ตามต้องการ</div>
+        <div class="card-sub">เพิ่ม/ลบประเภทได้ตามต้องการ (เฉพาะผู้ดูแลระบบ)</div>
         <div id="pay-type-list"></div>
         <div class="divider"></div>
         <div style="display:flex;gap:8px">
@@ -2793,9 +2793,9 @@ window.downloadMonthSlip=function(idx){
 };
 
 // ===== SETTINGS =====
-function renderPayTypeSettings(){document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('');}
-window.addPayType=function(){const inp=document.getElementById('new-pay-name');const name=inp.value.trim();if(!name||payTypes.includes(name)){showToast('ชื่อซ้ำหรือว่างเปล่า','err');return;}payTypes.push(name);inp.value='';saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('เพิ่มประเภทการชำระแล้ว');};
-window.removePayType=function(i){payTypes.splice(i,1);saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('ลบแล้ว');};
+function renderPayTypeSettings(){const card=document.getElementById('paytype-card');if(card)card.style.display=isAdmin?'':'none';if(!isAdmin)return;document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('');}
+window.addPayType=function(){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const inp=document.getElementById('new-pay-name');const name=inp.value.trim();if(!name||payTypes.includes(name)){showToast('ชื่อซ้ำหรือว่างเปล่า','err');return;}payTypes.push(name);inp.value='';saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('เพิ่มประเภทการชำระแล้ว');};
+window.removePayType=function(i){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}payTypes.splice(i,1);saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('ลบแล้ว');};
 
 // sync ประเภทการชำระขึ้น Firestore (ใช้ร่วมทุกเครื่อง)
 async function syncPayTypesToCloud(){
