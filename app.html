@@ -1112,7 +1112,7 @@ window.goto=function(page){
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
   if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();}
-  if(page==='checkin')renderCheckinPage();
+  if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
   if(page==='leave-admin')loadLeaveAdmin();
@@ -2957,6 +2957,32 @@ window.doCheckin=function(type){
       showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}`);
       logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}`);
       renderCheckinPage();
+      // ===== แจ้งเตือนสาย (เฉพาะตอนเช็คอินเข้างาน) =====
+      if(type==='in'){
+        // หาเวรของวันนี้ที่ admin จัดไว้ให้คนนี้
+        const ds=todayStr();
+        const myShiftToday=shifts.find(s=>s.staffId===currentUser.uid&&s.date===ds);
+        if(myShiftToday&&myShiftToday.start){
+          const[sh,sm]=myShiftToday.start.split(':').map(Number);
+          const lateMin=(now.getHours()*60+now.getMinutes())-(sh*60+sm);
+          if(lateMin>0){
+            // สายแม้นาทีเดียวก็เตือน
+            const hh=Math.floor(lateMin/60), mm=lateMin%60;
+            const lateText=hh>0?`${hh} ชั่วโมง ${mm} นาที`:`${mm} นาที`;
+            openModal(`<div style="text-align:center;padding:.5rem 0">
+              <div style="font-size:44px;margin-bottom:8px">⏰</div>
+              <div class="modal-title" style="color:var(--red-t)">คุณเช็คอินสาย</div>
+              <div style="font-size:14px;color:var(--text2);margin:12px 0;line-height:1.8">
+                เวรเริ่ม <b>${myShiftToday.start} น.</b><br>
+                คุณเช็คอิน <b>${timeStr} น.</b><br>
+                <span style="display:inline-block;margin-top:8px;background:var(--red-l);color:var(--red-t);padding:5px 16px;border-radius:20px;font-weight:700">สาย ${lateText}</span>
+              </div>
+              <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">${lateMin>30?'⚠️ สายเกิน 30 นาที อาจถูกหักเวลาทำงาน 30 นาที':'ครั้งนี้ยังไม่ถูกหักเวลา แต่พยายามมาให้ทันเวลานะคะ'}</div>
+              <button class="btn btn-primary" style="width:100%" onclick="closeMD()">รับทราบ</button>
+            </div>`);
+          }
+        }
+      }
     }catch(e){msg.innerHTML='<span style="color:var(--red-t)">บันทึกไม่ได้: '+e.message+'</span>';}
   },err=>{
     msg.innerHTML='<span style="color:var(--red-t)">ไม่สามารถเข้าถึง GPS ได้ กรุณาเปิดสิทธิ์ตำแหน่งในเบราว์เซอร์</span>';
