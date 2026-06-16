@@ -1190,7 +1190,7 @@ function dbRender(){
   const totals=BRANCHES.map((_,bi)=>rows.reduce((a,r)=>a+r.branches[bi].total,0));
   const grand=totals.reduce((a,v)=>a+v,0);const maxT=Math.max(...totals,1);
   let fHtml='';
-  if(dbMode==='day'){fHtml=`<select onchange="dbMonth=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbMonth?' selected':''}>${m}</option>`).join('')}</select><select onchange="dbYear=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select><input type="date" id="db-day-pick" value="${dbDayPick||''}" onchange="dbDayPick=this.value;renderDayDetail()" style="font-size:13px;padding:6px 10px;width:auto" title="ดูรายละเอียดเจาะจงวัน">`;}
+  if(dbMode==='day'){fHtml=`<span style="font-size:13px;color:var(--text2);font-weight:600;align-self:center">เลือกวันที่:</span><input type="date" id="db-day-pick" value="${dbDayPick||''}" onchange="dbDayPick=this.value;dbPickDate(this.value)" style="font-size:13px;padding:7px 12px;width:auto" title="ดูรายละเอียดเจาะจงวัน">`;}
   else if(dbMode==='month'){fHtml=`<select onchange="dbYear=parseInt(this.value);dbRender()" style="font-size:13px;padding:7px 12px;width:auto">${[2023,2024,2025,2026].map(y=>`<option${y===dbYear?' selected':''}>${y}</option>`).join('')}</select>
     <span style="font-size:12px;color:var(--text3);align-self:center">ช่วง:</span>
     <select id="db-range-from" onchange="dbRangeFrom=parseInt(this.value);renderMonthDetail()" style="font-size:13px;padding:7px 10px;width:auto" title="จากเดือน">${MONTHS_TH.map((m,i)=>`<option value="${i+1}"${i+1===dbRangeFrom?' selected':''}>${m}</option>`).join('')}</select>
@@ -1263,6 +1263,15 @@ window.renderMonthDetail=function(){
   });
   html+='</div>';
   el.innerHTML=html;
+};
+
+// เมื่อเลือกวันที่ → อัปเดตเดือน/ปีของกราฟให้ตรง แล้ว render ใหม่
+window.dbPickDate=function(ds){
+  if(ds){
+    dbYear=parseInt(ds.slice(0,4));
+    dbMonth=parseInt(ds.slice(5,7));
+  }
+  dbRender();
 };
 
 // แสดงรายละเอียดยอดขายเจาะจงวัน (ใครลง + ประเภทการชำระ)
