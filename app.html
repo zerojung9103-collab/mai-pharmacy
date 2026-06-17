@@ -281,7 +281,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.6.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.6.2</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -822,8 +822,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.6.1';
+const APP_VERSION='1.6.2';
 const CHANGELOG=[
+  {v:'1.6.2',date:'2026-06-17',changes:['แก้บั๊กสำคัญ: เช็คอินก่อน 7 โมงเช้าไม่ได้ (เกิดจากระบบใช้เวลา UTC แทนเวลาไทย)','รีเฟรชหน้าเช็คอินอัตโนมัติเมื่อเปิดแอปข้ามวัน']},
   {v:'1.6.1',date:'2026-06-16',changes:['เพิ่มปุ่ม "ดู" ในแดชบอร์ด (เลือกวัน/เดือนแล้วกดดูผล ชัดเจนขึ้น)']},
   {v:'1.6.0',date:'2026-06-16',changes:['Dashboard รายวันแยกวันได้จริง (เลือกวันแล้วเปลี่ยนตาม)','เลือกวัน/เดือนที่ไม่มีข้อมูล จะขึ้น "ยังไม่มีข้อมูล" แทนกราฟเปล่า','รายเดือนเลือกช่วงเดือนได้ (จาก-ถึง)']},
   {v:'1.5.0',date:'2026-06-15',changes:['เพิ่มระบบเวอร์ชัน + บันทึกการเปลี่ยนแปลง','เพิ่มสถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม)']},
@@ -947,7 +948,15 @@ window.closeMO=function(e){if(!e||e.target===document.getElementById('modal-over
 window.closeMD=function(){document.getElementById('modal-overlay').classList.remove('open');};
 function fmt(n){return Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});}
 function fmtB(n){if(n>=1e6)return'฿'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return'฿'+(n/1e3).toFixed(0)+'K';return'฿'+fmt(n);}
-function todayStr(){return new Date().toISOString().slice(0,10);}
+function todayStr(){
+  // ใช้เวลาท้องถิ่น (ไทย) ไม่ใช่ UTC — กัน toISOString() ที่ให้วันเป็น UTC
+  // ซึ่งทำให้ก่อน 7 โมงเช้าไทย วันที่ยังเป็นเมื่อวาน (เช็คอินวันใหม่ไม่ได้)
+  return dateStr(new Date());
+}
+// แปลง Date object เป็น "YYYY-MM-DD" ตามเวลาท้องถิ่น (ไม่ใช่ UTC)
+function dateStr(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function hasPerm(p){if(isAdmin)return true;return profile?.permissions?.[p]===true;}
 
 // ===== SIDEBAR by permissions =====
@@ -1018,6 +1027,13 @@ function buildBottomNav(){
 }
 
 // ===== AUTH =====
+// เมื่อกลับมาเปิดแอปอีกครั้ง (เช่น เปิดค้างข้ามวัน) → รีเฟรชหน้าเช็คอินให้ตรงวันปัจจุบัน
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&currentUser){
+    if(document.getElementById('page-checkin')?.classList.contains('active'))renderCheckinPage();
+  }
+});
+
 onAuthStateChanged(auth,async user=>{
   if(!user){window.location.href='index.html';return;}
   loading(true);
@@ -1232,7 +1248,7 @@ async function renderTodayOverview(){
   let checkedInCount=0;
   try{const snap=await getDocs(query(collection(db,'checkins'),where('date','==',today)));checkedInCount=snap.docs.filter(d=>d.data().checkIn).length;}catch(e){}
   // ยอดขายเมื่อวาน
-  const yst=new Date();yst.setDate(yst.getDate()-1);const ystStr=yst.toISOString().slice(0,10);
+  const yst=new Date();yst.setDate(yst.getDate()-1);const ystStr=dateStr(yst);
   const ystSales=salesEntries.filter(e=>e.date===ystStr).reduce((a,e)=>a+e.total,0);
 
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
@@ -1568,7 +1584,7 @@ function scRender(){
   const lastDay=new Date(scYear,scMonth+1,0);
   const daysInMonth=lastDay.getDate();
   let startOffset=(firstDay.getDay()||7)-1; // 0=จันทร์
-  const todayStr2=new Date().toISOString().slice(0,10);
+  const todayStr2=todayStr();
 
   let html='';
   // ช่องว่างต้นเดือน
@@ -1846,7 +1862,7 @@ window.generateAutoSchedule=async function(){
       if(!l.uid||!l.from)return;
       const f=new Date(l.from),t=new Date(l.to||l.from);
       for(let dt=new Date(f);dt<=t;dt.setDate(dt.getDate()+1)){
-        const ds=dt.toISOString().slice(0,10);
+        const ds=dateStr(dt);
         if(!ds.startsWith(monthStr))continue;
         if(!leaveMap[l.uid])leaveMap[l.uid]=new Set();
         leaveMap[l.uid].add(ds);
@@ -3602,7 +3618,7 @@ async function checkNotifications(){
     // 2. เตือน admin: สาขาไหนยังไม่บันทึกยอดขายเมื่อวาน
     if(isAdmin){
       const yst=new Date();yst.setDate(yst.getDate()-1);
-      const ystStr=yst.toISOString().slice(0,10);
+      const ystStr=dateStr(yst);
       const missing=BRANCHES.map((b,i)=>({b,i})).filter(({i})=>!salesEntries.find(e=>e.date===ystStr&&e.branch===i));
       if(missing.length){
         alerts.push({color:'blue',icon:'💰',text:`เมื่อวานยังไม่บันทึกยอดขาย: ${missing.map(x=>x.b).join(', ')}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('sales')" style="margin-left:auto">บันทึก</button>`});
@@ -3610,7 +3626,7 @@ async function checkNotifications(){
       // เตือนวันลาที่กำลังจะถึง (ภายใน 7 วัน)
       try{
         const snap=await getDocs(collection(db,'leaves'));
-        const in7=new Date();in7.setDate(in7.getDate()+7);const in7Str=in7.toISOString().slice(0,10);
+        const in7=new Date();in7.setDate(in7.getDate()+7);const in7Str=dateStr(in7);
         const upcoming=snap.docs.map(d=>d.data()).filter(l=>l.from>=today&&l.from<=in7Str);
         if(upcoming.length){
           const names=[...new Set(upcoming.map(l=>l.name))].slice(0,3).join(', ');
@@ -3785,7 +3801,7 @@ window.openWarnEditor=async function(id){
   if(!isAdmin)return;
   let d={name:'',conditions:{kidney:'',liver:'',heart:''},interactions:[],pregnancy:'',lactation:'',note:'',source:'',updatedDate:''};
   if(id){const f=drugWarnings.find(x=>x.id===id);if(f)d={...d,...f,conditions:{...d.conditions,...(f.conditions||{})}};}
-  const todayISO=new Date().toISOString().slice(0,10);
+  const todayISO=todayStr();
   openModal(`<div class="modal-title">${id?'แก้ไขข้อมูลยา':'เพิ่มข้อมูลยา'}</div>
     <div class="field"><label class="fl">ชื่อยา *</label><input type="text" id="w-name" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="เช่น Ibuprofen"></div>
     <div style="font-size:13px;font-weight:600;margin:.75rem 0 .25rem">⚠️ โรคประจำตัว (เว้นว่างถ้าใช้ได้ปกติ)</div>
