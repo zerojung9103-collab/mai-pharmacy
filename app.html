@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.7.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.8.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -629,6 +629,15 @@ textarea{resize:vertical;min-height:64px}
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
+      <div class="card" id="announce-card" style="grid-column:1/-1;display:none">
+        <div class="card-title">📢 ประกาศจากร้าน</div>
+        <div class="card-sub">ประกาศจะเด้งแจ้งเตือนพนักงานทุกคนเมื่อเปิดแอป</div>
+        <div style="display:flex;gap:8px;margin-bottom:1rem">
+          <input type="text" id="new-announce" placeholder="พิมพ์ข้อความประกาศ เช่น พรุ่งนี้ร้านปิด 18:00" style="flex:1" maxlength="200">
+          <button class="btn btn-primary btn-sm" onclick="postAnnouncement()">📢 ประกาศ</button>
+        </div>
+        <div id="announce-list"></div>
+      </div>
       <div class="card" id="paytype-card">
         <div class="card-title">ประเภทการชำระ</div>
         <div class="card-sub">เพิ่ม/ลบประเภทได้ตามต้องการ (เฉพาะผู้ดูแลระบบ)</div>
@@ -712,8 +721,8 @@ textarea{resize:vertical;min-height:64px}
     <div class="card">
       <div style="overflow-x:auto">
         <table class="payroll-table">
-          <thead><tr><th>พนักงาน</th><th>วันที่ลา</th><th>จำนวนวัน</th><th>เหตุผล</th><th>ประเภท</th><th>จัดการ</th></tr></thead>
-          <tbody id="la-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr></tbody>
+          <thead><tr><th>พนักงาน</th><th>วันที่ลา</th><th>จำนวนวัน</th><th>เหตุผล</th><th>สถานะ</th><th>พิจารณา</th><th>ลบ</th></tr></thead>
+          <tbody id="la-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -846,8 +855,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.7.0';
+const APP_VERSION='1.8.0';
 const CHANGELOG=[
+  {v:'1.8.0',date:'2026-06-17',changes:['เพิ่มแจ้งเตือนในแอป: ตารางเวรอัปเดต, เวรถูกแก้, คำขอลาอนุมัติ/ปฏิเสธ','เพิ่มระบบประกาศจากร้าน (admin ประกาศ → พนักงานเห็นเมื่อเปิดแอป)','เพิ่มปุ่มอนุมัติ/ปฏิเสธคำขอลา']},
   {v:'1.7.0',date:'2026-06-17',changes:['เพิ่มปุ่มรีเฟรชลอยทุกหน้า (โหลดข้อมูลล่าสุดจากระบบ)','เพิ่มคำแนะนำ: หากโปรแกรมผิดปกติให้กดปุ่มรีเฟรช']},
   {v:'1.6.3',date:'2026-06-17',changes:['หน้าบันทึกการใช้งานแสดงเวลาชัดเจนขึ้น (ชั่วโมง:นาที:วินาที)']},
   {v:'1.6.2',date:'2026-06-17',changes:['แก้บั๊กสำคัญ: เช็คอินก่อน 7 โมงเช้าไม่ได้ (เกิดจากระบบใช้เวลา UTC แทนเวลาไทย)','รีเฟรชหน้าเช็คอินอัตโนมัติเมื่อเปิดแอปข้ามวัน']},
@@ -1167,7 +1177,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -3651,9 +3661,9 @@ async function checkNotifications(){
   const dow=(new Date().getDay()+6)%7; // 0=จันทร์
 
   try{
-    // 1. เตือนพนักงานยังไม่ลงเวลา (เว้นวันหยุดของเขา)
+    // ===== แจ้งเตือนสำหรับพนักงาน =====
     if(!isAdmin){
-      // เช็คว่าวันนี้มีเวรของเราไหม (ถ้ามีเวร = วันทำงาน)
+      // 1. เตือนพนักงานยังไม่ลงเวลา (ถ้ามีเวรวันนี้)
       const myShiftToday=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
       if(myShiftToday){
         let checkedIn=false;
@@ -3662,9 +3672,49 @@ async function checkNotifications(){
           alerts.push({color:'amber',icon:'⏰',text:'วันนี้คุณยังไม่ได้ลงเวลาเข้างาน',action:`<button class="btn btn-sm btn-primary" onclick="goto('checkin')" style="margin-left:auto">ลงเวลา</button>`});
         }
       }
+
+      // 2. มีการจัดตารางเวรใหม่ / เวรถูกแก้ไข (เทียบกับครั้งล่าสุดที่ดู)
+      try{
+        const seenKey='nm_seen_schedule_'+currentUser.uid;
+        const lastSeen=localStorage.getItem(seenKey)||'';
+        // หาเวลาแก้ไขล่าสุดของเวรที่เกี่ยวกับเรา
+        const mySchedDocs=await getDocs(collection(db,'schedules'));
+        let latestUpdate='',hasMyShift=false;
+        mySchedDocs.docs.forEach(d=>{
+          const data=d.data();
+          if(data.updatedAt&&data.updatedAt>latestUpdate)latestUpdate=data.updatedAt;
+          if((data.shifts||[]).some(s=>s.staffId===currentUser.uid))hasMyShift=true;
+        });
+        if(latestUpdate&&latestUpdate>lastSeen&&hasMyShift){
+          alerts.push({color:'green',icon:'📅',text:'ตารางเวรมีการอัปเดต — ตรวจสอบเวรของคุณ',action:`<button class="btn btn-sm btn-primary" onclick="markScheduleSeen();goto('schedule')" style="margin-left:auto">ดูเวร</button>`});
+        }
+      }catch(e){}
+
+      // 3. คำขอลาได้รับอนุมัติ/ปฏิเสธ
+      try{
+        const seenLeaveKey='nm_seen_leave_'+currentUser.uid;
+        const lastSeenLeave=localStorage.getItem(seenLeaveKey)||'';
+        const snap=await getDocs(query(collection(db,'leaves'),where('uid','==',currentUser.uid)));
+        const decided=snap.docs.map(d=>({id:d.id,...d.data()})).filter(l=>l.status&&l.decidedAt&&l.decidedAt>lastSeenLeave);
+        decided.forEach(l=>{
+          const ok=l.status==='approved';
+          alerts.push({color:ok?'green':'red',icon:ok?'✅':'❌',text:`คำขอลาวันที่ ${l.from} ${ok?'ได้รับอนุมัติ':'ถูกปฏิเสธ'}`,action:`<button class="btn btn-sm" onclick="markLeaveSeen();goto('leave')" style="margin-left:auto">ดู</button>`});
+        });
+      }catch(e){}
     }
 
-    // 2. เตือน admin: สาขาไหนยังไม่บันทึกยอดขายเมื่อวาน
+    // ===== ประกาศจากร้าน (ทุกคนเห็น) =====
+    try{
+      const seenAnnKey='nm_seen_ann_'+currentUser.uid;
+      const lastSeenAnn=localStorage.getItem(seenAnnKey)||'';
+      const annSnap=await getDocs(collection(db,'announcements'));
+      const newAnns=annSnap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.at&&a.at>lastSeenAnn&&a.active!==false).sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+      newAnns.slice(0,3).forEach(a=>{
+        alerts.push({color:'purple',icon:'📢',text:`ประกาศ: ${a.text}`,action:`<button class="btn btn-sm" onclick="markAnnSeen()" style="margin-left:auto">รับทราบ</button>`});
+      });
+    }catch(e){}
+
+    // ===== แจ้งเตือนสำหรับ admin =====
     if(isAdmin){
       const yst=new Date();yst.setDate(yst.getDate()-1);
       const ystStr=dateStr(yst);
@@ -3672,7 +3722,6 @@ async function checkNotifications(){
       if(missing.length){
         alerts.push({color:'blue',icon:'💰',text:`เมื่อวานยังไม่บันทึกยอดขาย: ${missing.map(x=>x.b).join(', ')}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('sales')" style="margin-left:auto">บันทึก</button>`});
       }
-      // เตือนวันลาที่กำลังจะถึง (ภายใน 7 วัน)
       try{
         const snap=await getDocs(collection(db,'leaves'));
         const in7=new Date();in7.setDate(in7.getDate()+7);const in7Str=dateStr(in7);
@@ -3688,12 +3737,56 @@ async function checkNotifications(){
   if(!alerts.length){banner.style.display='none';return;}
   banner.style.display='block';
   banner.innerHTML=alerts.map(a=>{
-    const colors={amber:['var(--amber-l)','var(--amber)','var(--amber-t)'],blue:['var(--blue-l)','var(--blue)','var(--blue-t)'],red:['var(--red-l)','#F09595','var(--red-t)']}[a.color];
+    const colors={amber:['var(--amber-l)','var(--amber)','var(--amber-t)'],blue:['var(--blue-l)','var(--blue)','var(--blue-t)'],red:['var(--red-l)','#F09595','var(--red-t)'],green:['var(--green-l)','var(--green)','var(--green-dd)'],purple:['var(--purple-l)','var(--purple)','var(--purple-t)']}[a.color]||['var(--bg)','var(--border2)','var(--text2)'];
     return`<div style="display:flex;align-items:center;gap:10px;background:${colors[0]};border:1px solid ${colors[1]};border-radius:12px;padding:12px 16px;margin-bottom:10px;font-size:13px;color:${colors[2]};font-weight:500">
-      <span style="font-size:18px">${a.icon}</span><span>${a.text}</span>${a.action||''}
+      <span style="font-size:18px">${a.icon}</span><span style="flex:1">${a.text}</span>${a.action||''}
     </div>`;
   }).join('');
 }
+// บันทึกว่าผู้ใช้ได้เห็นแจ้งเตือนแล้ว (จะได้ไม่เด้งซ้ำ)
+window.markScheduleSeen=function(){localStorage.setItem('nm_seen_schedule_'+currentUser.uid,new Date().toISOString());checkNotifications();};
+window.markLeaveSeen=function(){localStorage.setItem('nm_seen_leave_'+currentUser.uid,new Date().toISOString());checkNotifications();};
+window.markAnnSeen=function(){localStorage.setItem('nm_seen_ann_'+currentUser.uid,new Date().toISOString());checkNotifications();};
+
+// ===== ประกาศจากร้าน (admin) =====
+window.renderAnnouncements=async function(){
+  const card=document.getElementById('announce-card');
+  if(card)card.style.display=isAdmin?'':'none';
+  if(!isAdmin)return;
+  const el=document.getElementById('announce-list');
+  if(!el)return;
+  try{
+    const snap=await getDocs(collection(db,'announcements'));
+    const list=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+    if(!list.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:1rem">ยังไม่มีประกาศ</div>';return;}
+    el.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">ประกาศที่ผ่านมา</div>'+list.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--purple-l);border-radius:10px;margin-bottom:6px">
+      <span style="font-size:16px">📢</span>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--purple-t)">${a.text}</div><div style="font-size:11px;color:var(--text3)">${a.at?new Date(a.at).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''} • โดย ${a.by||'-'}</div></div>
+      <button class="btn btn-sm btn-danger" style="padding:3px 8px" onclick="deleteAnnouncement('${a.id}')">ลบ</button>
+    </div>`).join('');
+  }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--red-t)">${e.message}</div>`;}
+};
+
+window.postAnnouncement=async function(){
+  if(!isAdmin)return;
+  const inp=document.getElementById('new-announce');
+  const text=inp.value.trim();
+  if(!text){showToast('กรุณาพิมพ์ข้อความ','err');return;}
+  try{
+    const id='ann_'+Date.now();
+    const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin';
+    await setDoc(doc(db,'announcements',id),{text,at:new Date().toISOString(),by:name,byUid:currentUser.uid,active:true});
+    logActivity('announce',`ประกาศ: ${text}`);
+    inp.value='';showToast('ประกาศเรียบร้อย พนักงานจะเห็นเมื่อเปิดแอป');
+    renderAnnouncements();
+  }catch(e){showToast('ประกาศไม่สำเร็จ: '+e.message,'err');}
+};
+
+window.deleteAnnouncement=async function(id){
+  if(!confirm('ลบประกาศนี้?'))return;
+  try{await deleteDoc(doc(db,'announcements',id));showToast('ลบประกาศแล้ว');renderAnnouncements();}
+  catch(e){showToast(e.message,'err');}
+};
 
 // ===== DOSE CALCULATOR =====
 // สูตรยาเก็บใน Firestore: doseFormulas/{id} = {name, perKgLow, perKgHigh, unit, maxDose, freq, note, concMg, concMl}
@@ -3982,15 +4075,31 @@ window.loadLeaveAdmin=async function(){
       <div class="mcard c-amber"><div class="mcard-label">คำขอลาเดือนนี้</div><div class="mcard-val">${thisMonthLeaves.length}</div><div class="mcard-sub">รายการ</div></div>
       <div class="mcard c-blue"><div class="mcard-label">รวมวันลาเดือนนี้</div><div class="mcard-val">${totalDays}</div><div class="mcard-sub">วัน</div></div>
       <div class="mcard c-green"><div class="mcard-label">คำขอทั้งหมด</div><div class="mcard-val">${list.length}</div><div class="mcard-sub">รายการ</div></div>`;
-    document.getElementById('la-tbody').innerHTML=list.length===0?'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีคำขอลา</td></tr>':list.map(l=>`<tr>
+    document.getElementById('la-tbody').innerHTML=list.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีคำขอลา</td></tr>':list.map(l=>{
+      const statusBadge=l.status==='approved'?'<span class="badge badge-green">อนุมัติแล้ว</span>':l.status==='rejected'?'<span class="badge badge-red">ปฏิเสธ</span>':'<span class="badge badge-amber">รอพิจารณา</span>';
+      return `<tr>
       <td style="font-weight:600">${l.name||'—'}</td>
       <td>${fmtLeaveDate(l.from,l.to)}</td>
       <td>${leaveDayCount(l.from,l.to)} วัน</td>
       <td style="font-size:12px">${l.reason||'—'}</td>
-      <td><input type="text" value="${(l.type||'').replace(/"/g,'&quot;')}" placeholder="ใส่ประเภท" style="width:110px;padding:4px 8px;font-size:12px" onchange="setLeaveType('${l.id}',this.value)"></td>
+      <td>${statusBadge}</td>
+      <td><div style="display:flex;gap:4px">
+        ${l.status!=='approved'?`<button class="btn btn-sm btn-primary" style="padding:3px 8px" onclick="decideLeave('${l.id}','approved')">อนุมัติ</button>`:''}
+        ${l.status!=='rejected'?`<button class="btn btn-sm" style="padding:3px 8px;color:var(--red-t);border-color:#F5C0C0" onclick="decideLeave('${l.id}','rejected')">ปฏิเสธ</button>`:''}
+      </div></td>
       <td><button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${l.id}')">ลบ</button></td>
-    </tr>`).join('');
-  }catch(e){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="6" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+    </tr>`;}).join('');
+  }catch(e){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+};
+
+// admin อนุมัติ/ปฏิเสธคำขอลา → พนักงานจะได้รับแจ้งเตือน
+window.decideLeave=async function(id,status){
+  try{
+    await updateDoc(doc(db,'leaves',id),{status,decidedAt:new Date().toISOString(),decidedBy:currentUser.uid});
+    logActivity('leave_decide',`${status==='approved'?'อนุมัติ':'ปฏิเสธ'}คำขอลา`);
+    showToast(status==='approved'?'อนุมัติคำขอลาแล้ว':'ปฏิเสธคำขอลาแล้ว');
+    loadLeaveAdmin();
+  }catch(e){showToast(e.message,'err');}
 };
 
 window.setLeaveType=async function(id,type){
@@ -4015,7 +4124,9 @@ const ACTION_LABELS={
   leave_request:['ขอลา','#7A4E06','🌴'],
   member_edit:['แก้ข้อมูลสมาชิก','#3C3489','👤'],
   checkin_edit:['แก้เวลาลงเวลา','#D4690E','✎'],
-  schedule_generate:['สร้างตารางอัตโนมัติ','#0B5E66','⚙️']
+  schedule_generate:['สร้างตารางอัตโนมัติ','#0B5E66','⚙️'],
+  leave_decide:['พิจารณาคำขอลา','#0F8A63','📋'],
+  announce:['ประกาศจากร้าน','#3C3489','📢']
 };
 
 window.loadActivityLog=async function(){
