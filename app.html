@@ -171,6 +171,14 @@ textarea{resize:vertical;min-height:64px}
 /* === Mobile components (base styles first) === */
 .mobile-topbar{position:fixed;top:0;left:0;right:0;height:calc(56px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);background:linear-gradient(120deg,#0F2922,#1A1530);z-index:90;align-items:center;padding-left:1rem;padding-right:1rem;gap:12px;display:none}
 .mobile-topbar-title{font-size:15px;font-weight:700;color:#fff;flex:1}
+/* ปุ่มรีเฟรชลอย */
+#refresh-fab{position:fixed;right:18px;bottom:90px;width:48px;height:48px;border-radius:50%;background:var(--green);color:#fff;border:none;box-shadow:0 4px 16px rgba(22,185,129,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:80;transition:transform .15s ease}
+#refresh-fab svg{width:22px;height:22px}
+#refresh-fab:hover{transform:scale(1.08);background:var(--green-d)}
+#refresh-fab:active{transform:scale(.92)}
+#refresh-fab.spinning svg{animation:fabspin .6s linear}
+@keyframes fabspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@media(min-width:769px){#refresh-fab{bottom:24px}}
 .hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center}
 .hamburger:hover{background:rgba(255,255,255,.1)}
 .hamburger svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
@@ -274,6 +282,11 @@ textarea{resize:vertical;min-height:64px}
   <div class="mobile-topbar-title">💊 ใหม่เภสัช</div>
   <div class="sb-avatar" id="mobile-avatar" style="width:32px;height:32px;font-size:12px">?</div>
 </div>
+
+<!-- ปุ่มรีเฟรชลอย (ทุกหน้า) -->
+<button id="refresh-fab" onclick="refreshCurrentPage()" title="รีเฟรชข้อมูลล่าสุด" aria-label="รีเฟรช">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+</button>
 <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
 
 <nav class="sidebar" id="sidebar">
@@ -281,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.6.3</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.7.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -604,6 +617,17 @@ textarea{resize:vertical;min-height:64px}
   <!-- SETTINGS -->
   <div class="page" id="page-settings">
     <div class="topbar"><div><div class="page-title">ตั้งค่าระบบ</div><div class="page-sub">จัดการพนักงาน ประเภทการชำระ และโปรไฟล์</div></div></div>
+    <div class="card" style="margin-bottom:1rem;background:#EFF6FF;border:1px solid #BFDBFE">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <div style="font-size:24px">💡</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:600;color:#1E40AF;margin-bottom:4px">เคล็ดลับการใช้งาน</div>
+          <div style="font-size:13px;color:#1E40AF;line-height:1.7">
+            หากโปรแกรมทำงานผิดปกติ ข้อมูลไม่อัปเดต หรือค้าง ให้ลองกด<b>ปุ่มรีเฟรช</b> <span style="display:inline-flex;width:20px;height:20px;background:var(--green);border-radius:50%;vertical-align:middle;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span> (ปุ่มสีเขียวมุมขวาล่าง) เพื่อโหลดข้อมูลล่าสุดจากระบบ
+          </div>
+        </div>
+      </div>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
       <div class="card" id="paytype-card">
         <div class="card-title">ประเภทการชำระ</div>
@@ -822,8 +846,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.6.3';
+const APP_VERSION='1.7.0';
 const CHANGELOG=[
+  {v:'1.7.0',date:'2026-06-17',changes:['เพิ่มปุ่มรีเฟรชลอยทุกหน้า (โหลดข้อมูลล่าสุดจากระบบ)','เพิ่มคำแนะนำ: หากโปรแกรมผิดปกติให้กดปุ่มรีเฟรช']},
   {v:'1.6.3',date:'2026-06-17',changes:['หน้าบันทึกการใช้งานแสดงเวลาชัดเจนขึ้น (ชั่วโมง:นาที:วินาที)']},
   {v:'1.6.2',date:'2026-06-17',changes:['แก้บั๊กสำคัญ: เช็คอินก่อน 7 โมงเช้าไม่ได้ (เกิดจากระบบใช้เวลา UTC แทนเวลาไทย)','รีเฟรชหน้าเช็คอินอัตโนมัติเมื่อเปิดแอปข้ามวัน']},
   {v:'1.6.1',date:'2026-06-16',changes:['เพิ่มปุ่ม "ดู" ในแดชบอร์ด (เลือกวัน/เดือนแล้วกดดูผล ชัดเจนขึ้น)']},
@@ -1151,6 +1176,29 @@ window.goto=function(page){
   if(page==='articles')loadArticles();
   if(page==='dosecalc')loadDoseTools();
   if(page==='drugwarn')loadDrugWarnings();
+  currentPage=page;
+};
+
+// ===== ปุ่มรีเฟรช (โหลดข้อมูลใหม่จาก cloud สำหรับหน้าปัจจุบัน) =====
+let currentPage='dashboard';
+window.refreshCurrentPage=async function(){
+  const btn=document.getElementById('refresh-fab');
+  if(btn)btn.classList.add('spinning');
+  try{
+    // โหลดข้อมูลพื้นฐานใหม่ทั้งหมด
+    await Promise.all([
+      loadMembers?.(),
+      loadShiftsFromCloud(),
+      loadLeavesForSchedule(),
+      loadCheckinsForSchedule(),
+      loadPayTypesFromCloud(),
+      (isAdmin||canAccessPage('sales'))?loadSalesFromCloud():Promise.resolve()
+    ].filter(Boolean));
+    // เรียก loader ของหน้าปัจจุบันซ้ำ (เหมือนเข้าหน้านั้นใหม่)
+    goto(currentPage);
+    showToast('รีเฟรชข้อมูลล่าสุดแล้ว');
+  }catch(e){showToast('รีเฟรชไม่สำเร็จ: '+e.message,'err');}
+  if(btn)setTimeout(()=>btn.classList.remove('spinning'),600);
 };
 
 // ===== YEAR SELECTS =====
