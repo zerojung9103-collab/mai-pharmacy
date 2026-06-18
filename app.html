@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.11.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.11.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -868,8 +868,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.11.0';
+const APP_VERSION='1.11.1';
 const CHANGELOG=[
+  {v:'1.11.1',date:'2026-06-18',changes:['คอมพิวเตอร์: ปฏิทินเวรแสดงทุกคนในวันนั้นเลย ไม่มี "+เพิ่มเติม" (มือถือยังย่อเหมือนเดิม)']},
   {v:'1.11.0',date:'2026-06-18',changes:['เปิดแอปมาเห็น "เวรของฉันวันนี้" + เวรที่จะถึงทันที (ไม่ต้องกดเข้าตารางเวร)']},
   {v:'1.10.1',date:'2026-06-18',changes:['เก็บรายชื่อพนักงานชั่วคราวไว้ใช้ซ้ำ (ไม่ต้องพิมพ์ใหม่ทุกครั้ง) + มีที่จัดการรายชื่อ']},
   {v:'1.10.0',date:'2026-06-18',changes:['เพิ่มพนักงานชั่วคราวในตารางเวรได้ (พิมพ์ชื่อเอง ไม่ต้องสมัครสมาชิก)','พนักงานชั่วคราวแสดงในปฏิทินพร้อมป้าย "ชั่วคราว" ไม่กระทบระบบเช็คอิน/เงินเดือน']},
@@ -1086,6 +1087,15 @@ function buildBottomNav(){
 
 // ===== AUTH =====
 // เมื่อกลับมาเปิดแอปอีกครั้ง (เช่น เปิดค้างข้ามวัน) → รีเฟรชหน้าเช็คอินให้ตรงวันปัจจุบัน
+// เมื่อปรับขนาดหน้าจอ (สลับ มือถือ↔คอม) ให้ render ปฏิทินใหม่ให้เหมาะกับขนาด
+let _resizeTimer=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(_resizeTimer);
+  _resizeTimer=setTimeout(()=>{
+    if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();
+  },300);
+});
+
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&currentUser){
     if(document.getElementById('page-checkin')?.classList.contains('active'))renderCheckinPage();
@@ -1697,7 +1707,8 @@ function scRender(){
       const nm=memberShort(l.uid)||l.name||'—';
       return `<div class="cal-leave" title="${l.name} ${l.type}">🌴 ${nm} — ${l.type}</div>`;
     }).join('');
-    const maxShow=3;
+    // คอมพิวเตอร์ (จอกว้าง) แสดงทุกเวร / มือถือแสดง 3 เวรแล้วมีปุ่มดูเพิ่ม
+    const maxShow=window.innerWidth>768?dayShifts.length:3;
     const shiftCards=dayShifts.slice(0,maxShow).map(s=>{
       const isTemp=!!s.tempName;
       const nm=shiftShortName(s);
