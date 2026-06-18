@@ -238,7 +238,7 @@ textarea{resize:vertical;min-height:64px}
 .cal-date{font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;justify-content:space-between}
 .cal-date.is-today{color:var(--green-d)}
 .cal-bday{font-size:9px;color:#C2185B;font-weight:700;background:#FFF0F5;border-radius:4px;padding:1px 4px;margin-bottom:1px}
-.cal-shift{border-radius:5px;padding:3px 5px;font-size:9px;font-weight:600;cursor:pointer;line-height:1.35;overflow:hidden}
+.cal-shift{border-radius:6px;padding:4px 6px;font-size:9px;font-weight:600;cursor:pointer;line-height:1.3;overflow:hidden;margin-bottom:3px}
 .cal-shift.s-tp{background:var(--green-l);color:var(--green-dd)}
 .cal-shift.s-bp{background:var(--blue-l);color:var(--blue-t)}
 .cal-shift.s-id{background:var(--amber-l);color:var(--amber-t)}
@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.2</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.3</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -864,9 +864,11 @@ const db = getFirestore(app);
 
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
+const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.9.2';
+const APP_VERSION='1.9.3';
 const CHANGELOG=[
+  {v:'1.9.3',date:'2026-06-18',changes:['ปรับปฏิทินเวรให้กระชับสวยขึ้นบนมือถือ (ชื่อสาขาแบบย่อ ไม่ตัดบรรทัดยาว)']},
   {v:'1.9.2',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเฉพาะเวรที่จัด (สะอาดขึ้น) มีจุดสีบอกสถานะเช็คอิน','กดดูรายละเอียดวัน เห็นการเทียบเวรที่จัด vs เวลาเช็คอินจริง + บอกว่าสายกี่นาที']},
   {v:'1.9.1',date:'2026-06-18',changes:['เพิ่มปุ่ม "ดู" ตอนเลือกเดือนในสรุปชั่วโมงทำงาน']},
   {v:'1.9.0',date:'2026-06-18',changes:['พนักงานดูสรุปชั่วโมงการทำงานของตัวเองได้ (ชั่วโมงรวม/วันทำงาน/มาสาย) เลือกดูตามเดือน']},
@@ -1681,16 +1683,19 @@ function scRender(){
     const maxShow=3;
     const shiftCards=dayShifts.slice(0,maxShow).map(s=>{
       const nm=memberShort(s.staffId);
-      const br=BRANCHES[s.branch];
+      const br=BRANCHES_SHORT[s.branch];
       // เช็คว่าคนนี้เช็คอินวันนี้ไหม
       const ci=getCheckinFor(s.staffId,ds);
-      // ในปฏิทินแสดงเฉพาะเวรที่จัด + จุดเล็กๆ บอกว่าเช็คอินแล้ว/มาสาย (รายละเอียดดูในป๊อปอัพ)
+      // ในปฏิทินแสดงเฉพาะเวรที่จัด (กระชับ) + จุดเล็กๆ บอกว่าเช็คอินแล้ว/มาสาย
       let statusDot='';
       if(ci){
         const late=ci.isLate;
-        statusDot=`<span title="${late?'มาสาย':'เช็คอินแล้ว'}" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${late?'#E8920E':'#16B981'};margin-left:3px;vertical-align:middle"></span>`;
+        statusDot=`<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${late?'#E8920E':'#16B981'};margin-left:auto;flex-shrink:0"></span>`;
       }
-      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${br}${ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}"><span style="font-weight:700">${nm}</span> ${s.start}-${s.end}${statusDot}<br><span style="font-weight:400;opacity:.85">📍${br}</span></div>`;
+      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}${ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}">
+        <div style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span><span style="opacity:.75;flex-shrink:0">${s.start}</span>${statusDot}</div>
+        <div style="font-weight:400;opacity:.7;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍${br}</div>
+      </div>`;
     }).join('');
     const moreCount=dayShifts.length-maxShow;
     const moreHtml=moreCount>0?`<div class="cal-more" onclick="event.stopPropagation();scDayDetail('${ds}')">+${moreCount} เพิ่มเติม</div>`:'';
