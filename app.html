@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.11.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.12.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -868,8 +868,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.11.1';
+const APP_VERSION='1.12.0';
 const CHANGELOG=[
+  {v:'1.12.0',date:'2026-06-18',changes:['จัดตารางอัตโนมัติให้พนักงานชั่วคราวได้ด้วย (ตั้งสาขา/เวลา/วันหยุดประจำ เหมือนสมาชิก)']},
   {v:'1.11.1',date:'2026-06-18',changes:['คอมพิวเตอร์: ปฏิทินเวรแสดงทุกคนในวันนั้นเลย ไม่มี "+เพิ่มเติม" (มือถือยังย่อเหมือนเดิม)']},
   {v:'1.11.0',date:'2026-06-18',changes:['เปิดแอปมาเห็น "เวรของฉันวันนี้" + เวรที่จะถึงทันที (ไม่ต้องกดเข้าตารางเวร)']},
   {v:'1.10.1',date:'2026-06-18',changes:['เก็บรายชื่อพนักงานชั่วคราวไว้ใช้ซ้ำ (ไม่ต้องพิมพ์ใหม่ทุกครั้ง) + มีที่จัดการรายชื่อ']},
@@ -1904,49 +1905,66 @@ async function loadAutoConfig(){
   try{
     const snap=await getDocs(collection(db,'scheduleConfig'));
     autoConfig={};
-    snap.docs.forEach(d=>{autoConfig[d.id]=d.data();});
+    snap.docs.forEach(d=>{
+      const data=d.data();
+      // ใช้ _key ถ้ามี (สำหรับ temp staff ที่ doc id ต่างจาก key) ไม่งั้นใช้ doc id
+      const key=data._key||d.id;
+      autoConfig[key]=data;
+    });
   }catch(e){console.error('loadAutoConfig',e);}
 }
 
 const DOW=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
+// รายชื่อคนที่จัดตารางได้ = สมาชิกจริง + พนักงานชั่วคราว (key/ชื่อรวมกัน)
+function schedulablePeople(){
+  const members=allMembers.filter(m=>m.status==='active').map(m=>({
+    key:m.uid, isTemp:false,
+    name:m.nickname?`${m.firstName} (${m.nickname})`:`${m.firstName||''} ${m.lastName||''}`.trim()
+  }));
+  const temps=tempStaff.map(n=>({key:'temp:'+n, isTemp:true, name:n+' (ชั่วคราว)'}));
+  return [...members,...temps];
+}
 function renderAutoMemberList(){
-  const active=allMembers.filter(m=>m.status==='active');
+  const people=schedulablePeople();
   const el=document.getElementById('auto-member-list');
-  if(!active.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีสมาชิก</div>';return;}
-  el.innerHTML=active.map(m=>{
-    const cfg=autoConfig[m.uid]||{branches:[],start:'08:00',end:'17:00',daysOff:[]};
-    const nm=m.nickname?`${m.firstName} (${m.nickname})`:`${m.firstName||''} ${m.lastName||''}`.trim();
-    const branchChecks=BRANCHES.map((b,i)=>`<label style="display:inline-flex;align-items:center;gap:3px;font-size:11px;margin-right:8px;cursor:pointer"><input type="checkbox" class="ac-branch" data-uid="${m.uid}" value="${i}" ${cfg.branches?.includes(i)?'checked':''} style="width:14px;height:14px;accent-color:${BCOLORS[i]}">${b}</label>`).join('');
-    const dowChecks=DOW.map((d,i)=>`<label style="display:inline-flex;align-items:center;gap:2px;font-size:11px;margin-right:6px;cursor:pointer"><input type="checkbox" class="ac-dayoff" data-uid="${m.uid}" value="${i}" ${cfg.daysOff?.includes(i)?'checked':''} style="width:13px;height:13px;accent-color:var(--red)">${d}</label>`).join('');
+  if(!people.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีสมาชิก</div>';return;}
+  el.innerHTML=people.map(p=>{
+    const cfg=autoConfig[p.key]||{branches:[],start:'08:00',end:'17:00',daysOff:[]};
+    const nm=p.name;
+    const branchChecks=BRANCHES.map((b,i)=>`<label style="display:inline-flex;align-items:center;gap:3px;font-size:11px;margin-right:8px;cursor:pointer"><input type="checkbox" class="ac-branch" data-uid="${p.key}" value="${i}" ${cfg.branches?.includes(i)?'checked':''} style="width:14px;height:14px;accent-color:${BCOLORS[i]}">${b}</label>`).join('');
+    const dowChecks=DOW.map((d,i)=>`<label style="display:inline-flex;align-items:center;gap:2px;font-size:11px;margin-right:6px;cursor:pointer"><input type="checkbox" class="ac-dayoff" data-uid="${p.key}" value="${i}" ${cfg.daysOff?.includes(i)?'checked':''} style="width:13px;height:13px;accent-color:var(--red)">${d}</label>`).join('');
     return`<div style="padding:12px;background:#FAFBFB;border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
-      <div style="font-weight:600;font-size:13px;margin-bottom:8px">${nm}</div>
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">${nm}${p.isTemp?'<span style="font-size:10px;background:rgba(0,0,0,.07);padding:1px 6px;border-radius:6px;margin-left:6px;font-weight:400">ชั่วคราว</span>':''}</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:3px">สาขาที่ทำ (เลือกหลายได้ = หมุนเวียน)</div>
       <div style="margin-bottom:8px">${branchChecks}</div>
       <div style="display:flex;gap:10px;margin-bottom:8px;flex-wrap:wrap">
-        <div><div style="font-size:11px;color:var(--text3)">เข้างาน</div>${time24Picker('acs-'+m.uid,cfg.start||'08:00')}</div>
-        <div><div style="font-size:11px;color:var(--text3)">เลิกงาน</div>${time24Picker('ace-'+m.uid,cfg.end||'17:00')}</div>
+        <div><div style="font-size:11px;color:var(--text3)">เข้างาน</div>${time24Picker('acs-'+p.key,cfg.start||'08:00')}</div>
+        <div><div style="font-size:11px;color:var(--text3)">เลิกงาน</div>${time24Picker('ace-'+p.key,cfg.end||'17:00')}</div>
       </div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:3px">วันหยุดประจำสัปดาห์</div>
       <div>${dowChecks}</div>
-      <button class="btn btn-sm" style="margin-top:8px" onclick="openExceptions('${m.uid}')">📅 ข้อยกเว้นรายวัน${cfg.exceptions&&Object.keys(cfg.exceptions).length?` (${Object.keys(cfg.exceptions).length})`:''}</button>
+      ${!p.isTemp?`<button class="btn btn-sm" style="margin-top:8px" onclick="openExceptions('${p.key}')">📅 ข้อยกเว้นรายวัน${cfg.exceptions&&Object.keys(cfg.exceptions).length?` (${Object.keys(cfg.exceptions).length})`:''}</button>`:''}
     </div>`;
   }).join('');
 }
 
 // อ่านค่าจากฟอร์มเก็บเข้า autoConfig + บันทึก Firestore
 async function saveAutoConfigFromForm(){
-  const active=allMembers.filter(m=>m.status==='active');
-  active.forEach(m=>{
-    const branches=[...document.querySelectorAll(`.ac-branch[data-uid="${m.uid}"]:checked`)].map(x=>parseInt(x.value));
-    const daysOff=[...document.querySelectorAll(`.ac-dayoff[data-uid="${m.uid}"]:checked`)].map(x=>parseInt(x.value));
-    const start=readTime24('acs-'+m.uid)||'08:00';
-    const end=readTime24('ace-'+m.uid)||'17:00';
-    const prev=autoConfig[m.uid]||{};
-    autoConfig[m.uid]={...prev,branches,daysOff,start,end};
+  const people=schedulablePeople();
+  people.forEach(p=>{
+    const branches=[...document.querySelectorAll(`.ac-branch[data-uid="${p.key}"]:checked`)].map(x=>parseInt(x.value));
+    const daysOff=[...document.querySelectorAll(`.ac-dayoff[data-uid="${p.key}"]:checked`)].map(x=>parseInt(x.value));
+    const start=readTime24('acs-'+p.key)||'08:00';
+    const end=readTime24('ace-'+p.key)||'17:00';
+    const prev=autoConfig[p.key]||{};
+    autoConfig[p.key]={...prev,branches,daysOff,start,end,isTemp:p.isTemp,tempName:p.isTemp?p.key.slice(5):undefined};
   });
-  // บันทึกลง Firestore
+  // บันทึกลง Firestore (เฉพาะสมาชิกจริง doc id ต้องไม่มี : / temp ใช้ doc id แทน)
   try{
-    await Promise.all(Object.entries(autoConfig).map(([uid,cfg])=>setDoc(doc(db,'scheduleConfig',uid),cfg)));
+    await Promise.all(Object.entries(autoConfig).map(([key,cfg])=>{
+      const docId=key.startsWith('temp:')?'temp_'+key.slice(5).replace(/[^a-zA-Z0-9ก-๙]/g,'_'):key;
+      return setDoc(doc(db,'scheduleConfig',docId),{...cfg,_key:key});
+    }));
   }catch(e){console.error('saveAutoConfig',e);}
 }
 
@@ -1999,16 +2017,16 @@ window.generateAutoSchedule=async function(){
   await saveAutoConfigFromForm();
   const monthStr=`${scYear}-${String(scMonth+1).padStart(2,'0')}`;
   const daysInMonth=new Date(scYear,scMonth+1,0).getDate();
-  const active=allMembers.filter(m=>m.status==='active');
+  const people=schedulablePeople();
 
   // เช็คว่ามีใครตั้งค่าสาขาบ้าง
-  const configured=active.filter(m=>autoConfig[m.uid]?.branches?.length);
-  if(!configured.length){showToast('กรุณาเลือกสาขาให้สมาชิกอย่างน้อย 1 คน','err');return;}
+  const configured=people.filter(p=>autoConfig[p.key]?.branches?.length);
+  if(!configured.length){showToast('กรุณาเลือกสาขาให้อย่างน้อย 1 คน','err');return;}
 
   if(!confirm(`สร้างตารางเวรเดือนนี้ใหม่?\nระบบจะลบเวรเดิมของเดือน ${monthStr} แล้วลงใหม่ตามเงื่อนไข`))return;
 
-  // โหลดวันลาของเดือนนี้ เพื่อไม่ลงเวรในวันที่ลา
-  let leaveMap={}; // {uid: Set(date)}
+  // โหลดวันลาของเดือนนี้ เพื่อไม่ลงเวรในวันที่ลา (เฉพาะสมาชิกจริง)
+  let leaveMap={};
   try{
     const snap=await getDocs(collection(db,'leaves'));
     snap.docs.forEach(d=>{
@@ -2027,32 +2045,30 @@ window.generateAutoSchedule=async function(){
   // ลบเวรเดิมของเดือนนี้
   shifts=shifts.filter(s=>!s.date?.startsWith(monthStr));
 
-  // ตัวนับสำหรับหมุนเวียนสาขาแต่ละคน
   const rotIdx={};
   let added=0;
 
   for(let day=1;day<=daysInMonth;day++){
     const dateObj=new Date(scYear,scMonth,day);
-    const dow=(dateObj.getDay()+6)%7; // 0=จันทร์
+    const dow=(dateObj.getDay()+6)%7;
     const ds=`${monthStr}-${String(day).padStart(2,'0')}`;
 
-    configured.forEach(m=>{
-      const cfg=autoConfig[m.uid];
+    configured.forEach(p=>{
+      const cfg=autoConfig[p.key];
       const exc=cfg.exceptions?.[ds];
-      // วันลา — ข้าม
-      if(leaveMap[m.uid]?.has(ds))return;
-      // ข้อยกเว้น: ขอหยุด
+      // วันลา (เฉพาะสมาชิกจริง) — ข้าม
+      if(!p.isTemp&&leaveMap[p.key]?.has(ds))return;
       if(exc?.type==='off')return;
-      // วันหยุดประจำ (ถ้าไม่มี exception แบบ time มา override)
       if(cfg.daysOff?.includes(dow) && exc?.type!=='time')return;
-      // เลือกสาขา (หมุนเวียน)
-      if(rotIdx[m.uid]===undefined)rotIdx[m.uid]=0;
-      const branch=cfg.branches[rotIdx[m.uid]%cfg.branches.length];
-      rotIdx[m.uid]++;
-      // เวลา (ใช้ exception time ถ้ามี)
+      if(rotIdx[p.key]===undefined)rotIdx[p.key]=0;
+      const branch=cfg.branches[rotIdx[p.key]%cfg.branches.length];
+      rotIdx[p.key]++;
       const start=exc?.type==='time'?exc.start:cfg.start;
       const end=exc?.type==='time'?exc.end:cfg.end;
-      shifts.push({id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),staffId:m.uid,branch,date:ds,start,end});
+      // สมาชิกจริงใช้ staffId, ชั่วคราวใช้ tempName
+      const shiftBase={id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),branch,date:ds,start,end};
+      if(p.isTemp)shifts.push({...shiftBase,staffId:null,tempName:p.key.slice(5)});
+      else shifts.push({...shiftBase,staffId:p.key});
       added++;
     });
   }
