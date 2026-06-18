@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.10.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.11.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -665,6 +665,7 @@ textarea{resize:vertical;min-height:64px}
   <!-- CHECK-IN -->
   <div class="page" id="page-checkin">
     <div class="topbar"><div><div class="page-title">เช็คอินเข้างาน</div><div class="page-sub">ลงเวลาเข้า-ออกงาน ต้องอยู่ในบริเวณร้าน</div></div></div>
+    <div id="my-shifts-card"></div>
     <div id="checkin-status-card"></div>
     <div class="card" style="margin-top:1rem">
       <div class="card-title">บันทึกเวลาวันนี้</div>
@@ -867,8 +868,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.10.1';
+const APP_VERSION='1.11.0';
 const CHANGELOG=[
+  {v:'1.11.0',date:'2026-06-18',changes:['เปิดแอปมาเห็น "เวรของฉันวันนี้" + เวรที่จะถึงทันที (ไม่ต้องกดเข้าตารางเวร)']},
   {v:'1.10.1',date:'2026-06-18',changes:['เก็บรายชื่อพนักงานชั่วคราวไว้ใช้ซ้ำ (ไม่ต้องพิมพ์ใหม่ทุกครั้ง) + มีที่จัดการรายชื่อ']},
   {v:'1.10.0',date:'2026-06-18',changes:['เพิ่มพนักงานชั่วคราวในตารางเวรได้ (พิมพ์ชื่อเอง ไม่ต้องสมัครสมาชิก)','พนักงานชั่วคราวแสดงในปฏิทินพร้อมป้าย "ชั่วคราว" ไม่กระทบระบบเช็คอิน/เงินเดือน']},
   {v:'1.9.4',date:'2026-06-18',changes:['แก้ช่องโหว่: ซ่อนปุ่มเปิด-ปิดวันเกิด + ปุ่มจัดเวรจากพนักงานทั่วไป (เฉพาะผู้ดูแลระบบเท่านั้น)']},
@@ -3310,7 +3312,54 @@ function distanceM(lat1,lng1,lat2,lng2){
 
 function todayCheckinId(){return `${currentUser?.uid}_${todayStr()}`;}
 
+// แสดงเวรของฉัน (วันนี้ + 7 วันข้างหน้า) บนหน้าแรกที่เปิดมา
+function renderMyShifts(){
+  const el=document.getElementById('my-shifts-card');
+  if(!el||!currentUser)return;
+  const today=todayStr();
+  // เวรของฉันตั้งแต่วันนี้ไป 7 วัน
+  const myUpcoming=shifts.filter(s=>s.staffId===currentUser.uid&&s.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
+  const todayShift=myUpcoming.find(s=>s.date===today);
+  const future=myUpcoming.filter(s=>s.date>today).slice(0,5);
+
+  // การ์ดเวรวันนี้ (เด่น)
+  let todayHtml;
+  if(todayShift){
+    todayHtml=`<div style="background:linear-gradient(135deg,#085041,#1D9E75);border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:${future.length?'1rem':'0'}">
+      <div style="font-size:12px;opacity:.85;margin-bottom:4px">📅 เวรของคุณวันนี้</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div style="font-size:24px;font-weight:700">${todayShift.start} - ${todayShift.end}</div>
+        <div style="background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600">📍 ${BRANCHES[todayShift.branch]}</div>
+      </div>
+    </div>`;
+  }else{
+    todayHtml=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;text-align:center;margin-bottom:${future.length?'1rem':'0'}">
+      <div style="font-size:28px;margin-bottom:4px">😌</div>
+      <div style="font-size:14px;font-weight:600">วันนี้คุณไม่มีเวร</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">พักผ่อนให้เต็มที่นะ</div>
+    </div>`;
+  }
+
+  // เวรที่จะถึง
+  let futureHtml='';
+  if(future.length){
+    futureHtml=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">เวรที่จะถึง</div>
+      ${future.map(s=>{
+        const d=new Date(s.date);
+        const dStr=d.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+        return `<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span style="font-size:13px;font-weight:500">${dStr}</span>
+          <span style="font-size:13px;color:var(--text2)">${s.start}-${s.end} <span style="color:${BCOLORS[s.branch]};font-weight:600">· ${BRANCHES_SHORT[s.branch]}</span></span>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+  el.innerHTML=`<div style="margin-bottom:1rem">${todayHtml}${futureHtml}</div>`;
+}
+
 async function renderCheckinPage(){
+  renderMyShifts();
   const card=document.getElementById('checkin-status-card');
   const today=document.getElementById('checkin-today');
   card.innerHTML='<div class="card" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</div>';
