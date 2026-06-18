@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -672,7 +672,10 @@ textarea{resize:vertical;min-height:64px}
     <div class="card" style="margin-top:1rem">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
         <div><div class="card-title" style="margin:0">⏱️ สรุปชั่วโมงการทำงานของฉัน</div><div class="card-sub" style="margin:0">เฉพาะข้อมูลของคุณเท่านั้น</div></div>
-        <input type="month" id="my-hours-month" onchange="loadMyCheckinHistory()" style="font-size:13px;padding:7px 12px;width:auto">
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="month" id="my-hours-month" style="font-size:13px;padding:7px 12px;width:auto">
+          <button class="btn btn-sm btn-primary" onclick="loadMyCheckinHistory()" style="font-size:13px">ดู</button>
+        </div>
       </div>
       <div id="my-hours-summary" class="metric-grid"></div>
     </div>
@@ -862,8 +865,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.9.0';
+const APP_VERSION='1.9.1';
 const CHANGELOG=[
+  {v:'1.9.1',date:'2026-06-18',changes:['เพิ่มปุ่ม "ดู" ตอนเลือกเดือนในสรุปชั่วโมงทำงาน']},
   {v:'1.9.0',date:'2026-06-18',changes:['พนักงานดูสรุปชั่วโมงการทำงานของตัวเองได้ (ชั่วโมงรวม/วันทำงาน/มาสาย) เลือกดูตามเดือน']},
   {v:'1.8.0',date:'2026-06-17',changes:['เพิ่มแจ้งเตือนในแอป: ตารางเวรอัปเดต, เวรถูกแก้, คำขอลาอนุมัติ/ปฏิเสธ','เพิ่มระบบประกาศจากร้าน (admin ประกาศ → พนักงานเห็นเมื่อเปิดแอป)','เพิ่มปุ่มอนุมัติ/ปฏิเสธคำขอลา']},
   {v:'1.7.0',date:'2026-06-17',changes:['เพิ่มปุ่มรีเฟรชลอยทุกหน้า (โหลดข้อมูลล่าสุดจากระบบ)','เพิ่มคำแนะนำ: หากโปรแกรมผิดปกติให้กดปุ่มรีเฟรช']},
