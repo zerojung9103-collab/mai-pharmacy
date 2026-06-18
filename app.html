@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.3</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.4</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -866,8 +866,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.9.3';
+const APP_VERSION='1.9.4';
 const CHANGELOG=[
+  {v:'1.9.4',date:'2026-06-18',changes:['แก้ช่องโหว่: ซ่อนปุ่มเปิด-ปิดวันเกิด + ปุ่มจัดเวรจากพนักงานทั่วไป (เฉพาะผู้ดูแลระบบเท่านั้น)']},
   {v:'1.9.3',date:'2026-06-18',changes:['ปรับปฏิทินเวรให้กระชับสวยขึ้นบนมือถือ (ชื่อสาขาแบบย่อ ไม่ตัดบรรทัดยาว)']},
   {v:'1.9.2',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเฉพาะเวรที่จัด (สะอาดขึ้น) มีจุดสีบอกสถานะเช็คอิน','กดดูรายละเอียดวัน เห็นการเทียบเวรที่จัด vs เวลาเช็คอินจริง + บอกว่าสายกี่นาที']},
   {v:'1.9.1',date:'2026-06-18',changes:['เพิ่มปุ่ม "ดู" ตอนเลือกเดือนในสรุปชั่วโมงทำงาน']},
@@ -1640,6 +1641,10 @@ function scRender(){
   const canEdit=isAdmin;
   const autoBtn=document.getElementById('sc-auto-btn');
   if(autoBtn)autoBtn.style.display=isAdmin?'':'none';
+  const bdayBtn=document.getElementById('sc-bday-btn');
+  if(bdayBtn)bdayBtn.style.display=isAdmin?'':'none';
+  // ถ้าไม่ใช่ admin ปิด panel วันเกิดไว้เสมอ
+  if(!isAdmin){const bp=document.getElementById('sc-bday-panel');if(bp)bp.style.display='none';}
 
   document.getElementById('sc-month-lbl').textContent=`${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth]} ${scYear}`;
 
@@ -1776,6 +1781,7 @@ window.scDayDetail=function(ds){
 
 // Birthday Panel toggle
 window.toggleBdayPanel=async function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   const panel=document.getElementById('sc-bday-panel');
   const isOpen=panel.style.display!=='none';
   panel.style.display=isOpen?'none':'block';
@@ -1807,6 +1813,7 @@ function renderBdayList(){
 }
 
 window.toggleBday=function(uid,val){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   bdaySettings[uid]=val;
   localStorage.setItem('nm_bday_settings',JSON.stringify(bdaySettings));
   scRender();
@@ -1995,6 +2002,7 @@ window.generateAutoSchedule=async function(){
 };
 
 window.scAddShift=function(uid,ds){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   const activeMembers=allMembers.filter(m=>m.status==='active');
   const d=new Date(ds);
   const dateStr=d.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
@@ -2005,6 +2013,7 @@ window.scAddShift=function(uid,ds){
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveNew('${ds}')">บันทึก</button></div>`);
 };
 window.scSaveNew=function(ds){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   const uid=document.getElementById('m-staff').value;
   const branch=parseInt(document.getElementById('m-branch').value);
   const start=readTime24('m-start');
@@ -2014,6 +2023,7 @@ window.scSaveNew=function(ds){
   saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
 };
 window.scEditShift=function(sid){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   const s=shifts.find(x=>x.id===sid);if(!s)return;
   const mem=allMembers.find(m=>m.uid===s.staffId);
   const name=mem?`${mem.firstName||''} ${mem.lastName||''}`.trim():s.staffId;
@@ -2022,8 +2032,8 @@ window.scEditShift=function(sid){
     <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('m-start',s.start)}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('m-end',s.end)}</div></div>
     <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">บันทึก</button></div>`);
 };
-window.scSaveEdit=function(sid){const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
-window.scDel=function(sid){shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
+window.scSaveEdit=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
+window.scDel=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
 
 // ===== SALES =====
 let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''};
