@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.8.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -670,8 +670,15 @@ textarea{resize:vertical;min-height:64px}
       <div id="checkin-today"></div>
     </div>
     <div class="card" style="margin-top:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
+        <div><div class="card-title" style="margin:0">⏱️ สรุปชั่วโมงการทำงานของฉัน</div><div class="card-sub" style="margin:0">เฉพาะข้อมูลของคุณเท่านั้น</div></div>
+        <input type="month" id="my-hours-month" onchange="loadMyCheckinHistory()" style="font-size:13px;padding:7px 12px;width:auto">
+      </div>
+      <div id="my-hours-summary" class="metric-grid"></div>
+    </div>
+    <div class="card" style="margin-top:1rem">
       <div class="card-title">ประวัติการลงเวลาของฉัน</div>
-      <div class="card-sub">30 ครั้งล่าสุด — หากผู้ดูแลแก้เวลา จะมีปุ่มแสดงประวัติให้ตรวจสอบ</div>
+      <div class="card-sub">หากผู้ดูแลแก้เวลา จะมีปุ่มแสดงประวัติให้ตรวจสอบ</div>
       <div id="my-checkin-history"></div>
     </div>
   </div>
@@ -855,8 +862,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.8.0';
+const APP_VERSION='1.9.0';
 const CHANGELOG=[
+  {v:'1.9.0',date:'2026-06-18',changes:['พนักงานดูสรุปชั่วโมงการทำงานของตัวเองได้ (ชั่วโมงรวม/วันทำงาน/มาสาย) เลือกดูตามเดือน']},
   {v:'1.8.0',date:'2026-06-17',changes:['เพิ่มแจ้งเตือนในแอป: ตารางเวรอัปเดต, เวรถูกแก้, คำขอลาอนุมัติ/ปฏิเสธ','เพิ่มระบบประกาศจากร้าน (admin ประกาศ → พนักงานเห็นเมื่อเปิดแอป)','เพิ่มปุ่มอนุมัติ/ปฏิเสธคำขอลา']},
   {v:'1.7.0',date:'2026-06-17',changes:['เพิ่มปุ่มรีเฟรชลอยทุกหน้า (โหลดข้อมูลล่าสุดจากระบบ)','เพิ่มคำแนะนำ: หากโปรแกรมผิดปกติให้กดปุ่มรีเฟรช']},
   {v:'1.6.3',date:'2026-06-17',changes:['หน้าบันทึกการใช้งานแสดงเวลาชัดเจนขึ้น (ชั่วโมง:นาที:วินาที)']},
@@ -3218,20 +3226,54 @@ async function renderCheckinPage(){
 }
 
 // ประวัติการลงเวลาของพนักงานเอง (เห็นการแก้ไขของ admin)
+// แปลงเวลาทำงานเป็นจำนวนนาที (สำหรับรวมยอด)
+function workMinutes(inT,outT){
+  if(!inT||!outT)return 0;
+  const[ih,im]=inT.split(':').map(Number),[oh,om]=outT.split(':').map(Number);
+  let mins=(oh*60+om)-(ih*60+im);if(mins<0)mins+=1440;
+  return mins;
+}
+
 async function loadMyCheckinHistory(){
   const el=document.getElementById('my-checkin-history');
   if(!el)return;
+  // ตั้งค่าเดือนเริ่มต้น = เดือนปัจจุบัน
+  const monthInput=document.getElementById('my-hours-month');
+  if(monthInput&&!monthInput.value){const d=new Date();monthInput.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+  const selMonth=monthInput?.value||'';
   el.innerHTML='<div style="color:var(--text3);font-size:13px">กำลังโหลด...</div>';
   try{
     const snap=await getDocs(query(collection(db,'checkins'),where('uid','==',currentUser.uid)));
-    const recs=snap.docs.map(d=>d.data()).sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,30);
-    if(!recs.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีประวัติการลงเวลา</div>';return;}
-    el.innerHTML=recs.map(r=>{
+    let recs=snap.docs.map(d=>d.data());
+    // กรองเฉพาะเดือนที่เลือก (สำหรับสรุป)
+    const monthRecs=selMonth?recs.filter(r=>(r.date||'').startsWith(selMonth)):recs;
+
+    // ===== สรุปชั่วโมงทำงานเดือนที่เลือก =====
+    const sumEl=document.getElementById('my-hours-summary');
+    if(sumEl){
+      let totalMins=0,workDays=0,lateCount=0;
+      monthRecs.forEach(r=>{
+        if(r.checkIn&&r.checkOut){totalMins+=workMinutes(r.checkIn,r.checkOut);workDays++;}
+        else if(r.checkIn)workDays++;
+        if(r.isLate)lateCount++;
+      });
+      const hh=Math.floor(totalMins/60), mm=totalMins%60;
+      sumEl.innerHTML=`
+        <div class="mcard c-green"><div class="mcard-label">ชั่วโมงทำงานรวม</div><div class="mcard-val">${hh}<span style="font-size:14px">ชม.</span> ${mm>0?mm+'<span style="font-size:14px">น.</span>':''}</div><div class="mcard-sub">เดือนนี้</div></div>
+        <div class="mcard c-blue"><div class="mcard-label">วันที่มาทำงาน</div><div class="mcard-val">${workDays}</div><div class="mcard-sub">วัน</div></div>
+        <div class="mcard c-amber"><div class="mcard-label">มาสาย</div><div class="mcard-val">${lateCount}</div><div class="mcard-sub">ครั้ง</div></div>`;
+    }
+
+    // ===== รายการประวัติ (เดือนที่เลือก) =====
+    const sorted=monthRecs.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    if(!sorted.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:1rem">ไม่มีประวัติการลงเวลาในเดือนนี้</div>';return;}
+    el.innerHTML=sorted.map(r=>{
       const edited=r.editHistory?.length;
+      const lateBadge=r.isLate?`<span style="font-size:10px;color:#D4690E;font-weight:700;margin-left:6px">⏰ สาย ${r.lateMinutes} นาที</span>`:'';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
         <div style="flex:1">
-          <div style="font-weight:600;font-size:13px">${new Date(r.date).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}</div>
-          <div style="font-size:12px;color:var(--text3)">${r.checkIn||'—'} - ${r.checkOut||'—'}${r.checkIn&&r.checkOut?' • '+calcWorkTime(r.checkIn,r.checkOut):''}</div>
+          <div style="font-weight:600;font-size:13px">${new Date(r.date).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}${lateBadge}</div>
+          <div style="font-size:12px;color:var(--text3)">${r.checkIn||'—'} - ${r.checkOut||'—'}${r.checkIn&&r.checkOut?' • รวม '+calcWorkTime(r.checkIn,r.checkOut):''}</div>
         </div>
         ${edited?`<button class="btn btn-sm" style="color:#D4690E;border-color:#F5D78E" onclick="showMyEditHistory('${r.uid}_${r.date}')">✎ ถูกแก้ไข ${edited} ครั้ง</button>`:''}
       </div>`;
