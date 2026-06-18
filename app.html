@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.2</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -865,8 +865,9 @@ const db = getFirestore(app);
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.9.1';
+const APP_VERSION='1.9.2';
 const CHANGELOG=[
+  {v:'1.9.2',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเฉพาะเวรที่จัด (สะอาดขึ้น) มีจุดสีบอกสถานะเช็คอิน','กดดูรายละเอียดวัน เห็นการเทียบเวรที่จัด vs เวลาเช็คอินจริง + บอกว่าสายกี่นาที']},
   {v:'1.9.1',date:'2026-06-18',changes:['เพิ่มปุ่ม "ดู" ตอนเลือกเดือนในสรุปชั่วโมงทำงาน']},
   {v:'1.9.0',date:'2026-06-18',changes:['พนักงานดูสรุปชั่วโมงการทำงานของตัวเองได้ (ชั่วโมงรวม/วันทำงาน/มาสาย) เลือกดูตามเดือน']},
   {v:'1.8.0',date:'2026-06-17',changes:['เพิ่มแจ้งเตือนในแอป: ตารางเวรอัปเดต, เวรถูกแก้, คำขอลาอนุมัติ/ปฏิเสธ','เพิ่มระบบประกาศจากร้าน (admin ประกาศ → พนักงานเห็นเมื่อเปิดแอป)','เพิ่มปุ่มอนุมัติ/ปฏิเสธคำขอลา']},
@@ -1683,13 +1684,13 @@ function scRender(){
       const br=BRANCHES[s.branch];
       // เช็คว่าคนนี้เช็คอินวันนี้ไหม
       const ci=getCheckinFor(s.staffId,ds);
-      let ciHtml='';
+      // ในปฏิทินแสดงเฉพาะเวรที่จัด + จุดเล็กๆ บอกว่าเช็คอินแล้ว/มาสาย (รายละเอียดดูในป๊อปอัพ)
+      let statusDot='';
       if(ci){
-        const branchInName=ci.branchIn!=null?BRANCHES[ci.branchIn]:'';
-        const sameBranch=ci.branchIn===s.branch;
-        ciHtml=`<br><span style="font-weight:600;color:${sameBranch?'#0F8A63':'#D4690E'}">✓ ${ci.checkIn}${ci.checkOut?'-'+ci.checkOut:''}${branchInName&&!sameBranch?' @'+branchInName:''}</span>`;
+        const late=ci.isLate;
+        statusDot=`<span title="${late?'มาสาย':'เช็คอินแล้ว'}" style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${late?'#E8920E':'#16B981'};margin-left:3px;vertical-align:middle"></span>`;
       }
-      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${br}${ci?' • เช็คอิน '+ci.checkIn:''}"><span style="font-weight:700">${nm}</span> ${s.start}<br><span style="font-weight:400;opacity:.85">📍${br}</span>${ciHtml}</div>`;
+      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${br}${ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}"><span style="font-weight:700">${nm}</span> ${s.start}-${s.end}${statusDot}<br><span style="font-weight:400;opacity:.85">📍${br}</span></div>`;
     }).join('');
     const moreCount=dayShifts.length-maxShow;
     const moreHtml=moreCount>0?`<div class="cal-more" onclick="event.stopPropagation();scDayDetail('${ds}')">+${moreCount} เพิ่มเติม</div>`:'';
@@ -1697,11 +1698,8 @@ function scRender(){
     const dayCheckins=getCheckinsOnDate(ds);
     const shiftUids=dayShifts.map(s=>s.staffId);
     const orphanCheckins=dayCheckins.filter(c=>!shiftUids.includes(c.uid));
-    const ciExtraHtml=orphanCheckins.map(c=>{
-      const nm=memberShort(c.uid)||c.name||'—';
-      const brIn=c.branchIn!=null?BRANCHES[c.branchIn]:'';
-      return `<div class="cal-checkin" title="${c.name} เช็คอิน ${c.checkIn}${c.checkOut?'-'+c.checkOut:''} ${brIn}">✓ ${nm} ${c.checkIn}${c.checkOut?'-'+c.checkOut:''}${brIn?'<br>📍'+brIn:''}</div>`;
-    }).join('');
+    // เช็คอินนอกเวร (คนที่ไม่มีเวรวันนั้น) — แสดงแบบกระชับ รายละเอียดดูในป๊อปอัพ
+    const ciExtraHtml=orphanCheckins.length?`<div class="cal-checkin" title="${orphanCheckins.map(c=>(c.name||memberShort(c.uid))+' '+c.checkIn).join(', ')}">✓ เช็คอินนอกเวร ${orphanCheckins.length} คน</div>`:'';
     const addBtn=canEdit?`<div class="cal-add" onclick="event.stopPropagation();scAddShift('','${ds}')">+</div>`:'';
     html+=`<div class="cal-cell${isToday?' today':''}" ${canEdit?`onclick="scDayDetail('${ds}')"`:''} style="cursor:${canEdit?'pointer':'default'}">
       <div class="cal-date${isToday?' is-today':''}">${day}${isToday?'<span style="font-size:9px;background:var(--green);color:#fff;padding:1px 5px;border-radius:8px">วันนี้</span>':''}</div>
@@ -1732,14 +1730,23 @@ window.scDayDetail=function(ds){
     if(ci){
       const sameBranch=ci.branchIn===s.branch;
       const brIn=ci.branchIn!=null?BRANCHES[ci.branchIn]:'';
-      ciLine=`<div style="font-size:11px;margin-top:3px;color:${sameBranch?'#0F8A63':'#D4690E'};font-weight:600">✓ เช็คอิน ${ci.checkIn}${ci.checkOut?' - '+ci.checkOut:' (ยังไม่เช็คเอาท์)'}${brIn?' ที่'+brIn:''}${!sameBranch&&brIn?' ⚠️ คนละสาขากับเวร':''}${ci.checkIn&&ci.checkOut?' • รวม '+calcWorkTime(ci.checkIn,ci.checkOut):''}</div>`;
+      // เทียบเวลาเช็คอินจริงกับเวรที่จัด → บอกว่าสายไหม
+      let lateTag='';
+      if(ci.checkIn&&s.start){
+        const[sh,sm]=s.start.split(':').map(Number);
+        const[ch,cm]=ci.checkIn.split(':').map(Number);
+        const diff=(ch*60+cm)-(sh*60+sm);
+        if(diff>0)lateTag=`<span style="background:#FCE8D5;color:#C2410C;font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-left:6px">สาย ${diff} นาที</span>`;
+        else lateTag=`<span style="background:var(--green-l);color:var(--green-dd);font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-left:6px">ตรงเวลา</span>`;
+      }
+      ciLine=`<div style="font-size:11px;margin-top:3px;color:${sameBranch?'#0F8A63':'#D4690E'};font-weight:600">✓ เช็คอินจริง ${ci.checkIn}${ci.checkOut?' - '+ci.checkOut:' (ยังไม่เช็คเอาท์)'}${brIn?' ที่'+brIn:''}${!sameBranch&&brIn?' ⚠️ คนละสาขากับเวร':''}${ci.checkIn&&ci.checkOut?' • รวม '+calcWorkTime(ci.checkIn,ci.checkOut):''}${lateTag}</div>`;
     }else{
       ciLine=`<div style="font-size:11px;margin-top:3px;color:var(--text3)">○ ยังไม่เช็คอิน</div>`;
     }
     return `
     <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
       <span class="badge ${['badge-green','badge-blue','badge-amber'][s.branch]}">${BRANCHES[s.branch]}</span>
-      <div style="flex:1"><div style="font-weight:600;font-size:13px">${memberName(s.staffId)}</div><div style="font-size:12px;color:var(--text3)">${s.start} – ${s.end}</div>${ciLine}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${memberName(s.staffId)}</div><div style="font-size:12px;color:var(--text2)">เวรที่จัด: <b>${s.start} – ${s.end}</b></div>${ciLine}</div>
       ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`:''}
     </div>`;}).join(''):'<div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">ยังไม่มีเวรในวันนี้</div>';
   openModal(`<div class="modal-title">📅 ${dateStr}</div>
