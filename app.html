@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.9.4</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.10.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -415,6 +415,7 @@ textarea{resize:vertical;min-height:64px}
           <option value="2">อินดี้</option>
         </select>
         <button class="btn btn-sm" id="sc-bday-btn" onclick="toggleBdayPanel()">🎂 วันเกิด</button>
+        <button class="btn btn-sm" id="sc-temp-btn" style="display:none" onclick="manageTempStaff()">👤 พนักงานชั่วคราว</button>
         <button class="btn btn-sm btn-primary" id="sc-auto-btn" style="display:none" onclick="toggleAutoPanel()">⚙️ สร้างตารางอัตโนมัติ</button>
       </div>
     </div>
@@ -866,8 +867,10 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.9.4';
+const APP_VERSION='1.10.1';
 const CHANGELOG=[
+  {v:'1.10.1',date:'2026-06-18',changes:['เก็บรายชื่อพนักงานชั่วคราวไว้ใช้ซ้ำ (ไม่ต้องพิมพ์ใหม่ทุกครั้ง) + มีที่จัดการรายชื่อ']},
+  {v:'1.10.0',date:'2026-06-18',changes:['เพิ่มพนักงานชั่วคราวในตารางเวรได้ (พิมพ์ชื่อเอง ไม่ต้องสมัครสมาชิก)','พนักงานชั่วคราวแสดงในปฏิทินพร้อมป้าย "ชั่วคราว" ไม่กระทบระบบเช็คอิน/เงินเดือน']},
   {v:'1.9.4',date:'2026-06-18',changes:['แก้ช่องโหว่: ซ่อนปุ่มเปิด-ปิดวันเกิด + ปุ่มจัดเวรจากพนักงานทั่วไป (เฉพาะผู้ดูแลระบบเท่านั้น)']},
   {v:'1.9.3',date:'2026-06-18',changes:['ปรับปฏิทินเวรให้กระชับสวยขึ้นบนมือถือ (ชื่อสาขาแบบย่อ ไม่ตัดบรรทัดยาว)']},
   {v:'1.9.2',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเฉพาะเวรที่จัด (สะอาดขึ้น) มีจุดสีบอกสถานะเช็คอิน','กดดูรายละเอียดวัน เห็นการเทียบเวรที่จัด vs เวลาเช็คอินจริง + บอกว่าสายกี่นาที']},
@@ -950,6 +953,7 @@ async function loadShiftsFromCloud(){
 // ===== STATE =====
 let currentUser=null, profile=null, isAdmin=false;
 let allMembers=[], payrollData={};
+let tempStaff=JSON.parse(localStorage.getItem('nm_tempStaff')||'[]'); // รายชื่อพนักงานชั่วคราวที่บันทึกไว้
 
 // ===== ACTIVITY LOG =====
 // บันทึกการกระทำของผู้ใช้ลง Firestore (activityLogs)
@@ -1106,6 +1110,7 @@ onAuthStateChanged(auth,async user=>{
   if(isAdmin||canAccessPage('sales'))loadSalesFromCloud();
   loadBranchLocations();
   loadPayTypesFromCloud();
+  loadTempStaffFromCloud();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
   loadLeavesForSchedule();
   // บันทึก log การเข้าใช้งาน (ครั้งเดียวต่อ session)
@@ -1636,6 +1641,9 @@ function memberShort(uid){
   if(!m)return uid;
   return m.nickname||(m.firstName||'').trim()||'—';
 }
+// ชื่อที่แสดงในเวร — รองรับพนักงานชั่วคราว (ไม่มี staffId แต่มี tempName)
+function shiftShortName(s){return s.tempName?s.tempName:memberShort(s.staffId);}
+function shiftFullName(s){return s.tempName?s.tempName+' (ชั่วคราว)':memberName(s.staffId);}
 
 function scRender(){
   const canEdit=isAdmin;
@@ -1643,6 +1651,8 @@ function scRender(){
   if(autoBtn)autoBtn.style.display=isAdmin?'':'none';
   const bdayBtn=document.getElementById('sc-bday-btn');
   if(bdayBtn)bdayBtn.style.display=isAdmin?'':'none';
+  const tempBtn=document.getElementById('sc-temp-btn');
+  if(tempBtn)tempBtn.style.display=isAdmin?'':'none';
   // ถ้าไม่ใช่ admin ปิด panel วันเกิดไว้เสมอ
   if(!isAdmin){const bp=document.getElementById('sc-bday-panel');if(bp)bp.style.display='none';}
 
@@ -1687,18 +1697,19 @@ function scRender(){
     }).join('');
     const maxShow=3;
     const shiftCards=dayShifts.slice(0,maxShow).map(s=>{
-      const nm=memberShort(s.staffId);
+      const isTemp=!!s.tempName;
+      const nm=shiftShortName(s);
       const br=BRANCHES_SHORT[s.branch];
-      // เช็คว่าคนนี้เช็คอินวันนี้ไหม
-      const ci=getCheckinFor(s.staffId,ds);
-      // ในปฏิทินแสดงเฉพาะเวรที่จัด (กระชับ) + จุดเล็กๆ บอกว่าเช็คอินแล้ว/มาสาย
+      // พนักงานชั่วคราวไม่มีระบบเช็คอิน
+      const ci=isTemp?null:getCheckinFor(s.staffId,ds);
       let statusDot='';
       if(ci){
         const late=ci.isLate;
         statusDot=`<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${late?'#E8920E':'#16B981'};margin-left:auto;flex-shrink:0"></span>`;
       }
-      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}${ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}">
-        <div style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span><span style="opacity:.75;flex-shrink:0">${s.start}</span>${statusDot}</div>
+      const tempTag=isTemp?`<span style="font-size:7px;background:rgba(0,0,0,.08);padding:0 3px;border-radius:4px;flex-shrink:0">ชั่วคราว</span>`:'';
+      return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}${isTemp?' • พนักงานชั่วคราว':ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}">
+        <div style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span><span style="opacity:.75;flex-shrink:0">${s.start}</span>${tempTag}${statusDot}</div>
         <div style="font-weight:400;opacity:.7;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍${br}</div>
       </div>`;
     }).join('');
@@ -1735,9 +1746,12 @@ window.scDayDetail=function(ds){
   const dayLeaves=getLeavesOnDate(ds);
   const leaveHtml=dayLeaves.length?`<div style="background:#FFF4E0;border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:13px;color:#B26A00;font-weight:600">🌴 ลางาน: ${dayLeaves.map(l=>`${l.name} (${l.type})`).join(', ')}</div>`:'';
   const shiftList=dayShifts.length?dayShifts.map(s=>{
-    const ci=getCheckinFor(s.staffId,ds);
+    const isTemp=!!s.tempName;
+    const ci=isTemp?null:getCheckinFor(s.staffId,ds);
     let ciLine='';
-    if(ci){
+    if(isTemp){
+      ciLine=`<div style="font-size:11px;margin-top:3px;color:var(--text3)">พนักงานชั่วคราว (ไม่มีระบบเช็คอิน)</div>`;
+    }else if(ci){
       const sameBranch=ci.branchIn===s.branch;
       const brIn=ci.branchIn!=null?BRANCHES[ci.branchIn]:'';
       // เทียบเวลาเช็คอินจริงกับเวรที่จัด → บอกว่าสายไหม
@@ -1756,7 +1770,7 @@ window.scDayDetail=function(ds){
     return `
     <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
       <span class="badge ${['badge-green','badge-blue','badge-amber'][s.branch]}">${BRANCHES[s.branch]}</span>
-      <div style="flex:1"><div style="font-weight:600;font-size:13px">${memberName(s.staffId)}</div><div style="font-size:12px;color:var(--text2)">เวรที่จัด: <b>${s.start} – ${s.end}</b></div>${ciLine}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${shiftFullName(s)}</div><div style="font-size:12px;color:var(--text2)">เวรที่จัด: <b>${s.start} – ${s.end}</b></div>${ciLine}</div>
       ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`:''}
     </div>`;}).join(''):'<div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">ยังไม่มีเวรในวันนี้</div>';
   openModal(`<div class="modal-title">📅 ${dateStr}</div>
@@ -1817,6 +1831,43 @@ window.toggleBday=function(uid,val){
   bdaySettings[uid]=val;
   localStorage.setItem('nm_bday_settings',JSON.stringify(bdaySettings));
   scRender();
+};
+
+// จัดการรายชื่อพนักงานชั่วคราว (เพิ่ม/ลบ)
+window.manageTempStaff=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  renderTempStaffModal();
+};
+function renderTempStaffModal(){
+  const list=tempStaff.length?tempStaff.map((n,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border)">
+    <span style="flex:1;font-size:13px;font-weight:500">👤 ${n}</span>
+    <button class="btn btn-sm btn-danger" style="padding:3px 9px" onclick="removeTempStaff(${i})">ลบ</button>
+  </div>`).join(''):'<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem">ยังไม่มีพนักงานชั่วคราวที่บันทึกไว้</div>';
+  openModal(`<div class="modal-title">👤 พนักงานชั่วคราว</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">รายชื่อที่บันทึกไว้ จะแสดงในตัวเลือกตอนจัดเวร ไม่ต้องพิมพ์ใหม่</div>
+    <div style="display:flex;gap:8px;margin-bottom:1rem">
+      <input type="text" id="new-temp-name" placeholder="พิมพ์ชื่อ เช่น น้องเอ (พาร์ทไทม์)" style="flex:1" maxlength="40">
+      <button class="btn btn-primary btn-sm" onclick="addTempStaffManual()">+ เพิ่ม</button>
+    </div>
+    <div>${list}</div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+}
+window.addTempStaffManual=function(){
+  const inp=document.getElementById('new-temp-name');
+  const name=inp.value.trim();
+  if(!name){showToast('กรุณาพิมพ์ชื่อ','err');return;}
+  if(tempStaff.includes(name)){showToast('มีชื่อนี้แล้ว','err');return;}
+  addTempStaffName(name);
+  inp.value='';
+  renderTempStaffModal();
+  showToast('เพิ่มพนักงานชั่วคราวแล้ว');
+};
+window.removeTempStaff=function(i){
+  tempStaff.splice(i,1);
+  localStorage.setItem('nm_tempStaff',JSON.stringify(tempStaff));
+  syncTempStaffToCloud();
+  renderTempStaffModal();
+  showToast('ลบแล้ว');
 };
 
 // AI Panel toggle
@@ -2007,10 +2058,20 @@ window.scAddShift=function(uid,ds){
   const d=new Date(ds);
   const dateStr=d.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
   openModal(`<div class="modal-title">เพิ่มเวร — ${dateStr}</div>
-    <div class="field"><label class="fl">สมาชิก</label><select id="m-staff">${activeMembers.map(e=>`<option value="${e.uid}"${e.uid===uid?' selected':''}>${e.firstName||''} ${e.lastName||''}</option>`).join('')}</select></div>
+    <div class="field"><label class="fl">สมาชิก</label><select id="m-staff" onchange="scToggleTempName()">
+      ${activeMembers.map(e=>`<option value="${e.uid}"${e.uid===uid?' selected':''}>${e.firstName||''} ${e.lastName||''}</option>`).join('')}
+      ${tempStaff.length?`<optgroup label="พนักงานชั่วคราวที่บันทึกไว้">${tempStaff.map(n=>`<option value="temp:${n.replace(/"/g,'&quot;')}">${n} (ชั่วคราว)</option>`).join('')}</optgroup>`:''}
+      <option value="__temp__">+ เพิ่มพนักงานชั่วคราวใหม่</option>
+    </select></div>
+    <div class="field" id="m-tempname-field" style="display:none"><label class="fl">ชื่อพนักงานชั่วคราวใหม่</label><input type="text" id="m-tempname" placeholder="เช่น น้องเอ (พาร์ทไทม์)" maxlength="40"></div>
     <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('')}</select></div>
     <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('m-start','08:00')}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('m-end','17:00')}</div></div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveNew('${ds}')">บันทึก</button></div>`);
+};
+// แสดง/ซ่อนช่องพิมพ์ชื่อพนักงานชั่วคราว
+window.scToggleTempName=function(){
+  const isTemp=document.getElementById('m-staff').value==='__temp__';
+  document.getElementById('m-tempname-field').style.display=isTemp?'':'none';
 };
 window.scSaveNew=function(ds){
   if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
@@ -2019,20 +2080,33 @@ window.scSaveNew=function(ds){
   const start=readTime24('m-start');
   const end=readTime24('m-end');
   const shiftId='s_'+Date.now();
-  shifts.push({id:shiftId,staffId:uid,branch,date:ds,start,end});
+  if(uid==='__temp__'){
+    // พนักงานชั่วคราวใหม่ — เก็บชื่อ + บันทึกเข้ารายการไว้ใช้ซ้ำ
+    const tempName=document.getElementById('m-tempname').value.trim();
+    if(!tempName){showToast('กรุณาพิมพ์ชื่อพนักงานชั่วคราว','err');return;}
+    addTempStaffName(tempName);
+    shifts.push({id:shiftId,staffId:null,tempName,branch,date:ds,start,end});
+  }else if(uid.startsWith('temp:')){
+    // พนักงานชั่วคราวที่บันทึกไว้แล้ว
+    const tempName=uid.slice(5);
+    shifts.push({id:shiftId,staffId:null,tempName,branch,date:ds,start,end});
+  }else{
+    shifts.push({id:shiftId,staffId:uid,branch,date:ds,start,end});
+  }
   saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
 };
 window.scEditShift=function(sid){
   if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   const s=shifts.find(x=>x.id===sid);if(!s)return;
-  const mem=allMembers.find(m=>m.uid===s.staffId);
-  const name=mem?`${mem.firstName||''} ${mem.lastName||''}`.trim():s.staffId;
+  const isTemp=!!s.tempName;
+  const name=shiftFullName(s);
   openModal(`<div class="modal-title">แก้ไขเวร — ${name}</div>
+    ${isTemp?`<div class="field"><label class="fl">ชื่อพนักงานชั่วคราว</label><input type="text" id="m-tempname" value="${(s.tempName||'').replace(/"/g,'&quot;')}" maxlength="40"></div>`:''}
     <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}"${i===s.branch?' selected':''}>${b}</option>`).join('')}</select></div>
     <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('m-start',s.start)}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('m-end',s.end)}</div></div>
     <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">บันทึก</button></div>`);
 };
-window.scSaveEdit=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
+window.scSaveEdit=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');if(s.tempName!==undefined){const tn=document.getElementById('m-tempname')?.value.trim();if(tn)s.tempName=tn;}saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
 window.scDel=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
 
 // ===== SALES =====
@@ -3186,6 +3260,28 @@ async function loadPayTypesFromCloud(){
       if(document.getElementById('pay-type-list'))renderPayTypeSettings();
     }
   }catch(e){}
+}
+// ===== พนักงานชั่วคราว (เก็บรายชื่อไว้ใช้ซ้ำ) =====
+async function syncTempStaffToCloud(){
+  try{await setDoc(doc(db,'config','tempStaff'),{names:tempStaff});}catch(e){}
+}
+async function loadTempStaffFromCloud(){
+  try{
+    const d=await getDoc(doc(db,'config','tempStaff'));
+    if(d.exists()&&Array.isArray(d.data().names)){
+      tempStaff=d.data().names;
+      localStorage.setItem('nm_tempStaff',JSON.stringify(tempStaff));
+    }
+  }catch(e){}
+}
+// เพิ่มชื่อพนักงานชั่วคราวเข้ารายการ (ถ้ายังไม่มี)
+function addTempStaffName(name){
+  name=name.trim();
+  if(name&&!tempStaff.includes(name)){
+    tempStaff.push(name);
+    localStorage.setItem('nm_tempStaff',JSON.stringify(tempStaff));
+    syncTempStaffToCloud();
+  }
 }
 function renderMyProfile(){
   if(!profile){document.getElementById('my-profile').innerHTML='<p style="font-size:13px;color:var(--text3)">ไม่พบข้อมูล</p>';return;}
