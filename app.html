@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.12.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.12.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -868,8 +868,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.12.0';
+const APP_VERSION='1.12.1';
 const CHANGELOG=[
+  {v:'1.12.1',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเวลาเลิกงานด้วย (เริ่ม-เลิก เช่น 08:00-17:00) สมาชิกเห็นครบ']},
   {v:'1.12.0',date:'2026-06-18',changes:['จัดตารางอัตโนมัติให้พนักงานชั่วคราวได้ด้วย (ตั้งสาขา/เวลา/วันหยุดประจำ เหมือนสมาชิก)']},
   {v:'1.11.1',date:'2026-06-18',changes:['คอมพิวเตอร์: ปฏิทินเวรแสดงทุกคนในวันนั้นเลย ไม่มี "+เพิ่มเติม" (มือถือยังย่อเหมือนเดิม)']},
   {v:'1.11.0',date:'2026-06-18',changes:['เปิดแอปมาเห็น "เวรของฉันวันนี้" + เวรที่จะถึงทันที (ไม่ต้องกดเข้าตารางเวร)']},
@@ -1723,8 +1724,9 @@ function scRender(){
       }
       const tempTag=isTemp?`<span style="font-size:7px;background:rgba(0,0,0,.08);padding:0 3px;border-radius:4px;flex-shrink:0">ชั่วคราว</span>`:'';
       return `<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}${isTemp?' • พนักงานชั่วคราว':ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}">
-        <div style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span><span style="opacity:.75;flex-shrink:0">${s.start}</span>${tempTag}${statusDot}</div>
-        <div style="font-weight:400;opacity:.7;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍${br}</div>
+        <div style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span>${tempTag}${statusDot}</div>
+        <div style="font-weight:500;opacity:.85;font-size:8.5px;white-space:nowrap">${s.start}-${s.end}</div>
+        <div style="font-weight:400;opacity:.65;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍${br}</div>
       </div>`;
     }).join('');
     const moreCount=dayShifts.length-maxShow;
