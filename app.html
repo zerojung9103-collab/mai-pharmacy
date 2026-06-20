@@ -298,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.13.3</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.14.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -867,7 +867,7 @@ window.installApp=async function(){
 };
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
@@ -884,8 +884,10 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.13.3';
+const APP_VERSION='1.14.1';
 const CHANGELOG=[
+  {v:'1.14.1',date:'2026-06-20',changes:['เพิ่มสิทธิ์ขั้นสูงที่มอบให้สมาชิกได้ (Dashboard, จัดการเงินเดือนทุกคน, ดูประวัติลงเวลา, อนุมัติลา, ดูประวัติการใช้งาน, เติมเงินตู้เซฟ) — มอบให้หัวหน้า/ผู้จัดการได้']},
+  {v:'1.14.0',date:'2026-06-20',changes:['แก้สิทธิ์สมาชิกไม่อัปเดต — เมื่อ admin ปรับสิทธิ์ พนักงานเห็นผลทันทีไม่ต้อง login ใหม่ (เรียลไทม์)']},
   {v:'1.13.3',date:'2026-06-20',changes:['แก้ปัญหาเปลี่ยนสาขาบนมือถือ (iPhone) ไม่ refresh — เพิ่ม oninput ให้ทำงานทันทีที่เลือก']},
   {v:'1.13.2',date:'2026-06-20',changes:['แก้ปฏิทินบนมือถือ หัววัน (จ.อ.พ...) ตรงกับช่องวันที่พอดี ไม่ล้นขอบจอ']},
   {v:'1.13.1',date:'2026-06-20',changes:['เปลี่ยนสาขาในหน้าเงินสด & ตารางเวร โหลดข้อมูลใหม่อัตโนมัติ (auto-refresh)']},
@@ -918,7 +920,18 @@ const BCOLORS=['#1D9E75','#378ADD','#EF9F27'];
 const BCOLORS_L=['#E1F5EE','#E6F1FB','#FAEEDA'];
 const DAYNAMES=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
 const MONTHS_TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-const PERM_LABELS={schedule:'ดู/แก้ไขตารางเวร',sales:'บันทึกยอดขาย',members:'จัดการสมาชิก',payroll_self:'ดูเงินเดือนตัวเอง'};
+const PERM_LABELS={
+  schedule:'ดู/แก้ไขตารางเวร',
+  sales:'บันทึกยอดขาย',
+  members:'จัดการสมาชิก',
+  payroll_self:'ดูเงินเดือนตัวเอง',
+  dashboard_admin:'ดู Dashboard (ยอดขายรวม)',
+  payroll_all:'จัดการเงินเดือนทุกคน',
+  checkin_all:'ดูประวัติลงเวลาทุกคน',
+  leave_admin:'อนุมัติคำขอลา',
+  activity_admin:'ดูประวัติการใช้งาน',
+  cash_refill:'เติมเงินเข้าตู้เซฟ'
+};
 
 // ===== LOCAL DATA =====
 let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","โอนธนาคาร","บัตรเครดิต","QR Code"]');
@@ -1043,12 +1056,13 @@ function hasPerm(p){if(isAdmin)return true;return profile?.permissions?.[p]===tr
 // ===== SIDEBAR by permissions =====
 function buildNav(){
   const navMap={
-    dashboard:{adminOnly:true},
+    dashboard:{perm:'dashboard_admin'},
     schedule:{perm:'schedule'},
     sales:{perm:'sales'},
     members:{perm:'members'},
-    payroll:{adminOnly:true},
+    payroll:{perm:'payroll_all'},
     'my-payroll':{perm:'payroll_self'},
+    cash:{always:true},
     settings:{always:true},
   };
   Object.entries(navMap).forEach(([page,cfg])=>{
@@ -1056,17 +1070,16 @@ function buildNav(){
     if(!el)return;
     let show=false;
     if(cfg.always)show=true;
-    else if(cfg.adminOnly)show=isAdmin;
     else show=isAdmin||hasPerm(cfg.perm);
     el.classList.toggle('hidden',!show);
   });
-  // เมนูเฉพาะ admin
+  // เมนูที่มอบสิทธิ์ได้ (admin หรือผู้ได้รับสิทธิ์)
   const cih=document.getElementById('nav-checkin-history');
-  if(cih)cih.classList.toggle('hidden',!isAdmin);
+  if(cih)cih.classList.toggle('hidden',!(isAdmin||hasPerm('checkin_all')));
   const laAdmin=document.getElementById('nav-leave-admin');
-  if(laAdmin)laAdmin.classList.toggle('hidden',!isAdmin);
+  if(laAdmin)laAdmin.classList.toggle('hidden',!(isAdmin||hasPerm('leave_admin')));
   const actNav=document.getElementById('nav-activity');
-  if(actNav)actNav.classList.toggle('hidden',!isAdmin);
+  if(actNav)actNav.classList.toggle('hidden',!(isAdmin||hasPerm('activity_admin')));
   const artBtn=document.getElementById('art-new-btn');
   if(artBtn)artBtn.style.display=isAdmin?'':'none';
   const doseBtn=document.getElementById('dose-new-btn');
@@ -1133,6 +1146,25 @@ onAuthStateChanged(auth,async user=>{
     profile=snap.exists()?snap.data():null;
     isAdmin=profile?.role==='admin';
   }catch(e){profile=null;isAdmin=false;}
+  // ฟังการเปลี่ยนแปลงสิทธิ์/role ของตัวเองแบบเรียลไทม์ → อัปเดตเมนูทันทีโดยไม่ต้อง login ใหม่
+  try{
+    onSnapshot(doc(db,'members',user.uid),(d)=>{
+      if(!d.exists())return;
+      const newProfile=d.data();
+      const permChanged=JSON.stringify(newProfile.permissions||{})!==JSON.stringify(profile?.permissions||{});
+      const roleChanged=newProfile.role!==profile?.role;
+      profile=newProfile;
+      const wasAdmin=isAdmin;
+      isAdmin=profile?.role==='admin';
+      if(permChanged||roleChanged){
+        buildNav();
+        // ถ้าอยู่หน้าที่เพิ่งโดนถอนสิทธิ์ → เด้งกลับหน้าที่เข้าได้
+        if(!canAccessPage(currentPage))goto('checkin');
+        if(roleChanged&&isAdmin!==wasAdmin)showToast(isAdmin?'คุณได้รับสิทธิ์ผู้ดูแลระบบ':'สิทธิ์ของคุณถูกปรับปรุง');
+        else if(permChanged)showToast('สิทธิ์การใช้งานของคุณถูกอัปเดต');
+      }
+    });
+  }catch(e){console.error('profile listener',e);}
   const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():user.email;
   document.getElementById('sb-av').textContent=name.charAt(0).toUpperCase();
   document.getElementById('sb-name').textContent=name;
@@ -1193,11 +1225,7 @@ function canAccessPage(page){
   if(isAdmin)return true;
   const perm=PAGE_PERM[page];
   if(perm===null)return true;
-  if(perm==='payroll_all')return false;
-  if(perm==='checkin_all')return false;
-  if(perm==='leave_admin')return false;
-  if(perm==='activity_admin')return false;
-  if(perm==='dashboard_admin')return false;
+  // สิทธิ์ทุกอย่างมอบให้สมาชิกได้ (admin กำหนดในหน้าจัดการสมาชิก)
   return hasPerm(perm);
 }
 
@@ -1376,7 +1404,7 @@ async function renderTodayOverview(){
 }
 
 function dbRender(){
-  if(!isAdmin){document.getElementById('page-dashboard').innerHTML=accessDenied();return;}
+  if(!isAdmin&&!hasPerm('dashboard_admin')){document.getElementById('page-dashboard').innerHTML=accessDenied();return;}
   renderTodayOverview();
   const rows=getDbData();
 
@@ -2226,7 +2254,7 @@ function renderCashPage(){
     <div style="font-size:13px;opacity:.85;margin-bottom:4px">💰 ยอดเงินในตู้เซฟ — ${BRANCHES[branch]}</div>
     <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${balance.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
     <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
-      ${isAdmin?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="cashAddPrompt(${branch})">+ เติมเงิน</button>`:''}
+      ${(isAdmin||hasPerm('cash_refill'))?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="cashAddPrompt(${branch})">+ เติมเงิน</button>`:''}
       <button class="btn btn-sm" style="background:rgba(255,255,255,.95);color:#066046;border:none;font-weight:700" onclick="cashWithdrawPrompt(${branch})">− เบิกเงินทอน</button>
     </div>
   </div>`;
@@ -2315,14 +2343,14 @@ window.cashBranchChanged=async function(){
 
 // เติมเงินเข้าตู้เซฟ (admin)
 window.cashAddPrompt=function(branch){
-  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  if(!isAdmin&&!hasPerm('cash_refill')){showToast('ไม่มีสิทธิ์เติมเงิน','err');return;}
   openModal(`<div class="modal-title">เติมเงินเข้าตู้เซฟ — ${BRANCHES[branch]}</div>
     <div class="field"><label class="fl">จำนวนเงิน (บาท)</label><input type="number" id="cash-amount" inputmode="decimal" placeholder="0.00" style="font-size:20px;font-weight:600"></div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoAdd(${branch})">เติมเงิน</button></div>`);
   setTimeout(()=>document.getElementById('cash-amount')?.focus(),100);
 };
 window.cashDoAdd=async function(branch){
-  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  if(!isAdmin&&!hasPerm('cash_refill')){showToast('ไม่มีสิทธิ์เติมเงิน','err');return;}
   const amount=parseFloat(document.getElementById('cash-amount').value);
   if(!amount||amount<=0){showToast('กรุณาใส่จำนวนเงินให้ถูกต้อง','err');return;}
   const newBal=(cashboxes[branch]||0)+amount;
@@ -2474,12 +2502,10 @@ window.salesDelete=async function(date,branch){
 window.loadMembers=async function(){
   const tbody=document.getElementById('mem-tbody');
   if(!tbody)return;
-  if(!isAdmin){tbody.innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
+  if(!isAdmin&&!hasPerm('members')){tbody.innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
   tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
   try{
-    console.log('Loading members, isAdmin=',isAdmin,'uid=',currentUser?.uid);
     const snap=await getDocs(collection(db,'members'));
-    console.log('Got',snap.size,'members');
     allMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));
     filterMembers();
   }catch(e){
@@ -2508,11 +2534,16 @@ window.viewMember=function(uid){
   const name=`${m.firstName||''} ${m.lastName||''}`.trim();
   const perms=m.permissions||{dashboard:true,schedule:false,sales:false,members:false,payroll_self:true};
   const dob=m.dateOfBirth?new Date(m.dateOfBirth).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—';
-  const permChecks=Object.entries(PERM_LABELS).map(([k,v])=>`
-    <div class="perm-check">
+  const BASIC_PERMS=['schedule','sales','members','payroll_self'];
+  const permChecks=Object.entries(PERM_LABELS).map(([k,v],idx)=>{
+    // เพิ่มหัวข้อ "สิทธิ์ขั้นสูง" ก่อนสิทธิ์ admin-level ตัวแรก
+    const isFirstAdvanced=!BASIC_PERMS.includes(k)&&BASIC_PERMS.includes(Object.keys(PERM_LABELS)[idx-1]);
+    const header=isFirstAdvanced?`<div style="font-size:11px;font-weight:700;color:var(--purple-t);margin:10px 0 2px;padding-top:8px;border-top:1px dashed var(--border2)">⚡ สิทธิ์ขั้นสูง (สำหรับหัวหน้า/ผู้จัดการ)</div>`:'';
+    return `${header}<div class="perm-check">
       <input type="checkbox" id="perm-${k}" ${perms[k]?'checked':''} ${k==='payroll_self'&&m.role==='admin'?'disabled':''}>
       <label for="perm-${k}">${v}</label>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   const salaryType=m.salary?.type||'fixed';
   openModal(`<div class="modal-title">จัดการสมาชิก — ${name}</div>
     <div style="background:var(--bg);border-radius:10px;padding:1rem;margin-bottom:1.25rem">
@@ -2671,7 +2702,7 @@ window.prMonthChanged=function(){
 
 // ===== โหลดหน้า Payroll =====
 window.loadPayroll=async function(){
-  if(!isAdmin){document.getElementById('pr-person-select').innerHTML=accessDenied();return;}
+  if(!isAdmin&&!hasPerm('payroll_all')){document.getElementById('pr-person-select').innerHTML=accessDenied();return;}
   // sync เดือน/ปี
   if(document.getElementById('pr-month'))prMonth=parseInt(document.getElementById('pr-month').value);
   if(document.getElementById('pr-year'))prYear=parseInt(document.getElementById('pr-year').value);
@@ -3874,7 +3905,7 @@ window.doCheckin=function(type){
 
 // ประวัติ check-in (admin)
 window.loadCheckinHistory=async function(){
-  if(!isAdmin){document.getElementById('cih-tbody').innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
+  if(!isAdmin&&!hasPerm('checkin_all')){document.getElementById('cih-tbody').innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
   const date=document.getElementById('cih-date')?.value||todayStr();
   if(!document.getElementById('cih-date').value)document.getElementById('cih-date').value=date;
   document.getElementById('cih-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
@@ -4561,7 +4592,7 @@ function fmtLeaveDate(from,to){
 
 // Admin: รายการขอลาทั้งหมด
 window.loadLeaveAdmin=async function(){
-  if(!isAdmin){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
+  if(!isAdmin&&!hasPerm('leave_admin')){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
   document.getElementById('la-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
   try{
     const snap=await getDocs(collection(db,'leaves'));
@@ -4632,7 +4663,7 @@ const ACTION_LABELS={
 };
 
 window.loadActivityLog=async function(){
-  if(!isAdmin){document.getElementById('activity-list').innerHTML=accessDenied();return;}
+  if(!isAdmin&&!hasPerm('activity_admin')){document.getElementById('activity-list').innerHTML=accessDenied();return;}
   document.getElementById('activity-list').innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">กำลังโหลด...</div>';
   try{
     const snap=await getDocs(collection(db,'activityLogs'));
