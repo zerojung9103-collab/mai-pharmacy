@@ -298,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.14.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.14.2</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -884,8 +884,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.14.1';
+const APP_VERSION='1.14.2';
 const CHANGELOG=[
+  {v:'1.14.2',date:'2026-06-20',changes:['แก้ชื่อ-นามสกุลสมาชิกได้ในหน้าจัดการสมาชิก (ถ้าแก้ของตัวเอง ชื่อในแถบข้างอัปเดตทันที)']},
   {v:'1.14.1',date:'2026-06-20',changes:['เพิ่มสิทธิ์ขั้นสูงที่มอบให้สมาชิกได้ (Dashboard, จัดการเงินเดือนทุกคน, ดูประวัติลงเวลา, อนุมัติลา, ดูประวัติการใช้งาน, เติมเงินตู้เซฟ) — มอบให้หัวหน้า/ผู้จัดการได้']},
   {v:'1.14.0',date:'2026-06-20',changes:['แก้สิทธิ์สมาชิกไม่อัปเดต — เมื่อ admin ปรับสิทธิ์ พนักงานเห็นผลทันทีไม่ต้อง login ใหม่ (เรียลไทม์)']},
   {v:'1.13.3',date:'2026-06-20',changes:['แก้ปัญหาเปลี่ยนสาขาบนมือถือ (iPhone) ไม่ refresh — เพิ่ม oninput ให้ทำงานทันทีที่เลือก']},
@@ -2546,11 +2547,21 @@ window.viewMember=function(uid){
   }).join('');
   const salaryType=m.salary?.type||'fixed';
   openModal(`<div class="modal-title">จัดการสมาชิก — ${name}</div>
+    <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">ชื่อ-นามสกุล</div>
+    <div class="field-row">
+      <div class="field">
+        <label class="fl">ชื่อ</label>
+        <input type="text" id="m-firstname" value="${(m.firstName||'').replace(/"/g,'&quot;')}" placeholder="ชื่อจริง">
+      </div>
+      <div class="field">
+        <label class="fl">นามสกุล</label>
+        <input type="text" id="m-lastname" value="${(m.lastName||'').replace(/"/g,'&quot;')}" placeholder="นามสกุล">
+      </div>
+    </div>
     <div style="background:var(--bg);border-radius:10px;padding:1rem;margin-bottom:1.25rem">
-      <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">ข้อมูลส่วนตัว</div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:.5rem">ข้อมูลบัญชี</div>
       <table style="width:100%;font-size:12px;border-collapse:collapse">
-        <tr><td style="color:var(--text3);padding:4px 0;width:90px">ชื่อ</td><td style="font-weight:500">${name||'—'}</td></tr>
-        <tr><td style="color:var(--text3);padding:4px 0">อีเมล</td><td style="word-break:break-all">${m.email}</td></tr>
+        <tr><td style="color:var(--text3);padding:4px 0;width:90px">อีเมล</td><td style="word-break:break-all">${m.email}</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">User ID</td><td style="font-family:monospace;font-size:11px;word-break:break-all;color:var(--text2)">${m.uid}</td></tr>
         <tr><td style="color:var(--text3);padding:4px 0">วันเกิด</td><td>${dob}</td></tr>
       </table>
@@ -2640,6 +2651,8 @@ window.toggleSalaryFields=function(){
 };
 window.saveMemberSettings=async function(uid){
   const role=document.getElementById('m-role').value;
+  const firstName=document.getElementById('m-firstname')?.value.trim()||'';
+  const lastName=document.getElementById('m-lastname')?.value.trim()||'';
   const nickname=document.getElementById('m-nickname')?.value.trim()||'';
   const perms={};
   Object.keys(PERM_LABELS).forEach(k=>{perms[k]=document.getElementById('perm-'+k)?.checked||false;});
@@ -2654,15 +2667,19 @@ window.saveMemberSettings=async function(uid){
   const nationalId=document.getElementById('m-natid')?.value.trim()||'';
   const address=document.getElementById('m-address')?.value.trim()||'';
   try{
-    await updateDoc(doc(db,'members',uid),{role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address});
+    await updateDoc(doc(db,'members',uid),{firstName,lastName,role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address});
     const m=allMembers.find(x=>x.uid===uid);
-    if(m){Object.assign(m,{role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address});}
+    if(m){Object.assign(m,{firstName,lastName,role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address});}
     if(uid===currentUser?.uid){
-      profile={...profile,role,nickname,permissions:perms,salary};
+      profile={...profile,firstName,lastName,role,nickname,permissions:perms,salary};
       isAdmin=role==='admin';
+      // อัปเดตชื่อที่แสดงในแถบข้าง
+      const newName=`${firstName} ${lastName}`.trim()||currentUser.email;
+      const sbName=document.getElementById('sb-name');if(sbName)sbName.textContent=newName;
+      const sbAv=document.getElementById('sb-av');if(sbAv)sbAv.textContent=newName.charAt(0).toUpperCase();
       buildNav();
     }
-    closeMD();filterMembers();logActivity('member_edit',`แก้ข้อมูลสมาชิก: ${m?`${m.firstName||''} ${m.lastName||''}`.trim():uid}`);showToast('บันทึกข้อมูลสมาชิกแล้ว');
+    closeMD();filterMembers();logActivity('member_edit',`แก้ข้อมูลสมาชิก: ${`${firstName} ${lastName}`.trim()||uid}`);showToast('บันทึกข้อมูลสมาชิกแล้ว');
   }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
 };
 
