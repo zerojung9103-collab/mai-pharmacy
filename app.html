@@ -298,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.17.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.17.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -656,7 +656,7 @@ textarea{resize:vertical;min-height:64px}
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
       <div class="card" id="announce-card" style="grid-column:1/-1;display:none">
         <div class="card-title">📢 ประกาศผ่านน้องแคปซูล</div>
-        <div class="card-sub">น้องแคปซูลจะส่งข้อความนี้ถึงสมาชิก (เด้งเตือนเมื่อเปิดแอป)</div>
+        <div class="card-sub">น้องแคปซูลจะส่งข้อความนี้ถึงสมาชิก (เด้งเตือนเมื่อเปิดแอป) — แสดงเฉพาะช่วงที่กำหนด</div>
         <div class="field" style="margin-bottom:.75rem">
           <label class="fl">ส่งถึงใคร</label>
           <select id="announce-target" onchange="announceTargetChanged()">
@@ -665,6 +665,14 @@ textarea{resize:vertical;min-height:64px}
           </select>
         </div>
         <div id="announce-people" style="display:none;margin-bottom:.75rem;border:1px solid var(--border);border-radius:10px;padding:10px;max-height:180px;overflow-y:auto"></div>
+        <div class="field-row" style="margin-bottom:.5rem">
+          <div class="field" style="margin-bottom:0"><label class="fl">เริ่มวันที่</label><input type="date" id="ann-from-date"></div>
+          <div class="field" style="margin-bottom:0"><label class="fl">เวลาเริ่ม</label>${time24Picker('ann-from-time','08:00')}</div>
+        </div>
+        <div class="field-row" style="margin-bottom:.75rem">
+          <div class="field" style="margin-bottom:0"><label class="fl">ถึงวันที่</label><input type="date" id="ann-to-date"></div>
+          <div class="field" style="margin-bottom:0"><label class="fl">เวลาสิ้นสุด</label>${time24Picker('ann-to-time','17:00')}</div>
+        </div>
         <div style="display:flex;gap:8px;margin-bottom:1rem">
           <input type="text" id="new-announce" placeholder="พิมพ์ข้อความประกาศ เช่น พรุ่งนี้ร้านปิด 18:00" style="flex:1" maxlength="200">
           <button class="btn btn-primary btn-sm" onclick="postAnnouncement()">📢 ประกาศ</button>
@@ -900,8 +908,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.17.0';
+const APP_VERSION='1.17.1';
 const CHANGELOG=[
+  {v:'1.17.1',date:'2026-06-20',changes:['ประกาศตั้งช่วงเวลาได้ (เริ่มวัน+เวลา → ถึงวัน+เวลา) ประกาศแสดงเฉพาะช่วงนั้น พ้นช่วงหายเอง + แสดงสถานะ กำลังแสดง/รอแสดง/หมดเวลา']},
   {v:'1.17.0',date:'2026-06-20',changes:['น้องแคปซูลพูดกวนๆ แบบ "ข้า-เจ้า" (สุ่มข้อความตามเวลา/เวร) + ระบบประกาศผ่านน้องแคปซูล: admin/ผู้มีสิทธิ์ส่งถึงทุกคนหรือเลือกเฉพาะบางคนได้ (ตอนประกาศน้องจะพูดจริงจัง)']},
   {v:'1.16.2',date:'2026-06-20',changes:['เปิดแอปมาเจอหน้าแรกแบบเมนูรวม (น้องแคปซูล + การ์ดทุกฟีเจอร์ให้เลือก) + ปุ่มย้อนกลับหน้าแรกในทุกฟีเจอร์ + โหลดข้อมูลใหม่อัตโนมัติทุกครั้งที่เข้าฟีเจอร์']},
   {v:'1.16.1',date:'2026-06-20',changes:['ขัดเงาดีไซน์ทั้งแอป: แถบหัวมือถือ + แถบสถานะเปลี่ยนสีตามวัน · การ์ดมุมโค้งนุ่มขึ้น เงานวลขึ้น · หน้า login มีน้องแคปซูล ให้แบรนด์เชื่อมกันทั้งแอป']},
@@ -4666,17 +4675,21 @@ async function checkNotifications(){
       }catch(e){}
     }
 
-    // ===== ประกาศจากร้าน (ทุกคน หรือ เฉพาะคน) =====
+    // ===== ประกาศจากร้าน (ทุกคน หรือ เฉพาะคน) — แสดงเฉพาะช่วงเวลาที่กำหนด =====
     try{
       const seenAnnKey='nm_seen_ann_'+currentUser.uid;
       const lastSeenAnn=localStorage.getItem(seenAnnKey)||'';
+      // เวลาปัจจุบันแบบ local (YYYY-MM-DDTHH:MM) เทียบกับ startAt/endAt
+      const nowD=new Date();
+      const nowLocal=`${dateStr(nowD)}T${String(nowD.getHours()).padStart(2,'0')}:${String(nowD.getMinutes()).padStart(2,'0')}`;
       const annSnap=await getDocs(collection(db,'announcements'));
       const allAnns=annSnap.docs.map(d=>({id:d.id,...d.data()}))
         .filter(a=>a.active!==false)
-        // เลือกเฉพาะที่ส่งถึงเรา (ทุกคน หรือ uid เราอยู่ในรายชื่อ)
+        // อยู่ในช่วงเวลาที่กำหนด (ถ้าไม่มี startAt/endAt = ประกาศเก่า แสดงตลอด)
+        .filter(a=>(!a.startAt||nowLocal>=a.startAt)&&(!a.endAt||nowLocal<=a.endAt))
+        // ส่งถึงเรา (ทุกคน หรือ uid เราอยู่ในรายชื่อ)
         .filter(a=>!a.targets||a.targets.length===0||a.targets.includes(currentUser.uid))
         .sort((a,b)=>(b.at||'').localeCompare(a.at||''));
-      // เก็บประกาศล่าสุดให้น้องแคปซูลพูด (หน้าแรก)
       window._activeAnnounce=allAnns.length?allAnns[0].text:null;
       const newAnns=allAnns.filter(a=>a.at&&a.at>lastSeenAnn);
       newAnns.slice(0,3).forEach(a=>{
@@ -4726,6 +4739,10 @@ window.renderAnnouncements=async function(){
   if(!canAnnounce)return;
   // โหลดสมาชิกไว้สำหรับเลือกผู้รับ (ถ้ายังไม่มี)
   if(!allMembers.length){try{const ms=await getDocs(collection(db,'members'));allMembers=ms.docs.map(d=>({...d.data(),uid:d.id}));}catch(e){}}
+  // เติมวันที่เริ่มต้นเป็นวันนี้ (ถ้ายังว่าง)
+  const fd=document.getElementById('ann-from-date'),td=document.getElementById('ann-to-date');
+  if(fd&&!fd.value)fd.value=todayStr();
+  if(td&&!td.value)td.value=todayStr();
   const el=document.getElementById('announce-list');
   if(!el)return;
   try{
@@ -4734,9 +4751,28 @@ window.renderAnnouncements=async function(){
     if(!list.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:1rem">ยังไม่มีประกาศ</div>';return;}
     el.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">ประกาศที่ผ่านมา</div>'+list.map(a=>{
       const tgtTxt=(!a.targets||a.targets.length===0)?'ทุกคน':`เฉพาะ ${a.targets.length} คน`;
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--purple-l);border-radius:10px;margin-bottom:6px">
+      // สถานะตามช่วงเวลา
+      const nowD=new Date();
+      const nowLocal=`${dateStr(nowD)}T${String(nowD.getHours()).padStart(2,'0')}:${String(nowD.getMinutes()).padStart(2,'0')}`;
+      let statusBadge='';
+      if(a.startAt&&a.endAt){
+        if(nowLocal<a.startAt)statusBadge='<span style="background:var(--amber-l);color:var(--amber-t);font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px">รอแสดง</span>';
+        else if(nowLocal>a.endAt)statusBadge='<span style="background:var(--bg);color:var(--text3);font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px">หมดเวลา</span>';
+        else statusBadge='<span style="background:var(--green-l);color:var(--green-dd);font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px">กำลังแสดง</span>';
+      }
+      // ช่วงเวลาแบบอ่านง่าย
+      let rangeTxt='';
+      if(a.startAt&&a.endAt){
+        const fmt=s=>{const d=new Date(s);return d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+s.slice(11,16);};
+        rangeTxt=`🕐 ${fmt(a.startAt)} → ${fmt(a.endAt)}`;
+      }
+      return `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:var(--purple-l);border-radius:10px;margin-bottom:6px">
       <span style="font-size:16px">📢</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--purple-t)">${a.text}</div><div style="font-size:11px;color:var(--text3)">${a.at?new Date(a.at).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''} • ${tgtTxt} • โดย ${a.by||'-'}</div></div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:13px;font-weight:500;color:var(--purple-t)">${a.text}</span>${statusBadge}</div>
+        ${rangeTxt?`<div style="font-size:11px;color:var(--purple-t);margin-top:2px;font-weight:500">${rangeTxt}</div>`:''}
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${tgtTxt} • โดย ${a.by||'-'}</div>
+      </div>
       <button class="btn btn-sm btn-danger" style="padding:3px 8px" onclick="deleteAnnouncement('${a.id}')">ลบ</button>
     </div>`;}).join('');
   }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--red-t)">${e.message}</div>`;}
@@ -4764,6 +4800,16 @@ window.postAnnouncement=async function(){
   const inp=document.getElementById('new-announce');
   const text=inp.value.trim();
   if(!text){showToast('กรุณาพิมพ์ข้อความ','err');return;}
+  // ช่วงเวลาแสดงประกาศ (บังคับใส่)
+  const fromDate=document.getElementById('ann-from-date')?.value;
+  const toDate=document.getElementById('ann-to-date')?.value;
+  const fromTime=readTime24('ann-from-time')||'08:00';
+  const toTime=readTime24('ann-to-time')||'17:00';
+  if(!fromDate||!toDate){showToast('กรุณาเลือกวันเริ่มและวันสิ้นสุด','err');return;}
+  // รวมเป็น ISO local (YYYY-MM-DDTHH:MM)
+  const startAt=`${fromDate}T${fromTime}`;
+  const endAt=`${toDate}T${toTime}`;
+  if(endAt<startAt){showToast('เวลาสิ้นสุดต้องอยู่หลังเวลาเริ่ม','err');return;}
   // เป้าหมาย
   let targets=[];
   const mode=document.getElementById('announce-target')?.value||'all';
@@ -4774,10 +4820,9 @@ window.postAnnouncement=async function(){
   try{
     const id='ann_'+Date.now();
     const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin';
-    await setDoc(doc(db,'announcements',id),{text,targets,at:new Date().toISOString(),by:name,byUid:currentUser.uid,active:true});
+    await setDoc(doc(db,'announcements',id),{text,targets,startAt,endAt,at:new Date().toISOString(),by:name,byUid:currentUser.uid,active:true});
     logActivity('announce',`ประกาศ${targets.length?` (เฉพาะ ${targets.length} คน)`:' (ทุกคน)'}: ${text}`);
     inp.value='';
-    // reset เลือกคน
     document.querySelectorAll('.ann-person:checked').forEach(c=>c.checked=false);
     showToast(targets.length?`ประกาศถึง ${targets.length} คนเรียบร้อย`:'ประกาศถึงทุกคนเรียบร้อย');
     renderAnnouncements();
