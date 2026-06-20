@@ -229,9 +229,10 @@ textarea{resize:vertical;min-height:64px}
 .payroll-item-type{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600;flex-shrink:0}
 .type-add{background:var(--green-l);color:var(--green-dd)}.type-ded{background:var(--red-l);color:var(--red-t)}
 /* CALENDAR */
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
-.cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:8px 0;letter-spacing:.04em}
-.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:10px;min-height:120px;padding:6px;display:flex;flex-direction:column;gap:3px;transition:.12s;position:relative}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:8px 0;letter-spacing:.04em;min-width:0;overflow:hidden}
+.dow-short{display:none}
+.cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:10px;min-height:120px;min-width:0;padding:6px;display:flex;flex-direction:column;gap:3px;transition:.12s;position:relative}
 .cal-cell.other-month{background:#FAFBFB;opacity:.5}
 .cal-cell.today{border-color:var(--green);border-width:2px;box-shadow:0 0 0 3px rgba(29,158,117,.08)}
 .cal-cell:hover{border-color:var(--border2)}
@@ -251,6 +252,9 @@ textarea{resize:vertical;min-height:64px}
   .cal-grid{gap:3px}
   .cal-shift{font-size:8px;padding:1px 3px}
   .cal-date{font-size:11px}
+  .cal-dow{font-size:10px;padding:5px 0;letter-spacing:0}
+  .dow-full{display:none}
+  .dow-short{display:inline}
 }
 /* Payroll per-person */
 .pr-person-select{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:1.5rem}
@@ -294,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.13.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.13.3</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -411,7 +415,7 @@ textarea{resize:vertical;min-height:64px}
         <button class="week-btn" onclick="scChangeMonth(-1)">&#8249;</button>
         <div class="week-lbl" id="sc-month-lbl" style="min-width:140px"></div>
         <button class="week-btn" onclick="scChangeMonth(1)">&#8250;</button>
-        <select id="sc-branch-filter" onchange="scBranchChanged()" style="width:auto;padding:7px 12px;font-size:13px;margin-left:8px">
+        <select id="sc-branch-filter" onchange="scBranchChanged()" oninput="scBranchChanged()" style="width:auto;padding:7px 12px;font-size:13px;margin-left:8px">
           <option value="all">ทุกสาขา</option>
           <option value="0">ทรัพย์พัฒนา</option>
           <option value="1">บางปู</option>
@@ -450,7 +454,7 @@ textarea{resize:vertical;min-height:64px}
 
     <div class="card" style="padding:1.25rem">
       <div class="cal-grid" id="sc-cal-dow" style="margin-bottom:6px">
-        <div class="cal-dow">จันทร์</div><div class="cal-dow">อังคาร</div><div class="cal-dow">พุธ</div><div class="cal-dow">พฤหัส</div><div class="cal-dow">ศุกร์</div><div class="cal-dow">เสาร์</div><div class="cal-dow">อาทิตย์</div>
+        <div class="cal-dow"><span class="dow-full">จันทร์</span><span class="dow-short">จ.</span></div><div class="cal-dow"><span class="dow-full">อังคาร</span><span class="dow-short">อ.</span></div><div class="cal-dow"><span class="dow-full">พุธ</span><span class="dow-short">พ.</span></div><div class="cal-dow"><span class="dow-full">พฤหัส</span><span class="dow-short">พฤ.</span></div><div class="cal-dow"><span class="dow-full">ศุกร์</span><span class="dow-short">ศ.</span></div><div class="cal-dow"><span class="dow-full">เสาร์</span><span class="dow-short">ส.</span></div><div class="cal-dow"><span class="dow-full">อาทิตย์</span><span class="dow-short">อา.</span></div>
       </div>
       <div class="cal-grid" id="sc-cal"></div>
     </div>
@@ -526,7 +530,7 @@ textarea{resize:vertical;min-height:64px}
   <div class="page" id="page-cash">
     <div class="topbar">
       <div><div class="page-title">เงินสด &amp; ตู้เซฟ</div><div class="page-sub">นับเงินสด เบิก-เติมเงินทอน แยกตามสาขา</div></div>
-      <select id="cash-branch" onchange="cashBranchChanged()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border2);font-family:var(--font);font-size:13px;background:var(--surface)"></select>
+      <select id="cash-branch" onchange="cashBranchChanged()" oninput="cashBranchChanged()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border2);font-family:var(--font);font-size:13px;background:var(--surface)"></select>
     </div>
     <div id="cash-content"></div>
   </div>
@@ -880,8 +884,10 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.13.1';
+const APP_VERSION='1.13.3';
 const CHANGELOG=[
+  {v:'1.13.3',date:'2026-06-20',changes:['แก้ปัญหาเปลี่ยนสาขาบนมือถือ (iPhone) ไม่ refresh — เพิ่ม oninput ให้ทำงานทันทีที่เลือก']},
+  {v:'1.13.2',date:'2026-06-20',changes:['แก้ปฏิทินบนมือถือ หัววัน (จ.อ.พ...) ตรงกับช่องวันที่พอดี ไม่ล้นขอบจอ']},
   {v:'1.13.1',date:'2026-06-20',changes:['เปลี่ยนสาขาในหน้าเงินสด & ตารางเวร โหลดข้อมูลใหม่อัตโนมัติ (auto-refresh)']},
   {v:'1.13.0',date:'2026-06-20',changes:['เพิ่มระบบเงินสด & ตู้เซฟ: นับเงินต้นวัน/ปลายวัน + เบิกเงินทอน (ทุกคน) + เติมเงิน (admin) + สรุปรวมทุกสาขา แยกตามสาขา มีประวัติครบ']},
   {v:'1.12.1',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเวลาเลิกงานด้วย (เริ่ม-เลิก เช่น 08:00-17:00) สมาชิกเห็นครบ']},
@@ -1676,12 +1682,18 @@ function shiftShortName(s){return s.tempName?s.tempName:memberShort(s.staffId);}
 function shiftFullName(s){return s.tempName?s.tempName+' (ชั่วคราว)':memberName(s.staffId);}
 
 // เปลี่ยนสาขาในตารางเวร → โหลดข้อมูลใหม่จาก cloud ก่อนแสดง (auto-refresh)
+let _scBranchBusy=false,_scLastBranch=null;
 window.scBranchChanged=async function(){
+  const cur=document.getElementById('sc-branch-filter')?.value;
+  // กันการยิงซ้ำ (onchange+oninput) ด้วยค่าเดิม
+  if(_scBranchBusy&&cur===_scLastBranch)return;
+  _scLastBranch=cur;_scBranchBusy=true;
   const grid=document.getElementById('sc-cal');
   if(grid)grid.style.opacity='0.5';
-  await Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]);
+  try{await Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]);}catch(e){}
   if(grid)grid.style.opacity='1';
   scRender();
+  _scBranchBusy=false;
 };
 
 function scRender(){
@@ -2288,12 +2300,17 @@ function renderCashPage(){
 }
 
 // เปลี่ยนสาขา → โหลดข้อมูลใหม่จาก cloud ก่อนแสดง (auto-refresh)
+let _cashBranchBusy=false,_cashLastBranch=null;
 window.cashBranchChanged=async function(){
+  const cur=document.getElementById('cash-branch')?.value;
+  if(_cashBranchBusy&&cur===_cashLastBranch)return;
+  _cashLastBranch=cur;_cashBranchBusy=true;
   const el=document.getElementById('cash-content');
   if(el)el.style.opacity='0.5';
-  await loadCashData();
+  try{await loadCashData();}catch(e){}
   if(el)el.style.opacity='1';
   renderCashPage();
+  _cashBranchBusy=false;
 };
 
 // เติมเงินเข้าตู้เซฟ (admin)
