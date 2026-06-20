@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.12.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.13.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -312,6 +312,9 @@ textarea{resize:vertical;min-height:64px}
     <div class="sb-sec">บัญชี</div>
     <button class="sb-item hidden" id="nav-sales" onclick="goto('sales')">
       <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>บันทึกยอดขาย
+    </button>
+    <button class="sb-item" id="nav-cash" onclick="goto('cash')">
+      <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>เงินสด &amp; ตู้เซฟ
     </button>
     <div class="sb-sec">สมาชิก</div>
     <button class="sb-item hidden" id="nav-members" onclick="goto('members')">
@@ -517,6 +520,15 @@ textarea{resize:vertical;min-height:64px}
       </div>
       <div id="mem-count" style="font-size:12px;color:var(--text3);margin-top:1rem;text-align:right"></div>
     </div>
+  </div>
+
+  <!-- CASH & SAFE (เงินสด & ตู้เซฟ) -->
+  <div class="page" id="page-cash">
+    <div class="topbar">
+      <div><div class="page-title">เงินสด &amp; ตู้เซฟ</div><div class="page-sub">นับเงินสด เบิก-เติมเงินทอน แยกตามสาขา</div></div>
+      <select id="cash-branch" onchange="renderCashPage()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border2);font-family:var(--font);font-size:13px;background:var(--surface)"></select>
+    </div>
+    <div id="cash-content"></div>
   </div>
 
   <!-- PAYROLL (admin) -->
@@ -868,8 +880,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.12.1';
+const APP_VERSION='1.13.0';
 const CHANGELOG=[
+  {v:'1.13.0',date:'2026-06-20',changes:['เพิ่มระบบเงินสด & ตู้เซฟ: นับเงินต้นวัน/ปลายวัน + เบิกเงินทอน (ทุกคน) + เติมเงิน (admin) + สรุปรวมทุกสาขา แยกตามสาขา มีประวัติครบ']},
   {v:'1.12.1',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเวลาเลิกงานด้วย (เริ่ม-เลิก เช่น 08:00-17:00) สมาชิกเห็นครบ']},
   {v:'1.12.0',date:'2026-06-18',changes:['จัดตารางอัตโนมัติให้พนักงานชั่วคราวได้ด้วย (ตั้งสาขา/เวลา/วันหยุดประจำ เหมือนสมาชิก)']},
   {v:'1.11.1',date:'2026-06-18',changes:['คอมพิวเตอร์: ปฏิทินเวรแสดงทุกคนในวันนั้นเลย ไม่มี "+เพิ่มเติม" (มือถือยังย่อเหมือนเดิม)']},
@@ -1154,6 +1167,7 @@ const PAGE_PERM={
   'dashboard':'dashboard_admin',
   'schedule':'schedule',
   'sales':'sales',
+  'cash':null,
   'members':'members',
   'payroll':'payroll_all',
   'my-payroll':'payroll_self',
@@ -1209,6 +1223,7 @@ window.goto=function(page){
   if(page==='dashboard'){dbRender();loadSalesFromCloud();}
   if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
+  if(page==='cash')loadCashPage();
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
@@ -2139,6 +2154,212 @@ window.scEditShift=function(sid){
 };
 window.scSaveEdit=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');if(s.tempName!==undefined){const tn=document.getElementById('m-tempname')?.value.trim();if(tn)s.tempName=tn;}saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
 window.scDel=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
+
+// ===== CASH & SAFE (เงินสด & ตู้เซฟเงินทอน) =====
+// cashbox: doc id = branch index (0/1/2) → {balance, updatedAt}
+// cashlogs: doc id = log_<ts>_<rand> → {branch, type:'add'|'withdraw', amount, by, byUid, at}
+// cashcounts: doc id = count_<ts>_<rand> → {branch, mode:'open'|'close', counted, expected, diff, by, byUid, at}
+let cashboxes={}; // {branchIdx: balance}
+let cashLogs=[];  // ประวัติเบิก-เติม
+let cashCounts=[];// ประวัตินับเงิน
+
+async function loadCashPage(){
+  // เติม dropdown สาขา
+  const sel=document.getElementById('cash-branch');
+  if(sel&&!sel.options.length){
+    sel.innerHTML=BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('');
+  }
+  await loadCashData();
+  renderCashPage();
+}
+
+async function loadCashData(){
+  try{
+    // โหลดยอดตู้เซฟทุกสาขา
+    const boxSnap=await getDocs(collection(db,'cashbox'));
+    cashboxes={};
+    boxSnap.docs.forEach(d=>{cashboxes[d.id]=d.data().balance||0;});
+    // โหลดประวัติเบิก-เติม (เรียงใหม่สุดก่อน)
+    const logSnap=await getDocs(query(collection(db,'cashlogs'),orderBy('at','desc')));
+    cashLogs=logSnap.docs.map(d=>({id:d.id,...d.data()}));
+    // โหลดประวัตินับเงิน
+    const cntSnap=await getDocs(query(collection(db,'cashcounts'),orderBy('at','desc')));
+    cashCounts=cntSnap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.error('loadCashData',e);}
+}
+
+function renderCashPage(){
+  const el=document.getElementById('cash-content');
+  if(!el)return;
+  const branch=parseInt(document.getElementById('cash-branch')?.value||'0');
+  const balance=cashboxes[branch]||0;
+
+  // ประวัติเบิก-เติมของสาขานี้ (10 ล่าสุด)
+  const branchLogs=cashLogs.filter(l=>l.branch===branch).slice(0,10);
+  // ประวัตินับเงินของสาขานี้ (5 ล่าสุด)
+  const branchCounts=cashCounts.filter(c=>c.branch===branch).slice(0,5);
+
+  // การ์ดยอดตู้เซฟ
+  let html=`<div style="background:linear-gradient(135deg,#066046,#16B981);border-radius:var(--rl);padding:1.5rem;color:#fff;margin-bottom:1.25rem">
+    <div style="font-size:13px;opacity:.85;margin-bottom:4px">💰 ยอดเงินในตู้เซฟ — ${BRANCHES[branch]}</div>
+    <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${balance.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+    <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
+      ${isAdmin?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="cashAddPrompt(${branch})">+ เติมเงิน</button>`:''}
+      <button class="btn btn-sm" style="background:rgba(255,255,255,.95);color:#066046;border:none;font-weight:700" onclick="cashWithdrawPrompt(${branch})">− เบิกเงินทอน</button>
+    </div>
+  </div>`;
+
+  // นับเงินสด
+  html+=`<div class="card" style="margin-bottom:1.25rem">
+    <div style="font-weight:600;font-size:15px;margin-bottom:2px">นับเงินสด</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">นับเงินในลิ้นชักต้นวัน/ปลายวัน แล้วบันทึก</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-primary" onclick="cashCountPrompt(${branch},'open')">📥 นับเงินต้นวัน</button>
+      <button class="btn btn-sm btn-blue" onclick="cashCountPrompt(${branch},'close')">📤 นับเงินปลายวัน</button>
+    </div>`;
+  if(branchCounts.length){
+    html+=`<div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">`;
+    branchCounts.forEach(c=>{
+      const d=new Date(c.at);
+      const dStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+      const diffColor=c.diff===0?'var(--text3)':(c.diff>0?'#0F8A63':'#C2410C');
+      const diffTxt=c.diff===0?'ตรงพอดี':(c.diff>0?`เกิน ฿${Math.abs(c.diff).toLocaleString()}`:`ขาด ฿${Math.abs(c.diff).toLocaleString()}`);
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:12.5px">
+        <span><span style="font-weight:600">${c.mode==='open'?'ต้นวัน':'ปลายวัน'}</span> · ${c.by} · ${dStr}</span>
+        <span style="color:${diffColor};font-weight:600">${diffTxt}</span>
+      </div>`;
+    });
+    html+=`</div>`;
+  }
+  html+=`</div>`;
+
+  // ประวัติเบิก-เติม
+  html+=`<div class="card" style="margin-bottom:1.25rem">
+    <div style="font-weight:600;font-size:15px;margin-bottom:1rem">ประวัติเบิก-เติมเงินทอน</div>`;
+  if(!branchLogs.length){
+    html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem">ยังไม่มีประวัติ</div>`;
+  }else{
+    branchLogs.forEach(l=>{
+      const d=new Date(l.at);
+      const dStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+      const isAdd=l.type==='add';
+      html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:30px;height:30px;border-radius:50%;background:${isAdd?'var(--green-l)':'#FCE8D5'};color:${isAdd?'#066046':'#C2410C'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px">${isAdd?'+':'−'}</span>
+          <div><div style="font-size:13px;font-weight:500">${isAdd?'เติมเงิน':'เบิกเงินทอน'}</div><div style="font-size:11px;color:var(--text3)">${l.by} · ${dStr}</div></div>
+        </div>
+        <span style="font-size:14px;font-weight:600;color:${isAdd?'#0F8A63':'#C2410C'}">${isAdd?'+':'−'}฿${(l.amount||0).toLocaleString()}</span>
+      </div>`;
+    });
+  }
+  html+=`</div>`;
+
+  // สรุปรวมทุกสาขา (admin)
+  if(isAdmin){
+    let grand=0;
+    const rows=BRANCHES.map((b,i)=>{
+      const bal=cashboxes[i]||0;grand+=bal;
+      return `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+        <span style="font-size:13px;font-weight:500"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${BCOLORS[i]};margin-right:7px"></span>${b}</span>
+        <span style="font-size:14px;font-weight:600">฿${bal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+      </div>`;
+    }).join('');
+    html+=`<div class="card" style="background:var(--purple-l);border:1px solid var(--purple-t)">
+      <div style="font-weight:600;font-size:15px;margin-bottom:1rem">📊 สรุปเงินตู้เซฟทุกสาขา (ผู้ดูแล)</div>
+      ${rows}
+      <div style="display:flex;justify-content:space-between;padding:12px 0 2px;margin-top:4px">
+        <span style="font-size:15px;font-weight:700">รวมทั้งหมด</span>
+        <span style="font-size:18px;font-weight:700;color:var(--purple-t)">฿${grand.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML=html;
+}
+
+// เติมเงินเข้าตู้เซฟ (admin)
+window.cashAddPrompt=function(branch){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  openModal(`<div class="modal-title">เติมเงินเข้าตู้เซฟ — ${BRANCHES[branch]}</div>
+    <div class="field"><label class="fl">จำนวนเงิน (บาท)</label><input type="number" id="cash-amount" inputmode="decimal" placeholder="0.00" style="font-size:20px;font-weight:600"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoAdd(${branch})">เติมเงิน</button></div>`);
+  setTimeout(()=>document.getElementById('cash-amount')?.focus(),100);
+};
+window.cashDoAdd=async function(branch){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const amount=parseFloat(document.getElementById('cash-amount').value);
+  if(!amount||amount<=0){showToast('กรุณาใส่จำนวนเงินให้ถูกต้อง','err');return;}
+  const newBal=(cashboxes[branch]||0)+amount;
+  try{
+    await setDoc(doc(db,'cashbox',String(branch)),{balance:newBal,updatedAt:new Date().toISOString()});
+    const ts=Date.now();
+    await setDoc(doc(db,'cashlogs',`log_${ts}_${Math.random().toString(36).slice(2,7)}`),{
+      branch,type:'add',amount,by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,at:new Date().toISOString()
+    });
+    cashboxes[branch]=newBal;
+    closeMD();
+    await loadCashData();renderCashPage();
+    showToast(`เติมเงิน ฿${amount.toLocaleString()} เรียบร้อย`);
+    logActivity('cash_add',`เติมเงินตู้เซฟ ${BRANCHES[branch]} ฿${amount.toLocaleString()}`);
+  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+};
+
+// เบิกเงินทอน (ทุกคน)
+window.cashWithdrawPrompt=function(branch){
+  const bal=cashboxes[branch]||0;
+  openModal(`<div class="modal-title">เบิกเงินทอน — ${BRANCHES[branch]}</div>
+    <div style="font-size:13px;color:var(--text2);margin-bottom:1rem">ยอดคงเหลือในตู้เซฟ: <b>฿${bal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</b></div>
+    <div class="field"><label class="fl">จำนวนเงินที่เบิก (บาท)</label><input type="number" id="cash-amount" inputmode="decimal" placeholder="0.00" style="font-size:20px;font-weight:600"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoWithdraw(${branch})">เบิกเงิน</button></div>`);
+  setTimeout(()=>document.getElementById('cash-amount')?.focus(),100);
+};
+window.cashDoWithdraw=async function(branch){
+  const amount=parseFloat(document.getElementById('cash-amount').value);
+  if(!amount||amount<=0){showToast('กรุณาใส่จำนวนเงินให้ถูกต้อง','err');return;}
+  const bal=cashboxes[branch]||0;
+  if(amount>bal){showToast(`เงินในตู้เซฟไม่พอ (มี ฿${bal.toLocaleString()})`,'err');return;}
+  const newBal=bal-amount;
+  try{
+    await setDoc(doc(db,'cashbox',String(branch)),{balance:newBal,updatedAt:new Date().toISOString()});
+    const ts=Date.now();
+    await setDoc(doc(db,'cashlogs',`log_${ts}_${Math.random().toString(36).slice(2,7)}`),{
+      branch,type:'withdraw',amount,by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,at:new Date().toISOString()
+    });
+    cashboxes[branch]=newBal;
+    closeMD();
+    await loadCashData();renderCashPage();
+    showToast(`เบิกเงินทอน ฿${amount.toLocaleString()} เรียบร้อย`);
+    logActivity('cash_withdraw',`เบิกเงินทอน ${BRANCHES[branch]} ฿${amount.toLocaleString()}`);
+  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+};
+
+// นับเงินสด (ทุกคน)
+window.cashCountPrompt=function(branch,mode){
+  openModal(`<div class="modal-title">นับเงินสด${mode==='open'?'ต้นวัน':'ปลายวัน'} — ${BRANCHES[branch]}</div>
+    <div class="field"><label class="fl">เงินที่นับได้จริง (บาท)</label><input type="number" id="cash-counted" inputmode="decimal" placeholder="0.00" style="font-size:20px;font-weight:600"></div>
+    <div class="field"><label class="fl">เงินที่ควรมี (บาท) — ถ้าทราบ</label><input type="number" id="cash-expected" inputmode="decimal" placeholder="ปล่อยว่างได้"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoCount(${branch},'${mode}')">บันทึก</button></div>`);
+  setTimeout(()=>document.getElementById('cash-counted')?.focus(),100);
+};
+window.cashDoCount=async function(branch,mode){
+  const counted=parseFloat(document.getElementById('cash-counted').value);
+  if(isNaN(counted)||counted<0){showToast('กรุณาใส่จำนวนเงินที่นับได้','err');return;}
+  const expRaw=document.getElementById('cash-expected').value;
+  const expected=expRaw===''?null:parseFloat(expRaw);
+  const diff=expected===null?0:(counted-expected);
+  try{
+    const ts=Date.now();
+    await setDoc(doc(db,'cashcounts',`count_${ts}_${Math.random().toString(36).slice(2,7)}`),{
+      branch,mode,counted,expected,diff,by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,at:new Date().toISOString()
+    });
+    closeMD();
+    await loadCashData();renderCashPage();
+    let msg=`บันทึกนับเงิน${mode==='open'?'ต้นวัน':'ปลายวัน'}แล้ว`;
+    if(expected!==null)msg+=diff===0?' · ตรงพอดี':(diff>0?` · เกิน ฿${Math.abs(diff).toLocaleString()}`:` · ขาด ฿${Math.abs(diff).toLocaleString()}`);
+    showToast(msg);
+    logActivity('cash_count',`นับเงิน${mode==='open'?'ต้นวัน':'ปลายวัน'} ${BRANCHES[branch]} ฿${counted.toLocaleString()}`);
+  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+};
 
 // ===== SALES =====
 let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''};
@@ -4368,7 +4589,10 @@ const ACTION_LABELS={
   checkin_edit:['แก้เวลาลงเวลา','#D4690E','✎'],
   schedule_generate:['สร้างตารางอัตโนมัติ','#0B5E66','⚙️'],
   leave_decide:['พิจารณาคำขอลา','#0F8A63','📋'],
-  announce:['ประกาศจากร้าน','#3C3489','📢']
+  announce:['ประกาศจากร้าน','#3C3489','📢'],
+  cash_add:['เติมเงินตู้เซฟ','#0F8A63','💵'],
+  cash_withdraw:['เบิกเงินทอน','#C2410C','💸'],
+  cash_count:['นับเงินสด','#1E63B5','🧮']
 };
 
 window.loadActivityLog=async function(){
