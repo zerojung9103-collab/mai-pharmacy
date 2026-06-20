@@ -298,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.15.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.15.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -884,8 +884,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.15.0';
+const APP_VERSION='1.15.1';
 const CHANGELOG=[
+  {v:'1.15.1',date:'2026-06-20',changes:['admin ลบประวัติเงินสดได้ (ลบทีละรายการ คำนวณยอดใหม่ให้อัตโนมัติ + ปุ่มล้างข้อมูลทดสอบทั้งหมด) — ไว้ตอนทดสอบโปรแกรม']},
   {v:'1.15.0',date:'2026-06-20',changes:['เพิ่มกระเป๋าเก็บเงิน (เงินขายสะสม แยกจากตู้เซฟ) — เก็บเงินทบไปเรื่อยๆ จนผู้ดูแลถอนไปฝาก + เพิ่มรายงานสรุป (Report) เงินสด: สรุปวันนี้/เดือนนี้ ยอดฝากรวม และประวัติละเอียดทุกรายการ แยกสาขา']},
   {v:'1.14.2',date:'2026-06-20',changes:['แก้ชื่อ-นามสกุลสมาชิกได้ในหน้าจัดการสมาชิก (ถ้าแก้ของตัวเอง ชื่อในแถบข้างอัปเดตทันที)']},
   {v:'1.14.1',date:'2026-06-20',changes:['เพิ่มสิทธิ์ขั้นสูงที่มอบให้สมาชิกได้ (Dashboard, จัดการเงินเดือนทุกคน, ดูประวัติลงเวลา, อนุมัติลา, ดูประวัติการใช้งาน, เติมเงินตู้เซฟ) — มอบให้หัวหน้า/ผู้จัดการได้']},
@@ -2323,7 +2324,10 @@ function renderCashPage(){
           <span style="width:30px;height:30px;border-radius:50%;background:${isAdd?'var(--green-l)':'#FCE8D5'};color:${isAdd?'#066046':'#C2410C'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px">${isAdd?'+':'−'}</span>
           <div><div style="font-size:13px;font-weight:500">${isAdd?'เติมเงิน':'เบิกเงินทอน'}</div><div style="font-size:11px;color:var(--text3)">${l.by} · ${dStr}</div></div>
         </div>
-        <span style="font-size:14px;font-weight:600;color:${isAdd?'#0F8A63':'#C2410C'}">${isAdd?'+':'−'}฿${(l.amount||0).toLocaleString()}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:14px;font-weight:600;color:${isAdd?'#0F8A63':'#C2410C'}">${isAdd?'+':'−'}฿${(l.amount||0).toLocaleString()}</span>
+          ${isAdmin?`<button onclick="cashDeleteLog('cashlogs','${l.id}')" title="ลบรายการนี้" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;font-size:15px">🗑️</button>`:''}
+        </div>
       </div>`;
     });
   }
@@ -2345,7 +2349,10 @@ function renderCashPage(){
           <span style="width:30px;height:30px;border-radius:50%;background:${isCollect?'var(--blue-l)':'#FCE8D5'};color:${isCollect?'#1E3A8A':'#C2410C'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px">${isCollect?'+':'−'}</span>
           <div><div style="font-size:13px;font-weight:500">${isCollect?'เก็บเงินขาย':'ถอนไปฝากธนาคาร'}</div><div style="font-size:11px;color:var(--text3)">${l.by} · ${dStr}</div></div>
         </div>
-        <span style="font-size:14px;font-weight:600;color:${isCollect?'#1E3A8A':'#C2410C'}">${isCollect?'+':'−'}฿${(l.amount||0).toLocaleString()}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:14px;font-weight:600;color:${isCollect?'#1E3A8A':'#C2410C'}">${isCollect?'+':'−'}฿${(l.amount||0).toLocaleString()}</span>
+          ${isAdmin?`<button onclick="cashDeleteLog('purselogs','${l.id}')" title="ลบรายการนี้" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;font-size:15px">🗑️</button>`:''}
+        </div>
       </div>`;
     });
   }
@@ -2353,6 +2360,11 @@ function renderCashPage(){
 
   // ปุ่มดู Report
   html+=`<button class="btn btn-blue" style="width:100%;margin-bottom:1.25rem;padding:12px" onclick="cashReportPrompt(${branch})">📊 ดูรายงานสรุป (Report)</button>`;
+
+  // ปุ่มล้างข้อมูลทดสอบ (admin)
+  if(isAdmin){
+    html+=`<button class="btn btn-danger" style="width:100%;margin-bottom:1.25rem;padding:10px;font-size:12.5px" onclick="cashClearTestPrompt()">🧹 ล้างข้อมูลทดสอบทั้งหมด (เริ่มใหม่)</button>`;
+  }
 
   // สรุปรวมทุกสาขา (admin) — ตู้เซฟ + กระเป๋า
   if(isAdmin){
@@ -2576,6 +2588,68 @@ window.cashReportPrompt=function(branch){
     <div style="font-weight:700;font-size:13px;margin-bottom:.5rem">ประวัติละเอียด (40 รายการล่าสุด)</div>
     <div style="max-height:300px;overflow-y:auto">${histHtml}</div>
     <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+};
+
+// ลบรายการเดียว (admin) — แล้วคำนวณยอดคงเหลือใหม่
+window.cashDeleteLog=async function(coll,id){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  if(!confirm('ลบรายการนี้? ระบบจะคำนวณยอดคงเหลือใหม่ให้อัตโนมัติ'))return;
+  try{
+    await deleteDoc(doc(db,coll,id));
+    await recalcCashBalances();
+    await loadCashData();renderCashPage();
+    showToast('ลบรายการแล้ว');
+  }catch(e){showToast('ลบไม่สำเร็จ','err');console.error(e);}
+};
+
+// คำนวณยอดคงเหลือใหม่จากประวัติที่เหลือ (ทุกสาขา)
+async function recalcCashBalances(){
+  // โหลดประวัติล่าสุด
+  const logSnap=await getDocs(collection(db,'cashlogs'));
+  const plogSnap=await getDocs(collection(db,'purselogs'));
+  const boxBal={},purseBal={};
+  for(let i=0;i<BRANCHES.length;i++){boxBal[i]=0;purseBal[i]=0;}
+  logSnap.docs.forEach(d=>{const l=d.data();const b=l.branch;if(b==null)return;boxBal[b]=(boxBal[b]||0)+(l.type==='add'?l.amount:-l.amount);});
+  plogSnap.docs.forEach(d=>{const l=d.data();const b=l.branch;if(b==null)return;purseBal[b]=(purseBal[b]||0)+(l.type==='collect'?l.amount:-l.amount);});
+  // เขียนยอดใหม่
+  for(let i=0;i<BRANCHES.length;i++){
+    await setDoc(doc(db,'cashbox',String(i)),{balance:boxBal[i]||0,updatedAt:new Date().toISOString()});
+    await setDoc(doc(db,'purse',String(i)),{balance:purseBal[i]||0,updatedAt:new Date().toISOString()});
+  }
+}
+
+// ล้างข้อมูลทดสอบทั้งหมด (admin)
+window.cashClearTestPrompt=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  openModal(`<div class="modal-title">🧹 ล้างข้อมูลทดสอบทั้งหมด</div>
+    <div style="background:#FEF2F2;border:1px solid #FCA5A5;border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:13px;color:#991B1B">
+      ⚠️ จะลบ <b>ทุกสาขา</b>: ประวัติเบิก-เติมตู้เซฟ, นับเงิน, เก็บ-ถอนกระเป๋า ทั้งหมด และตั้งยอดทุกตู้กลับเป็น ฿0<br><br>
+      <b>ลบแล้วกู้คืนไม่ได้</b> — ใช้เฉพาะตอนทดสอบโปรแกรมเท่านั้น
+    </div>
+    <div class="field"><label class="fl">พิมพ์คำว่า <b>ล้างข้อมูล</b> เพื่อยืนยัน</label><input type="text" id="clear-confirm" placeholder="ล้างข้อมูล"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-danger" onclick="cashClearTestDo()">ล้างข้อมูลทั้งหมด</button></div>`);
+};
+window.cashClearTestDo=async function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const conf=document.getElementById('clear-confirm')?.value.trim();
+  if(conf!=='ล้างข้อมูล'){showToast('พิมพ์คำยืนยันให้ถูกต้อง','err');return;}
+  try{
+    showToast('กำลังล้างข้อมูล...');
+    // ลบทุก doc ใน 3 collection ประวัติ
+    for(const coll of ['cashlogs','cashcounts','purselogs']){
+      const snap=await getDocs(collection(db,coll));
+      for(const d of snap.docs){await deleteDoc(doc(db,coll,d.id));}
+    }
+    // ตั้งยอดทุกตู้/กระเป๋ากลับเป็น 0
+    for(let i=0;i<BRANCHES.length;i++){
+      await setDoc(doc(db,'cashbox',String(i)),{balance:0,updatedAt:new Date().toISOString()});
+      await setDoc(doc(db,'purse',String(i)),{balance:0,updatedAt:new Date().toISOString()});
+    }
+    closeMD();
+    await loadCashData();renderCashPage();
+    showToast('ล้างข้อมูลทดสอบทั้งหมดเรียบร้อย');
+    logActivity('cash_clear','ล้างข้อมูลเงินสดทั้งหมด (ทดสอบ)');
+  }catch(e){showToast('ล้างข้อมูลไม่สำเร็จ','err');console.error(e);}
 };
 
 // ===== SALES =====
@@ -4830,7 +4904,8 @@ const ACTION_LABELS={
   cash_withdraw:['เบิกเงินทอน','#C2410C','💸'],
   cash_count:['นับเงินสด','#1E63B5','🧮'],
   purse_collect:['เก็บเงินขาย','#1E3A8A','💵'],
-  purse_deposit:['ถอนไปฝากธนาคาร','#C2410C','🏦']
+  purse_deposit:['ถอนไปฝากธนาคาร','#C2410C','🏦'],
+  cash_clear:['ล้างข้อมูลเงินสด','#A32D2D','🧹']
 };
 
 window.loadActivityLog=async function(){
