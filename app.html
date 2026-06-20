@@ -298,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.16.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.16.2</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -381,7 +381,15 @@ textarea{resize:vertical;min-height:64px}
 </nav>
 
 <main class="main">
+  <button id="home-back-btn" onclick="goto('home')" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);margin-bottom:1rem;box-shadow:var(--shadow)">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+    หน้าแรก
+  </button>
   <div id="alert-banner" style="display:none"></div>
+  <!-- HOME (เมนูรวม) -->
+  <div class="page" id="page-home">
+    <div id="home-content"></div>
+  </div>
   <!-- DASHBOARD -->
   <div class="page" id="page-dashboard">
     <div class="topbar">
@@ -680,6 +688,7 @@ textarea{resize:vertical;min-height:64px}
 
   <!-- CHECK-IN -->
   <div class="page" id="page-checkin">
+    <div class="topbar"><div><div class="page-title">เช็คอินเข้างาน</div><div class="page-sub">ลงเวลาเข้า-ออกงาน ต้องอยู่ในบริเวณร้าน</div></div></div>
     <div id="my-shifts-card"></div>
     <div id="checkin-status-card"></div>
     <div class="card" style="margin-top:1rem">
@@ -883,8 +892,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.16.1';
+const APP_VERSION='1.16.2';
 const CHANGELOG=[
+  {v:'1.16.2',date:'2026-06-20',changes:['เปิดแอปมาเจอหน้าแรกแบบเมนูรวม (น้องแคปซูล + การ์ดทุกฟีเจอร์ให้เลือก) + ปุ่มย้อนกลับหน้าแรกในทุกฟีเจอร์ + โหลดข้อมูลใหม่อัตโนมัติทุกครั้งที่เข้าฟีเจอร์']},
   {v:'1.16.1',date:'2026-06-20',changes:['ขัดเงาดีไซน์ทั้งแอป: แถบหัวมือถือ + แถบสถานะเปลี่ยนสีตามวัน · การ์ดมุมโค้งนุ่มขึ้น เงานวลขึ้น · หน้า login มีน้องแคปซูล ให้แบรนด์เชื่อมกันทั้งแอป']},
   {v:'1.16.0',date:'2026-06-20',changes:['ปรับโฉมหน้าแรกใหม่: เพิ่มน้องแคปซูล (มาสคอตเภสัช) ที่เปลี่ยนสีตามสีประจำวัน + การ์ดเมนูลัดใหญ่ + ทักทายตามเวลา หน้าตาทันสมัยน่าใช้ขึ้น']},
   {v:'1.15.1',date:'2026-06-20',changes:['admin ลบประวัติเงินสดได้ (ลบทีละรายการ คำนวณยอดใหม่ให้อัตโนมัติ + ปุ่มล้างข้อมูลทดสอบทั้งหมด) — ไว้ตอนทดสอบโปรแกรม']},
@@ -1138,9 +1148,8 @@ function buildNav(){
   // โหลด member bdays สำหรับตารางเวร
   loadMemberBdays();
   buildBottomNav();
-  // ไปหน้าแรกที่มีสิทธิ์
-  const first=document.querySelector('.sb-item:not(.hidden)');
-  if(first){const pg=first.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];if(pg)goto(pg);}
+  // เปิดแอปมาที่หน้าแรก (เมนูรวม) เสมอ
+  goto('home');
 }
 
 // สร้าง Bottom Nav (มือถือ) — เลือกหน้าสำคัญสูงสุด 5 หน้า
@@ -1157,11 +1166,13 @@ function buildBottomNav(){
     articles:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
     settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
   };
-  const lbl={dashboard:'ภาพรวม',checkin:'ลงเวลา',schedule:'ตารางเวร',sales:'ยอดขาย','my-payroll':'เงินเดือน',members:'สมาชิก',articles:'บทความ',settings:'ตั้งค่า'};
-  // ลำดับความสำคัญ
+  const lbl={home:'หน้าแรก',dashboard:'ภาพรวม',checkin:'ลงเวลา',schedule:'ตารางเวร',sales:'ยอดขาย',cash:'เงินสด','my-payroll':'เงินเดือน',members:'สมาชิก',articles:'บทความ',settings:'ตั้งค่า'};
+  ic.home='<path d="M3 9.5L12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/>';
+  ic.cash='<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/>';
+  // ลำดับความสำคัญ (หน้าแรกมาก่อนเสมอ)
   let candidates=isAdmin
-    ? ['dashboard','checkin','schedule','sales','settings']
-    : ['checkin','schedule','my-payroll','articles','settings'];
+    ? ['home','checkin','schedule','cash','settings']
+    : ['home','checkin','schedule','my-payroll','settings'];
   // กรองเฉพาะหน้าที่เข้าถึงได้
   candidates=candidates.filter(p=>canAccessPage(p)).slice(0,5);
   nav.innerHTML=candidates.map(p=>`<button class="bn-item" data-page="${p}" onclick="goto('${p}')">
@@ -1253,6 +1264,7 @@ window.closeSidebar=function(){
 
 // ===== PERMISSION MAP =====
 const PAGE_PERM={
+  'home':null,
   'dashboard':'dashboard_admin',
   'schedule':'schedule',
   'sales':'sales',
@@ -1305,6 +1317,10 @@ window.goto=function(page){
   // sync bottom nav
   document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
   if(typeof window.scrollTo==='function')window.scrollTo({top:0,behavior:'smooth'});
+  // ปุ่มย้อนกลับหน้าแรก (แสดงทุกหน้ายกเว้นหน้าแรก)
+  const backBtn=document.getElementById('home-back-btn');
+  if(backBtn)backBtn.style.display=(page==='home')?'none':'inline-flex';
+  if(page==='home')renderHome();
   if(page==='dashboard'){dbRender();loadSalesFromCloud();}
   if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
@@ -1325,7 +1341,7 @@ window.goto=function(page){
 };
 
 // ===== ปุ่มรีเฟรช (โหลดข้อมูลใหม่จาก cloud สำหรับหน้าปัจจุบัน) =====
-let currentPage='dashboard';
+let currentPage='home';
 window.refreshCurrentPage=async function(){
   const btn=document.getElementById('refresh-fab');
   if(btn)btn.classList.add('spinning');
@@ -3920,27 +3936,22 @@ function distanceM(lat1,lng1,lat2,lng2){
 function todayCheckinId(){return `${currentUser?.uid}_${todayStr()}`;}
 
 // แสดงเวรของฉัน (วันนี้ + 7 วันข้างหน้า) บนหน้าแรกที่เปิดมา
-function renderMyShifts(){
-  const el=document.getElementById('my-shifts-card');
+// ===== หน้าแรก (เมนูรวม Hub) =====
+function renderHome(){
+  const el=document.getElementById('home-content');
   if(!el||!currentUser)return;
-  const today=todayStr();
   const dc=todayColor();
-  // เวรของฉันตั้งแต่วันนี้ไป 7 วัน
-  const myUpcoming=shifts.filter(s=>s.staffId===currentUser.uid&&s.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
-  const todayShift=myUpcoming.find(s=>s.date===today);
-  const future=myUpcoming.filter(s=>s.date>today).slice(0,5);
-
-  // ทักทายตามเวลา
   const hr=new Date().getHours();
   const greet=hr<12?'สวัสดีตอนเช้า':hr<17?'สวัสดีตอนบ่าย':'สวัสดีตอนเย็น';
   const myName=profile?.nickname||profile?.firstName||'คุณ';
-  // ข้อความน้องแคปซูล
+  const today=todayStr();
+  const todayShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
   let bubble;
   if(todayShift)bubble=`วันนี้มีเวร ${todayShift.start} น.<br>อย่าลืมเช็คอินนะครับ! 💊`;
-  else bubble=`วันนี้วัน${dc.name} สีประจำวันคือสีนี้<br>ขอให้เป็นวันที่ดีนะครับ! 💊`;
+  else bubble=`วันนี้วัน${dc.name} ขอให้เป็น<br>วันที่ดีนะครับ! 💊`;
 
-  // การ์ดต้อนรับ + น้องแคปซูล (หัว gradient สีประจำวัน)
-  const welcomeHtml=`<div style="background:linear-gradient(160deg,${dc.grad[0]},${dc.grad[1]} 55%,${dc.grad[2]});border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:1rem;position:relative;overflow:hidden">
+  // การ์ดต้อนรับ + น้องแคปซูล
+  let html=`<div style="background:linear-gradient(160deg,${dc.grad[0]},${dc.grad[1]} 55%,${dc.grad[2]});border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:1.25rem">
     <div style="display:flex;align-items:center;gap:12px">
       <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600">${myName.charAt(0)}</div>
       <div style="flex:1;min-width:0">
@@ -3956,24 +3967,52 @@ function renderMyShifts(){
     </div>
   </div>`;
 
-  // เมนูลัด (การ์ดใหญ่)
-  const quickItems=[
-    {page:'schedule',icon:'📅',label:'ตารางเวร',show:isAdmin||hasPerm('schedule')},
-    {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',show:true},
-    {page:'sales',icon:'📊',label:'บันทึกยอดขาย',show:isAdmin||hasPerm('sales')},
-    {page:'leave',icon:'🌴',label:'ขอลา',show:true},
-    {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',show:isAdmin||hasPerm('payroll_self')},
-    {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',show:isAdmin||hasPerm('dashboard_admin')},
-  ].filter(x=>x.show).slice(0,4);
-  let quickHtml='';
-  if(quickItems.length){
-    quickHtml=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:1rem">
-      ${quickItems.map(q=>`<button onclick="goto('${q.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.1rem 1rem;box-shadow:var(--shadow);min-height:96px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.15s" ontouchstart="" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-        <span style="font-size:26px">${q.icon}</span>
-        <span style="font-size:14px;font-weight:600;color:var(--text)">${q.label}</span>
-      </button>`).join('')}
+  // การ์ดเวรวันนี้ (ถ้ามี)
+  if(todayShift){
+    html+=`<div style="background:linear-gradient(135deg,#085041,#1D9E75);border-radius:var(--rl);padding:1rem 1.25rem;color:#fff;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div><div style="font-size:11px;opacity:.85">📅 เวรของคุณวันนี้</div><div style="font-size:20px;font-weight:700">${todayShift.start} - ${todayShift.end}</div></div>
+      <div style="background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600">📍 ${BRANCHES[todayShift.branch]}</div>
     </div>`;
   }
+
+  // เมนูฟีเจอร์ทั้งหมด (ตามสิทธิ์)
+  const allFeatures=[
+    {page:'checkin',icon:'📍',label:'ลงเวลา',color:'#16B981',show:true},
+    {page:'schedule',icon:'📅',label:'ตารางเวร',color:'#3B8EEA',show:isAdmin||hasPerm('schedule')},
+    {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',show:true},
+    {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',show:isAdmin||hasPerm('sales')},
+    {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',color:'#EC4899',show:isAdmin||hasPerm('dashboard_admin')},
+    {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',show:true},
+    {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',show:isAdmin||hasPerm('payroll_self')},
+    {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',show:isAdmin||hasPerm('payroll_all')},
+    {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',show:isAdmin||hasPerm('members')},
+    {page:'checkin-history',icon:'🕐',label:'ประวัติลงเวลา',color:'#534AB7',show:isAdmin||hasPerm('checkin_all')},
+    {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',show:isAdmin||hasPerm('leave_admin')},
+    {page:'activity',icon:'📜',label:'ประวัติใช้งาน',color:'#888780',show:isAdmin||hasPerm('activity_admin')},
+    {page:'articles',icon:'📖',label:'บทความ',color:'#D4537E',show:true},
+    {page:'dosecalc',icon:'💊',label:'คำนวณยา',color:'#639922',show:true},
+    {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',show:true},
+  ].filter(x=>x.show);
+
+  html+=`<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:.75rem;padding-left:2px">เมนูทั้งหมด</div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+    ${allFeatures.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.1rem 1rem;box-shadow:var(--shadow);min-height:94px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <span style="width:42px;height:42px;border-radius:12px;background:${f.color}1A;display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
+      <span style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
+    </button>`).join('')}
+  </div>`;
+
+  el.innerHTML=html;
+}
+
+function renderMyShifts(){
+  const el=document.getElementById('my-shifts-card');
+  if(!el||!currentUser)return;
+  const today=todayStr();
+  // เวรของฉันตั้งแต่วันนี้ไป 7 วัน
+  const myUpcoming=shifts.filter(s=>s.staffId===currentUser.uid&&s.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
+  const todayShift=myUpcoming.find(s=>s.date===today);
+  const future=myUpcoming.filter(s=>s.date>today).slice(0,5);
 
   // การ์ดเวรวันนี้ (เด่น)
   let todayHtml;
@@ -4008,7 +4047,7 @@ function renderMyShifts(){
       }).join('')}
     </div>`;
   }
-  el.innerHTML=`<div style="margin-bottom:1rem">${welcomeHtml}${quickHtml}${todayHtml}${futureHtml}</div>`;
+  el.innerHTML=`<div style="margin-bottom:1rem">${todayHtml}${futureHtml}</div>`;
 }
 
 async function renderCheckinPage(){
