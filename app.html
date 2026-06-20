@@ -298,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.16.2</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.17.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -655,8 +655,16 @@ textarea{resize:vertical;min-height:64px}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
       <div class="card" id="announce-card" style="grid-column:1/-1;display:none">
-        <div class="card-title">📢 ประกาศจากร้าน</div>
-        <div class="card-sub">ประกาศจะเด้งแจ้งเตือนพนักงานทุกคนเมื่อเปิดแอป</div>
+        <div class="card-title">📢 ประกาศผ่านน้องแคปซูล</div>
+        <div class="card-sub">น้องแคปซูลจะส่งข้อความนี้ถึงสมาชิก (เด้งเตือนเมื่อเปิดแอป)</div>
+        <div class="field" style="margin-bottom:.75rem">
+          <label class="fl">ส่งถึงใคร</label>
+          <select id="announce-target" onchange="announceTargetChanged()">
+            <option value="all">ทุกคน</option>
+            <option value="some">เลือกเฉพาะบางคน</option>
+          </select>
+        </div>
+        <div id="announce-people" style="display:none;margin-bottom:.75rem;border:1px solid var(--border);border-radius:10px;padding:10px;max-height:180px;overflow-y:auto"></div>
         <div style="display:flex;gap:8px;margin-bottom:1rem">
           <input type="text" id="new-announce" placeholder="พิมพ์ข้อความประกาศ เช่น พรุ่งนี้ร้านปิด 18:00" style="flex:1" maxlength="200">
           <button class="btn btn-primary btn-sm" onclick="postAnnouncement()">📢 ประกาศ</button>
@@ -892,8 +900,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.16.2';
+const APP_VERSION='1.17.0';
 const CHANGELOG=[
+  {v:'1.17.0',date:'2026-06-20',changes:['น้องแคปซูลพูดกวนๆ แบบ "ข้า-เจ้า" (สุ่มข้อความตามเวลา/เวร) + ระบบประกาศผ่านน้องแคปซูล: admin/ผู้มีสิทธิ์ส่งถึงทุกคนหรือเลือกเฉพาะบางคนได้ (ตอนประกาศน้องจะพูดจริงจัง)']},
   {v:'1.16.2',date:'2026-06-20',changes:['เปิดแอปมาเจอหน้าแรกแบบเมนูรวม (น้องแคปซูล + การ์ดทุกฟีเจอร์ให้เลือก) + ปุ่มย้อนกลับหน้าแรกในทุกฟีเจอร์ + โหลดข้อมูลใหม่อัตโนมัติทุกครั้งที่เข้าฟีเจอร์']},
   {v:'1.16.1',date:'2026-06-20',changes:['ขัดเงาดีไซน์ทั้งแอป: แถบหัวมือถือ + แถบสถานะเปลี่ยนสีตามวัน · การ์ดมุมโค้งนุ่มขึ้น เงานวลขึ้น · หน้า login มีน้องแคปซูล ให้แบรนด์เชื่อมกันทั้งแอป']},
   {v:'1.16.0',date:'2026-06-20',changes:['ปรับโฉมหน้าแรกใหม่: เพิ่มน้องแคปซูล (มาสคอตเภสัช) ที่เปลี่ยนสีตามสีประจำวัน + การ์ดเมนูลัดใหญ่ + ทักทายตามเวลา หน้าตาทันสมัยน่าใช้ขึ้น']},
@@ -979,6 +988,49 @@ function capsuleMascot(size,color){
     <circle cx="64" cy="47" r="3" fill="#FF9EB1" opacity=".55"/>
   </svg>`;
 }
+
+// ===== ข้อความน้องแคปซูล (กวนๆ แข็งๆ ตลกๆ เรียกตัวเอง "ข้า" เรียก user "เจ้า") =====
+function capsuleSays(todayShift){
+  const dc=todayColor();
+  const hr=new Date().getHours();
+  // ทักทายตามเวลา
+  const morning=[
+    'อรุณสวัสดิ์เจ้า ข้าเฝ้าร้านมาทั้งคืน เจ้าเพิ่งโผล่มาเนี่ยนะ',
+    'เช้าแล้วเจ้า ลุกขึ้นมาทำมาหากินซะ ข้าหิวข้าวแทนเจ้าเลย',
+    'เจ้ามาแต่เช้าเชียว ข้าเริ่มเกรงใจในความขยันของเจ้าแล้ว'
+  ];
+  const afternoon=[
+    'บ่ายแล้วเจ้า ง่วงรึยัง ข้านี่แทบหลับคาเคาน์เตอร์',
+    'เที่ยงวันแสกๆ เจ้ากินข้าวรึยัง ข้าไม่อยากได้ยินเสียงท้องเจ้าร้อง',
+    'บ่ายโมงแล้วเจ้า อย่ามัวอู้ ข้าจับตาดูอยู่นะ'
+  ];
+  const evening=[
+    'เย็นแล้วเจ้า ใกล้ได้กลับบ้านแล้ว อดทนอีกนิดนะเจ้า',
+    'ค่ำแล้วเจ้า วันนี้เหนื่อยไหม ข้าก็เหนื่อย... แต่ข้ายืนเฉยๆ',
+    'เย็นย่ำแล้วเจ้า เก็บร้านให้เรียบร้อยล่ะ ข้าจะได้พักสายตา'
+  ];
+  // ถ้ามีเวรวันนี้
+  if(todayShift){
+    const shiftMsgs=[
+      `วันนี้เจ้ามีเวร ${todayShift.start} น. เช็คอินซะ อย่าให้ข้าต้องทวง`,
+      `เวรเจ้าเริ่ม ${todayShift.start} น. นะ ข้าจดไว้แล้ว หนีไม่พ้นข้าหรอก`,
+      `${todayShift.start} น. เจ้าต้องเข้าเวร ข้าเตือนแล้วนะ อย่ามาบอกว่าลืม`
+    ];
+    return shiftMsgs[Math.floor(Math.random()*shiftMsgs.length)];
+  }
+  // สุ่มข้อความกวนๆ ทั่วไป
+  const general=[
+    'เจ้ามาแล้วหรือ ข้าเฝ้าร้านจนจะเป็นสนิมอยู่แล้ว',
+    'ขยันนักนะเจ้า ข้าเริ่มเกรงใจแล้วเนี่ย',
+    'วันนี้ยอดขายต้องพุ่ง ข้าสั่งได้... แค่ขอนะ',
+    `วันนี้วัน${dc.name} สีประจำตัวข้าคือสีนี้ สวยไหมล่ะเจ้า`,
+    'เจ้าทำงานไป ข้าเฝ้ามองอยู่ตรงนี้ อย่าทำตัวแปลกๆ ล่ะ',
+    'เหนื่อยก็พักได้นะเจ้า แต่อย่าพักนานจนข้าเหงา'
+  ];
+  const pool=hr<12?morning:hr<17?afternoon:evening;
+  const all=pool.concat(general);
+  return all[Math.floor(Math.random()*all.length)];
+}
 const PERM_LABELS={
   schedule:'ดู/แก้ไขตารางเวร',
   sales:'บันทึกยอดขาย',
@@ -989,7 +1041,8 @@ const PERM_LABELS={
   checkin_all:'ดูประวัติลงเวลาทุกคน',
   leave_admin:'อนุมัติคำขอลา',
   activity_admin:'ดูประวัติการใช้งาน',
-  cash_refill:'เติมเงินเข้าตู้เซฟ'
+  cash_refill:'เติมเงินเข้าตู้เซฟ',
+  announce:'ประกาศผ่านน้องแคปซูล'
 };
 
 // ===== LOCAL DATA =====
@@ -3946,9 +3999,14 @@ function renderHome(){
   const myName=profile?.nickname||profile?.firstName||'คุณ';
   const today=todayStr();
   const todayShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
-  let bubble;
-  if(todayShift)bubble=`วันนี้มีเวร ${todayShift.start} น.<br>อย่าลืมเช็คอินนะครับ! 💊`;
-  else bubble=`วันนี้วัน${dc.name} ขอให้เป็น<br>วันที่ดีนะครับ! 💊`;
+  // ข้อความน้องแคปซูล — ถ้ามีประกาศจริงจัง แสดงประกาศ (โทนจริงจัง) ไม่งั้นกวนๆ
+  let bubble,bubbleSerious=false;
+  if(window._activeAnnounce){
+    bubble=`📢 <b>ประกาศ:</b> ${window._activeAnnounce}`;
+    bubbleSerious=true;
+  }else{
+    bubble=capsuleSays(todayShift);
+  }
 
   // การ์ดต้อนรับ + น้องแคปซูล
   let html=`<div style="background:linear-gradient(160deg,${dc.grad[0]},${dc.grad[1]} 55%,${dc.grad[2]});border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:1.25rem">
@@ -3961,8 +4019,8 @@ function renderHome(){
     </div>
     <div style="display:flex;align-items:center;gap:12px;margin-top:1rem">
       ${capsuleMascot(76,dc.main)}
-      <div style="background:rgba(255,255,255,.95);border-radius:16px;border-bottom-left-radius:4px;padding:10px 14px;flex:1">
-        <div style="font-size:12.5px;color:${dc.dark};font-weight:500;line-height:1.5">${bubble}</div>
+      <div style="background:rgba(255,255,255,.95);border-radius:16px;border-bottom-left-radius:4px;padding:10px 14px;flex:1${bubbleSerious?';border:2px solid #fff':''}">
+        <div style="font-size:12.5px;color:${bubbleSerious?'#7A1F1F':dc.dark};font-weight:500;line-height:1.5">${bubble}</div>
       </div>
     </div>
   </div>`;
@@ -4608,12 +4666,19 @@ async function checkNotifications(){
       }catch(e){}
     }
 
-    // ===== ประกาศจากร้าน (ทุกคนเห็น) =====
+    // ===== ประกาศจากร้าน (ทุกคน หรือ เฉพาะคน) =====
     try{
       const seenAnnKey='nm_seen_ann_'+currentUser.uid;
       const lastSeenAnn=localStorage.getItem(seenAnnKey)||'';
       const annSnap=await getDocs(collection(db,'announcements'));
-      const newAnns=annSnap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.at&&a.at>lastSeenAnn&&a.active!==false).sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+      const allAnns=annSnap.docs.map(d=>({id:d.id,...d.data()}))
+        .filter(a=>a.active!==false)
+        // เลือกเฉพาะที่ส่งถึงเรา (ทุกคน หรือ uid เราอยู่ในรายชื่อ)
+        .filter(a=>!a.targets||a.targets.length===0||a.targets.includes(currentUser.uid))
+        .sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+      // เก็บประกาศล่าสุดให้น้องแคปซูลพูด (หน้าแรก)
+      window._activeAnnounce=allAnns.length?allAnns[0].text:null;
+      const newAnns=allAnns.filter(a=>a.at&&a.at>lastSeenAnn);
       newAnns.slice(0,3).forEach(a=>{
         alerts.push({color:'purple',icon:'📢',text:`ประกาศ: ${a.text}`,action:`<button class="btn btn-sm" onclick="markAnnSeen()" style="margin-left:auto">รับทราบ</button>`});
       });
@@ -4656,33 +4721,65 @@ window.markAnnSeen=function(){localStorage.setItem('nm_seen_ann_'+currentUser.ui
 // ===== ประกาศจากร้าน (admin) =====
 window.renderAnnouncements=async function(){
   const card=document.getElementById('announce-card');
-  if(card)card.style.display=isAdmin?'':'none';
-  if(!isAdmin)return;
+  const canAnnounce=isAdmin||hasPerm('announce');
+  if(card)card.style.display=canAnnounce?'':'none';
+  if(!canAnnounce)return;
+  // โหลดสมาชิกไว้สำหรับเลือกผู้รับ (ถ้ายังไม่มี)
+  if(!allMembers.length){try{const ms=await getDocs(collection(db,'members'));allMembers=ms.docs.map(d=>({...d.data(),uid:d.id}));}catch(e){}}
   const el=document.getElementById('announce-list');
   if(!el)return;
   try{
     const snap=await getDocs(collection(db,'announcements'));
     const list=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||''));
     if(!list.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:1rem">ยังไม่มีประกาศ</div>';return;}
-    el.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">ประกาศที่ผ่านมา</div>'+list.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--purple-l);border-radius:10px;margin-bottom:6px">
+    el.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">ประกาศที่ผ่านมา</div>'+list.map(a=>{
+      const tgtTxt=(!a.targets||a.targets.length===0)?'ทุกคน':`เฉพาะ ${a.targets.length} คน`;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--purple-l);border-radius:10px;margin-bottom:6px">
       <span style="font-size:16px">📢</span>
-      <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--purple-t)">${a.text}</div><div style="font-size:11px;color:var(--text3)">${a.at?new Date(a.at).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''} • โดย ${a.by||'-'}</div></div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--purple-t)">${a.text}</div><div style="font-size:11px;color:var(--text3)">${a.at?new Date(a.at).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):''} • ${tgtTxt} • โดย ${a.by||'-'}</div></div>
       <button class="btn btn-sm btn-danger" style="padding:3px 8px" onclick="deleteAnnouncement('${a.id}')">ลบ</button>
-    </div>`).join('');
+    </div>`;}).join('');
   }catch(e){el.innerHTML=`<div style="font-size:12px;color:var(--red-t)">${e.message}</div>`;}
 };
 
+window.announceTargetChanged=function(){
+  const mode=document.getElementById('announce-target').value;
+  const box=document.getElementById('announce-people');
+  if(!box)return;
+  if(mode==='some'){
+    box.style.display='block';
+    // แสดงรายชื่อสมาชิกให้ติ๊กเลือก
+    const people=allMembers.filter(m=>m.status!=='inactive');
+    box.innerHTML=people.length?people.map(m=>{
+      const nm=`${m.firstName||''} ${m.lastName||''}`.trim()||m.email;
+      return `<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;font-size:13px"><input type="checkbox" class="ann-person" value="${m.uid}" style="width:16px;height:16px"> ${nm}</label>`;
+    }).join(''):'<div style="font-size:12px;color:var(--text3)">ยังไม่มีสมาชิก</div>';
+  }else{
+    box.style.display='none';
+  }
+};
+
 window.postAnnouncement=async function(){
-  if(!isAdmin)return;
+  if(!isAdmin&&!hasPerm('announce')){showToast('ไม่มีสิทธิ์ประกาศ','err');return;}
   const inp=document.getElementById('new-announce');
   const text=inp.value.trim();
   if(!text){showToast('กรุณาพิมพ์ข้อความ','err');return;}
+  // เป้าหมาย
+  let targets=[];
+  const mode=document.getElementById('announce-target')?.value||'all';
+  if(mode==='some'){
+    targets=[...document.querySelectorAll('.ann-person:checked')].map(c=>c.value);
+    if(!targets.length){showToast('กรุณาเลือกผู้รับอย่างน้อย 1 คน','err');return;}
+  }
   try{
     const id='ann_'+Date.now();
     const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin';
-    await setDoc(doc(db,'announcements',id),{text,at:new Date().toISOString(),by:name,byUid:currentUser.uid,active:true});
-    logActivity('announce',`ประกาศ: ${text}`);
-    inp.value='';showToast('ประกาศเรียบร้อย พนักงานจะเห็นเมื่อเปิดแอป');
+    await setDoc(doc(db,'announcements',id),{text,targets,at:new Date().toISOString(),by:name,byUid:currentUser.uid,active:true});
+    logActivity('announce',`ประกาศ${targets.length?` (เฉพาะ ${targets.length} คน)`:' (ทุกคน)'}: ${text}`);
+    inp.value='';
+    // reset เลือกคน
+    document.querySelectorAll('.ann-person:checked').forEach(c=>c.checked=false);
+    showToast(targets.length?`ประกาศถึง ${targets.length} คนเรียบร้อย`:'ประกาศถึงทุกคนเรียบร้อย');
     renderAnnouncements();
   }catch(e){showToast('ประกาศไม่สำเร็จ: '+e.message,'err');}
 };
