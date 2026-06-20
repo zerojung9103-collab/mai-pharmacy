@@ -294,7 +294,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.13.0</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.13.1</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -411,7 +411,7 @@ textarea{resize:vertical;min-height:64px}
         <button class="week-btn" onclick="scChangeMonth(-1)">&#8249;</button>
         <div class="week-lbl" id="sc-month-lbl" style="min-width:140px"></div>
         <button class="week-btn" onclick="scChangeMonth(1)">&#8250;</button>
-        <select id="sc-branch-filter" onchange="scRender()" style="width:auto;padding:7px 12px;font-size:13px;margin-left:8px">
+        <select id="sc-branch-filter" onchange="scBranchChanged()" style="width:auto;padding:7px 12px;font-size:13px;margin-left:8px">
           <option value="all">ทุกสาขา</option>
           <option value="0">ทรัพย์พัฒนา</option>
           <option value="1">บางปู</option>
@@ -526,7 +526,7 @@ textarea{resize:vertical;min-height:64px}
   <div class="page" id="page-cash">
     <div class="topbar">
       <div><div class="page-title">เงินสด &amp; ตู้เซฟ</div><div class="page-sub">นับเงินสด เบิก-เติมเงินทอน แยกตามสาขา</div></div>
-      <select id="cash-branch" onchange="renderCashPage()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border2);font-family:var(--font);font-size:13px;background:var(--surface)"></select>
+      <select id="cash-branch" onchange="cashBranchChanged()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border2);font-family:var(--font);font-size:13px;background:var(--surface)"></select>
     </div>
     <div id="cash-content"></div>
   </div>
@@ -880,8 +880,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.13.0';
+const APP_VERSION='1.13.1';
 const CHANGELOG=[
+  {v:'1.13.1',date:'2026-06-20',changes:['เปลี่ยนสาขาในหน้าเงินสด & ตารางเวร โหลดข้อมูลใหม่อัตโนมัติ (auto-refresh)']},
   {v:'1.13.0',date:'2026-06-20',changes:['เพิ่มระบบเงินสด & ตู้เซฟ: นับเงินต้นวัน/ปลายวัน + เบิกเงินทอน (ทุกคน) + เติมเงิน (admin) + สรุปรวมทุกสาขา แยกตามสาขา มีประวัติครบ']},
   {v:'1.12.1',date:'2026-06-18',changes:['ปฏิทินเวรแสดงเวลาเลิกงานด้วย (เริ่ม-เลิก เช่น 08:00-17:00) สมาชิกเห็นครบ']},
   {v:'1.12.0',date:'2026-06-18',changes:['จัดตารางอัตโนมัติให้พนักงานชั่วคราวได้ด้วย (ตั้งสาขา/เวลา/วันหยุดประจำ เหมือนสมาชิก)']},
@@ -1674,6 +1675,15 @@ function memberShort(uid){
 function shiftShortName(s){return s.tempName?s.tempName:memberShort(s.staffId);}
 function shiftFullName(s){return s.tempName?s.tempName+' (ชั่วคราว)':memberName(s.staffId);}
 
+// เปลี่ยนสาขาในตารางเวร → โหลดข้อมูลใหม่จาก cloud ก่อนแสดง (auto-refresh)
+window.scBranchChanged=async function(){
+  const grid=document.getElementById('sc-cal');
+  if(grid)grid.style.opacity='0.5';
+  await Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]);
+  if(grid)grid.style.opacity='1';
+  scRender();
+};
+
 function scRender(){
   const canEdit=isAdmin;
   const autoBtn=document.getElementById('sc-auto-btn');
@@ -2276,6 +2286,15 @@ function renderCashPage(){
 
   el.innerHTML=html;
 }
+
+// เปลี่ยนสาขา → โหลดข้อมูลใหม่จาก cloud ก่อนแสดง (auto-refresh)
+window.cashBranchChanged=async function(){
+  const el=document.getElementById('cash-content');
+  if(el)el.style.opacity='0.5';
+  await loadCashData();
+  if(el)el.style.opacity='1';
+  renderCashPage();
+};
 
 // เติมเงินเข้าตู้เซฟ (admin)
 window.cashAddPrompt=function(branch){
