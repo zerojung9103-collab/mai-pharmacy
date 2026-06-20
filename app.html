@@ -298,7 +298,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.17.1</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.17.2</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -667,17 +667,26 @@ textarea{resize:vertical;min-height:64px}
         <div id="announce-people" style="display:none;margin-bottom:.75rem;border:1px solid var(--border);border-radius:10px;padding:10px;max-height:180px;overflow-y:auto"></div>
         <div class="field-row" style="margin-bottom:.5rem">
           <div class="field" style="margin-bottom:0"><label class="fl">เริ่มวันที่</label><input type="date" id="ann-from-date"></div>
-          <div class="field" style="margin-bottom:0"><label class="fl">เวลาเริ่ม</label>${time24Picker('ann-from-time','08:00')}</div>
+          <div class="field" style="margin-bottom:0"><label class="fl">เวลาเริ่ม</label><div id="ann-from-time-wrap"></div></div>
         </div>
         <div class="field-row" style="margin-bottom:.75rem">
           <div class="field" style="margin-bottom:0"><label class="fl">ถึงวันที่</label><input type="date" id="ann-to-date"></div>
-          <div class="field" style="margin-bottom:0"><label class="fl">เวลาสิ้นสุด</label>${time24Picker('ann-to-time','17:00')}</div>
+          <div class="field" style="margin-bottom:0"><label class="fl">เวลาสิ้นสุด</label><div id="ann-to-time-wrap"></div></div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:1rem">
           <input type="text" id="new-announce" placeholder="พิมพ์ข้อความประกาศ เช่น พรุ่งนี้ร้านปิด 18:00" style="flex:1" maxlength="200">
           <button class="btn btn-primary btn-sm" onclick="postAnnouncement()">📢 ประกาศ</button>
         </div>
         <div id="announce-list"></div>
+      </div>
+      <div class="card" id="capmsg-card" style="grid-column:1/-1;display:none">
+        <div class="card-title">💬 ข้อความน้องแคปซูล (กวนๆ)</div>
+        <div class="card-sub">เพิ่มประโยคของคุณเอง น้องจะสุ่มพูดจากที่ติ๊กเลือกไว้ (ถ้าไม่ติ๊กเลย น้องใช้ประโยคมาตรฐาน)</div>
+        <div style="display:flex;gap:8px;margin-bottom:1rem">
+          <input type="text" id="new-capmsg" placeholder="เช่น เจ้ามาทำงานสายอีกแล้วนะ ข้าจดไว้หมดแล้ว" style="flex:1" maxlength="120">
+          <button class="btn btn-primary btn-sm" onclick="addCapMsg()">+ เพิ่ม</button>
+        </div>
+        <div id="capmsg-list"></div>
       </div>
       <div class="card" id="paytype-card">
         <div class="card-title">ประเภทการชำระ</div>
@@ -908,8 +917,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.17.1';
+const APP_VERSION='1.17.2';
 const CHANGELOG=[
+  {v:'1.17.2',date:'2026-06-20',changes:['แก้บั๊กช่องเลือกเวลาประกาศที่แสดงเป็นโค้ด + เพิ่มให้กำหนดข้อความน้องแคปซูลเองได้ (พิมพ์ประโยคกวนๆ ของตัวเอง ติ๊กเลือกว่าจะให้สุ่มพูดอันไหน)']},
   {v:'1.17.1',date:'2026-06-20',changes:['ประกาศตั้งช่วงเวลาได้ (เริ่มวัน+เวลา → ถึงวัน+เวลา) ประกาศแสดงเฉพาะช่วงนั้น พ้นช่วงหายเอง + แสดงสถานะ กำลังแสดง/รอแสดง/หมดเวลา']},
   {v:'1.17.0',date:'2026-06-20',changes:['น้องแคปซูลพูดกวนๆ แบบ "ข้า-เจ้า" (สุ่มข้อความตามเวลา/เวร) + ระบบประกาศผ่านน้องแคปซูล: admin/ผู้มีสิทธิ์ส่งถึงทุกคนหรือเลือกเฉพาะบางคนได้ (ตอนประกาศน้องจะพูดจริงจัง)']},
   {v:'1.16.2',date:'2026-06-20',changes:['เปิดแอปมาเจอหน้าแรกแบบเมนูรวม (น้องแคปซูล + การ์ดทุกฟีเจอร์ให้เลือก) + ปุ่มย้อนกลับหน้าแรกในทุกฟีเจอร์ + โหลดข้อมูลใหม่อัตโนมัติทุกครั้งที่เข้าฟีเจอร์']},
@@ -999,6 +1009,7 @@ function capsuleMascot(size,color){
 }
 
 // ===== ข้อความน้องแคปซูล (กวนๆ แข็งๆ ตลกๆ เรียกตัวเอง "ข้า" เรียก user "เจ้า") =====
+let capMessages=[]; // ข้อความที่เจ้าของกำหนดเอง (โหลดจาก config/capsuleMessages)
 function capsuleSays(todayShift){
   const dc=todayColor();
   const hr=new Date().getHours();
@@ -1036,6 +1047,9 @@ function capsuleSays(todayShift){
     'เจ้าทำงานไป ข้าเฝ้ามองอยู่ตรงนี้ อย่าทำตัวแปลกๆ ล่ะ',
     'เหนื่อยก็พักได้นะเจ้า แต่อย่าพักนานจนข้าเหงา'
   ];
+  // ข้อความที่เจ้าของกำหนดเอง (เฉพาะที่เปิดใช้) — ถ้ามี ใช้แทนทั้งหมด
+  const custom=(capMessages||[]).filter(m=>m.enabled).map(m=>m.text);
+  if(custom.length)return custom[Math.floor(Math.random()*custom.length)];
   const pool=hr<12?morning:hr<17?afternoon:evening;
   const all=pool.concat(general);
   return all[Math.floor(Math.random()*all.length)];
@@ -1300,6 +1314,7 @@ onAuthStateChanged(auth,async user=>{
   loadBranchLocations();
   loadPayTypesFromCloud();
   loadTempStaffFromCloud();
+  loadCapMessages();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
   loadLeavesForSchedule();
   // บันทึก log การเข้าใช้งาน (ครั้งเดียวต่อ session)
@@ -1390,7 +1405,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -4739,10 +4754,14 @@ window.renderAnnouncements=async function(){
   if(!canAnnounce)return;
   // โหลดสมาชิกไว้สำหรับเลือกผู้รับ (ถ้ายังไม่มี)
   if(!allMembers.length){try{const ms=await getDocs(collection(db,'members'));allMembers=ms.docs.map(d=>({...d.data(),uid:d.id}));}catch(e){}}
-  // เติมวันที่เริ่มต้นเป็นวันนี้ (ถ้ายังว่าง)
+  // เติมวันที่เริ่มต้นเป็นวันนี้ (ถ้ายังว่าง) + สร้าง dropdown เวลา
   const fd=document.getElementById('ann-from-date'),td=document.getElementById('ann-to-date');
   if(fd&&!fd.value)fd.value=todayStr();
   if(td&&!td.value)td.value=todayStr();
+  const ftw=document.getElementById('ann-from-time-wrap');
+  if(ftw&&!ftw.innerHTML)ftw.innerHTML=time24Picker('ann-from-time','08:00');
+  const ttw=document.getElementById('ann-to-time-wrap');
+  if(ttw&&!ttw.innerHTML)ttw.innerHTML=time24Picker('ann-to-time','17:00');
   const el=document.getElementById('announce-list');
   if(!el)return;
   try{
@@ -4833,6 +4852,52 @@ window.deleteAnnouncement=async function(id){
   if(!confirm('ลบประกาศนี้?'))return;
   try{await deleteDoc(doc(db,'announcements',id));showToast('ลบประกาศแล้ว');renderAnnouncements();}
   catch(e){showToast(e.message,'err');}
+};
+
+// ===== ข้อความน้องแคปซูล (กำหนดเอง) =====
+// เก็บใน config/capsuleMessages = {messages:[{text, enabled}]}
+async function loadCapMessages(){
+  try{
+    const d=await getDoc(doc(db,'config','capsuleMessages'));
+    capMessages=d.exists()?(d.data().messages||[]):[];
+  }catch(e){capMessages=[];}
+}
+async function saveCapMessages(){
+  try{await setDoc(doc(db,'config','capsuleMessages'),{messages:capMessages,updatedAt:new Date().toISOString()});}
+  catch(e){showToast('บันทึกไม่สำเร็จ','err');}
+}
+window.renderCapMsgSettings=async function(){
+  const card=document.getElementById('capmsg-card');
+  const canEdit=isAdmin||hasPerm('announce');
+  if(card)card.style.display=canEdit?'':'none';
+  if(!canEdit)return;
+  await loadCapMessages();
+  const el=document.getElementById('capmsg-list');
+  if(!el)return;
+  if(!capMessages.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:1rem">ยังไม่มีข้อความที่กำหนดเอง น้องจะใช้ประโยคมาตรฐาน</div>';return;}
+  el.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">ข้อความของคุณ (ติ๊กเพื่อเปิดใช้)</div>'+capMessages.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:${m.enabled?'var(--green-ll)':'var(--bg)'};border:1px solid ${m.enabled?'var(--green-l)':'var(--border)'};border-radius:10px;margin-bottom:6px">
+      <input type="checkbox" ${m.enabled?'checked':''} onchange="toggleCapMsg(${i})" style="width:18px;height:18px;flex-shrink:0;accent-color:var(--green)">
+      <span style="flex:1;font-size:13px;color:var(--text)">${m.text}</span>
+      <button class="btn btn-sm btn-danger" style="padding:3px 8px" onclick="deleteCapMsg(${i})">ลบ</button>
+    </div>`).join('');
+};
+window.addCapMsg=async function(){
+  const inp=document.getElementById('new-capmsg');
+  const text=inp.value.trim();
+  if(!text){showToast('กรุณาพิมพ์ข้อความ','err');return;}
+  capMessages.push({text,enabled:true});
+  await saveCapMessages();
+  inp.value='';
+  renderCapMsgSettings();
+  showToast('เพิ่มข้อความแล้ว');
+};
+window.toggleCapMsg=async function(i){
+  if(capMessages[i]){capMessages[i].enabled=!capMessages[i].enabled;await saveCapMessages();renderCapMsgSettings();}
+};
+window.deleteCapMsg=async function(i){
+  if(!confirm('ลบข้อความนี้?'))return;
+  capMessages.splice(i,1);await saveCapMessages();renderCapMsgSettings();showToast('ลบแล้ว');
 };
 
 // ===== DOSE CALCULATOR =====
