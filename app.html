@@ -881,7 +881,7 @@ window.installApp=async function(){
 };
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
@@ -898,8 +898,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.24.0';
+const APP_VERSION='1.25.0';
 const CHANGELOG=[
+  {v:'1.25.0',date:'2026-06-21',changes:['กันทุจริต: พนักงานทั่วไปไม่เห็นยอดสะสมในกระเป๋าเก็บเงินอีกต่อไป (เห็นแค่ admin) ทั้งตัวเลขในหน้าหลัก, ป๊อปอัพเก็บเงิน, ประวัติ, และรายงานสรุป — ⚠️ สำคัญ: แก้ Firestore Rules ด้วย ไม่ใช่แค่ซ่อนหน้าจอ ต้อง publish rules ใหม่ถึงจะปลอดภัยจริง (พนักงานทั่วไปยังบันทึก "เก็บเงินขาย" ได้ปกติผ่านระบบเพิ่มยอดแบบ atomic ไม่ต้องรู้ยอดปัจจุบันก่อน)']},
   {v:'1.24.0',date:'2026-06-21',changes:['จัดหน้า "เงินสด & ตู้เซฟ" ใหม่ ให้เป็น 2 กล่องแยกชัดเจน — กล่อง "ตู้เซฟ" (ยอด+เติม/เบิก+นับเงินต้น/ปลายวัน+ประวัติเบิก-เติม รวมไว้ในกล่องเดียว) และกล่อง "กระเป๋าเก็บเงิน" (ยอด+เก็บ/ถอน+ประวัติ รวมไว้ในกล่องเดียว) แทนการ์ดแยกกระจาย 6-8 ใบเหมือนเดิม ดูง่ายขึ้นว่าอะไรเกี่ยวกับอะไร']},
   {v:'1.23.1',date:'2026-06-21',changes:['แก้บั๊ก: หน้าจัดการเงินเดือนคำนวณชั่วโมงผิดถ้ามีเวรข้ามคืน (เช่น 20:00-04:00) ได้ชั่วโมงติดลบ — แก้ให้คำนวณถูกต้องเหมือนหน้าประวัติลงเวลาที่รองรับเวรข้ามคืนอยู่แล้ว']},
   {v:'1.23.0',date:'2026-06-21',changes:['เพิ่มกฎหักเงินเดือนกรณีมาสายเล็กน้อย — สาย 1-30 นาที จะยังไม่หักทันที แต่ทบสะสมไว้ พอครบ 60 นาทีจะหัก 1 ชั่วโมงอัตโนมัติ (แยกจากกฎเดิม: สายเกิน 30 นาที หัก 0.5 ชม.ทันที) คำนวณตามลำดับวันที่จริงในแต่ละเดือน ไม่ทบข้ามเดือน — หน้าจัดการเงินเดือนแสดงนาทีที่สะสมไว้ (ยังไม่ครบ 60) ให้เห็นด้วย']},
@@ -2427,7 +2428,7 @@ async function loadCashPage(){
 
 async function loadCashData(){
   try{
-    // โหลดยอดตู้เซฟทุกสาขา
+    // โหลดยอดตู้เซฟทุกสาขา (ทุกคนอ่านได้)
     const boxSnap=await getDocs(collection(db,'cashbox'));
     cashboxes={};
     boxSnap.docs.forEach(d=>{cashboxes[d.id]=d.data().balance||0;});
@@ -2437,14 +2438,19 @@ async function loadCashData(){
     // โหลดประวัตินับเงิน
     const cntSnap=await getDocs(query(collection(db,'cashcounts'),orderBy('at','desc')));
     cashCounts=cntSnap.docs.map(d=>({id:d.id,...d.data()}));
-    // โหลดกระเป๋าเก็บเงินทุกสาขา
-    const purseSnap=await getDocs(collection(db,'purse'));
-    purses={};
-    purseSnap.docs.forEach(d=>{purses[d.id]=d.data().balance||0;});
-    // โหลดประวัติเก็บ-ถอนกระเป๋า
-    const plogSnap=await getDocs(query(collection(db,'purselogs'),orderBy('at','desc')));
-    purseLogs=plogSnap.docs.map(d=>({id:d.id,...d.data()}));
-  }catch(e){console.error('loadCashData',e);}
+  }catch(e){console.error('loadCashData (cashbox)',e);}
+  // กระเป๋าเก็บเงิน — เฉพาะ admin อ่านได้ (กันทุจริต ตาม Firestore rules ใหม่) พนักงานทั่วไปไม่ลองอ่านเลย กันขึ้น error เปล่าๆ
+  if(isAdmin){
+    try{
+      const purseSnap=await getDocs(collection(db,'purse'));
+      purses={};
+      purseSnap.docs.forEach(d=>{purses[d.id]=d.data().balance||0;});
+      const plogSnap=await getDocs(query(collection(db,'purselogs'),orderBy('at','desc')));
+      purseLogs=plogSnap.docs.map(d=>({id:d.id,...d.data()}));
+    }catch(e){console.error('loadCashData (purse)',e);}
+  }else{
+    purses={};purseLogs=[];
+  }
 }
 
 function renderCashPage(){
@@ -2515,10 +2521,11 @@ function renderCashPage(){
   // ===== กล่อง B: กระเป๋าเก็บเงิน (เงินขายสะสม) — รวมยอด + เก็บ/ถอน + ประวัติ ไว้ในกล่องเดียว =====
   const purseBal=purses[branch]||0;
   const branchPLogs=purseLogs.filter(l=>l.branch===branch).slice(0,10);
+  const purseBalDisplay=isAdmin?`฿${purseBal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}`:'🔒 เฉพาะผู้ดูแลเห็นยอด';
   html+=`<div class="card" style="margin-bottom:1.25rem;padding:0;overflow:hidden">
     <div style="background:linear-gradient(135deg,#1E3A8A,#3B82F6);padding:1.5rem;color:#fff">
       <div style="font-size:13px;opacity:.85;margin-bottom:4px">💵 กระเป๋าเก็บเงิน (เงินขายสะสม) — ${BRANCHES[branch]}</div>
-      <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${purseBal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div style="font-size:${isAdmin?'34':'18'}px;font-weight:700;letter-spacing:-1px;opacity:${isAdmin?'1':'.85'}">${purseBalDisplay}</div>
       <div style="font-size:11px;opacity:.8;margin-top:2px">สะสมจนกว่าผู้ดูแลจะเอาไปฝากธนาคาร</div>
       <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
         <button class="btn btn-sm" style="background:rgba(255,255,255,.95);color:#1E3A8A;border:none;font-weight:700" onclick="pursePrompt(${branch},'collect')">+ เก็บเงินขาย</button>
@@ -2526,7 +2533,7 @@ function renderCashPage(){
       </div>
     </div>
     <div style="padding:1.25rem">
-      <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">📜 ประวัติกระเป๋าเก็บเงิน</div>`;
+      <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">📜 ประวัติกระเป๋าเก็บเงิน${!isAdmin?' <span style="font-weight:400;color:var(--text3);font-size:11px">(ซ่อนจำนวนเงิน — ผู้ดูแลเห็นเต็ม)</span>':''}</div>`;
   if(!branchPLogs.length){
     html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem 0">ยังไม่มีประวัติ</div>`;
   }else{
@@ -2534,13 +2541,14 @@ function renderCashPage(){
       const d=new Date(l.at);
       const dStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
       const isCollect=l.type==='collect';
+      const amountDisplay=isAdmin?`${isCollect?'+':'−'}฿${(l.amount||0).toLocaleString()}`:'••••';
       html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)">
         <div style="display:flex;align-items:center;gap:10px">
           <span style="width:30px;height:30px;border-radius:50%;background:${isCollect?'var(--blue-l)':'#FCE8D5'};color:${isCollect?'#1E3A8A':'#C2410C'};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px">${isCollect?'+':'−'}</span>
           <div><div style="font-size:13px;font-weight:500">${isCollect?'เก็บเงินขาย':'ถอนไปฝากธนาคาร'}</div><div style="font-size:11px;color:var(--text3)">${l.by} · ${dStr}</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:14px;font-weight:600;color:${isCollect?'#1E3A8A':'#C2410C'}">${isCollect?'+':'−'}฿${(l.amount||0).toLocaleString()}</span>
+          <span style="font-size:14px;font-weight:600;color:${isAdmin?(isCollect?'#1E3A8A':'#C2410C'):'var(--text3)'}">${amountDisplay}</span>
           ${isAdmin?`<button onclick="cashDeleteLog('purselogs','${l.id}')" title="ลบรายการนี้" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:2px;font-size:15px">🗑️</button>`:''}
         </div>
       </div>`;
@@ -2687,9 +2695,12 @@ window.pursePrompt=function(branch,mode){
   const bal=purses[branch]||0;
   const title=mode==='collect'?'เก็บเงินขายเข้ากระเป๋า':'ถอนเงินไปฝากธนาคาร';
   const btnTxt=mode==='collect'?'เก็บเงิน':'ถอนไปฝาก';
-  const note=mode==='collect'
-    ?`<div style="font-size:12px;color:var(--text2);margin-bottom:1rem">ยอดสะสมปัจจุบัน: <b>฿${bal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</b> (จะทบเพิ่มขึ้น)</div>`
-    :`<div style="font-size:12px;color:var(--text2);margin-bottom:1rem">ยอดในกระเป๋า: <b>฿${bal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</b></div>`;
+  // พนักงานทั่วไปไม่เห็นยอดสะสม (กันทุจริต) — admin เห็นปกติ
+  const note=!isAdmin
+    ?`<div style="font-size:12px;color:var(--text3);margin-bottom:1rem">🔒 ยอดสะสมแสดงเฉพาะผู้ดูแลระบบ</div>`
+    :(mode==='collect'
+      ?`<div style="font-size:12px;color:var(--text2);margin-bottom:1rem">ยอดสะสมปัจจุบัน: <b>฿${bal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</b> (จะทบเพิ่มขึ้น)</div>`
+      :`<div style="font-size:12px;color:var(--text2);margin-bottom:1rem">ยอดในกระเป๋า: <b>฿${bal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</b></div>`);
   openModal(`<div class="modal-title">${title} — ${BRANCHES[branch]}</div>
     ${note}
     <div class="field"><label class="fl">จำนวนเงิน (บาท)</label><input type="number" id="purse-amount" inputmode="decimal" placeholder="0.00" style="font-size:20px;font-weight:600"></div>
@@ -2700,16 +2711,20 @@ window.purseDo=async function(branch,mode){
   if(mode==='deposit'&&!isAdmin){showToast('เฉพาะผู้ดูแลถอนไปฝากได้','err');return;}
   const amount=parseFloat(document.getElementById('purse-amount').value);
   if(!amount||amount<=0){showToast('กรุณาใส่จำนวนเงินให้ถูกต้อง','err');return;}
-  const bal=purses[branch]||0;
-  if(mode==='deposit'&&amount>bal){showToast(`เงินในกระเป๋าไม่พอ (มี ฿${bal.toLocaleString()})`,'err');return;}
-  const newBal=mode==='collect'?bal+amount:bal-amount;
   try{
-    await setDoc(doc(db,'purse',String(branch)),{balance:newBal,updatedAt:new Date().toISOString()});
+    if(mode==='collect'){
+      // พนักงานทั่วไปอ่านยอดกระเป๋าไม่ได้ (กันทุจริต) — ใช้ increment() แบบ atomic ไม่ต้องรู้ยอดปัจจุบันก่อนก็บันทึกได้
+      await setDoc(doc(db,'purse',String(branch)),{balance:increment(amount),updatedAt:new Date().toISOString()},{merge:true});
+    }else{
+      // ถอนไปฝาก — เฉพาะ admin ซึ่งอ่านยอดได้อยู่แล้ว เช็คยอดพอก่อนหักจริง
+      const bal=purses[branch]||0;
+      if(amount>bal){showToast(`เงินในกระเป๋าไม่พอ (มี ฿${bal.toLocaleString()})`,'err');return;}
+      await setDoc(doc(db,'purse',String(branch)),{balance:increment(-amount),updatedAt:new Date().toISOString()},{merge:true});
+    }
     const ts=Date.now();
     await setDoc(doc(db,'purselogs',`plog_${ts}_${Math.random().toString(36).slice(2,7)}`),{
       branch,type:mode,amount,by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,at:new Date().toISOString()
     });
-    purses[branch]=newBal;
     closeMD();
     await loadCashData();renderCashPage();
     showToast(mode==='collect'?`เก็บเงิน ฿${amount.toLocaleString()} เข้ากระเป๋าแล้ว`:`ถอนไปฝาก ฿${amount.toLocaleString()} เรียบร้อย`);
@@ -2741,19 +2756,22 @@ window.cashReportPrompt=function(branch){
   const block=(label,boxArr,purseArr)=>{
     const refill=sum(boxArr,'add'),wd=sum(boxArr,'withdraw');
     const coll=sum(purseArr,'collect'),dep=sum(purseArr,'deposit');
+    const purseRows=isAdmin
+      ?`<tr><td style="padding:3px 0;color:var(--text2)">เก็บเงินขาย</td><td style="text-align:right;color:#1E3A8A;font-weight:600">+฿${coll.toLocaleString()}</td></tr>
+        <tr><td style="padding:3px 0;color:var(--text2)">ถอนไปฝาก</td><td style="text-align:right;color:#C2410C;font-weight:600">−฿${dep.toLocaleString()}</td></tr>`
+      :`<tr><td style="padding:3px 0;color:var(--text3)" colspan="2">🔒 ยอดกระเป๋าเก็บเงิน — เฉพาะผู้ดูแลเห็น</td></tr>`;
     return `<div style="background:var(--bg);border-radius:10px;padding:1rem;margin-bottom:.75rem">
       <div style="font-weight:700;font-size:13px;margin-bottom:.5rem">${label}</div>
       <table style="width:100%;font-size:12.5px;border-collapse:collapse">
         <tr><td style="padding:3px 0;color:var(--text2)">เติมตู้เซฟ</td><td style="text-align:right;color:#0F8A63;font-weight:600">+฿${refill.toLocaleString()}</td></tr>
         <tr><td style="padding:3px 0;color:var(--text2)">เบิกเงินทอน</td><td style="text-align:right;color:#C2410C;font-weight:600">−฿${wd.toLocaleString()}</td></tr>
-        <tr><td style="padding:3px 0;color:var(--text2)">เก็บเงินขาย</td><td style="text-align:right;color:#1E3A8A;font-weight:600">+฿${coll.toLocaleString()}</td></tr>
-        <tr><td style="padding:3px 0;color:var(--text2)">ถอนไปฝาก</td><td style="text-align:right;color:#C2410C;font-weight:600">−฿${dep.toLocaleString()}</td></tr>
+        ${purseRows}
       </table>
     </div>`;
   };
 
-  // ประวัติละเอียดทุกรายการ (รวม 2 กระเป๋า เรียงเวลา)
-  const merged=[...allBox.map(l=>({...l,cat:'box'})),...allPurse.map(l=>({...l,cat:'purse'}))]
+  // ประวัติละเอียดทุกรายการ — พนักงานทั่วไปเห็นเฉพาะรายการตู้เซฟ (กันเห็นยอดกระเป๋าสะสม)
+  const merged=[...allBox.map(l=>({...l,cat:'box'})),...(isAdmin?allPurse.map(l=>({...l,cat:'purse'})):[])]
     .sort((a,b)=>(b.at||'').localeCompare(a.at||'')).slice(0,40);
   const typeLabel={add:'เติมตู้เซฟ',withdraw:'เบิกเงินทอน',collect:'เก็บเงินขาย',deposit:'ถอนไปฝาก'};
   const typeColor={add:'#0F8A63',withdraw:'#C2410C',collect:'#1E3A8A',deposit:'#C2410C'};
@@ -2770,11 +2788,11 @@ window.cashReportPrompt=function(branch){
   openModal(`<div class="modal-title">📊 รายงานเงินสด — ${BRANCHES[branch]}</div>
     ${block('วันนี้',boxToday,purseToday)}
     ${block('เดือนนี้',boxMonth,purseMonth)}
-    <div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center">
+    ${isAdmin?`<div style="background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center">
       <span style="font-size:13px;font-weight:700;color:#1E3A8A">💰 ยอดนำไปฝากรวมทั้งหมด</span>
       <span style="font-size:16px;font-weight:700;color:#1E3A8A">฿${totalDeposit.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
-    </div>
-    <div style="font-weight:700;font-size:13px;margin-bottom:.5rem">ประวัติละเอียด (40 รายการล่าสุด)</div>
+    </div>`:''}
+    <div style="font-weight:700;font-size:13px;margin-bottom:.5rem">ประวัติละเอียด${isAdmin?' (40 รายการล่าสุด)':' — เฉพาะตู้เซฟ (40 รายการล่าสุด)'}</div>
     <div style="max-height:300px;overflow-y:auto">${histHtml}</div>
     <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
 };
