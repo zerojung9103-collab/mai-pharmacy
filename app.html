@@ -130,6 +130,11 @@ textarea{resize:vertical;min-height:64px}
 .hist-item{border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.25rem;margin-bottom:10px;background:var(--surface);box-shadow:var(--shadow)}
 .hi-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
 .pill{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--bg);color:var(--text2);font-weight:500;border:1px solid var(--border)}
+.assist-chip{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:#FAFBFB;font-family:var(--font);font-size:13.5px;font-weight:600;color:var(--text);cursor:pointer;margin-bottom:8px;transition:.12s}
+.assist-chip:hover{background:var(--green-ll);border-color:rgba(29,158,117,.3)}
+.assist-chip .ic{font-size:18px;flex-shrink:0}
+.assist-back{background:none;border:none;font-family:var(--font);font-size:13px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:4px;margin-bottom:.75rem;padding:0}
+.assist-back:hover{color:var(--green-d)}
 .branch-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:1.25rem}
 .bcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--shadow);transition:.12s}
 .bcard:hover{box-shadow:var(--shadow-md)}
@@ -298,7 +303,7 @@ textarea{resize:vertical;min-height:64px}
     <div>
       <div class="sb-icon">💊</div>
       <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.17.2</span></p>
+      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.18.0</span></p>
     </div>
     <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
       <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -917,8 +922,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.17.2';
+const APP_VERSION='1.18.0';
 const CHANGELOG=[
+  {v:'1.18.0',date:'2026-06-21',changes:['เพิ่ม "ผู้ช่วยส่วนตัว" — แตะการ์ดทักทายหน้าแรกเพื่อถามคำถามด่วน: ยอดขายวันนี้/เดือนนี้ (ตามสิทธิ์เดิม), เวรของฉัน/ใครเข้าเวรวันนี้, ยอดตู้เซฟ&กระเป๋าเก็บเงินทุกสาขา, สรุปการเข้างาน/มาสายของตัวเองเดือนนี้ — ตอบจากข้อมูลจริงในระบบทันที ไม่ใช่ AI']},
   {v:'1.17.2',date:'2026-06-20',changes:['แก้บั๊กช่องเลือกเวลาประกาศที่แสดงเป็นโค้ด + เพิ่มให้กำหนดข้อความน้องแคปซูลเองได้ (พิมพ์ประโยคกวนๆ ของตัวเอง ติ๊กเลือกว่าจะให้สุ่มพูดอันไหน)']},
   {v:'1.17.1',date:'2026-06-20',changes:['ประกาศตั้งช่วงเวลาได้ (เริ่มวัน+เวลา → ถึงวัน+เวลา) ประกาศแสดงเฉพาะช่วงนั้น พ้นช่วงหายเอง + แสดงสถานะ กำลังแสดง/รอแสดง/หมดเวลา']},
   {v:'1.17.0',date:'2026-06-20',changes:['น้องแคปซูลพูดกวนๆ แบบ "ข้า-เจ้า" (สุ่มข้อความตามเวลา/เวร) + ระบบประกาศผ่านน้องแคปซูล: admin/ผู้มีสิทธิ์ส่งถึงทุกคนหรือเลือกเฉพาะบางคนได้ (ตอนประกาศน้องจะพูดจริงจัง)']},
@@ -4032,8 +4038,8 @@ function renderHome(){
     bubble=capsuleSays(todayShift);
   }
 
-  // การ์ดต้อนรับ + น้องแคปซูล
-  let html=`<div style="background:linear-gradient(160deg,${dc.grad[0]},${dc.grad[1]} 55%,${dc.grad[2]});border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:1.25rem">
+  // การ์ดต้อนรับ + น้องแคปซูล (แตะเพื่อเปิดผู้ช่วยส่วนตัว)
+  let html=`<div onclick="openAssistant()" style="cursor:pointer;background:linear-gradient(160deg,${dc.grad[0]},${dc.grad[1]} 55%,${dc.grad[2]});border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:1.25rem">
     <div style="display:flex;align-items:center;gap:12px">
       <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600">${myName.charAt(0)}</div>
       <div style="flex:1;min-width:0">
@@ -4047,6 +4053,7 @@ function renderHome(){
         <div style="font-size:12.5px;color:${bubbleSerious?'#7A1F1F':dc.dark};font-weight:500;line-height:1.5">${bubble}</div>
       </div>
     </div>
+    <div style="text-align:center;font-size:11px;opacity:.8;margin-top:.6rem">💬 แตะเพื่อถามอะไรก็ได้</div>
   </div>`;
 
   // การ์ดเวรวันนี้ (ถ้ามี)
@@ -4085,6 +4092,164 @@ function renderHome(){
   </div>`;
 
   el.innerHTML=html;
+}
+
+// ===== ผู้ช่วยส่วนตัว (แตะการ์ดทักทาย) — ตอบจากข้อมูลจริงในระบบ ไม่ใช่ AI ภายนอก =====
+function assistantChipsHTML(){
+  const canSales=isAdmin||hasPerm('sales')||hasPerm('dashboard_admin');
+  const chips=[
+    {id:'shift_mine',ic:'📅',label:'เวรของฉัน 7 วันนี้',show:true},
+    {id:'shift_today_all',ic:'👥',label:'ใครเข้าเวรวันนี้บ้าง',show:true},
+    {id:'sales_today',ic:'📊',label:'ยอดขายวันนี้ (ทุกสาขา)',show:canSales},
+    {id:'sales_month',ic:'📈',label:'ยอดขายเดือนนี้ (ทุกสาขา)',show:canSales},
+    {id:'cash_balance',ic:'💰',label:'ตู้เซฟ & กระเป๋าเก็บเงิน',show:true},
+    {id:'checkin_me',ic:'🕐',label:'ฉันเข้างาน/มาสายกี่ครั้งเดือนนี้',show:true},
+  ].filter(c=>c.show);
+  return `<div class="modal-title">💬 ถามอะไรก็ได้</div>
+    <div style="font-size:12.5px;color:var(--text3);margin-top:-.75rem;margin-bottom:1.1rem">เลือกคำถามด่วน ระบบจะตอบจากข้อมูลจริงในระบบทันที</div>
+    ${chips.map(c=>`<button class="assist-chip" onclick="assistantAsk('${c.id}')"><span class="ic">${c.ic}</span><span>${c.label}</span></button>`).join('')}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`;
+}
+window.openAssistant=function(){ if(!currentUser)return; openModal(assistantChipsHTML()); };
+window.assistantBack=function(){ openModal(assistantChipsHTML()); };
+
+// ครอบคำตอบด้วยหัวข้อ + ปุ่มย้อนกลับ/ปิด
+function assistantAnswerWrap(title,bodyHtml){
+  return `<div class="modal-title">${title}</div>
+    ${bodyHtml}
+    <div class="modal-footer" style="justify-content:space-between"><button class="assist-back" onclick="assistantBack()">← ถามอย่างอื่น</button><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`;
+}
+function assistantLoading(title){
+  const box=document.getElementById('modal-box');
+  if(box)box.innerHTML=`<div class="modal-title">${title}</div><div style="text-align:center;padding:2.5rem 0;color:var(--text3);font-size:13px">⏳ กำลังค้นข้อมูล...</div>`;
+}
+
+window.assistantAsk=async function(id){
+  try{
+    if(id==='shift_mine')return await assistantShiftMine();
+    if(id==='shift_today_all')return await assistantShiftTodayAll();
+    if(id==='sales_today')return await assistantSales('today');
+    if(id==='sales_month')return await assistantSales('month');
+    if(id==='cash_balance')return await assistantCashBalance();
+    if(id==='checkin_me')return await assistantCheckinMe();
+  }catch(e){
+    console.error('assistantAsk',e);
+    const box=document.getElementById('modal-box');
+    if(box)box.innerHTML=assistantAnswerWrap('⚠️ มีปัญหา','<div style="font-size:13px;color:var(--text3);text-align:center;padding:1rem 0">ดึงข้อมูลไม่สำเร็จ ลองใหม่อีกครั้งนะครับ</div>');
+  }
+};
+
+// ----- เวรของฉัน 7 วันข้างหน้า -----
+async function assistantShiftMine(){
+  assistantLoading('📅 เวรของฉัน');
+  if(!shifts.length)await loadShiftsFromCloud();
+  const today=todayStr();
+  const mine=shifts.filter(s=>s.staffId===currentUser.uid&&s.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,7);
+  let body;
+  if(!mine.length){
+    body=`<div style="text-align:center;padding:1.5rem 0;color:var(--text3);font-size:13px">ยังไม่มีเวรในช่วงนี้ครับ</div>`;
+  }else{
+    body=mine.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+      <div><div style="font-weight:600;font-size:13px">${new Date(s.date).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}</div><div style="font-size:12px;color:var(--text3)">${s.start} - ${s.end}</div></div>
+      <span class="pill" style="border-color:${BCOLORS[s.branch]}55;color:${BCOLORS[s.branch]}">${BRANCHES[s.branch]}</span>
+    </div>`).join('');
+  }
+  const box=document.getElementById('modal-box');
+  if(box)box.innerHTML=assistantAnswerWrap('📅 เวรของฉัน (7 วันข้างหน้า)',body);
+}
+
+// ----- ใครเข้าเวรวันนี้บ้าง (ข้อมูลเปิดอยู่แล้วในตารางเวรปกติ) -----
+async function assistantShiftTodayAll(){
+  assistantLoading('👥 เวรวันนี้');
+  if(!shifts.length)await loadShiftsFromCloud();
+  const today=todayStr();
+  const todays=shifts.filter(s=>s.date===today).sort((a,b)=>a.start.localeCompare(b.start));
+  let body;
+  if(!todays.length){
+    body=`<div style="text-align:center;padding:1.5rem 0;color:var(--text3);font-size:13px">วันนี้ยังไม่มีใครเข้าเวรครับ</div>`;
+  }else{
+    body=todays.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+      <div><div style="font-weight:600;font-size:13px">${shiftFullName(s)}</div><div style="font-size:12px;color:var(--text3)">${s.start} - ${s.end}</div></div>
+      <span class="pill" style="border-color:${BCOLORS[s.branch]}55;color:${BCOLORS[s.branch]}">${BRANCHES[s.branch]}</span>
+    </div>`).join('');
+  }
+  const box=document.getElementById('modal-box');
+  if(box)box.innerHTML=assistantAnswerWrap('👥 ใครเข้าเวรวันนี้บ้าง',body);
+}
+
+// ----- ยอดขาย วันนี้/เดือนนี้ ทุกสาขา (ต้องมีสิทธิ์ sales หรือ dashboard_admin เหมือนเข้าเมนูปกติ) -----
+async function assistantSales(mode){
+  if(!(isAdmin||hasPerm('sales')||hasPerm('dashboard_admin')))return;
+  const title=mode==='today'?'📊 ยอดขายวันนี้':'📈 ยอดขายเดือนนี้';
+  assistantLoading(title);
+  await loadSalesFromCloud();
+  const today=todayStr();
+  const monthPrefix=today.slice(0,7);
+  const entries=mode==='today'?salesEntries.filter(e=>e.date===today):salesEntries.filter(e=>(e.date||'').startsWith(monthPrefix));
+  const perBranch=[0,0,0];
+  entries.forEach(e=>{perBranch[e.branch]=(perBranch[e.branch]||0)+(parseFloat(e.total)||0);});
+  const grand=perBranch.reduce((a,b)=>a+b,0);
+  let body=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem">
+    ${BRANCHES.map((b,i)=>`<div style="background:${BCOLORS_L[i]};border-radius:12px;padding:10px;text-align:center">
+      <div style="font-size:11px;color:${BCOLORS[i]};font-weight:600;margin-bottom:4px">${BRANCHES_SHORT[i]}</div>
+      <div style="font-size:14.5px;font-weight:700;color:${BCOLORS[i]}">${fmtB(perBranch[i])}</div>
+    </div>`).join('')}
+  </div>
+  <div class="total-row"><span class="total-lbl">รวมทุกสาขา</span><span class="total-val">฿${fmt(grand)}</span></div>`;
+  if(!entries.length){
+    body+=`<div style="text-align:center;padding:1rem 0 0;color:var(--text3);font-size:12.5px">ยังไม่มีการบันทึกยอดขาย${mode==='today'?'วันนี้':'เดือนนี้'}เลยครับ</div>`;
+  }
+  const box=document.getElementById('modal-box');
+  if(box)box.innerHTML=assistantAnswerWrap(title,body);
+}
+
+// ----- ตู้เซฟ & กระเป๋าเก็บเงิน ทุกสาขา (เปิดให้ทุกคนดูอยู่แล้วในแอป) -----
+async function assistantCashBalance(){
+  assistantLoading('💰 ตู้เซฟ & กระเป๋าเก็บเงิน');
+  let boxBal={},purseBal={};
+  try{
+    const boxSnap=await getDocs(collection(db,'cashbox'));
+    boxSnap.docs.forEach(d=>{boxBal[d.id]=d.data().balance||0;});
+    const purseSnap=await getDocs(collection(db,'purse'));
+    purseSnap.docs.forEach(d=>{purseBal[d.id]=d.data().balance||0;});
+  }catch(e){console.error('assistantCashBalance',e);}
+  const body=`<div style="display:flex;flex-direction:column;gap:8px">
+    ${BRANCHES.map((b,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FAFBFB;border-radius:9px;border:1px solid var(--border)">
+      <span style="font-weight:600;font-size:13px;color:${BCOLORS[i]}">${b}</span>
+      <span style="font-size:12px;color:var(--text2)">ตู้เซฟ <b>${fmtB(boxBal[i]||0)}</b> · กระเป๋า <b>${fmtB(purseBal[i]||0)}</b></span>
+    </div>`).join('')}
+  </div>`;
+  const box=document.getElementById('modal-box');
+  if(box)box.innerHTML=assistantAnswerWrap('💰 ตู้เซฟ & กระเป๋าเก็บเงิน',body);
+}
+
+// ----- ฉันเข้างาน/มาสายกี่ครั้งเดือนนี้ (เฉพาะข้อมูลของตัวเอง) -----
+async function assistantCheckinMe(){
+  assistantLoading('🕐 การเข้างานของฉัน');
+  let body;
+  try{
+    const snap=await getDocs(query(collection(db,'checkins'),where('uid','==',currentUser.uid)));
+    const monthPrefix=todayStr().slice(0,7);
+    const recs=snap.docs.map(d=>d.data()).filter(r=>(r.date||'').startsWith(monthPrefix));
+    let totalMins=0,workDays=0,lateCount=0;
+    recs.forEach(r=>{
+      if(r.checkIn&&r.checkOut){totalMins+=workMinutes(r.checkIn,r.checkOut);workDays++;}
+      else if(r.checkIn)workDays++;
+      if(r.isLate)lateCount++;
+    });
+    const hh=Math.floor(totalMins/60),mm=totalMins%60;
+    body=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div class="mcard c-green" style="padding:.9rem"><div class="mcard-label">ชั่วโมงรวม</div><div class="mcard-val" style="font-size:19px">${hh}<span style="font-size:11px">ชม.</span>${mm>0?' '+mm+'<span style="font-size:11px">น.</span>':''}</div></div>
+      <div class="mcard c-blue" style="padding:.9rem"><div class="mcard-label">วันที่มาทำงาน</div><div class="mcard-val" style="font-size:19px">${workDays}</div></div>
+      <div class="mcard c-amber" style="padding:.9rem"><div class="mcard-label">มาสาย</div><div class="mcard-val" style="font-size:19px">${lateCount}</div></div>
+    </div>
+    <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:.75rem">สรุปเดือน${MONTHS_TH[parseInt(monthPrefix.slice(5,7))-1]}</div>`;
+  }catch(e){
+    console.error('assistantCheckinMe',e);
+    body=`<div style="text-align:center;padding:1rem 0;color:var(--text3);font-size:13px">ดึงข้อมูลไม่สำเร็จครับ</div>`;
+  }
+  const box=document.getElementById('modal-box');
+  if(box)box.innerHTML=assistantAnswerWrap('🕐 การเข้างานของฉันเดือนนี้',body);
 }
 
 function renderMyShifts(){
