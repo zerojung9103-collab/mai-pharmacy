@@ -826,7 +826,6 @@ textarea{resize:vertical;min-height:64px}
         <div class="field"><label class="fl">น้ำหนัก (กก.)</label><input type="number" id="dose-weight" min="0" step="0.1" placeholder="เช่น 15" oninput="calcDose()"></div>
         <div class="field"><label class="fl">อายุ (ปี) — ถ้าจำเป็น</label><input type="number" id="dose-age" min="0" step="0.1" placeholder="เช่น 5" oninput="calcDose()"></div>
       </div>
-      <div id="dose-freq-wrap" style="display:none" class="field"><label class="fl">เลือกความถี่ที่จะให้</label><select id="dose-freq-select" onchange="calcDose()"></select></div>
       <div id="dose-result"></div>
     </div>
     <div class="card">
@@ -899,8 +898,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.21.1';
+const APP_VERSION='1.21.2';
 const CHANGELOG=[
+  {v:'1.21.2',date:'2026-06-21',changes:['หน้าคำนวณยา: ยาที่มีหลายความถี่ (เช่น BID/TID) ตอนนี้คำนวณและโชว์ผลลัพธ์ของทุกความถี่พร้อมกันในคราวเดียว ไม่ต้องเลือกจาก dropdown ทีละแบบแล้ว — เห็นเปรียบเทียบได้เลยว่าถ้าให้ BID ทานเท่าไหร่ ถ้าให้ TID ทานเท่าไหร่']},
   {v:'1.21.1',date:'2026-06-21',changes:['ปรับระบบคำนวณยา "ต่อวัน" — เปลี่ยนจากตั้งความถี่ตายตัวตอนกรอกสูตร เป็น "เลือกความถี่ตอนคำนวณ" แทน (เช่น Amoxicillin กรอกสูตรครั้งเดียว แต่หน้าคำนวณให้เลือกได้ทั้ง BID หรือ TID ตามที่แพทย์สั่งจริง) ตรงกับเอกสารอ้างอิงของร้านที่มีหลายความถี่ต่อยา 1 ตัว — หน้าแก้ไขสูตรยารองรับเพิ่ม/ลบตัวเลือกความถี่ได้เอง']},
   {v:'1.21.0',date:'2026-06-21',changes:['ขยายระบบคำนวณยา: เพิ่มสูตรยาได้แบบ "ต่อวัน" (mg/กก./วัน หารจำนวนครั้ง/วัน) นอกจาก "ต่อครั้ง" แบบเดิม ตามที่เอกสารอ้างอิงส่วนใหญ่ใช้','เพิ่ม "อายุขั้นต่ำ" ต่อสูตรยา — ถ้ากรอกอายุเด็กต่ำกว่าเกณฑ์ ระบบจะบล็อกและเตือนชัดเจนแทนการคำนวณให้เฉยๆ ส่วนสูตรเดิมที่ยังไม่ได้ระบุอายุขั้นต่ำจะมีคำเตือนเบาๆ กำกับไว้เสมอ']},
   {v:'1.20.0',date:'2026-06-21',changes:['ผู้ช่วยแคปซูลกดได้ทุกหน้าแล้ว (ปุ่มลอยมุมซ้ายล่าง ไม่ใช่แค่แตะการ์ดทักทายหน้าแรก) — มีจุดแดงเตือนเมื่อมีเรื่องค้าง (ยังไม่ลงเวลา/เวรอัปเดต/คำขอลา/ประกาศ ฯลฯ) กดแล้วเห็นเตือนความจำ+ถามคำถามด่วนในที่เดียว','เปลี่ยนกล่องยืนยัน "ลบ/ยกเลิก" ทั้งระบบจากกล่องเบราว์เซอร์ธรรมดา เป็นแคปซูลถามยืนยันแทน (หน้าตาเข้ากับธีมแอป อ่านง่ายขึ้น)']},
@@ -5171,7 +5171,6 @@ window.deleteCapMsg=async function(i){
 // สูตรยาเก็บใน Firestore: doseFormulas/{id} = {name, doseType:'perDose'|'perDay', perKgLow, perKgHigh, unit, freqOptions:[{label,timesPerDay}], maxDose, minAgeMonths, note, concMg, concMl}
 // freqOptions = รายการความถี่ที่เลือกได้ตอนคำนวณ (เช่น ยาตัวเดียวกันให้ได้ทั้ง BID หรือ TID แล้วแต่แพทย์สั่ง)
 let doseFormulas=[];
-let currentFreqOptions=[]; // ตัวเลือกความถี่ของยาที่กำลังเลือกอยู่ในเครื่องคำนวณ
 // แปลงเดือน → ข้อความอ่านง่าย (เช่น 6 → "6 เดือน", 24 → "2 ปี", 18 → "1 ปี 6 เดือน")
 function minAgeLabel(months){
   if(!months)return'';
@@ -5219,22 +5218,41 @@ function renderDoseList(){
 window.onDoseDrugChange=function(){
   const id=document.getElementById('dose-drug').value;
   const info=document.getElementById('dose-formula-info');
-  const freqWrap=document.getElementById('dose-freq-wrap');
-  const freqSel=document.getElementById('dose-freq-select');
   const d=doseFormulas.find(x=>x.id===id);
-  if(!d){info.style.display='none';freqWrap.style.display='none';document.getElementById('dose-result').innerHTML='';return;}
+  if(!d){info.style.display='none';document.getElementById('dose-result').innerHTML='';return;}
   info.style.display='block';
   const perDay=d.doseType==='perDay';
-  currentFreqOptions=perDay?getFreqOptions(d):[];
-  if(currentFreqOptions.length){
-    freqWrap.style.display='block';
-    freqSel.innerHTML=currentFreqOptions.map((f,i)=>`<option value="${i}">${f.label}</option>`).join('');
-  }else{
-    freqWrap.style.display='none';
-  }
   info.innerHTML=`<b>${d.name}</b><br>ขนาด: ${d.perKgLow}${d.perKgHigh&&d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./${perDay?'วัน':'ครั้ง'}${d.maxDose?'<br>ขนาดสูงสุด: '+d.maxDose+' '+d.unit+'/ครั้ง':''}${d.concMg&&d.concMl?'<br>ความเข้มข้น: '+d.concMg+' mg/'+d.concMl+' ml':''}${d.note?'<br>หมายเหตุ: '+d.note:''}<br>${d.minAgeMonths?'อายุขั้นต่ำ: '+minAgeLabel(d.minAgeMonths):'<span style="color:var(--amber-t)">⚠️ ยังไม่ได้ระบุข้อจำกัดอายุ ตรวจสอบก่อนใช้</span>'}`;
   calcDose();
 };
+
+// คำนวณขนาดยา 1 ช่อง (ใช้ทั้งกับ perDose และแต่ละความถี่ของ perDay)
+function calcOneDose(d,w,dpd){
+  let low=(d.perKgLow*w)/dpd, high=((d.perKgHigh||d.perKgLow)*w)/dpd;
+  let capped=false;
+  if(d.maxDose){if(low>d.maxDose){low=d.maxDose;capped=true;}if(high>d.maxDose){high=d.maxDose;capped=true;}}
+  let mlLow=null,mlHigh=null;
+  if(d.concMg&&d.concMl){mlLow=low/d.concMg*d.concMl;mlHigh=high/d.concMg*d.concMl;}
+  return{low,high,capped,mlLow,mlHigh};
+}
+function doseResultCardHtml(d,w,label,sub,r){
+  const rng=r.low===r.high?`${r.low.toFixed(1)}`:`${r.low.toFixed(1)} - ${r.high.toFixed(1)}`;
+  let mlHtml='';
+  if(r.mlLow!==null){
+    const mlRng=r.mlLow===r.mlHigh?`${r.mlLow.toFixed(1)}`:`${r.mlLow.toFixed(1)} - ${r.mlHigh.toFixed(1)}`;
+    mlHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.2)"><div style="font-size:12px;opacity:.8">ปริมาณยาน้ำ (${d.concMg}mg/${d.concMl}ml)</div><div style="font-size:20px;font-weight:700">${mlRng} ml/ครั้ง</div></div>`;
+  }
+  return `<div class="pr-net-box" style="background:linear-gradient(135deg,#085041,#1D9E75);margin-bottom:10px">
+    <div>
+      ${label?`<div style="font-size:13px;font-weight:700;margin-bottom:4px">${label}</div>`:''}
+      <div class="lbl">ขนาดยาที่คำนวณได้ (น้ำหนัก ${w} กก.)</div>
+      <div class="val" style="font-size:24px">${rng} ${d.unit}/ครั้ง</div>
+      ${sub?`<div style="font-size:11px;opacity:.7;margin-top:2px">${sub}</div>`:''}
+      ${r.capped?`<div style="font-size:11px;opacity:.9;margin-top:4px">⚠️ ปรับลดตามขนาดสูงสุด ${d.maxDose} ${d.unit}</div>`:''}
+      ${mlHtml}
+    </div>
+  </div>`;
+}
 
 window.calcDose=function(){
   const id=document.getElementById('dose-drug').value;
@@ -5254,36 +5272,23 @@ window.calcDose=function(){
       return;
     }
   }
-  // คำนวณตามรูปแบบ (ต่อครั้ง หรือ ต่อวันแล้วหารตามความถี่ที่ผู้ใช้เลือก)
   const perDay=d.doseType==='perDay';
-  let freqLabel='';
-  let dpd=1;
-  if(perDay&&currentFreqOptions.length){
-    const fi=parseInt(document.getElementById('dose-freq-select')?.value||'0');
-    const chosen=currentFreqOptions[fi]||currentFreqOptions[0];
-    dpd=chosen.timesPerDay||1;
-    freqLabel=chosen.label;
+  let html='';
+  if(perDay){
+    const opts=getFreqOptions(d);
+    if(opts.length){
+      // โชว์ผลลัพธ์ของทุกความถี่พร้อมกัน ให้เภสัชกรเทียบแล้วเลือกเองว่าจะให้แบบไหน
+      html=opts.map(f=>{
+        const r=calcOneDose(d,w,f.timesPerDay||1);
+        const sub=`คำนวณจาก ${d.perKgLow}${d.perKgHigh&&d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./วัน ÷ ${f.timesPerDay} ครั้ง/วัน`;
+        return doseResultCardHtml(d,w,f.label,sub,r);
+      }).join('');
+    }
+  }else{
+    const r=calcOneDose(d,w,1);
+    html=doseResultCardHtml(d,w,'',null,r);
   }
-  let low=(d.perKgLow*w)/dpd, high=((d.perKgHigh||d.perKgLow)*w)/dpd;
-  let capped=false;
-  if(d.maxDose){if(low>d.maxDose){low=d.maxDose;capped=true;}if(high>d.maxDose){high=d.maxDose;capped=true;}}
-  const rng=low===high?`${low.toFixed(1)}`:`${low.toFixed(1)} - ${high.toFixed(1)}`;
-  let mlHtml='';
-  if(d.concMg&&d.concMl){
-    const mlLow=(low/d.concMg*d.concMl), mlHigh=(high/d.concMg*d.concMl);
-    const mlRng=mlLow===mlHigh?`${mlLow.toFixed(1)}`:`${mlLow.toFixed(1)} - ${mlHigh.toFixed(1)}`;
-    mlHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.2)"><div style="font-size:12px;opacity:.8">ปริมาณยาน้ำ (${d.concMg}mg/${d.concMl}ml)</div><div style="font-size:20px;font-weight:700">${mlRng} ml/ครั้ง</div></div>`;
-  }
-  res.innerHTML=`<div class="pr-net-box" style="background:linear-gradient(135deg,#085041,#1D9E75)">
-    <div>
-      <div class="lbl">ขนาดยาที่คำนวณได้ (น้ำหนัก ${w} กก.)</div>
-      <div class="val" style="font-size:24px">${rng} ${d.unit}/ครั้ง</div>
-      ${perDay?`<div style="font-size:11px;opacity:.7;margin-top:2px">คำนวณจาก ${d.perKgLow}${d.perKgHigh&&d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./วัน ÷ ${dpd} ครั้ง/วัน (${freqLabel})</div>`:''}
-      ${capped?`<div style="font-size:11px;opacity:.9;margin-top:4px">⚠️ ปรับลดตามขนาดสูงสุด ${d.maxDose} ${d.unit}</div>`:''}
-      ${mlHtml}
-    </div>
-  </div>
-  <div style="font-size:11px;color:var(--amber-t);margin-top:8px">⚠️ ตรวจสอบกับตำราอ้างอิงก่อนจ่ายยาทุกครั้ง</div>`;
+  res.innerHTML=html+`<div style="font-size:11px;color:var(--amber-t);margin-top:8px">⚠️ ตรวจสอบกับตำราอ้างอิงก่อนจ่ายยาทุกครั้ง</div>`;
 };
 
 function freqRowHtml(label,times){
