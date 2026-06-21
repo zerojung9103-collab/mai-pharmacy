@@ -898,8 +898,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.22.0';
+const APP_VERSION='1.23.0';
 const CHANGELOG=[
+  {v:'1.23.0',date:'2026-06-21',changes:['เพิ่มกฎหักเงินเดือนกรณีมาสายเล็กน้อย — สาย 1-30 นาที จะยังไม่หักทันที แต่ทบสะสมไว้ พอครบ 60 นาทีจะหัก 1 ชั่วโมงอัตโนมัติ (แยกจากกฎเดิม: สายเกิน 30 นาที หัก 0.5 ชม.ทันที) คำนวณตามลำดับวันที่จริงในแต่ละเดือน ไม่ทบข้ามเดือน — หน้าจัดการเงินเดือนแสดงนาทีที่สะสมไว้ (ยังไม่ครบ 60) ให้เห็นด้วย']},
   {v:'1.22.0',date:'2026-06-21',changes:['หน้าแรกเปลี่ยนกลับมาโชว์ทุกเมนูแบบเรียงกริดเดียว (ไม่จัดเป็นการ์ดหมวดหมู่ใหญ่แล้ว) ตามสิทธิ์ของแต่ละคน — ส่วนแถบด้านล่างบนมือถือ (หน้าแรก/งานของฉัน/ขาย/บริหาร/เพิ่มเติม) ยังเป็นหมวดหมู่อยู่เหมือนเดิม ไว้กดลัดเข้าแต่ละกลุ่มได้เร็วๆ']},
   {v:'1.21.3',date:'2026-06-21',changes:['เพิ่ม "ขนาดสูงสุด/วัน" ในสูตรยา (แยกจากขนาดสูงสุด/ครั้งเดิม) — cap ที่ระดับรวมทั้งวันก่อนหารตามความถี่ที่เลือก ตรงกับที่เอกสารอ้างอิงส่วนใหญ่ระบุเพดานเป็นยอดรวมต่อวัน ไม่ใช่ต่อครั้ง']},
   {v:'1.21.2',date:'2026-06-21',changes:['หน้าคำนวณยา: ยาที่มีหลายความถี่ (เช่น BID/TID) ตอนนี้คำนวณและโชว์ผลลัพธ์ของทุกความถี่พร้อมกันในคราวเดียว ไม่ต้องเลือกจาก dropdown ทีละแบบแล้ว — เห็นเปรียบเทียบได้เลยว่าถ้าให้ BID ทานเท่าไหร่ ถ้าให้ TID ทานเท่าไหร่']},
@@ -3177,19 +3178,25 @@ window.selectPRPerson=async function(uid){
   const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
   // โหลดการเช็คอินของเดือนนี้ (เพื่อหักสาย)
   if(!allCheckins.length)await loadCheckinsForSchedule();
-  // คำนวณชั่วโมงทำงานจากตารางเวร + หักสายเกิน 30 นาที
-  const myShifts=shifts.filter(s=>s.staffId===uid&&s.date?.startsWith(monthStr));
-  let rawHours=0, lateDeduction=0, lateCount=0;
+  // คำนวณชั่วโมงทำงานจากตารางเวร + หักสาย
+  // กฎ 1: สายเกิน 30 นาที → หัก 0.5 ชม. ทันที (ต่อเวร)
+  // กฎ 2: สาย 1-30 นาที → ไม่หักทันที แต่ทบสะสมไว้ พอครบ 60 นาที (1 ชม.) ค่อยหัก 1 ชม. (เรียงตามวันที่ เพื่อทบตามลำดับเวลาจริง)
+  const myShifts=[...shifts.filter(s=>s.staffId===uid&&s.date?.startsWith(monthStr))].sort((a,b)=>a.date.localeCompare(b.date));
+  let rawHours=0, lateDeduction=0, lateCount=0, minorLateAccum=0, minorLateEvents=0, accumDeductCount=0;
   myShifts.forEach(s=>{
     const[sh,sm]=s.start.split(':').map(Number);
     const[eh,em]=s.end.split(':').map(Number);
     rawHours+=(eh+em/60-sh-sm/60);
-    // เช็คว่ามาสายเกิน 30 นาทีไหม
     const ci=getCheckinFor(uid,s.date);
     if(ci&&ci.checkIn){
       const[cih,cim]=ci.checkIn.split(':').map(Number);
       const lateMin=(cih*60+cim)-(sh*60+sm);
-      if(lateMin>30){lateDeduction+=0.5;lateCount++;}
+      if(lateMin>30){
+        lateDeduction+=0.5;lateCount++;
+      }else if(lateMin>0){
+        minorLateAccum+=lateMin;minorLateEvents++;
+        while(minorLateAccum>=60){lateDeduction+=1;minorLateAccum-=60;accumDeductCount++;}
+      }
     }
   });
   const hours=Math.round((rawHours-lateDeduction)*10)/10;
@@ -3211,6 +3218,9 @@ window.selectPRPerson=async function(uid){
     rawHours:Math.round(rawHours*10)/10,
     lateDeduction,
     lateCount,
+    minorLateAccum,
+    minorLateEvents,
+    accumDeductCount,
     shiftCount:myShifts.length,
     otHours:saved?.otHours||0,
     otRate:saved?.otRate||0,
@@ -3264,10 +3274,13 @@ function renderPRCalc(){
           <div style="font-size:22px;font-weight:700;color:var(--green-dd)">${d.autoHours} ชม.</div>
         </div>
       </div>
-      ${d.lateDeduction>0?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(29,158,117,.15);font-size:11px;color:var(--text3);display:flex;justify-content:space-between">
-        <span>ตามตาราง ${d.rawHours} ชม. − สาย ${d.lateCount} ครั้ง (หักครั้งละ 30 นาที)</span>
-        <span style="color:#D4690E;font-weight:600">−${d.lateDeduction} ชม.</span>
-      </div>`:`<div style="margin-top:6px;font-size:11px;color:var(--text3)">✓ ไม่มีการมาสายเกิน 30 นาที</div>`}
+      ${d.lateDeduction>0?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(29,158,117,.15);font-size:11px;color:var(--text3)">
+        <div style="display:flex;justify-content:space-between">
+          <span>ตามตาราง ${d.rawHours} ชม.${d.lateCount?' − สาย >30นาที '+d.lateCount+' ครั้ง (หักครั้งละ 0.5ชม.)':''}${d.accumDeductCount?' − สายสะสมครบชม. '+d.accumDeductCount+' ครั้ง (หักครั้งละ 1ชม.)':''}</span>
+          <span style="color:#D4690E;font-weight:600">−${d.lateDeduction} ชม.</span>
+        </div>
+      </div>`:'<div style="margin-top:6px;font-size:11px;color:var(--text3)">✓ ไม่มีการมาสายที่ต้องหัก</div>'}
+      ${d.minorLateAccum>0?`<div style="margin-top:6px;font-size:11px;color:var(--amber-t)">⏳ มีสายเล็กน้อย (≤30 นาที) สะสมไว้ ${d.minorLateAccum} นาที — ยังไม่ครบ 60 นาที ยังไม่หัก (จะรวมกับเดือนถัดไปไม่ได้ นับใหม่ทุกเดือน)</div>`:''}
     </div>
 
     ${d.salaryType!=='hourly'?`
