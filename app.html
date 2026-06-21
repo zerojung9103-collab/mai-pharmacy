@@ -184,6 +184,13 @@ textarea{resize:vertical;min-height:64px}
 #refresh-fab.spinning svg{animation:fabspin .6s linear}
 @keyframes fabspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @media(min-width:769px){#refresh-fab{bottom:24px}}
+#capsule-fab{position:fixed;left:18px;bottom:90px;width:54px;height:54px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border2);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:80;transition:transform .15s ease;padding:0}
+#capsule-fab:hover{transform:scale(1.06)}
+#capsule-fab:active{transform:scale(.92)}
+#capsule-fab svg{width:32px;height:32px;display:block}
+#capsule-fab .cf-badge{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;background:var(--red);border:2px solid var(--surface);display:none}
+#capsule-fab.has-alert .cf-badge{display:block}
+@media(min-width:769px){#capsule-fab{bottom:24px}}
 .hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center}
 .hamburger:hover{background:rgba(255,255,255,.1)}
 .hamburger svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
@@ -327,6 +334,11 @@ textarea{resize:vertical;min-height:64px}
   <span id="sb-role" style="display:none"></span>
 </div>
 
+<!-- ปุ่มแคปซูลลอย (ผู้ช่วยส่วนตัว — กดได้ทุกหน้า) -->
+<button id="capsule-fab" onclick="openAssistant()" title="ผู้ช่วยส่วนตัว" aria-label="เปิดผู้ช่วยส่วนตัว">
+  <span class="cf-badge"></span>
+  <span id="capsule-fab-icon"></span>
+</button>
 <!-- ปุ่มรีเฟรชลอย (ทุกหน้า) -->
 <button id="refresh-fab" onclick="refreshCurrentPage()" title="รีเฟรชข้อมูลล่าสุด" aria-label="รีเฟรช">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -886,8 +898,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.19.1';
+const APP_VERSION='1.20.0';
 const CHANGELOG=[
+  {v:'1.20.0',date:'2026-06-21',changes:['ผู้ช่วยแคปซูลกดได้ทุกหน้าแล้ว (ปุ่มลอยมุมซ้ายล่าง ไม่ใช่แค่แตะการ์ดทักทายหน้าแรก) — มีจุดแดงเตือนเมื่อมีเรื่องค้าง (ยังไม่ลงเวลา/เวรอัปเดต/คำขอลา/ประกาศ ฯลฯ) กดแล้วเห็นเตือนความจำ+ถามคำถามด่วนในที่เดียว','เปลี่ยนกล่องยืนยัน "ลบ/ยกเลิก" ทั้งระบบจากกล่องเบราว์เซอร์ธรรมดา เป็นแคปซูลถามยืนยันแทน (หน้าตาเข้ากับธีมแอป อ่านง่ายขึ้น)']},
   {v:'1.19.1',date:'2026-06-21',changes:['ปรับสีประจำวันให้อ่อนจางลงทั่วแอป — การ์ดทักทายหน้าแรกใช้สีวันแบบไล่ระดับเบาๆ (ตัวอักษรเข้มอ่านง่ายแทนสีขาว) + พื้นหลังทั้งแอปทาบสีวันแบบจางมาก ส่วนปุ่ม/สีฟังก์ชัน/สีสาขายังคงเดิมไม่เปลี่ยน']},
   {v:'1.19.0',date:'2026-06-21',changes:['รื้อระบบเมนูใหม่ทั้งหมด: เลิกใช้ sidebar เดิม — มือถือใช้แถบแท็บด้านล่าง 5 ปุ่ม (หน้าแรก/งานของฉัน/ขาย/บริหาร/เพิ่มเติม) คอมพิวเตอร์ใช้แถบบน + ช่องค้นหา (Command Palette กด Ctrl+K หรือคลิกได้) พิมพ์ชื่อเมนูหรือคำถามด่วนแล้วกระโดดไปได้ทันที — หน้าแรกเหลือแค่การ์ดทักทาย+เวรวันนี้+การ์ดหมวดหมู่ใหญ่ 4 ใบ ไม่ต้องไล่กดปุ่มเล็กๆ 16 ปุ่มอีกต่อไป + ย้ายเมนูบัญชี/ออกจากระบบ/ติดตั้งแอป มารวมในเมนูบัญชี (กดที่อวตาร)']},
   {v:'1.18.0',date:'2026-06-21',changes:['เพิ่ม "ผู้ช่วยส่วนตัว" — แตะการ์ดทักทายหน้าแรกเพื่อถามคำถามด่วน: ยอดขายวันนี้/เดือนนี้ (ตามสิทธิ์เดิม), เวรของฉัน/ใครเข้าเวรวันนี้, ยอดตู้เซฟ&กระเป๋าเก็บเงินทุกสาขา, สรุปการเข้างาน/มาสายของตัวเองเดือนนี้ — ตอบจากข้อมูลจริงในระบบทันที ไม่ใช่ AI']},
@@ -1008,6 +1021,14 @@ function applyDayTheme(){
   if(tc)tc.setAttribute('content',dc.grad[0]);
   // พื้นหลังแอปทั้งหมด — ทาบสีวันแบบจางมาก ไล่ระดับเบาๆ (ไม่แตะปุ่ม/สีฟังก์ชัน)
   document.body.style.background=`linear-gradient(160deg,${hexA(dc.main,.05)},${hexA(dc.main,.09)} 70%)`;
+  // ไอคอนปุ่มแคปซูลลอย
+  const cfIcon=document.getElementById('capsule-fab-icon');
+  if(cfIcon)cfIcon.innerHTML=capsuleMascot(32,dc.main);
+}
+// แสดงจุดแดงบนปุ่มแคปซูลลอย ถ้ามีเรื่องเตือนความจำค้างอยู่
+function updateCapsuleFabBadge(){
+  const fab=document.getElementById('capsule-fab');
+  if(fab)fab.classList.toggle('has-alert',!!(window._currentAlerts&&window._currentAlerts.length));
 }
 
 // สร้าง SVG น้องแคปซูล (รับสีครึ่งล่าง)
@@ -2259,7 +2280,7 @@ window.generateAutoSchedule=async function(){
   const configured=people.filter(p=>autoConfig[p.key]?.branches?.length);
   if(!configured.length){showToast('กรุณาเลือกสาขาให้อย่างน้อย 1 คน','err');return;}
 
-  if(!confirm(`สร้างตารางเวรเดือนนี้ใหม่?\nระบบจะลบเวรเดิมของเดือน ${monthStr} แล้วลงใหม่ตามเงื่อนไข`))return;
+  if(!await capsuleConfirm(`สร้างตารางเวรเดือนนี้ใหม่?\nระบบจะลบเวรเดิมของเดือน ${monthStr} แล้วลงใหม่ตามเงื่อนไข`))return;
 
   // โหลดวันลาของเดือนนี้ เพื่อไม่ลงเวรในวันที่ลา (เฉพาะสมาชิกจริง)
   let leaveMap={};
@@ -2759,7 +2780,7 @@ window.cashReportPrompt=function(branch){
 // ลบรายการเดียว (admin) — แล้วคำนวณยอดคงเหลือใหม่
 window.cashDeleteLog=async function(coll,id){
   if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
-  if(!confirm('ลบรายการนี้? ระบบจะคำนวณยอดคงเหลือใหม่ให้อัตโนมัติ'))return;
+  if(!await capsuleConfirm('ลบรายการนี้? ระบบจะคำนวณยอดคงเหลือใหม่ให้อัตโนมัติ'))return;
   try{
     await deleteDoc(doc(db,coll,id));
     await recalcCashBalances();
@@ -2878,7 +2899,7 @@ function salesRenderHistory(){
 
 // ลบยอดขาย (ทั้ง Firestore + ในเครื่อง)
 window.salesDelete=async function(date,branch){
-  if(!confirm(`ลบยอดขายสาขา${BRANCHES[branch]} วันที่ ${date}?`))return;
+  if(!await capsuleConfirm(`ลบยอดขายสาขา${BRANCHES[branch]} วันที่ ${date}?`))return;
   loading(true);
   try{
     await deleteDoc(doc(db,'sales',`${date}_${branch}`));
@@ -3078,7 +3099,7 @@ window.saveMemberSettings=async function(uid){
 // ส่งอีเมลรีเซ็ตรหัสผ่านให้สมาชิก (admin กด)
 window.sendResetPassword=async function(email){
   if(!email){showToast('ไม่พบอีเมลของสมาชิกนี้','err');return;}
-  if(!confirm(`ส่งลิงก์รีเซ็ตรหัสผ่านไปที่ ${email}?`))return;
+  if(!await capsuleConfirm(`ส่งลิงก์รีเซ็ตรหัสผ่านไปที่ ${email}?`))return;
   try{
     await sendPasswordResetEmail(auth,email);
     showToast('ส่งอีเมลรีเซ็ตรหัสผ่านแล้ว');
@@ -3089,7 +3110,7 @@ window.sendResetPassword=async function(email){
 };
 window.toggleMember=async function(uid,status){
   const newSt=status==='active'?'inactive':'active';
-  if(!confirm(`ยืนยัน${newSt==='active'?'เปิดใช้งาน':'ระงับ'}บัญชีนี้?`))return;
+  if(!await capsuleConfirm(`ยืนยัน${newSt==='active'?'เปิดใช้งาน':'ระงับ'}บัญชีนี้?`))return;
   try{
     await updateDoc(doc(db,'members',uid),{status:newSt});
     const m=allMembers.find(x=>x.uid===uid);if(m)m.status=newSt;
@@ -4112,13 +4133,46 @@ function assistantChipDefs(){
 }
 function assistantChipsHTML(){
   const chips=assistantChipDefs();
+  const alerts=window._currentAlerts||[];
+  const colors={amber:['var(--amber-l)','var(--amber-t)'],blue:['var(--blue-l)','var(--blue-t)'],red:['var(--red-l)','var(--red-t)'],green:['var(--green-l)','var(--green-dd)'],purple:['var(--purple-l)','var(--purple-t)']};
+  const reminderHtml=alerts.length?`<div style="font-size:11.5px;font-weight:700;color:var(--text3);margin-bottom:.5rem">🔔 เตือนความจำ</div>
+    ${alerts.map(a=>{
+      const c=colors[a.color]||['var(--bg)','var(--text2)'];
+      const act=(a.action||'').replace('onclick="','onclick="closeMD();');
+      return `<div style="display:flex;align-items:center;gap:10px;background:${c[0]};border-radius:10px;padding:9px 12px;margin-bottom:8px;font-size:12.5px;color:${c[1]};font-weight:500">
+        <span style="font-size:15px">${a.icon}</span><span style="flex:1">${a.text}</span>${act}
+      </div>`;
+    }).join('')}
+    <div style="height:1px;background:var(--border);margin:.25rem 0 1rem"></div>`:'';
   return `<div class="modal-title">💬 ถามอะไรก็ได้</div>
-    <div style="font-size:12.5px;color:var(--text3);margin-top:-.75rem;margin-bottom:1.1rem">เลือกคำถามด่วน ระบบจะตอบจากข้อมูลจริงในระบบทันที</div>
+    ${reminderHtml}
+    <div style="font-size:12.5px;color:var(--text3);margin-top:-.5rem;margin-bottom:1.1rem">เลือกคำถามด่วน ระบบจะตอบจากข้อมูลจริงในระบบทันที</div>
     ${chips.map(c=>`<button class="assist-chip" onclick="assistantAsk('${c.id}')"><span class="ic">${c.ic}</span><span>${c.label}</span></button>`).join('')}
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`;
 }
 window.openAssistant=function(){ if(!currentUser)return; openModal(assistantChipsHTML()); };
 window.assistantBack=function(){ openModal(assistantChipsHTML()); };
+
+// ===== ถามยืนยันแบบแคปซูล (แทน confirm() ของเบราว์เซอร์) — คืนค่าเป็น Promise<boolean> =====
+function capsuleConfirm(message,opts={}){
+  return new Promise(resolve=>{
+    const dc=todayColor();
+    const danger=opts.danger!==false;
+    openModal(`<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:1.25rem">
+        ${capsuleMascot(48,dc.main)}
+        <div style="background:#FAFBFB;border-radius:14px;border-bottom-left-radius:4px;padding:10px 14px;flex:1;border:1px solid var(--border)">
+          <div style="font-size:13.5px;color:var(--text);font-weight:500;line-height:1.6;white-space:pre-line">${message}</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" id="capconf-no">ยกเลิก</button>
+        <button class="btn ${danger?'btn-danger':'btn-primary'}" id="capconf-yes">${opts.okLabel||'ยืนยัน'}</button>
+      </div>`);
+    const yes=document.getElementById('capconf-yes'),no=document.getElementById('capconf-no');
+    if(yes)yes.onclick=()=>{closeMD();resolve(true);};
+    if(no)no.onclick=()=>{closeMD();resolve(false);};
+  });
+}
 
 // ===== Command Palette (คอม: คลิกช่องค้นหา/Ctrl+K, มือถือ: ไอคอนแว่นขยาย) =====
 window.openCommandPalette=function(){
@@ -4734,7 +4788,7 @@ window.saveArticle=async function(id){
 };
 
 window.deleteArticle=async function(id){
-  if(!confirm('ยืนยันลบบทความนี้?'))return;
+  if(!await capsuleConfirm('ยืนยันลบบทความนี้?'))return;
   try{await deleteDoc(doc(db,'articles',id));closeMD();showToast('ลบบทความแล้ว');loadArticles();}
   catch(e){showToast('ลบไม่ได้: '+e.message,'err');}
 };
@@ -4940,6 +4994,8 @@ async function checkNotifications(){
     }
   }catch(e){console.error('checkNotifications',e);}
 
+  window._currentAlerts=alerts;
+  updateCapsuleFabBadge();
   if(!alerts.length){banner.style.display='none';return;}
   banner.style.display='block';
   banner.innerHTML=alerts.map(a=>{
@@ -5057,7 +5113,7 @@ window.postAnnouncement=async function(){
 };
 
 window.deleteAnnouncement=async function(id){
-  if(!confirm('ลบประกาศนี้?'))return;
+  if(!await capsuleConfirm('ลบประกาศนี้?'))return;
   try{await deleteDoc(doc(db,'announcements',id));showToast('ลบประกาศแล้ว');renderAnnouncements();}
   catch(e){showToast(e.message,'err');}
 };
@@ -5104,7 +5160,7 @@ window.toggleCapMsg=async function(i){
   if(capMessages[i]){capMessages[i].enabled=!capMessages[i].enabled;await saveCapMessages();renderCapMsgSettings();}
 };
 window.deleteCapMsg=async function(i){
-  if(!confirm('ลบข้อความนี้?'))return;
+  if(!await capsuleConfirm('ลบข้อความนี้?'))return;
   capMessages.splice(i,1);await saveCapMessages();renderCapMsgSettings();showToast('ลบแล้ว');
 };
 
@@ -5215,7 +5271,7 @@ window.saveDose=async function(id){
 };
 
 window.deleteDose=async function(id){
-  if(!confirm('ลบสูตรยานี้?'))return;
+  if(!await capsuleConfirm('ลบสูตรยานี้?'))return;
   try{await deleteDoc(doc(db,'doseFormulas',id));showToast('ลบแล้ว');loadDoseTools();}catch(e){showToast(e.message,'err');}
 };
 
@@ -5304,7 +5360,7 @@ window.saveWarn=async function(id){
 };
 
 window.deleteWarn=async function(id){
-  if(!confirm('ลบข้อมูลยานี้?'))return;
+  if(!await capsuleConfirm('ลบข้อมูลยานี้?'))return;
   try{await deleteDoc(doc(db,'drugWarnings',id));showToast('ลบแล้ว');loadDrugWarnings();}catch(e){showToast(e.message,'err');}
 };
 
@@ -5364,7 +5420,7 @@ window.loadMyLeaves=async function(){
 };
 
 window.cancelLeave=async function(id){
-  if(!confirm('ยกเลิกคำขอลานี้?'))return;
+  if(!await capsuleConfirm('ยกเลิกคำขอลานี้?'))return;
   try{await deleteDoc(doc(db,'leaves',id));await loadLeavesForSchedule();if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();showToast('ยกเลิกคำขอลาแล้ว');loadMyLeaves();}
   catch(e){showToast(e.message,'err');}
 };
@@ -5428,7 +5484,7 @@ window.setLeaveType=async function(id,type){
 };
 
 window.deleteLeaveAdmin=async function(id){
-  if(!confirm('ลบคำขอลานี้?'))return;
+  if(!await capsuleConfirm('ลบคำขอลานี้?'))return;
   try{await deleteDoc(doc(db,'leaves',id));await loadLeavesForSchedule();if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();showToast('ลบแล้ว');loadLeaveAdmin();}
   catch(e){showToast(e.message,'err');}
 };
