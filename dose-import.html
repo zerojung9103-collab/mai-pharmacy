@@ -78,45 +78,55 @@ const app = initializeApp({
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ===== ข้อมูลที่ร่างไว้จากไฟล์ Excel (Antibiotics) — แปลงเป็นรูปแบบ doseFormulas =====
-// assume: ข้อความอธิบายสิ่งที่ระบบอนุมานเอง (ไม่ได้มาจากไฟล์ตรงๆ) — ว่างได้ถ้าไม่มี
-// freqOptions: รายการความถี่ที่ผู้ใช้เลือกได้ตอนคำนวณจริง (ตรงกับคอลัมน์ Bid/Tid ในไฟล์ต้นฉบับ)
-const BID=(t)=>({label:'BID (2 ครั้ง/วัน)',timesPerDay:2});
-const TID=(t)=>({label:'TID (3 ครั้ง/วัน)',timesPerDay:3});
+// ===== ข้อมูลจากไฟล์ Excel ชีท "Antibiotics" — อ่านโดยตรงจากคอลัมน์ OD/Bid/Tid/Qid ในไฟล์ =====
+// assume: ข้อความอธิบายสิ่งที่ระบบยังต้องอนุมานเอง (ไม่ได้มาจากไฟล์ตรงๆ) — ว่างได้ถ้าไม่มี
+// freqOptions: ตัวเลือกความถี่ — มาจากการเช็คว่าคอลัมน์ไหนในไฟล์ "มีค่า" (เช่น มีค่าใต้ Bid และ Tid = เลือกได้ทั้ง 2 แบบ)
+const OD=()=>({label:'OD (1 ครั้ง/วัน)',timesPerDay:1});
+const BID=()=>({label:'BID (2 ครั้ง/วัน)',timesPerDay:2});
+const TID=()=>({label:'TID (3 ครั้ง/วัน)',timesPerDay:3});
+const QID=()=>({label:'QID (4 ครั้ง/วัน)',timesPerDay:4});
 const DOSE_DATA = [
-  {id:'dose_amoxicillin_125', name:'Amoxicillin 125mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน — ไฟล์มีตัวเลือก BID/TID ให้เลือกตอนคำนวณ',
+  {id:'dose_amoxicillin_125', name:'Amoxicillin 125mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ Bid/Tid มีค่า)',
     assume:''},
-  {id:'dose_amoxicillin_250', name:'Amoxicillin 250mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:250, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน — ไฟล์มีตัวเลือก BID/TID ให้เลือกตอนคำนวณ',
+  {id:'dose_amoxicillin_250', name:'Amoxicillin 250mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:250, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ Bid/Tid มีค่า)',
     assume:''},
-  {id:'dose_augmentin_156', name:'Augmentin 156mg/5ml (amox 125)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+  {id:'dose_augmentin_156', name:'Augmentin 156mg/5ml (amox 125)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ (คอลัมน์ Bid/Tid มีค่า)',
     assume:''},
-  {id:'dose_augmentin_228', name:'Augmentin 228mg/5ml (amox 200)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:200, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+  {id:'dose_augmentin_228', name:'Augmentin 228mg/5ml (amox 200)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:200, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ (คอลัมน์ Bid/Tid มีค่า)',
     assume:''},
-  {id:'dose_augmentin_457', name:'Augmentin 457mg/5ml (amox 400)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:400, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+  {id:'dose_augmentin_457', name:'Augmentin 457mg/5ml (amox 400)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:400, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ (คอลัมน์ Bid/Tid มีค่า)',
     assume:''},
-  {id:'dose_augmentin_642', name:'Augmentin 642mg/5ml (amox 600)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:600, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+  {id:'dose_augmentin_642', name:'Augmentin 642mg/5ml (amox 600)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:600, concMl:5, minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ (คอลัมน์ Bid/Tid มีค่า)',
     assume:''},
-  {id:'dose_cloxacillin_125', name:'Cloxacillin 125mg/5ml', doseType:'perDay', perKgLow:50, perKgHigh:100, unit:'mg', freqOptions:[{label:'QID (4 ครั้ง/วัน)',timesPerDay:4}], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'เฉพาะเด็กน้ำหนัก < 20 กก. ตามไฟล์',
-    assume:'ความถี่ q6h (QID) เป็นมาตรฐานทั่วไป ไม่ได้ระบุในไฟล์โดยตรง'},
-  {id:'dose_unasyn_250', name:'Unasyn susp. 250mg/5ml', doseType:'perDay', perKgLow:25, perKgHigh:50, unit:'mg', freqOptions:[TID(),{label:'QID (4 ครั้ง/วัน)',timesPerDay:4}], maxDose:0, concMg:250, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (q6-8h)',
-    assume:'ให้เลือก TID หรือ QID ตามช่วง q6-8h ที่ไฟล์ระบุ'},
-  {id:'dose_cefalexin_125', name:'Cefalexin (Keflex/Sialexin) 125mg/5ml', doseType:'perDay', perKgLow:25, perKgHigh:50, unit:'mg', freqOptions:[{label:'QID (4 ครั้ง/วัน)',timesPerDay:4}], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน',
-    assume:'ความถี่ q6h (QID) เป็นมาตรฐานทั่วไปของ Cefalexin ไม่ได้ระบุในไฟล์โดยตรง'},
-  {id:'dose_cefaclor_125', name:'Cefaclor (Distaclor/Vercef) 125mg/5ml', doseType:'perDay', perKgLow:20, perKgHigh:40, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุ max 40cc/วัน (หน่วยปริมาตร ไม่ใช่ mg — ไม่ได้ใส่ในขนาดสูงสุด/ครั้ง กรุณาตรวจสอบเอง)',
-    assume:'ให้เลือก BID หรือ TID ตามช่วง q8-12h ที่ไฟล์ระบุ'},
-  {id:'dose_cefaclor_250', name:'Cefaclor (Distaclor/Vercef) 250mg/5ml', doseType:'perDay', perKgLow:20, perKgHigh:40, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:250, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุ max 20cc/วัน (หน่วยปริมาตร ไม่ใช่ mg — ไม่ได้ใส่ในขนาดสูงสุด/ครั้ง กรุณาตรวจสอบเอง)',
-    assume:'ให้เลือก BID หรือ TID ตามช่วง q8-12h ที่ไฟล์ระบุ'},
-  {id:'dose_cefdinir_125', name:'Cefdinir (Omnicef/Samnir) 125mg/5ml', doseType:'perDay', perKgLow:14, perKgHigh:14, unit:'mg', freqOptions:[{label:'OD (1 ครั้ง/วัน)',timesPerDay:1},BID()], maxDose:300, concMg:125, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุค่าสูงสุด 14 mg/kg/วัน เท่านั้น (ไม่มีค่าต่ำสุดแยก) เพดานรวม 600mg/วัน',
-    assume:'ขนาดสูงสุด/ครั้ง 300mg คำนวณจาก 600mg/วัน ÷ 2 (BID) — ถ้าเลือก OD ขนาดสูงสุด/ครั้งจริงคือ 600mg ไม่ใช่ 300mg กรุณาตรวจสอบก่อนใช้ OD'},
-  {id:'dose_cefixime_100', name:'Cefixime (Cefspan) 100mg/5ml', doseType:'perDay', perKgLow:6, perKgHigh:8, unit:'mg', freqOptions:[BID()], maxDose:0, concMg:100, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุ max 20cc/วัน (หน่วยปริมาตร ไม่ใช่ mg — ไม่ได้ใส่ในขนาดสูงสุด/ครั้ง กรุณาตรวจสอบเอง)',
-    assume:'ความถี่ BID เป็นมาตรฐานทั่วไปของ Cefixime ไม่ได้ระบุในไฟล์โดยตรง'},
-  {id:'dose_erythromycin_125', name:'Erythromycin (Ilosone) 125mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[TID(),{label:'QID (4 ครั้ง/วัน)',timesPerDay:4}], maxDose:666, concMg:125, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุ max เด็ก 80cc/วัน (=2000mg/วัน คำนวณจากความเข้มข้น)',
-    assume:'ขนาดสูงสุด/ครั้ง 666mg คำนวณจาก 2000mg/วัน ÷ 3 (TID) — ถ้าเลือก QID ขนาดสูงสุด/ครั้งจริงคือ 500mg กรุณาตรวจสอบก่อนใช้ QID'},
-  {id:'dose_clarithromycin_125', name:'Clarithromycin (Klacid) 125mg/5ml', doseType:'perDay', perKgLow:15, perKgHigh:15, unit:'mg', freqOptions:[BID()], maxDose:500, concMg:125, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุค่าสูงสุด 15 mg/kg/วัน เท่านั้น (ไม่มีค่าต่ำสุดแยก) — max 500mg ต่อครั้ง มาจากไฟล์โดยตรง',
+  {id:'dose_cloxacillin_125', name:'Cloxacillin 125mg/5ml', doseType:'perDay', perKgLow:50, perKgHigh:100, unit:'mg', freqOptions:[TID(),QID()], maxDose:0, concMg:125, concMl:5, minAgeMonths:0, note:'เฉพาะเด็กน้ำหนัก < 20 กก. ตามไฟล์ (คอลัมน์ Tid/Qid มีค่า)',
     assume:''},
-  {id:'dose_azithromycin_200', name:'Azithromycin (Zithromax) 200mg/5ml', doseType:'perDay', perKgLow:10, perKgHigh:12, unit:'mg', freqOptions:[{label:'OD (1 ครั้ง/วัน) นาน 3-5 วัน',timesPerDay:1}], maxDose:0, concMg:200, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน — กินติดต่อกัน 3-5 วันเท่านั้น',
+  {id:'dose_unasyn_250', name:'Unasyn susp. 250mg/5ml', doseType:'perDay', perKgLow:25, perKgHigh:50, unit:'mg', freqOptions:[OD(),BID(),TID()], maxDose:0, concMg:250, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ OD/Bid/Tid มีค่าในไฟล์)',
     assume:''},
-  {id:'dose_bactrim_susp', name:'Bactrim Susp. (คิดจาก TMP 40mg/5ml)', doseType:'perDay', perKgLow:8, perKgHigh:10, unit:'mg', freqOptions:[BID()], maxDose:0, concMg:40, concMl:5, minAgeMonths:0, note:'กรณีติดเชื้อผิวหนังใช้ 8-12 mg/kg/วันแทน — คำนวณจากปริมาณ TMP',
+  {id:'dose_cefalexin_125', name:'Cefalexin (Keflex/Sialexin) 125mg/5ml', doseType:'perDay', perKgLow:25, perKgHigh:50, unit:'mg', freqOptions:[OD(),BID(),TID()], maxDose:0, maxPerDay:4000, concMg:125, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ OD/Bid/Tid มีค่าในไฟล์ — ช่อง Qid ว่าง) max 160cc/วัน = 4000mg/วัน',
+    assume:''},
+  {id:'dose_cefaclor_125', name:'Cefaclor (Distaclor/Vercef) 125mg/5ml', doseType:'perDay', perKgLow:20, perKgHigh:40, unit:'mg', freqOptions:[OD(),BID(),TID()], maxDose:0, maxPerDay:1000, concMg:125, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ OD/Bid/Tid มีค่าในไฟล์) max 40cc/วัน = 1000mg/วัน',
+    assume:''},
+  {id:'dose_cefaclor_250', name:'Cefaclor (Distaclor/Vercef) 250mg/5ml', doseType:'perDay', perKgLow:20, perKgHigh:40, unit:'mg', freqOptions:[OD(),BID(),TID()], maxDose:0, maxPerDay:1000, concMg:250, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ OD/Bid/Tid มีค่าในไฟล์) max 20cc/วัน = 1000mg/วัน',
+    assume:''},
+  {id:'dose_cefdinir_125', name:'Cefdinir (Omnicef/Samnir) 125mg/5ml', doseType:'perDay', perKgLow:14, perKgHigh:14, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, maxPerDay:600, concMg:125, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุค่าสูงสุด 14 mg/kg/วัน เท่านั้น (ไม่มีค่าต่ำสุดแยก) เพดานรวม 600mg/วัน (มาจากไฟล์โดยตรง mg/day)',
+    assume:''},
+  {id:'dose_cefixime_100', name:'Cefixime (Cefspan) 100mg/5ml', doseType:'perDay', perKgLow:6, perKgHigh:8, unit:'mg', freqOptions:[OD(),BID(),TID()], maxDose:0, maxPerDay:400, concMg:100, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ OD/Bid/Tid มีค่าในไฟล์) max 20cc/วัน = 400mg/วัน',
+    assume:''},
+  {id:'dose_meiact_granule_50', name:'Meiact Fine Granules 50mg/sachet', doseType:'perDay', perKgLow:10, perKgHigh:18, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:0, concMl:0, minAgeMonths:0, note:'เป็นซอง ไม่ใช่ยาน้ำ ระบบคำนวณเป็น mg เภสัชกรปัดเป็นจำนวนซองเอง (คอลัมน์ Bid/Tid มีค่า)',
+    assume:''},
+  {id:'dose_meiact_tab_100', name:'Meiact (Cefditoren) 100mg/tab', doseType:'perDay', perKgLow:10, perKgHigh:18, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:0, concMl:0, minAgeMonths:0, note:'เป็นเม็ด ระบบคำนวณเป็น mg เภสัชกรปัดเป็นจำนวนเม็ดเอง (คอลัมน์ Bid/Tid มีค่า)',
+    assume:''},
+  {id:'dose_meiact_tab_200', name:'Meiact (Cefditoren) 200mg/tab', doseType:'perDay', perKgLow:10, perKgHigh:18, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:0, concMl:0, minAgeMonths:0, note:'เป็นเม็ด ระบบคำนวณเป็น mg เภสัชกรปัดเป็นจำนวนเม็ดเอง (คอลัมน์ Bid/Tid มีค่า)',
+    assume:''},
+  {id:'dose_erythromycin_125', name:'Erythromycin (Ilosone) 125mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', freqOptions:[OD(),TID(),QID()], maxDose:0, maxPerDay:2000, concMg:125, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ OD/Tid/Qid มีค่าในไฟล์ — ช่อง Bid ว่าง) max เด็ก 80cc/วัน=2000mg/วัน (ใช้ค่านี้), ผู้ใหญ่ 160cc/วัน=4000mg/วัน',
+    assume:''},
+  {id:'dose_clarithromycin_125', name:'Clarithromycin (Klacid) 125mg/5ml', doseType:'perDay', perKgLow:15, perKgHigh:15, unit:'mg', freqOptions:[BID()], maxDose:500, concMg:125, concMl:5, minAgeMonths:0, note:'ไฟล์ระบุค่าสูงสุด 15 mg/kg/วัน เท่านั้น (ไม่มีค่าต่ำสุดแยก) — ไฟล์เขียนกำกับว่า "500 mg BID" ชัดเจน',
+    assume:''},
+  {id:'dose_azithromycin_200', name:'Azithromycin (Zithromax) 200mg/5ml', doseType:'perDay', perKgLow:10, perKgHigh:12, unit:'mg', freqOptions:[{label:'OD (1 ครั้ง/วัน) นาน 3-5 วัน',timesPerDay:1}], maxDose:0, concMg:200, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน — กินติดต่อกัน 3-5 วันเท่านั้น (คอลัมน์ OD มีค่า)',
+    assume:''},
+  {id:'dose_miotin_200', name:'Miotin (Midecamycin) 200mg/5ml', doseType:'perDay', perKgLow:20, perKgHigh:40, unit:'mg', freqOptions:[OD(),BID(),TID()], maxDose:0, concMg:200, concMl:5, minAgeMonths:0, note:'จากไฟล์ของร้าน (คอลัมน์ OD/Bid/Tid มีค่าในไฟล์)',
+    assume:''},
+  {id:'dose_bactrim_susp', name:'Bactrim Susp. (คิดจาก TMP 40mg/5ml)', doseType:'perDay', perKgLow:8, perKgHigh:10, unit:'mg', freqOptions:[BID(),TID()], maxDose:0, concMg:40, concMl:5, minAgeMonths:0, note:'กรณีติดเชื้อผิวหนังใช้ 8-12 mg/kg/วันแทน — คำนวณจากปริมาณ TMP (คอลัมน์ Bid/Tid มีค่า)',
     assume:''},
   {id:'dose_tamiflu_6mgml', name:'Tamiflu 6mg/ml', doseType:'perDose', perKgLow:2, perKgHigh:3, unit:'mg', freqOptions:[], maxDose:0, concMg:6, concMl:1, minAgeMonths:0, note:'BID (2 ครั้ง/วัน) — มีสูตรพิเศษสำหรับทารก/อายุ <1ปี ในไฟล์ต้นฉบับ ไม่รวมในระบบนี้ ใช้ดุลยพินิจเภสัชกรแยกต่างหาก',
     assume:''},
@@ -129,7 +139,7 @@ function rowHtml(d,i){
     <input type="checkbox" id="chk-${i}" checked onchange="document.getElementById('row-${i}').classList.toggle('excluded',!this.checked);updateCount()">
     <div style="flex:1">
       <div class="name">${d.name}</div>
-      <div class="meta">${d.perKgLow}${d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./${perDay?'วัน':'ครั้ง'}${freqTxt?' • เลือกได้: '+freqTxt:''}${d.maxDose?' • สูงสุด '+d.maxDose+'mg/ครั้ง':''}${d.concMg?' • '+d.concMg+'mg/'+d.concMl+'ml':''}</div>
+      <div class="meta">${d.perKgLow}${d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./${perDay?'วัน':'ครั้ง'}${freqTxt?' • เลือกได้: '+freqTxt:''}${d.maxDose?' • สูงสุด '+d.maxDose+'mg/ครั้ง':''}${d.maxPerDay?' • สูงสุด '+d.maxPerDay+'mg/วัน':''}${d.concMg?' • '+d.concMg+'mg/'+d.concMl+'ml':''}</div>
       ${d.note?`<div class="source">📝 ${d.note}</div>`:''}
       ${d.assume?`<div class="assume">🟡 ${d.assume}</div>`:''}
     </div>

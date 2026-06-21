@@ -898,8 +898,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.21.2';
+const APP_VERSION='1.21.3';
 const CHANGELOG=[
+  {v:'1.21.3',date:'2026-06-21',changes:['เพิ่ม "ขนาดสูงสุด/วัน" ในสูตรยา (แยกจากขนาดสูงสุด/ครั้งเดิม) — cap ที่ระดับรวมทั้งวันก่อนหารตามความถี่ที่เลือก ตรงกับที่เอกสารอ้างอิงส่วนใหญ่ระบุเพดานเป็นยอดรวมต่อวัน ไม่ใช่ต่อครั้ง']},
   {v:'1.21.2',date:'2026-06-21',changes:['หน้าคำนวณยา: ยาที่มีหลายความถี่ (เช่น BID/TID) ตอนนี้คำนวณและโชว์ผลลัพธ์ของทุกความถี่พร้อมกันในคราวเดียว ไม่ต้องเลือกจาก dropdown ทีละแบบแล้ว — เห็นเปรียบเทียบได้เลยว่าถ้าให้ BID ทานเท่าไหร่ ถ้าให้ TID ทานเท่าไหร่']},
   {v:'1.21.1',date:'2026-06-21',changes:['ปรับระบบคำนวณยา "ต่อวัน" — เปลี่ยนจากตั้งความถี่ตายตัวตอนกรอกสูตร เป็น "เลือกความถี่ตอนคำนวณ" แทน (เช่น Amoxicillin กรอกสูตรครั้งเดียว แต่หน้าคำนวณให้เลือกได้ทั้ง BID หรือ TID ตามที่แพทย์สั่งจริง) ตรงกับเอกสารอ้างอิงของร้านที่มีหลายความถี่ต่อยา 1 ตัว — หน้าแก้ไขสูตรยารองรับเพิ่ม/ลบตัวเลือกความถี่ได้เอง']},
   {v:'1.21.0',date:'2026-06-21',changes:['ขยายระบบคำนวณยา: เพิ่มสูตรยาได้แบบ "ต่อวัน" (mg/กก./วัน หารจำนวนครั้ง/วัน) นอกจาก "ต่อครั้ง" แบบเดิม ตามที่เอกสารอ้างอิงส่วนใหญ่ใช้','เพิ่ม "อายุขั้นต่ำ" ต่อสูตรยา — ถ้ากรอกอายุเด็กต่ำกว่าเกณฑ์ ระบบจะบล็อกและเตือนชัดเจนแทนการคำนวณให้เฉยๆ ส่วนสูตรเดิมที่ยังไม่ได้ระบุอายุขั้นต่ำจะมีคำเตือนเบาๆ กำกับไว้เสมอ']},
@@ -5207,7 +5208,7 @@ function renderDoseList(){
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
     <div style="flex:1">
       <div style="font-weight:600;font-size:13px">${d.name}</div>
-      <div style="font-size:11px;color:var(--text3)">${rangeTxt}${freqTxt}${d.maxDose?' • สูงสุด '+d.maxDose+' '+d.unit+'/ครั้ง':''}</div>
+      <div style="font-size:11px;color:var(--text3)">${rangeTxt}${freqTxt}${d.maxDose?' • สูงสุด '+d.maxDose+' '+d.unit+'/ครั้ง':''}${d.maxPerDay?' • สูงสุด '+d.maxPerDay+' '+d.unit+'/วัน':''}</div>
       <div style="font-size:11px;margin-top:2px">${ageTxt}</div>
     </div>
     ${isAdmin?`<button class="btn btn-sm" onclick="openDoseEditor('${d.id}')">แก้</button><button class="btn btn-sm btn-danger" onclick="deleteDose('${d.id}')">ลบ</button>`:''}
@@ -5222,18 +5223,22 @@ window.onDoseDrugChange=function(){
   if(!d){info.style.display='none';document.getElementById('dose-result').innerHTML='';return;}
   info.style.display='block';
   const perDay=d.doseType==='perDay';
-  info.innerHTML=`<b>${d.name}</b><br>ขนาด: ${d.perKgLow}${d.perKgHigh&&d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./${perDay?'วัน':'ครั้ง'}${d.maxDose?'<br>ขนาดสูงสุด: '+d.maxDose+' '+d.unit+'/ครั้ง':''}${d.concMg&&d.concMl?'<br>ความเข้มข้น: '+d.concMg+' mg/'+d.concMl+' ml':''}${d.note?'<br>หมายเหตุ: '+d.note:''}<br>${d.minAgeMonths?'อายุขั้นต่ำ: '+minAgeLabel(d.minAgeMonths):'<span style="color:var(--amber-t)">⚠️ ยังไม่ได้ระบุข้อจำกัดอายุ ตรวจสอบก่อนใช้</span>'}`;
+  info.innerHTML=`<b>${d.name}</b><br>ขนาด: ${d.perKgLow}${d.perKgHigh&&d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./${perDay?'วัน':'ครั้ง'}${d.maxDose?'<br>ขนาดสูงสุด: '+d.maxDose+' '+d.unit+'/ครั้ง':''}${d.maxPerDay?'<br>ขนาดสูงสุด: '+d.maxPerDay+' '+d.unit+'/วัน':''}${d.concMg&&d.concMl?'<br>ความเข้มข้น: '+d.concMg+' mg/'+d.concMl+' ml':''}${d.note?'<br>หมายเหตุ: '+d.note:''}<br>${d.minAgeMonths?'อายุขั้นต่ำ: '+minAgeLabel(d.minAgeMonths):'<span style="color:var(--amber-t)">⚠️ ยังไม่ได้ระบุข้อจำกัดอายุ ตรวจสอบก่อนใช้</span>'}`;
   calcDose();
 };
 
 // คำนวณขนาดยา 1 ช่อง (ใช้ทั้งกับ perDose และแต่ละความถี่ของ perDay)
 function calcOneDose(d,w,dpd){
-  let low=(d.perKgLow*w)/dpd, high=((d.perKgHigh||d.perKgLow)*w)/dpd;
+  // เพดานต่อวัน (ถ้ามี) — cap ที่ระดับ "รวมทั้งวัน" ก่อน แล้วค่อยหารด้วยความถี่ ตรงตามที่เอกสารอ้างอิงระบุ
+  let dailyLow=d.perKgLow*w, dailyHigh=(d.perKgHigh||d.perKgLow)*w;
+  let dayCapped=false;
+  if(d.maxPerDay){if(dailyLow>d.maxPerDay){dailyLow=d.maxPerDay;dayCapped=true;}if(dailyHigh>d.maxPerDay){dailyHigh=d.maxPerDay;dayCapped=true;}}
+  let low=dailyLow/dpd, high=dailyHigh/dpd;
   let capped=false;
   if(d.maxDose){if(low>d.maxDose){low=d.maxDose;capped=true;}if(high>d.maxDose){high=d.maxDose;capped=true;}}
   let mlLow=null,mlHigh=null;
   if(d.concMg&&d.concMl){mlLow=low/d.concMg*d.concMl;mlHigh=high/d.concMg*d.concMl;}
-  return{low,high,capped,mlLow,mlHigh};
+  return{low,high,capped,dayCapped,mlLow,mlHigh};
 }
 function doseResultCardHtml(d,w,label,sub,r){
   const rng=r.low===r.high?`${r.low.toFixed(1)}`:`${r.low.toFixed(1)} - ${r.high.toFixed(1)}`;
@@ -5248,6 +5253,7 @@ function doseResultCardHtml(d,w,label,sub,r){
       <div class="lbl">ขนาดยาที่คำนวณได้ (น้ำหนัก ${w} กก.)</div>
       <div class="val" style="font-size:24px">${rng} ${d.unit}/ครั้ง</div>
       ${sub?`<div style="font-size:11px;opacity:.7;margin-top:2px">${sub}</div>`:''}
+      ${r.dayCapped?`<div style="font-size:11px;opacity:.9;margin-top:4px">⚠️ ปรับลดตามขนาดสูงสุด ${d.maxPerDay} ${d.unit}/วัน</div>`:''}
       ${r.capped?`<div style="font-size:11px;opacity:.9;margin-top:4px">⚠️ ปรับลดตามขนาดสูงสุด ${d.maxDose} ${d.unit}</div>`:''}
       ${mlHtml}
     </div>
@@ -5305,7 +5311,7 @@ window.addFreqRow=function(label,times){
 
 window.openDoseEditor=async function(id){
   if(!isAdmin)return;
-  let d={name:'',doseType:'perDose',perKgLow:'',perKgHigh:'',unit:'mg',maxDose:'',freqOptions:[],minAgeMonths:'',note:'',concMg:'',concMl:''};
+  let d={name:'',doseType:'perDose',perKgLow:'',perKgHigh:'',unit:'mg',maxDose:'',maxPerDay:'',freqOptions:[],minAgeMonths:'',note:'',concMg:'',concMl:''};
   if(id){const f=doseFormulas.find(x=>x.id===id);if(f)d={...d,...f};}
   openModal(`<div class="modal-title">${id?'แก้ไขสูตรยา':'เพิ่มสูตรยา'}</div>
     <div class="field"><label class="fl">ชื่อยา *</label><input type="text" id="d-name" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="เช่น Paracetamol"></div>
@@ -5318,6 +5324,7 @@ window.openDoseEditor=async function(id){
       <div class="field"><label class="fl">หน่วย</label><input type="text" id="d-unit" value="${d.unit||'mg'}" placeholder="mg"></div>
       <div class="field"><label class="fl">ขนาดสูงสุด/ครั้ง</label><input type="number" id="d-max" value="${d.maxDose}" step="0.1" placeholder="500"></div>
     </div>
+    <div class="field" id="d-maxday-field" style="display:${d.doseType==='perDay'?'block':'none'}"><label class="fl">ขนาดสูงสุด/วัน (ถ้ามี — cap รวมทั้งวันก่อนหารความถี่)</label><input type="number" id="d-maxday" value="${d.maxPerDay}" step="0.1" placeholder="เช่น 4000"></div>
     <div class="field" id="d-freq-field" style="display:${d.doseType==='perDay'?'block':'none'}">
       <label class="fl">ตัวเลือกความถี่ (ให้ผู้ใช้เลือกตอนคำนวณ เช่น BID หรือ TID) *</label>
       <div id="d-freq-list"></div>
@@ -5341,8 +5348,10 @@ window.onDoseTypeChange=function(){
   const perDay=document.getElementById('d-type')?.value==='perDay';
   const freqField=document.getElementById('d-freq-field');
   const freqTextField=document.getElementById('d-freq-text-field');
+  const maxdayField=document.getElementById('d-maxday-field');
   if(freqField)freqField.style.display=perDay?'block':'none';
   if(freqTextField)freqTextField.style.display=perDay?'none':'block';
+  if(maxdayField)maxdayField.style.display=perDay?'block':'none';
   if(perDay&&document.getElementById('d-freq-list')&&!document.getElementById('d-freq-list').children.length)addFreqRow('',2);
   const lo=document.getElementById('d-low-label'),hi=document.getElementById('d-high-label');
   if(lo)lo.textContent='ขนาดต่ำสุด'+(perDay?' (ต่อกก./วัน) *':' (ต่อกก./ครั้ง) *');
@@ -5369,6 +5378,7 @@ window.saveDose=async function(id){
     unit:document.getElementById('d-unit').value.trim()||'mg',
     freqOptions,
     maxDose:parseFloat(document.getElementById('d-max').value)||0,
+    maxPerDay:doseType==='perDay'?(parseFloat(document.getElementById('d-maxday').value)||0):0,
     freq:doseType==='perDose'?document.getElementById('d-freq').value.trim():'',
     minAgeMonths:parseFloat(document.getElementById('d-minage').value)||0,
     concMg:parseFloat(document.getElementById('d-cmg').value)||0,
