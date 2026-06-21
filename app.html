@@ -898,8 +898,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.21.3';
+const APP_VERSION='1.22.0';
 const CHANGELOG=[
+  {v:'1.22.0',date:'2026-06-21',changes:['หน้าแรกเปลี่ยนกลับมาโชว์ทุกเมนูแบบเรียงกริดเดียว (ไม่จัดเป็นการ์ดหมวดหมู่ใหญ่แล้ว) ตามสิทธิ์ของแต่ละคน — ส่วนแถบด้านล่างบนมือถือ (หน้าแรก/งานของฉัน/ขาย/บริหาร/เพิ่มเติม) ยังเป็นหมวดหมู่อยู่เหมือนเดิม ไว้กดลัดเข้าแต่ละกลุ่มได้เร็วๆ']},
   {v:'1.21.3',date:'2026-06-21',changes:['เพิ่ม "ขนาดสูงสุด/วัน" ในสูตรยา (แยกจากขนาดสูงสุด/ครั้งเดิม) — cap ที่ระดับรวมทั้งวันก่อนหารตามความถี่ที่เลือก ตรงกับที่เอกสารอ้างอิงส่วนใหญ่ระบุเพดานเป็นยอดรวมต่อวัน ไม่ใช่ต่อครั้ง']},
   {v:'1.21.2',date:'2026-06-21',changes:['หน้าคำนวณยา: ยาที่มีหลายความถี่ (เช่น BID/TID) ตอนนี้คำนวณและโชว์ผลลัพธ์ของทุกความถี่พร้อมกันในคราวเดียว ไม่ต้องเลือกจาก dropdown ทีละแบบแล้ว — เห็นเปรียบเทียบได้เลยว่าถ้าให้ BID ทานเท่าไหร่ ถ้าให้ TID ทานเท่าไหร่']},
   {v:'1.21.1',date:'2026-06-21',changes:['ปรับระบบคำนวณยา "ต่อวัน" — เปลี่ยนจากตั้งความถี่ตายตัวตอนกรอกสูตร เป็น "เลือกความถี่ตอนคำนวณ" แทน (เช่น Amoxicillin กรอกสูตรครั้งเดียว แต่หน้าคำนวณให้เลือกได้ทั้ง BID หรือ TID ตามที่แพทย์สั่งจริง) ตรงกับเอกสารอ้างอิงของร้านที่มีหลายความถี่ต่อยา 1 ตัว — หน้าแก้ไขสูตรยารองรับเพิ่ม/ลบตัวเลือกความถี่ได้เอง']},
@@ -4109,15 +4110,12 @@ function renderHome(){
     </div>`;
   }
 
-  // การ์ดหมวดหมู่ (แทนกริดเมนูแบนเดิม) — กดแล้วไปหน้าหมวดหมู่
-  const catCards=CATEGORIES.map(c=>({...c,count:catFeatures(c.id).length})).filter(c=>c.count>0);
+  // เมนูทั้งหมดแบบแบน (ไม่จัดกลุ่มหมวดหมู่) — bottom nav มือถือยังเป็นหมวดหมู่อยู่ ไว้กดลัดได้
+  const allFeats=FEATURE_DEFS.filter(featureShow);
 
   html+=`<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:.75rem;padding-left:2px">เมนู</div>`;
   html+=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
-    ${catCards.map(c=>`<button onclick="goto('cat-${c.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.25rem 1.1rem;box-shadow:var(--shadow);min-height:104px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-      <span style="font-size:26px">${c.icon}</span>
-      <span><span style="font-size:14.5px;font-weight:700;color:var(--text);display:block">${c.label}</span><span style="font-size:11.5px;color:var(--text3)">${c.count} เมนู</span></span>
-    </button>`).join('')}
+    ${allFeats.map(featureCardBtn).join('')}
   </div>`;
 
   el.innerHTML=html;
