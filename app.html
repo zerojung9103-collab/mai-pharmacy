@@ -33,6 +33,23 @@
   --grad-purple:linear-gradient(135deg,#8B7FF0,#6F5FE6);
   --grad-pink:linear-gradient(135deg,#EC4899,#DB2777);
 }
+body.dark{
+  --bg:#16161A;--surface:#1F1F24;--border:#2C2C32;--border2:#3A3A42;
+  --text:#F0F0F2;--text2:#A8A8B0;--text3:#76767E;
+  --green-l:#0F3D30;--green-ll:#0A2A22;
+  --blue-l:#0F2A47;--amber-l:#3D2E0A;--purple-l:#251F4A;--red-l:#3D1717;--pink-l:#3D1228;--teal-l:#0A3033;
+  --shadow:0 1px 2px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.35);
+  --shadow-md:0 2px 8px rgba(0,0,0,.3),0 10px 32px rgba(0,0,0,.4);
+}
+body.dark .topbar-desktop{background:var(--surface);border-color:var(--border)}
+body.dark .tbd-search{background:var(--bg);border-color:var(--border2)}
+body.dark input,body.dark select,body.dark textarea{background:var(--bg);color:var(--text);border-color:var(--border2)}
+body.dark ::placeholder{color:var(--text3)}
+.drag-row{display:flex;align-items:center;gap:10px;padding:9px 10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border);touch-action:none}
+body.dark .drag-row{background:var(--bg)}
+.drag-row.dragging{box-shadow:var(--shadow-md);background:var(--green-l);z-index:50;position:relative}
+.drag-handle{cursor:grab;color:var(--text3);font-size:18px;padding:4px;flex-shrink:0;touch-action:none}
+.drag-handle:active{cursor:grabbing}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(165deg,#0F2922,#16202E 60%,#1A1530);display:flex;flex-direction:column;z-index:100}
 .sb-brand{padding:1.5rem 1.25rem 1.25rem;padding-top:calc(1.5rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.07)}
@@ -669,6 +686,37 @@ textarea{resize:vertical;min-height:64px}
         </div>
         <div id="capmsg-list"></div>
       </div>
+      <div class="card" id="appearance-card" style="grid-column:1/-1;display:none">
+        <div class="card-title">🎨 ปรับแต่งหน้าตาแอป</div>
+        <div class="card-sub">เปลี่ยนแล้วเห็นผลทันทีทุกคนในร้าน (เฉพาะผู้ดูแลระบบแก้ได้)</div>
+        <div class="field-row">
+          <div class="field"><label class="fl">ชื่อร้าน</label><input type="text" id="ap-name" placeholder="ใหม่เภสัช" maxlength="40"></div>
+          <div class="field"><label class="fl">ข้อความใต้ชื่อร้าน</label><input type="text" id="ap-tagline" placeholder="ระบบจัดการร้าน 3 สาขา" maxlength="60"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label class="fl">สีหลักของแอป</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="ap-color" value="#16B981" style="width:48px;height:38px;padding:2px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer"><input type="text" id="ap-color-text" placeholder="#16B981" style="flex:1" oninput="document.getElementById('ap-color').value=this.value"></div></div>
+          <div class="field"><label class="fl">ไอคอนหน้าโลโก้ (พิมพ์อิโมจิ — ถ้าไม่ได้อัปโหลดรูปด้านล่าง)</label><input type="text" id="ap-emoji" placeholder="💊" maxlength="4"></div>
+        </div>
+        <div class="field">
+          <label class="fl">โลโก้รูปจริง (ถ้ามี จะใช้แทนอิโมจิ)</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div id="ap-logo-preview" style="width:48px;height:48px;border-radius:12px;background:var(--bg);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0"></div>
+            <input type="file" id="ap-logo-file" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="onLogoFileChange()" style="flex:1">
+            <button class="btn btn-sm btn-danger" id="ap-logo-remove" onclick="removeLogoImage()" style="display:none">ลบรูป</button>
+          </div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">รองรับ PNG/JPG/WebP/SVG ขนาดไม่เกิน 1MB</div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label class="fl">ทรงมุมปุ่ม/การ์ด</label><select id="ap-corner"><option value="sharp">เหลี่ยม</option><option value="soft" selected>มนนิดหน่อย (ค่าเริ่มต้น)</option><option value="round">มนมาก</option></select></div>
+          <div class="field"><label class="fl">ขนาดเมนู/เนื้อหา</label><select id="ap-size"><option value="compact">กะทัดรัด</option><option value="normal" selected>ปกติ (ค่าเริ่มต้น)</option><option value="large">ใหญ่</option></select></div>
+        </div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1rem 0 .5rem">ลำดับหมวดหมู่ในแถบล่าง (มือถือ)</div>
+        <div id="ap-navorder-list" style="margin-bottom:1rem"></div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1rem 0 .5rem">ลำดับเมนูในหน้าแรก (ลากที่ไอคอน ⠿ เพื่อจัดเรียง)</div>
+        <div id="ap-menuorder-list" style="margin-bottom:1rem;user-select:none"></div>
+        <button class="btn btn-primary" onclick="saveAppearance()">บันทึกการปรับแต่ง</button>
+        <button class="btn" style="margin-left:8px" onclick="resetAppearance()">↺ คืนค่าเริ่มต้น</button>
+      </div>
       <div class="card" id="paytype-card">
         <div class="card-title">ประเภทการชำระ</div>
         <div class="card-sub">เพิ่ม/ลบประเภทได้ตามต้องการ (เฉพาะผู้ดูแลระบบ)</div>
@@ -882,6 +930,7 @@ window.installApp=async function(){
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const app = initializeApp({
   apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
@@ -893,13 +942,34 @@ const app = initializeApp({
 });
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 // ===== CONSTANTS =====
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.25.0';
+// ===== โหมดมืด (ส่วนตัวต่อเครื่อง ไม่ใช่ตั้งค่าร้าน) =====
+function applyDarkMode(){
+  const dark=localStorage.getItem('darkMode')==='1';
+  document.body.classList.toggle('dark',dark);
+}
+window.toggleDarkMode=function(){
+  const dark=!document.body.classList.contains('dark');
+  document.body.classList.toggle('dark',dark);
+  localStorage.setItem('darkMode',dark?'1':'0');
+  const btn=document.getElementById('dark-toggle-label');
+  if(btn)btn.textContent=dark?'☀️ โหมดสว่าง':'🌙 โหมดมืด';
+};
+applyDarkMode();
+
+const APP_VERSION='1.27.0';
 const CHANGELOG=[
+  {v:'1.27.0',date:'2026-06-21',changes:[
+    'เพิ่มโหมดมืด (Dark mode) — สลับได้เองที่เมนูบัญชี (มุมขวาบน) เป็นค่าส่วนตัวต่อเครื่อง ไม่กระทบคนอื่น',
+    'เพิ่มอัปโหลดโลโก้ร้านเป็นรูปจริง (PNG/JPG/WebP/SVG ไม่เกิน 1MB) แทนอิโมจิได้ — ต้อง publish Storage Rules ใหม่ด้วย (ไฟล์แยกจาก Firestore Rules)',
+    'เพิ่มลากวางจัดเรียงลำดับเมนูในหน้าแรกได้เอง ทีละเมนู (ไม่ใช่แค่หมวดหมู่) ในหน้าตั้งค่า → ปรับแต่งหน้าตาแอป'
+  ]},
+  {v:'1.26.0',date:'2026-06-21',changes:['เพิ่มหน้า "ปรับแต่งหน้าตาแอป" ในหน้าตั้งค่า (เฉพาะ admin) — เปลี่ยนชื่อร้าน, ข้อความใต้ชื่อร้าน, สีหลักของแอป (คำนวณเฉดอ่อน-เข้มทั้งชุดให้อัตโนมัติ), อิโมจิโลโก้, ทรงมุมปุ่ม/การ์ด (เหลี่ยม/มนนิดหน่อย/มนมาก), ขนาดเนื้อหาทั้งแอป (กะทัดรัด/ปกติ/ใหญ่), และเลือก+เรียงลำดับหมวดหมู่ที่โชว์ในแถบล่างมือถือได้เอง — บันทึกแล้วเห็นผลทันทีทุกคน ไม่ต้องแก้โค้ด']},
   {v:'1.25.0',date:'2026-06-21',changes:['กันทุจริต: พนักงานทั่วไปไม่เห็นยอดสะสมในกระเป๋าเก็บเงินอีกต่อไป (เห็นแค่ admin) ทั้งตัวเลขในหน้าหลัก, ป๊อปอัพเก็บเงิน, ประวัติ, และรายงานสรุป — ⚠️ สำคัญ: แก้ Firestore Rules ด้วย ไม่ใช่แค่ซ่อนหน้าจอ ต้อง publish rules ใหม่ถึงจะปลอดภัยจริง (พนักงานทั่วไปยังบันทึก "เก็บเงินขาย" ได้ปกติผ่านระบบเพิ่มยอดแบบ atomic ไม่ต้องรู้ยอดปัจจุบันก่อน)']},
   {v:'1.24.0',date:'2026-06-21',changes:['จัดหน้า "เงินสด & ตู้เซฟ" ใหม่ ให้เป็น 2 กล่องแยกชัดเจน — กล่อง "ตู้เซฟ" (ยอด+เติม/เบิก+นับเงินต้น/ปลายวัน+ประวัติเบิก-เติม รวมไว้ในกล่องเดียว) และกล่อง "กระเป๋าเก็บเงิน" (ยอด+เก็บ/ถอน+ประวัติ รวมไว้ในกล่องเดียว) แทนการ์ดแยกกระจาย 6-8 ใบเหมือนเดิม ดูง่ายขึ้นว่าอะไรเกี่ยวกับอะไร']},
   {v:'1.23.1',date:'2026-06-21',changes:['แก้บั๊ก: หน้าจัดการเงินเดือนคำนวณชั่วโมงผิดถ้ามีเวรข้ามคืน (เช่น 20:00-04:00) ได้ชั่วโมงติดลบ — แก้ให้คำนวณถูกต้องเหมือนหน้าประวัติลงเวลาที่รองรับเวรข้ามคืนอยู่แล้ว']},
@@ -1039,6 +1109,231 @@ function updateCapsuleFabBadge(){
   const fab=document.getElementById('capsule-fab');
   if(fab)fab.classList.toggle('has-alert',!!(window._currentAlerts&&window._currentAlerts.length));
 }
+
+// ===== ปรับแต่งหน้าตาแอป (config/appearance) — ชื่อร้าน/สี/โลโก้/ทรงมุม/ขนาด/ลำดับเมนู =====
+const APPEARANCE_DEFAULT={
+  shopName:'ใหม่เภสัช',shopTagline:'ระบบจัดการร้าน 3 สาขา',
+  primaryColor:'#16B981',logoEmoji:'💊',
+  corner:'soft',size:'normal',
+  navOrder:['mywork','sales','admin','more'],navEnabled:{mywork:true,sales:true,admin:true,more:true}
+};
+let appearanceCfg={...APPEARANCE_DEFAULT};
+// ปรับสีให้อ่อน/เข้มขึ้น (percent: ลบ=เข้มขึ้น, บวก=อ่อนขึ้น) — ใช้คำนวณเฉดสีทั้งชุดจากสีเดียว
+function shadeColor(hex,percent){
+  const h=hex.replace('#','');
+  let r=parseInt(h.substring(0,2),16),g=parseInt(h.substring(2,4),16),b=parseInt(h.substring(4,6),16);
+  const adj=(c)=>{
+    const v=percent<0?c*(1+percent/100):c+(255-c)*(percent/100);
+    return Math.max(0,Math.min(255,Math.round(v)));
+  };
+  r=adj(r);g=adj(g);b=adj(b);
+  return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+const CORNER_VALS={sharp:['6px','10px'],soft:['16px','22px'],round:['24px','32px']};
+const SIZE_ZOOM={compact:'.9',normal:'1',large:'1.12'};
+function applyAppearanceConfig(cfg){
+  const root=document.documentElement.style;
+  const c=cfg.primaryColor||APPEARANCE_DEFAULT.primaryColor;
+  root.setProperty('--green',c);
+  root.setProperty('--green-d',shadeColor(c,-15));
+  root.setProperty('--green-dd',shadeColor(c,-28));
+  root.setProperty('--green-l',shadeColor(c,72));
+  root.setProperty('--green-ll',shadeColor(c,88));
+  root.setProperty('--grad-green',`linear-gradient(135deg,${c},${shadeColor(c,-12)})`);
+  const corner=CORNER_VALS[cfg.corner]||CORNER_VALS.soft;
+  root.setProperty('--r',corner[0]);
+  root.setProperty('--rl',corner[1]);
+  const mainEl=document.querySelector('.main');
+  if(mainEl)mainEl.style.zoom=SIZE_ZOOM[cfg.size]||'1';
+  // ชื่อร้าน/โลโก้
+  const tbdName=document.querySelector('.tbd-brand-name');
+  if(tbdName)tbdName.textContent=cfg.shopName||APPEARANCE_DEFAULT.shopName;
+  const tbdIcon=document.querySelector('.tbd-icon');
+  const mTitle=document.querySelector('.mobile-topbar-title');
+  if(cfg.logoUrl){
+    if(tbdIcon)tbdIcon.innerHTML=`<img src="${cfg.logoUrl}" alt="โลโก้" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`;
+    if(mTitle)mTitle.innerHTML=`<img src="${cfg.logoUrl}" alt="โลโก้" style="width:18px;height:18px;object-fit:cover;border-radius:5px;vertical-align:-3px;margin-right:4px">${cfg.shopName||APPEARANCE_DEFAULT.shopName}`;
+  }else{
+    if(tbdIcon)tbdIcon.textContent=cfg.logoEmoji||APPEARANCE_DEFAULT.logoEmoji;
+    if(mTitle)mTitle.textContent=`${cfg.logoEmoji||APPEARANCE_DEFAULT.logoEmoji} ${cfg.shopName||APPEARANCE_DEFAULT.shopName}`;
+  }
+  document.title=`${cfg.shopName||APPEARANCE_DEFAULT.shopName} — ระบบหลัก`;
+}
+async function loadAppearanceConfig(){
+  try{
+    const d=await getDoc(doc(db,'config','appearance'));
+    appearanceCfg=d.exists()?{...APPEARANCE_DEFAULT,...d.data()}:{...APPEARANCE_DEFAULT};
+  }catch(e){appearanceCfg={...APPEARANCE_DEFAULT};}
+  applyAppearanceConfig(appearanceCfg);
+  buildBottomNav(); // เผื่อ buildNav() รันไปแล้วก่อน config โหลดเสร็จ (ใช้ลำดับ default ไปก่อน) — สร้างใหม่ให้ตรงค่าจริง
+}
+const NAV_CAT_LABELS={mywork:'🗂️ งานของฉัน',sales:'📊 ขาย',admin:'🛠️ บริหาร',more:'⋯ เพิ่มเติม'};
+function renderAppearanceSettings(){
+  const card=document.getElementById('appearance-card');
+  if(card)card.style.display=isAdmin?'':'none';
+  if(!isAdmin)return;
+  document.getElementById('ap-name').value=appearanceCfg.shopName||'';
+  document.getElementById('ap-tagline').value=appearanceCfg.shopTagline||'';
+  document.getElementById('ap-color').value=appearanceCfg.primaryColor||'#16B981';
+  document.getElementById('ap-color-text').value=appearanceCfg.primaryColor||'#16B981';
+  document.getElementById('ap-emoji').value=appearanceCfg.logoEmoji||'';
+  document.getElementById('ap-corner').value=appearanceCfg.corner||'soft';
+  document.getElementById('ap-size').value=appearanceCfg.size||'normal';
+  renderLogoPreview();
+  renderNavOrderList();
+  renderMenuOrderList(currentMenuOrder());
+}
+function renderLogoPreview(){
+  const prev=document.getElementById('ap-logo-preview');
+  const removeBtn=document.getElementById('ap-logo-remove');
+  if(!prev)return;
+  if(appearanceCfg.logoUrl){
+    prev.innerHTML=`<img src="${appearanceCfg.logoUrl}" alt="โลโก้" style="width:100%;height:100%;object-fit:cover">`;
+    if(removeBtn)removeBtn.style.display='inline-block';
+  }else{
+    prev.innerHTML=`<span style="font-size:22px">${appearanceCfg.logoEmoji||APPEARANCE_DEFAULT.logoEmoji}</span>`;
+    if(removeBtn)removeBtn.style.display='none';
+  }
+}
+window.onLogoFileChange=async function(){
+  const inp=document.getElementById('ap-logo-file');
+  const file=inp.files?.[0];
+  if(!file)return;
+  if(file.size>1024*1024){showToast('ไฟล์ใหญ่เกิน 1MB กรุณาเลือกไฟล์เล็กกว่านี้','err');inp.value='';return;}
+  loading(true);
+  try{
+    const ext=file.name.split('.').pop().toLowerCase();
+    const sref=storageRef(storage,`branding/logo_${Date.now()}.${ext}`);
+    await uploadBytes(sref,file);
+    const url=await getDownloadURL(sref);
+    appearanceCfg.logoUrl=url;
+    renderLogoPreview();
+    showToast('อัปโหลดโลโก้สำเร็จ — กด "บันทึกการปรับแต่ง" เพื่อใช้งานจริง');
+  }catch(e){showToast('อัปโหลดไม่สำเร็จ: '+e.message,'err');}
+  loading(false);
+  inp.value='';
+};
+window.removeLogoImage=function(){
+  appearanceCfg.logoUrl='';
+  renderLogoPreview();
+};
+function renderNavOrderList(){
+  const el=document.getElementById('ap-navorder-list');
+  if(!el)return;
+  const order=appearanceCfg.navOrder||APPEARANCE_DEFAULT.navOrder;
+  const enabled=appearanceCfg.navEnabled||APPEARANCE_DEFAULT.navEnabled;
+  el.innerHTML=order.map((id,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+    <label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer"><input type="checkbox" ${enabled[id]!==false?'checked':''} onchange="toggleNavCat('${id}')"><span style="font-size:13px;font-weight:500">${NAV_CAT_LABELS[id]||id}</span></label>
+    <button class="btn btn-sm" ${i===0?'disabled':''} onclick="moveNavCat('${id}',-1)">↑</button>
+    <button class="btn btn-sm" ${i===order.length-1?'disabled':''} onclick="moveNavCat('${id}',1)">↓</button>
+  </div>`).join('');
+}
+window.toggleNavCat=function(id){
+  if(!appearanceCfg.navEnabled)appearanceCfg.navEnabled={...APPEARANCE_DEFAULT.navEnabled};
+  appearanceCfg.navEnabled[id]=!(appearanceCfg.navEnabled[id]!==false);
+  renderNavOrderList();
+};
+window.moveNavCat=function(id,dir){
+  const order=[...(appearanceCfg.navOrder||APPEARANCE_DEFAULT.navOrder)];
+  const i=order.indexOf(id);
+  const j=i+dir;
+  if(j<0||j>=order.length)return;
+  [order[i],order[j]]=[order[j],order[i]];
+  appearanceCfg.navOrder=order;
+  renderNavOrderList();
+};
+
+// ===== ลากวางจัดเรียงเมนูทีละรายการ (หน้าแรก) =====
+function defaultMenuOrder(){return FEATURE_DEFS.map(f=>f.page);}
+function currentMenuOrder(){
+  // เอา menuOrder ที่บันทึกไว้ + เติมเมนูใหม่ที่ยังไม่เคยจัดลำดับต่อท้าย (เผื่อเพิ่มฟีเจอร์ใหม่ทีหลัง)
+  const saved=appearanceCfg.menuOrder||[];
+  const known=FEATURE_DEFS.map(f=>f.page);
+  const merged=[...saved.filter(p=>known.includes(p)),...known.filter(p=>!saved.includes(p))];
+  return merged;
+}
+let _dragState=null;
+function renderMenuOrderList(order,draggingId){
+  const el=document.getElementById('ap-menuorder-list');
+  if(!el)return;
+  const byPage={};FEATURE_DEFS.forEach(f=>byPage[f.page]=f);
+  el.innerHTML=order.map(p=>{
+    const f=byPage[p];if(!f)return'';
+    return `<div class="drag-row${draggingId===p?' dragging':''}" data-id="${p}">
+      <span class="drag-handle" onpointerdown="startMenuDrag(event,'${p}')">⠿</span>
+      <span style="font-size:16px">${f.icon}</span>
+      <span style="flex:1;font-size:13px;font-weight:500">${f.label}</span>
+    </div>`;
+  }).join('');
+}
+window.startMenuDrag=function(e,id){
+  e.preventDefault();
+  _dragState={id,order:currentMenuOrder(),startY:e.clientY};
+  renderMenuOrderList(_dragState.order,id);
+  document.addEventListener('pointermove',onMenuDragMove);
+  document.addEventListener('pointerup',onMenuDragEnd);
+};
+function onMenuDragMove(e){
+  if(!_dragState)return;
+  const list=document.getElementById('ap-menuorder-list');
+  if(!list)return;
+  const rows=[...list.querySelectorAll('.drag-row')];
+  const y=e.clientY;
+  const draggedIdx=_dragState.order.indexOf(_dragState.id);
+  let overIdx=draggedIdx;
+  rows.forEach((r,i)=>{
+    const rect=r.getBoundingClientRect();
+    if(y>rect.top&&y<rect.bottom)overIdx=i;
+  });
+  if(overIdx!==draggedIdx){
+    const order=[..._dragState.order];
+    const[moved]=order.splice(draggedIdx,1);
+    order.splice(overIdx,0,moved);
+    _dragState.order=order;
+    renderMenuOrderList(order,_dragState.id);
+  }
+}
+function onMenuDragEnd(){
+  if(!_dragState)return;
+  appearanceCfg.menuOrder=_dragState.order;
+  document.removeEventListener('pointermove',onMenuDragMove);
+  document.removeEventListener('pointerup',onMenuDragEnd);
+  _dragState=null;
+  renderMenuOrderList(appearanceCfg.menuOrder);
+}
+
+window.saveAppearance=async function(){
+  if(!isAdmin)return;
+  const color=document.getElementById('ap-color-text').value.trim()||document.getElementById('ap-color').value;
+  if(!/^#[0-9A-Fa-f]{6}$/.test(color)){showToast('รหัสสีไม่ถูกต้อง เช่น #16B981','err');return;}
+  appearanceCfg={
+    ...appearanceCfg,
+    shopName:document.getElementById('ap-name').value.trim()||APPEARANCE_DEFAULT.shopName,
+    shopTagline:document.getElementById('ap-tagline').value.trim()||APPEARANCE_DEFAULT.shopTagline,
+    primaryColor:color,
+    logoEmoji:document.getElementById('ap-emoji').value.trim()||APPEARANCE_DEFAULT.logoEmoji,
+    corner:document.getElementById('ap-corner').value,
+    size:document.getElementById('ap-size').value,
+  };
+  try{
+    await setDoc(doc(db,'config','appearance'),appearanceCfg);
+    applyAppearanceConfig(appearanceCfg);
+    buildBottomNav();
+    showToast('บันทึกการปรับแต่งแล้ว — ทุกคนจะเห็นเมื่อรีเฟรช');
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+};
+window.resetAppearance=async function(){
+  if(!isAdmin)return;
+  if(!await capsuleConfirm('คืนค่าหน้าตาแอปกลับเป็นค่าเริ่มต้นทั้งหมด?'))return;
+  appearanceCfg={...APPEARANCE_DEFAULT};
+  try{
+    await setDoc(doc(db,'config','appearance'),appearanceCfg);
+    applyAppearanceConfig(appearanceCfg);
+    renderAppearanceSettings();
+    buildBottomNav();
+    showToast('คืนค่าเริ่มต้นแล้ว');
+  }catch(e){showToast('ทำไม่สำเร็จ: '+e.message,'err');}
+};
 
 // สร้าง SVG น้องแคปซูล (รับสีครึ่งล่าง)
 function capsuleMascot(size,color){
@@ -1292,8 +1587,10 @@ function buildBottomNav(){
     more:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
   };
   const lbl={home:'หน้าแรก',mywork:'งานของฉัน',sales:'ขาย',admin:'บริหาร',more:'เพิ่มเติม'};
-  // แท็บ = หน้าแรก + หมวดที่มีเมนูให้คนนี้เห็นอย่างน้อย 1 อัน
-  let candidates=['home',...CATEGORIES.filter(c=>catFeatures(c.id).length>0).map(c=>c.id)].slice(0,5);
+  // แท็บ = หน้าแรก + หมวดที่เปิดไว้ (ตามลำดับที่ตั้งค่า) และมีเมนูให้คนนี้เห็นอย่างน้อย 1 อัน
+  const navOrder=appearanceCfg.navOrder||APPEARANCE_DEFAULT.navOrder;
+  const navEnabled=appearanceCfg.navEnabled||APPEARANCE_DEFAULT.navEnabled;
+  let candidates=['home',...navOrder.filter(id=>navEnabled[id]!==false&&catFeatures(id).length>0)].slice(0,5);
   nav.innerHTML=candidates.map(p=>`<button class="bn-item" data-page="${p==='home'?'home':'cat-'+p}" onclick="goto('${p==='home'?'home':'cat-'+p}')">
     <svg viewBox="0 0 24 24">${ic[p]||''}</svg><span>${lbl[p]||p}</span>
   </button>`).join('');
@@ -1352,6 +1649,7 @@ onAuthStateChanged(auth,async user=>{
   if(mAv)mAv.textContent=name.charAt(0).toUpperCase();
   initYearSelects();
   applyDayTheme();
+  loadAppearanceConfig();
   buildNav();
   if(isAdmin||canAccessPage('sales'))loadSalesFromCloud();
   loadBranchLocations();
@@ -1380,6 +1678,7 @@ window.openAccountMenu=function(){
     </div>
     <button class="assist-chip" onclick="closeMD();goto('settings')"><span class="ic">⚙️</span><span>ตั้งค่าระบบ</span></button>
     <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION} — ดูประวัติอัปเดต</span></button>
+    <button class="assist-chip" onclick="toggleDarkMode()"><span class="ic">${document.body.classList.contains('dark')?'☀️':'🌙'}</span><span id="dark-toggle-label">${document.body.classList.contains('dark')?'โหมดสว่าง':'โหมดมืด'}</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
     <button class="assist-chip" onclick="doLogout()" style="color:var(--red-t)"><span class="ic">🚪</span><span>ออกจากระบบ</span></button>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
@@ -1461,7 +1760,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();renderAppearanceSettings();}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -4140,7 +4439,8 @@ function renderHome(){
   }
 
   // เมนูทั้งหมดแบบแบน (ไม่จัดกลุ่มหมวดหมู่) — bottom nav มือถือยังเป็นหมวดหมู่อยู่ ไว้กดลัดได้
-  const allFeats=FEATURE_DEFS.filter(featureShow);
+  const order=currentMenuOrder();
+  const allFeats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&featureShow(f));
 
   html+=`<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:.75rem;padding-left:2px">เมนู</div>`;
   html+=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
