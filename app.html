@@ -886,8 +886,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.19.0';
+const APP_VERSION='1.19.1';
 const CHANGELOG=[
+  {v:'1.19.1',date:'2026-06-21',changes:['ปรับสีประจำวันให้อ่อนจางลงทั่วแอป — การ์ดทักทายหน้าแรกใช้สีวันแบบไล่ระดับเบาๆ (ตัวอักษรเข้มอ่านง่ายแทนสีขาว) + พื้นหลังทั้งแอปทาบสีวันแบบจางมาก ส่วนปุ่ม/สีฟังก์ชัน/สีสาขายังคงเดิมไม่เปลี่ยน']},
   {v:'1.19.0',date:'2026-06-21',changes:['รื้อระบบเมนูใหม่ทั้งหมด: เลิกใช้ sidebar เดิม — มือถือใช้แถบแท็บด้านล่าง 5 ปุ่ม (หน้าแรก/งานของฉัน/ขาย/บริหาร/เพิ่มเติม) คอมพิวเตอร์ใช้แถบบน + ช่องค้นหา (Command Palette กด Ctrl+K หรือคลิกได้) พิมพ์ชื่อเมนูหรือคำถามด่วนแล้วกระโดดไปได้ทันที — หน้าแรกเหลือแค่การ์ดทักทาย+เวรวันนี้+การ์ดหมวดหมู่ใหญ่ 4 ใบ ไม่ต้องไล่กดปุ่มเล็กๆ 16 ปุ่มอีกต่อไป + ย้ายเมนูบัญชี/ออกจากระบบ/ติดตั้งแอป มารวมในเมนูบัญชี (กดที่อวตาร)']},
   {v:'1.18.0',date:'2026-06-21',changes:['เพิ่ม "ผู้ช่วยส่วนตัว" — แตะการ์ดทักทายหน้าแรกเพื่อถามคำถามด่วน: ยอดขายวันนี้/เดือนนี้ (ตามสิทธิ์เดิม), เวรของฉัน/ใครเข้าเวรวันนี้, ยอดตู้เซฟ&กระเป๋าเก็บเงินทุกสาขา, สรุปการเข้างาน/มาสายของตัวเองเดือนนี้ — ตอบจากข้อมูลจริงในระบบทันที ไม่ใช่ AI']},
   {v:'1.17.2',date:'2026-06-20',changes:['แก้บั๊กช่องเลือกเวลาประกาศที่แสดงเป็นโค้ด + เพิ่มให้กำหนดข้อความน้องแคปซูลเองได้ (พิมพ์ประโยคกวนๆ ของตัวเอง ติ๊กเลือกว่าจะให้สุ่มพูดอันไหน)']},
@@ -990,6 +991,12 @@ const DAY_COLORS=[
 function todayColor(){return DAY_COLORS[new Date().getDay()];}
 
 // ใช้สีประจำวันกับแถบหัวมือถือ + แถบสถานะ
+// แปลง hex เป็น rgba (alpha) — ใช้ทำสีอ่อนจากสีประจำวันโดยไม่ต้องนั่งกำหนดสีอ่อนเองทีละวัน
+function hexA(hex,alpha){
+  const h=hex.replace('#','');
+  const r=parseInt(h.substring(0,2),16),g=parseInt(h.substring(2,4),16),b=parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
 function applyDayTheme(){
   const dc=todayColor();
   const mt=document.getElementById('mobile-topbar');
@@ -999,6 +1006,8 @@ function applyDayTheme(){
   // อัปเดต theme-color (แถบสถานะมือถือ)
   const tc=document.querySelector('meta[name="theme-color"]');
   if(tc)tc.setAttribute('content',dc.grad[0]);
+  // พื้นหลังแอปทั้งหมด — ทาบสีวันแบบจางมาก ไล่ระดับเบาๆ (ไม่แตะปุ่ม/สีฟังก์ชัน)
+  document.body.style.background=`linear-gradient(160deg,${hexA(dc.main,.05)},${hexA(dc.main,.09)} 70%)`;
 }
 
 // สร้าง SVG น้องแคปซูล (รับสีครึ่งล่าง)
@@ -4049,22 +4058,22 @@ function renderHome(){
     bubble=capsuleSays(todayShift);
   }
 
-  // การ์ดต้อนรับ + น้องแคปซูล (แตะเพื่อเปิดผู้ช่วยส่วนตัว)
-  let html=`<div onclick="openAssistant()" style="cursor:pointer;background:linear-gradient(160deg,${dc.grad[0]},${dc.grad[1]} 55%,${dc.grad[2]});border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:1.25rem">
+  // การ์ดต้อนรับ + น้องแคปซูล (แตะเพื่อเปิดผู้ช่วยส่วนตัว) — สีวันแบบอ่อนจางไล่ระดับ
+  let html=`<div onclick="openAssistant()" style="cursor:pointer;background:linear-gradient(160deg,${hexA(dc.main,.10)},${hexA(dc.main,.22)} 100%);border:1px solid ${hexA(dc.main,.18)};border-radius:var(--rl);padding:1.25rem;color:${dc.dark};margin-bottom:1.25rem">
     <div style="display:flex;align-items:center;gap:12px">
-      <div style="width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600">${myName.charAt(0)}</div>
+      <div style="width:48px;height:48px;border-radius:50%;background:${hexA(dc.main,.18)};display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600;color:${dc.dark}">${myName.charAt(0)}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:16px;font-weight:600">${greet}, ${myName}</div>
-        <div style="font-size:12px;opacity:.9">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
+        <div style="font-size:12px;opacity:.75">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:12px;margin-top:1rem">
       ${capsuleMascot(76,dc.main)}
-      <div style="background:rgba(255,255,255,.95);border-radius:16px;border-bottom-left-radius:4px;padding:10px 14px;flex:1${bubbleSerious?';border:2px solid #fff':''}">
+      <div style="background:rgba(255,255,255,.85);border-radius:16px;border-bottom-left-radius:4px;padding:10px 14px;flex:1${bubbleSerious?`;border:2px solid ${dc.main}`:''}">
         <div style="font-size:12.5px;color:${bubbleSerious?'#7A1F1F':dc.dark};font-weight:500;line-height:1.5">${bubble}</div>
       </div>
     </div>
-    <div style="text-align:center;font-size:11px;opacity:.8;margin-top:.6rem">💬 แตะเพื่อถามอะไรก็ได้</div>
+    <div style="text-align:center;font-size:11px;opacity:.65;margin-top:.6rem">💬 แตะเพื่อถามอะไรก็ได้</div>
   </div>`;
 
   // การ์ดเวรวันนี้ (ถ้ามี)
