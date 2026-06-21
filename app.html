@@ -54,7 +54,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sb-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);padding:5px;border-radius:7px;transition:.12s}
 .sb-logout:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
 .sb-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
-.main{margin-left:240px;padding:2rem;min-height:100vh}
+.main{margin-left:0;padding:2rem;min-height:100vh}
 .page{display:none}
 .page.active{display:block;animation:pageIn .35s cubic-bezier(.22,.61,.36,1)}
 @keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -189,21 +189,35 @@ textarea{resize:vertical;min-height:64px}
 .hamburger svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
 .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;backdrop-filter:blur(2px)}
 .sidebar-backdrop.open{display:block}
-/* === Desktop: sidebar always visible, hide mobile bar === */
+/* === Desktop: top bar แทน sidebar === */
 @media(min-width:769px){
   .mobile-topbar{display:none!important}
   .sidebar-backdrop{display:none!important}
+  .topbar-desktop{display:flex!important}
 }
-/* === Mobile: hide sidebar by default, show mobile bar === */
+/* === Mobile: top bar + bottom nav === */
 @media(max-width:768px){
-  .sidebar{transform:translateX(-100%);transition:transform .25s ease}
-  .sidebar.open{transform:translateX(0)}
   .main{margin-left:0;padding:1rem;padding-top:calc(72px + env(safe-area-inset-top));padding-bottom:calc(84px + env(safe-area-inset-bottom))}
   .field-row,.field-row3{grid-template-columns:1fr}
   .mobile-topbar{display:flex!important}
   .schedule-grid{grid-template-columns:90px repeat(7,1fr)}
   .bottom-nav{display:flex!important}
+  .topbar-desktop{display:none!important}
 }
+.topbar-desktop{display:none;position:sticky;top:0;align-items:center;gap:20px;padding:0 1.75rem;height:60px;background:var(--surface);border-bottom:1px solid var(--border);z-index:90}
+.tbd-brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
+.tbd-icon{width:30px;height:30px;border-radius:9px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:15px}
+.tbd-brand-name{font-size:14px;font-weight:700;color:var(--text)}
+.tbd-search{flex:1;max-width:420px;display:flex;align-items:center;gap:10px;border:1.5px solid var(--border2);border-radius:999px;padding:9px 16px;cursor:pointer;color:var(--text3);font-size:13px;transition:.12s;background:#FAFBFB}
+.tbd-search:hover{border-color:var(--green);background:#fff}
+.tbd-search kbd{margin-left:auto;font-size:10.5px;border:1px solid var(--border2);border-radius:6px;padding:1px 6px;color:var(--text3);font-family:var(--font)}
+.tbd-spacer{flex:1}
+.cmdk-input{width:100%;font-family:var(--font);font-size:15px;padding:12px 14px;border:1.5px solid var(--border2);border-radius:12px;outline:none;margin-bottom:.75rem}
+.cmdk-input:focus{border-color:var(--green)}
+.cmdk-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:13.5px;font-weight:500;color:var(--text)}
+.cmdk-row:hover{background:var(--green-ll)}
+.cmdk-row .ic{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.cmdk-row .tag{margin-left:auto;font-size:10.5px;color:var(--text3);font-weight:500}
 /* Bottom Navigation (mobile) */
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:95;align-items:center;justify-content:space-around;padding-left:4px;padding-right:4px;box-shadow:0 -2px 16px rgba(20,40,80,.06)}
 .bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;font-weight:600;padding:6px 2px;border-radius:12px;transition:.15s;position:relative;max-width:80px}
@@ -285,105 +299,38 @@ textarea{resize:vertical;min-height:64px}
 
 <!-- Mobile Top Bar -->
 <div class="mobile-topbar" id="mobile-topbar">
-  <button class="hamburger" onclick="toggleSidebar()" aria-label="เปิดเมนู">
-    <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-  </button>
   <div class="mobile-topbar-title">💊 ใหม่เภสัช</div>
-  <div class="sb-avatar" id="mobile-avatar" style="width:32px;height:32px;font-size:12px">?</div>
+  <button class="hamburger" onclick="openCommandPalette()" aria-label="ค้นหา">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+  </button>
+  <div class="sb-avatar" id="mobile-avatar" onclick="openAccountMenu()" style="width:32px;height:32px;font-size:12px;cursor:pointer">?</div>
+</div>
+
+<!-- Top Bar (คอมพิวเตอร์) แทน sidebar เดิม -->
+<div class="topbar-desktop" id="topbar-desktop">
+  <div class="tbd-brand" onclick="goto('home')">
+    <div class="tbd-icon">💊</div>
+    <span class="tbd-brand-name">ใหม่เภสัช</span>
+  </div>
+  <div class="tbd-search" onclick="openCommandPalette()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span>ค้นหาหรือพิมพ์สิ่งที่อยากทำ...</span>
+    <kbd>Ctrl K</kbd>
+  </div>
+  <div class="tbd-spacer"></div>
+  <button id="install-app-btn" onclick="installApp()" style="display:none;align-items:center;gap:6px;background:var(--green-l);border:none;border-radius:9px;padding:7px 12px;color:var(--green-dd);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    ติดตั้งแอป
+  </button>
+  <div class="sb-avatar" id="sb-av" onclick="openAccountMenu()" style="width:34px;height:34px;font-size:13px;cursor:pointer">?</div>
+  <span id="sb-name" style="display:none">...</span>
+  <span id="sb-role" style="display:none"></span>
 </div>
 
 <!-- ปุ่มรีเฟรชลอย (ทุกหน้า) -->
 <button id="refresh-fab" onclick="refreshCurrentPage()" title="รีเฟรชข้อมูลล่าสุด" aria-label="รีเฟรช">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
 </button>
-<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
-
-<nav class="sidebar" id="sidebar">
-  <div class="sb-brand" style="display:flex;align-items:flex-start;justify-content:space-between">
-    <div>
-      <div class="sb-icon">💊</div>
-      <h1>ใหม่เภสัช</h1>
-      <p>ระบบจัดการร้าน · <span id="sb-version" onclick="showChangelog()" style="cursor:pointer;text-decoration:underline;color:rgba(255,255,255,.55)">v1.18.0</span></p>
-    </div>
-    <button onclick="closeSidebar()" class="hamburger" style="margin-top:4px" aria-label="ปิดเมนู">
-      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-    </button>
-  </div>
-  <div class="sb-nav">
-    <div class="sb-sec">ภาพรวม</div>
-    <button class="sb-item" id="nav-dashboard" onclick="goto('dashboard')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>แดชบอร์ด
-    </button>
-    <div class="sb-sec">พนักงาน</div>
-    <button class="sb-item hidden" id="nav-schedule" onclick="goto('schedule')">
-      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>ตารางเวร
-    </button>
-    <div class="sb-sec">บัญชี</div>
-    <button class="sb-item hidden" id="nav-sales" onclick="goto('sales')">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>บันทึกยอดขาย
-    </button>
-    <button class="sb-item" id="nav-cash" onclick="goto('cash')">
-      <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>เงินสด &amp; ตู้เซฟ
-    </button>
-    <div class="sb-sec">สมาชิก</div>
-    <button class="sb-item hidden" id="nav-members" onclick="goto('members')">
-      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>จัดการสมาชิก
-    </button>
-    <div class="sb-sec">เงินเดือน</div>
-    <button class="sb-item hidden" id="nav-payroll" onclick="goto('payroll')">
-      <svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Payroll
-    </button>
-    <button class="sb-item" id="nav-my-payroll" onclick="goto('my-payroll')">
-      <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="2"/></svg>ประวัติเงินเดือน
-    </button>
-    <div class="sb-sec">ลงเวลา</div>
-    <button class="sb-item" id="nav-checkin" onclick="goto('checkin')">
-      <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>เช็คอินเข้างาน
-    </button>
-    <button class="sb-item hidden" id="nav-checkin-history" onclick="goto('checkin-history')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>ประวัติลงเวลา
-    </button>
-    <button class="sb-item" id="nav-leave" onclick="goto('leave')">
-      <svg viewBox="0 0 24 24"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><line x1="9" y1="16" x2="15" y2="16"/></svg>ขอลา
-    </button>
-    <button class="sb-item hidden" id="nav-leave-admin" onclick="goto('leave-admin')">
-      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg>รายการขอลา
-    </button>
-    <button class="sb-item hidden" id="nav-activity" onclick="goto('activity')">
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>บันทึกการใช้งาน
-    </button>
-    <div class="sb-sec">วิชาการ</div>
-    <button class="sb-item" id="nav-articles" onclick="goto('articles')">
-      <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>บทความ/คำแนะนำ
-    </button>
-    <button class="sb-item" id="nav-dosecalc" onclick="goto('dosecalc')">
-      <svg viewBox="0 0 24 24"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/></svg>คำนวณโดสยา
-    </button>
-    <button class="sb-item" id="nav-drugwarn" onclick="goto('drugwarn')">
-      <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>คำเตือนยา
-    </button>
-    <div class="sb-sec">ระบบ</div>
-    <button class="sb-item" id="nav-settings" onclick="goto('settings')">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>ตั้งค่า
-    </button>
-  </div>
-  <div class="sb-footer">
-    <button id="install-app-btn" onclick="installApp()" style="display:none;align-items:center;gap:8px;width:100%;background:var(--grad-green);border:none;border-radius:10px;padding:10px;color:#fff;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:10px;box-shadow:0 4px 14px rgba(22,185,129,.4)">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      ติดตั้งแอพลงเครื่อง
-    </button>
-    <div class="sb-user">
-      <div class="sb-avatar" id="sb-av">?</div>
-      <div style="flex:1;overflow:hidden">
-        <div class="sb-uname" id="sb-name">...</div>
-        <div class="sb-urole" id="sb-role"></div>
-      </div>
-      <button class="sb-logout" onclick="doLogout()" title="ออกจากระบบ">
-        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
-    </div>
-  </div>
-</nav>
 
 <main class="main">
   <button id="home-back-btn" onclick="goto('home')" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);margin-bottom:1rem;box-shadow:var(--shadow)">
@@ -394,6 +341,23 @@ textarea{resize:vertical;min-height:64px}
   <!-- HOME (เมนูรวม) -->
   <div class="page" id="page-home">
     <div id="home-content"></div>
+  </div>
+  <!-- หมวดหมู่ (สำหรับ bottom nav มือถือ / การ์ดหน้าแรกคอม) -->
+  <div class="page" id="page-cat-mywork">
+    <div class="topbar"><div><div class="page-title">งานของฉัน</div><div class="page-sub">ลงเวลา ตารางเวร เงินสด ขอลา เงินเดือน</div></div></div>
+    <div id="cat-grid-mywork"></div>
+  </div>
+  <div class="page" id="page-cat-sales">
+    <div class="topbar"><div><div class="page-title">ขาย</div><div class="page-sub">บันทึกยอดขายและภาพรวมยอดขาย</div></div></div>
+    <div id="cat-grid-sales"></div>
+  </div>
+  <div class="page" id="page-cat-admin">
+    <div class="topbar"><div><div class="page-title">บริหาร</div><div class="page-sub">จัดการสมาชิก เงินเดือน อนุมัติลา ประวัติการใช้งาน</div></div></div>
+    <div id="cat-grid-admin"></div>
+  </div>
+  <div class="page" id="page-cat-more">
+    <div class="topbar"><div><div class="page-title">เพิ่มเติม</div><div class="page-sub">ความรู้วิชาการและตั้งค่าระบบ</div></div></div>
+    <div id="cat-grid-more"></div>
   </div>
   <!-- DASHBOARD -->
   <div class="page" id="page-dashboard">
@@ -922,8 +886,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.18.0';
+const APP_VERSION='1.19.0';
 const CHANGELOG=[
+  {v:'1.19.0',date:'2026-06-21',changes:['รื้อระบบเมนูใหม่ทั้งหมด: เลิกใช้ sidebar เดิม — มือถือใช้แถบแท็บด้านล่าง 5 ปุ่ม (หน้าแรก/งานของฉัน/ขาย/บริหาร/เพิ่มเติม) คอมพิวเตอร์ใช้แถบบน + ช่องค้นหา (Command Palette กด Ctrl+K หรือคลิกได้) พิมพ์ชื่อเมนูหรือคำถามด่วนแล้วกระโดดไปได้ทันที — หน้าแรกเหลือแค่การ์ดทักทาย+เวรวันนี้+การ์ดหมวดหมู่ใหญ่ 4 ใบ ไม่ต้องไล่กดปุ่มเล็กๆ 16 ปุ่มอีกต่อไป + ย้ายเมนูบัญชี/ออกจากระบบ/ติดตั้งแอป มารวมในเมนูบัญชี (กดที่อวตาร)']},
   {v:'1.18.0',date:'2026-06-21',changes:['เพิ่ม "ผู้ช่วยส่วนตัว" — แตะการ์ดทักทายหน้าแรกเพื่อถามคำถามด่วน: ยอดขายวันนี้/เดือนนี้ (ตามสิทธิ์เดิม), เวรของฉัน/ใครเข้าเวรวันนี้, ยอดตู้เซฟ&กระเป๋าเก็บเงินทุกสาขา, สรุปการเข้างาน/มาสายของตัวเองเดือนนี้ — ตอบจากข้อมูลจริงในระบบทันที ไม่ใช่ AI']},
   {v:'1.17.2',date:'2026-06-20',changes:['แก้บั๊กช่องเลือกเวลาประกาศที่แสดงเป็นโค้ด + เพิ่มให้กำหนดข้อความน้องแคปซูลเองได้ (พิมพ์ประโยคกวนๆ ของตัวเอง ติ๊กเลือกว่าจะให้สุ่มพูดอันไหน)']},
   {v:'1.17.1',date:'2026-06-20',changes:['ประกาศตั้งช่วงเวลาได้ (เริ่มวัน+เวลา → ถึงวัน+เวลา) ประกาศแสดงเฉพาะช่วงนั้น พ้นช่วงหายเอง + แสดงสถานะ กำลังแสดง/รอแสดง/หมดเวลา']},
@@ -968,6 +933,48 @@ const BCOLORS=['#1D9E75','#378ADD','#EF9F27'];
 const BCOLORS_L=['#E1F5EE','#E6F1FB','#FAEEDA'];
 const DAYNAMES=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
 const MONTHS_TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+// ===== โครงสร้างหมวดหมู่เมนูใหม่ (แทน sidebar เดิม) =====
+const CATEGORIES=[
+  {id:'mywork',label:'งานของฉัน',icon:'🗂️'},
+  {id:'sales',label:'ขาย',icon:'📊'},
+  {id:'admin',label:'บริหาร',icon:'🛠️'},
+  {id:'more',label:'เพิ่มเติม',icon:'⋯'},
+];
+const FEATURE_DEFS=[
+  {page:'checkin',icon:'📍',label:'ลงเวลา',color:'#16B981',cat:'mywork',perm:null},
+  {page:'schedule',icon:'📅',label:'ตารางเวร',color:'#3B8EEA',cat:'mywork',perm:'schedule'},
+  {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',cat:'mywork',perm:null},
+  {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',cat:'mywork',perm:null},
+  {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'mywork',perm:'payroll_self'},
+  {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',cat:'sales',perm:'sales'},
+  {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',color:'#EC4899',cat:'sales',perm:'dashboard_admin'},
+  {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',perm:'members'},
+  {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',perm:'payroll_all'},
+  {page:'checkin-history',icon:'🕐',label:'ประวัติลงเวลา',color:'#534AB7',cat:'admin',perm:'checkin_all'},
+  {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',cat:'admin',perm:'leave_admin'},
+  {page:'activity',icon:'📜',label:'ประวัติใช้งาน',color:'#888780',cat:'admin',perm:'activity_admin'},
+  {page:'articles',icon:'📖',label:'บทความ',color:'#D4537E',cat:'more',perm:null},
+  {page:'dosecalc',icon:'💊',label:'คำนวณยา',color:'#639922',cat:'more',perm:null},
+  {page:'drugwarn',icon:'⚠️',label:'คำเตือนยา',color:'#D4690E',cat:'more',perm:null},
+  {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',cat:'more',perm:null},
+];
+function featureShow(f){return isAdmin||f.perm===null||hasPerm(f.perm);}
+function catFeatures(catId){return FEATURE_DEFS.filter(f=>f.cat===catId&&featureShow(f));}
+function featureCardBtn(f){
+  return `<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.1rem 1rem;box-shadow:var(--shadow);min-height:94px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+    <span style="width:42px;height:42px;border-radius:12px;background:${f.color}1A;display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
+    <span style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
+  </button>`;
+}
+// หน้าหมวดหมู่ (เปิดจาก bottom nav มือถือ หรือการ์ดหมวดหมู่หน้าแรกคอม)
+function renderCatPage(catId){
+  const el=document.getElementById('cat-grid-'+catId);
+  if(!el)return;
+  const feats=catFeatures(catId);
+  if(!feats.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีเมนูในหมวดนี้สำหรับคุณ</div>';return;}
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">${feats.map(featureCardBtn).join('')}</div>`;
+}
 
 // ===== สีประจำวัน (ความเชื่อไทย) — สำหรับน้องแคปซูล =====
 // index = getDay() : 0=อาทิตย์ ... 6=เสาร์
@@ -1239,25 +1246,16 @@ function buildBottomNav(){
   const nav=document.getElementById('bottom-nav');
   if(!nav)return;
   const ic={
-    dashboard:'<rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/>',
-    checkin:'<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
-    schedule:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    home:'<path d="M3 9.5L12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/>',
+    mywork:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
     sales:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-    'my-payroll':'<rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
-    members:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
-    articles:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
-    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>'
+    admin:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
+    more:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
   };
-  const lbl={home:'หน้าแรก',dashboard:'ภาพรวม',checkin:'ลงเวลา',schedule:'ตารางเวร',sales:'ยอดขาย',cash:'เงินสด','my-payroll':'เงินเดือน',members:'สมาชิก',articles:'บทความ',settings:'ตั้งค่า'};
-  ic.home='<path d="M3 9.5L12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/>';
-  ic.cash='<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/>';
-  // ลำดับความสำคัญ (หน้าแรกมาก่อนเสมอ)
-  let candidates=isAdmin
-    ? ['home','checkin','schedule','cash','settings']
-    : ['home','checkin','schedule','my-payroll','settings'];
-  // กรองเฉพาะหน้าที่เข้าถึงได้
-  candidates=candidates.filter(p=>canAccessPage(p)).slice(0,5);
-  nav.innerHTML=candidates.map(p=>`<button class="bn-item" data-page="${p}" onclick="goto('${p}')">
+  const lbl={home:'หน้าแรก',mywork:'งานของฉัน',sales:'ขาย',admin:'บริหาร',more:'เพิ่มเติม'};
+  // แท็บ = หน้าแรก + หมวดที่มีเมนูให้คนนี้เห็นอย่างน้อย 1 อัน
+  let candidates=['home',...CATEGORIES.filter(c=>catFeatures(c.id).length>0).map(c=>c.id)].slice(0,5);
+  nav.innerHTML=candidates.map(p=>`<button class="bn-item" data-page="${p==='home'?'home':'cat-'+p}" onclick="goto('${p==='home'?'home':'cat-'+p}')">
     <svg viewBox="0 0 24 24">${ic[p]||''}</svg><span>${lbl[p]||p}</span>
   </button>`).join('');
 }
@@ -1333,16 +1331,22 @@ onAuthStateChanged(auth,async user=>{
 
 window.doLogout=async function(){await signOut(auth);window.location.href='index.html';};
 
-// ===== MOBILE SIDEBAR =====
-window.toggleSidebar=function(){
-  const sb=document.getElementById('sidebar');
-  const bd=document.getElementById('sidebar-backdrop');
-  sb.classList.toggle('open');
-  bd.classList.toggle('open');
-};
-window.closeSidebar=function(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebar-backdrop').classList.remove('open');
+// ===== เมนูบัญชี (แทนที่ sb-footer เดิม) — เปิดจากอวตารทั้งมือถือและคอม =====
+window.openAccountMenu=function(){
+  const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():(currentUser?.email||'');
+  openModal(`<div class="modal-title">บัญชีของฉัน</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
+      <div class="sb-avatar" style="width:44px;height:44px;font-size:16px;background:var(--green)">${name.charAt(0).toUpperCase()||'?'}</div>
+      <div><div style="font-weight:700;font-size:14px">${name||'—'}</div><div style="font-size:12px;color:var(--text3)">${isAdmin?'ผู้ดูแลระบบ':'สมาชิก'}</div></div>
+    </div>
+    <button class="assist-chip" onclick="closeMD();goto('settings')"><span class="ic">⚙️</span><span>ตั้งค่าระบบ</span></button>
+    <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION} — ดูประวัติอัปเดต</span></button>
+    <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
+    <button class="assist-chip" onclick="doLogout()" style="color:var(--red-t)"><span class="ic">🚪</span><span>ออกจากระบบ</span></button>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+  const installBtn=document.getElementById('install-app-btn');
+  const accInstall=document.getElementById('acc-install-btn');
+  if(accInstall)accInstall.style.display=(installBtn&&installBtn.style.display!=='none')?'flex':'none';
 };
 
 // ===== PERMISSION MAP =====
@@ -1364,6 +1368,10 @@ const PAGE_PERM={
   'dosecalc':null,
   'drugwarn':null,
   'settings':null,
+  'cat-mywork':null,
+  'cat-sales':null,
+  'cat-admin':null,
+  'cat-more':null,
 };
 function canAccessPage(page){
   if(!currentUser)return false;
@@ -1376,7 +1384,6 @@ function canAccessPage(page){
 
 // ===== NAV =====
 window.goto=function(page){
-  closeSidebar();
   if(!canAccessPage(page)){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
@@ -1397,13 +1404,17 @@ window.goto=function(page){
   const navEl=document.getElementById('nav-'+page);
   if(pageEl)pageEl.classList.add('active');
   if(navEl)navEl.classList.add('active');
-  // sync bottom nav
-  document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+  // sync bottom nav (ถ้าเป็นหน้าฟีเจอร์ลูก ให้ไฮไลต์แท็บหมวดหมู่ของมันแทน)
+  const ownerFeat=FEATURE_DEFS.find(f=>f.page===page);
+  const bnKey=page.startsWith('cat-')?page:(ownerFeat?'cat-'+ownerFeat.cat:page);
+  document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.page===bnKey));
   if(typeof window.scrollTo==='function')window.scrollTo({top:0,behavior:'smooth'});
-  // ปุ่มย้อนกลับหน้าแรก (แสดงทุกหน้ายกเว้นหน้าแรก)
+  // ปุ่มย้อนกลับหน้าแรก (แสดงทุกหน้ายกเว้นหน้าแรกและหน้าหมวดหมู่ระดับบนสุด)
   const backBtn=document.getElementById('home-back-btn');
-  if(backBtn)backBtn.style.display=(page==='home')?'none':'inline-flex';
+  const topLevel=page==='home'||page.startsWith('cat-');
+  if(backBtn)backBtn.style.display=topLevel?'none':'inline-flex';
   if(page==='home')renderHome();
+  if(page.startsWith('cat-'))renderCatPage(page.slice(4));
   if(page==='dashboard'){dbRender();loadSalesFromCloud();}
   if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
@@ -4064,30 +4075,14 @@ function renderHome(){
     </div>`;
   }
 
-  // เมนูฟีเจอร์ทั้งหมด (ตามสิทธิ์)
-  const allFeatures=[
-    {page:'checkin',icon:'📍',label:'ลงเวลา',color:'#16B981',show:true},
-    {page:'schedule',icon:'📅',label:'ตารางเวร',color:'#3B8EEA',show:isAdmin||hasPerm('schedule')},
-    {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',show:true},
-    {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',show:isAdmin||hasPerm('sales')},
-    {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',color:'#EC4899',show:isAdmin||hasPerm('dashboard_admin')},
-    {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',show:true},
-    {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',show:isAdmin||hasPerm('payroll_self')},
-    {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',show:isAdmin||hasPerm('payroll_all')},
-    {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',show:isAdmin||hasPerm('members')},
-    {page:'checkin-history',icon:'🕐',label:'ประวัติลงเวลา',color:'#534AB7',show:isAdmin||hasPerm('checkin_all')},
-    {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',show:isAdmin||hasPerm('leave_admin')},
-    {page:'activity',icon:'📜',label:'ประวัติใช้งาน',color:'#888780',show:isAdmin||hasPerm('activity_admin')},
-    {page:'articles',icon:'📖',label:'บทความ',color:'#D4537E',show:true},
-    {page:'dosecalc',icon:'💊',label:'คำนวณยา',color:'#639922',show:true},
-    {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',show:true},
-  ].filter(x=>x.show);
+  // การ์ดหมวดหมู่ (แทนกริดเมนูแบนเดิม) — กดแล้วไปหน้าหมวดหมู่
+  const catCards=CATEGORIES.map(c=>({...c,count:catFeatures(c.id).length})).filter(c=>c.count>0);
 
-  html+=`<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:.75rem;padding-left:2px">เมนูทั้งหมด</div>`;
+  html+=`<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:.75rem;padding-left:2px">เมนู</div>`;
   html+=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
-    ${allFeatures.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.1rem 1rem;box-shadow:var(--shadow);min-height:94px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-      <span style="width:42px;height:42px;border-radius:12px;background:${f.color}1A;display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
-      <span style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
+    ${catCards.map(c=>`<button onclick="goto('cat-${c.id}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.25rem 1.1rem;box-shadow:var(--shadow);min-height:104px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <span style="font-size:26px">${c.icon}</span>
+      <span><span style="font-size:14.5px;font-weight:700;color:var(--text);display:block">${c.label}</span><span style="font-size:11.5px;color:var(--text3)">${c.count} เมนู</span></span>
     </button>`).join('')}
   </div>`;
 
@@ -4095,9 +4090,9 @@ function renderHome(){
 }
 
 // ===== ผู้ช่วยส่วนตัว (แตะการ์ดทักทาย) — ตอบจากข้อมูลจริงในระบบ ไม่ใช่ AI ภายนอก =====
-function assistantChipsHTML(){
+function assistantChipDefs(){
   const canSales=isAdmin||hasPerm('sales')||hasPerm('dashboard_admin');
-  const chips=[
+  return [
     {id:'shift_mine',ic:'📅',label:'เวรของฉัน 7 วันนี้',show:true},
     {id:'shift_today_all',ic:'👥',label:'ใครเข้าเวรวันนี้บ้าง',show:true},
     {id:'sales_today',ic:'📊',label:'ยอดขายวันนี้ (ทุกสาขา)',show:canSales},
@@ -4105,6 +4100,9 @@ function assistantChipsHTML(){
     {id:'cash_balance',ic:'💰',label:'ตู้เซฟ & กระเป๋าเก็บเงิน',show:true},
     {id:'checkin_me',ic:'🕐',label:'ฉันเข้างาน/มาสายกี่ครั้งเดือนนี้',show:true},
   ].filter(c=>c.show);
+}
+function assistantChipsHTML(){
+  const chips=assistantChipDefs();
   return `<div class="modal-title">💬 ถามอะไรก็ได้</div>
     <div style="font-size:12.5px;color:var(--text3);margin-top:-.75rem;margin-bottom:1.1rem">เลือกคำถามด่วน ระบบจะตอบจากข้อมูลจริงในระบบทันที</div>
     ${chips.map(c=>`<button class="assist-chip" onclick="assistantAsk('${c.id}')"><span class="ic">${c.ic}</span><span>${c.label}</span></button>`).join('')}
@@ -4112,6 +4110,42 @@ function assistantChipsHTML(){
 }
 window.openAssistant=function(){ if(!currentUser)return; openModal(assistantChipsHTML()); };
 window.assistantBack=function(){ openModal(assistantChipsHTML()); };
+
+// ===== Command Palette (คอม: คลิกช่องค้นหา/Ctrl+K, มือถือ: ไอคอนแว่นขยาย) =====
+window.openCommandPalette=function(){
+  if(!currentUser)return;
+  openModal(`<input type="text" id="cmdk-input" class="cmdk-input" placeholder="พิมพ์ชื่อเมนูหรือคำถาม เช่น ลงเวลา, ยอดขาย..." oninput="cmdkFilter()" autocomplete="off">
+    <div id="cmdk-results"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+  cmdkFilter();
+  setTimeout(()=>document.getElementById('cmdk-input')?.focus(),60);
+};
+function cmdkIndex(){
+  const pages=FEATURE_DEFS.filter(featureShow).map(f=>({type:'page',id:f.page,icon:f.icon,label:f.label}));
+  const asks=assistantChipDefs().map(c=>({type:'ask',id:c.id,icon:c.ic,label:c.label}));
+  return [...pages,...asks];
+}
+window.cmdkFilter=function(){
+  const q=(document.getElementById('cmdk-input')?.value||'').trim().toLowerCase();
+  const el=document.getElementById('cmdk-results');
+  if(!el)return;
+  let items=cmdkIndex();
+  if(q)items=items.filter(i=>i.label.toLowerCase().includes(q));
+  if(!items.length){el.innerHTML=`<div style="text-align:center;padding:1.5rem 0;color:var(--text3);font-size:13px">ไม่พบที่ตรงกับ "${q}"</div>`;return;}
+  el.innerHTML=items.slice(0,10).map(i=>`<div class="cmdk-row" onclick="cmdkGo('${i.type}','${i.id}')"><span class="ic">${i.icon}</span><span>${i.label}</span><span class="tag">${i.type==='ask'?'ถาม':'ไปหน้า'}</span></div>`).join('');
+};
+window.cmdkGo=function(type,id){
+  closeMD();
+  if(type==='page')goto(id);
+  else{openAssistant();setTimeout(()=>assistantAsk(id),60);}
+};
+// คีย์ลัด Ctrl+K / Cmd+K (เฉพาะคอม)
+document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){
+    e.preventDefault();
+    openCommandPalette();
+  }
+});
 
 // ครอบคำตอบด้วยหัวข้อ + ปุ่มย้อนกลับ/ปิด
 function assistantAnswerWrap(title,bodyHtml){
