@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>นำเข้าสูตรยา — ใหม่เภสัช (เครื่องมือผู้ดูแลระบบ)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:#F5F5F7;color:#1D1D1F;padding:1.5rem;font-size:14px;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto}
+h1{font-size:20px;font-weight:700;margin-bottom:.5rem}
+.warn{background:#FFF8E6;border:1px solid #F5D78E;border-radius:12px;padding:14px 18px;margin-bottom:1.5rem;color:#7A5C00;font-size:13px}
+.warn b{display:block;margin-bottom:4px;font-size:14px}
+.card{background:#fff;border-radius:16px;border:1px solid #ECECEF;padding:1.25rem;margin-bottom:1.25rem;box-shadow:0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.05)}
+.row{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:10px;border:1px solid #ECECEF;margin-bottom:10px}
+.row.excluded{opacity:.4}
+.row input[type=checkbox]{margin-top:3px;width:18px;height:18px;flex-shrink:0}
+.row .name{font-weight:700;font-size:14px;margin-bottom:4px}
+.row .meta{font-size:12.5px;color:#6E6E73;margin-bottom:4px}
+.row .assume{background:#FDF0D8;color:#7A4E06;font-size:11.5px;border-radius:8px;padding:6px 10px;margin-top:4px;display:inline-block}
+.row .source{font-size:11px;color:#A1A1A8;margin-top:4px}
+.btn{font-family:inherit;font-size:14px;font-weight:700;padding:12px 22px;border-radius:12px;border:none;cursor:pointer}
+.btn-primary{background:#16B981;color:#fff}
+.btn-primary:hover{background:#0F8A63}
+.btn-primary:disabled{background:#A1A1A8;cursor:not-allowed}
+#authgate{padding:3rem;text-align:center;color:#6E6E73}
+#log{margin-top:1rem;font-size:12.5px;background:#FAFBFB;border-radius:10px;padding:12px;display:none;max-height:300px;overflow-y:auto}
+#log div{padding:3px 0}
+.ok{color:#066046}.err{color:#A32D2D}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:1rem}
+.toolbar a{font-size:12.5px;color:#6E6E73;cursor:pointer;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>💊 นำเข้าสูตรคำนวณยา</h1>
+  <div class="warn"><b>⚠️ สำหรับเภสัชกรตรวจทานก่อนนำเข้าจริง</b>
+    ข้อมูล mg/กก./วัน มาจากไฟล์ที่ร้านส่งมา แต่ <b>"ความถี่/วัน" และการแปลงหน่วยขนาดสูงสุด</b> ที่ทำเครื่องหมาย 🟡 ด้านล่าง เป็นสิ่งที่ระบบอนุมานเองจากความรู้มาตรฐานทั่วไป ไม่ได้มาจากไฟล์ต้นฉบับโดยตรง — กรุณาตรวจทานทุกแถวที่มีเครื่องหมายนี้ก่อนกดนำเข้า ถ้าแถวไหนไม่มั่นใจ ติ๊กออกแล้วไปกรอกเองทีหลังในแอป
+  </div>
+
+  <div id="authgate">กำลังตรวจสอบสิทธิ์...</div>
+
+  <div id="content" style="display:none">
+    <div class="toolbar">
+      <a onclick="selectAll(true)">เลือกทั้งหมด</a>
+      <a onclick="selectAll(false)">ไม่เลือกเลย</a>
+      <span id="countLabel" style="font-size:12.5px;color:#6E6E73"></span>
+    </div>
+    <div class="card" id="rows"></div>
+    <button class="btn btn-primary" id="importBtn" onclick="doImport()">นำเข้ารายการที่เลือก</button>
+    <div id="log"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
+  authDomain:"naimaphat-pharmacy.firebaseapp.com",
+  projectId:"naimaphat-pharmacy",
+  storageBucket:"naimaphat-pharmacy.firebasestorage.app",
+  messagingSenderId:"642082079849",
+  appId:"1:642082079849:web:54d00567f0654339414ef8"
+});
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ===== ข้อมูลที่ร่างไว้จากไฟล์ Excel (Antibiotics) — แปลงเป็นรูปแบบ doseFormulas =====
+// assume: ข้อความอธิบายสิ่งที่ระบบอนุมานเอง (ไม่ได้มาจากไฟล์ตรงๆ) — ว่างได้ถ้าไม่มี
+const DOSE_DATA = [
+  {id:'dose_amoxicillin_125', name:'Amoxicillin 125mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:0, concMg:125, concMl:5, freq:'ทุก 8 ชม. (3 ครั้ง/วัน)', minAgeMonths:0, note:'จากไฟล์ของร้าน',
+    assume:'ความถี่ q8h เป็นมาตรฐานทั่วไปของ Amoxicillin ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_amoxicillin_250', name:'Amoxicillin 250mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:0, concMg:250, concMl:5, freq:'ทุก 8 ชม. (3 ครั้ง/วัน)', minAgeMonths:0, note:'จากไฟล์ของร้าน',
+    assume:'ความถี่ q8h เป็นมาตรฐานทั่วไปของ Amoxicillin ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_augmentin_156', name:'Augmentin 156mg/5ml (amox 125)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:0, concMg:125, concMl:5, freq:'ทุก 8 ชม. (3 ครั้ง/วัน)', minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+    assume:'ความถี่ q8h เป็นมาตรฐานทั่วไป ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_augmentin_228', name:'Augmentin 228mg/5ml (amox 200)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:0, concMg:200, concMl:5, freq:'ทุก 8 ชม. (3 ครั้ง/วัน)', minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+    assume:'ความถี่ q8h เป็นมาตรฐานทั่วไป ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_augmentin_457', name:'Augmentin 457mg/5ml (amox 400)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:0, concMg:400, concMl:5, freq:'ทุก 8 ชม. (3 ครั้ง/วัน)', minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+    assume:'ความถี่ q8h เป็นมาตรฐานทั่วไป ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_augmentin_642', name:'Augmentin 642mg/5ml (amox 600)', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:0, concMg:600, concMl:5, freq:'ทุก 8 ชม. (3 ครั้ง/วัน)', minAgeMonths:0, note:'กลุ่มเสี่ยงดื้อยาในไฟล์ใช้ 60-90 mg/kg/day แทน — ตัวนี้ใส่เฉพาะสูตรปกติ',
+    assume:'ความถี่ q8h เป็นมาตรฐานทั่วไป ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_cloxacillin_125', name:'Cloxacillin 125mg/5ml', doseType:'perDay', perKgLow:50, perKgHigh:100, unit:'mg', dosesPerDay:4, maxDose:0, concMg:125, concMl:5, freq:'ทุก 6 ชม. (4 ครั้ง/วัน)', minAgeMonths:0, note:'เฉพาะเด็กน้ำหนัก < 20 กก. ตามไฟล์',
+    assume:'ความถี่ q6h เป็นมาตรฐานทั่วไป ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_unasyn_250', name:'Unasyn susp. 250mg/5ml', doseType:'perDay', perKgLow:25, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:0, concMg:250, concMl:5, freq:'ทุก 6-8 ชม. (3-4 ครั้ง/วัน)', minAgeMonths:0, note:'จากไฟล์ของร้าน',
+    assume:'เลือกใช้ q8h (3 ครั้ง/วัน) เป็นค่าตั้งต้น ไฟล์ระบุช่วง q6-8h'},
+  {id:'dose_cefalexin_125', name:'Cefalexin (Keflex/Sialexin) 125mg/5ml', doseType:'perDay', perKgLow:25, perKgHigh:50, unit:'mg', dosesPerDay:4, maxDose:0, concMg:125, concMl:5, freq:'ทุก 6 ชม. (4 ครั้ง/วัน)', minAgeMonths:0, note:'จากไฟล์ของร้าน',
+    assume:'ความถี่ q6h เป็นมาตรฐานทั่วไปของ Cefalexin ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_cefaclor_125', name:'Cefaclor (Distaclor/Vercef) 125mg/5ml', doseType:'perDay', perKgLow:20, perKgHigh:40, unit:'mg', dosesPerDay:2, maxDose:0, concMg:125, concMl:5, freq:'ทุก 8-12 ชม. (2-3 ครั้ง/วัน)', minAgeMonths:0, note:'ไฟล์ระบุ max 40cc/วัน (หน่วยปริมาตร ไม่ใช่ mg — ไม่ได้ใส่ในขนาดสูงสุด/ครั้ง กรุณาตรวจสอบเอง)',
+    assume:'เลือกใช้ BID (2 ครั้ง/วัน) เป็นค่าตั้งต้น ไฟล์ระบุช่วง q8-12h'},
+  {id:'dose_cefaclor_250', name:'Cefaclor (Distaclor/Vercef) 250mg/5ml', doseType:'perDay', perKgLow:20, perKgHigh:40, unit:'mg', dosesPerDay:2, maxDose:0, concMg:250, concMl:5, freq:'ทุก 8-12 ชม. (2-3 ครั้ง/วัน)', minAgeMonths:0, note:'ไฟล์ระบุ max 20cc/วัน (หน่วยปริมาตร ไม่ใช่ mg — ไม่ได้ใส่ในขนาดสูงสุด/ครั้ง กรุณาตรวจสอบเอง)',
+    assume:'เลือกใช้ BID (2 ครั้ง/วัน) เป็นค่าตั้งต้น ไฟล์ระบุช่วง q8-12h'},
+  {id:'dose_cefdinir_125', name:'Cefdinir (Omnicef/Samnir) 125mg/5ml', doseType:'perDay', perKgLow:14, perKgHigh:14, unit:'mg', dosesPerDay:2, maxDose:300, concMg:125, concMl:5, freq:'OD-BID (1-2 ครั้ง/วัน)', minAgeMonths:0, note:'ไฟล์ระบุค่าสูงสุด 14 mg/kg/วัน เท่านั้น (ไม่มีค่าต่ำสุดแยก) เพดานรวม 600mg/วัน',
+    assume:'ขนาดสูงสุด/ครั้ง 300mg คำนวณจาก 600mg/วัน ÷ 2 ครั้ง (BID) — ไฟล์ระบุเป็นเพดานต่อวัน ไม่ใช่ต่อครั้ง'},
+  {id:'dose_cefixime_100', name:'Cefixime (Cefspan) 100mg/5ml', doseType:'perDay', perKgLow:6, perKgHigh:8, unit:'mg', dosesPerDay:2, maxDose:0, concMg:100, concMl:5, freq:'ทุก 12 ชม. (2 ครั้ง/วัน)', minAgeMonths:0, note:'ไฟล์ระบุ max 20cc/วัน (หน่วยปริมาตร ไม่ใช่ mg — ไม่ได้ใส่ในขนาดสูงสุด/ครั้ง กรุณาตรวจสอบเอง)',
+    assume:'ความถี่ BID เป็นมาตรฐานทั่วไปของ Cefixime ไม่ได้ระบุในไฟล์โดยตรง'},
+  {id:'dose_erythromycin_125', name:'Erythromycin (Ilosone) 125mg/5ml', doseType:'perDay', perKgLow:30, perKgHigh:50, unit:'mg', dosesPerDay:3, maxDose:666, concMg:125, concMl:5, freq:'TID-QID (3-4 ครั้ง/วัน)', minAgeMonths:0, note:'ไฟล์ระบุ max เด็ก 80cc/วัน (=2000mg/วัน คำนวณจากความเข้มข้น)',
+    assume:'เลือกใช้ TID (3 ครั้ง/วัน) เป็นค่าตั้งต้น และคำนวณขนาดสูงสุด/ครั้ง = 2000mg ÷ 3 = 666mg เอง'},
+  {id:'dose_clarithromycin_125', name:'Clarithromycin (Klacid) 125mg/5ml', doseType:'perDay', perKgLow:15, perKgHigh:15, unit:'mg', dosesPerDay:2, maxDose:500, concMg:125, concMl:5, freq:'ทุก 12 ชม. (2 ครั้ง/วัน)', minAgeMonths:0, note:'ไฟล์ระบุค่าสูงสุด 15 mg/kg/วัน เท่านั้น (ไม่มีค่าต่ำสุดแยก) — max 500mg ต่อครั้ง มาจากไฟล์โดยตรง',
+    assume:''},
+  {id:'dose_azithromycin_200', name:'Azithromycin (Zithromax) 200mg/5ml', doseType:'perDay', perKgLow:10, perKgHigh:12, unit:'mg', dosesPerDay:1, maxDose:0, concMg:200, concMl:5, freq:'วันละครั้ง นาน 3-5 วัน', minAgeMonths:0, note:'จากไฟล์ของร้าน — กินติดต่อกัน 3-5 วันเท่านั้น',
+    assume:''},
+  {id:'dose_bactrim_susp', name:'Bactrim Susp. (คิดจาก TMP 40mg/5ml)', doseType:'perDay', perKgLow:8, perKgHigh:10, unit:'mg', dosesPerDay:2, maxDose:0, concMg:40, concMl:5, freq:'ทุก 12 ชม. (2 ครั้ง/วัน)', minAgeMonths:0, note:'กรณีติดเชื้อผิวหนังใช้ 8-12 mg/kg/วันแทน — คำนวณจากปริมาณ TMP',
+    assume:''},
+  {id:'dose_tamiflu_6mgml', name:'Tamiflu 6mg/ml', doseType:'perDose', perKgLow:2, perKgHigh:3, unit:'mg', dosesPerDay:2, maxDose:0, concMg:6, concMl:1, freq:'ทุก 12 ชม. (2 ครั้ง/วัน)', minAgeMonths:0, note:'มีสูตรพิเศษสำหรับทารก/อายุ <1ปี ในไฟล์ต้นฉบับ ไม่รวมในระบบนี้ ใช้ดุลยพินิจเภสัชกรแยกต่างหาก',
+    assume:''},
+];
+
+function rowHtml(d,i){
+  const perDay=d.doseType==='perDay';
+  return `<div class="row" id="row-${i}">
+    <input type="checkbox" id="chk-${i}" checked onchange="document.getElementById('row-${i}').classList.toggle('excluded',!this.checked);updateCount()">
+    <div style="flex:1">
+      <div class="name">${d.name}</div>
+      <div class="meta">${d.perKgLow}${d.perKgHigh!==d.perKgLow?'-'+d.perKgHigh:''} ${d.unit}/กก./${perDay?'วัน':'ครั้ง'}${perDay&&d.dosesPerDay?' ÷ '+d.dosesPerDay+' ครั้ง/วัน':''} • ${d.freq}${d.maxDose?' • สูงสุด '+d.maxDose+'mg/ครั้ง':''}${d.concMg?' • '+d.concMg+'mg/'+d.concMl+'ml':''}</div>
+      ${d.note?`<div class="source">📝 ${d.note}</div>`:''}
+      ${d.assume?`<div class="assume">🟡 ${d.assume}</div>`:''}
+    </div>
+  </div>`;
+}
+
+window.selectAll=function(v){
+  DOSE_DATA.forEach((d,i)=>{document.getElementById('chk-'+i).checked=v;document.getElementById('row-'+i).classList.toggle('excluded',!v);});
+  updateCount();
+};
+window.updateCount=function(){
+  const n=DOSE_DATA.filter((d,i)=>document.getElementById('chk-'+i).checked).length;
+  document.getElementById('countLabel').textContent=`เลือกไว้ ${n} จาก ${DOSE_DATA.length} รายการ`;
+};
+
+window.doImport=async function(){
+  const btn=document.getElementById('importBtn');
+  btn.disabled=true;btn.textContent='กำลังนำเข้า...';
+  const log=document.getElementById('log');log.style.display='block';log.innerHTML='';
+  let ok=0,fail=0,skip=0;
+  for(let i=0;i<DOSE_DATA.length;i++){
+    const checked=document.getElementById('chk-'+i).checked;
+    const d=DOSE_DATA[i];
+    if(!checked){skip++;continue;}
+    try{
+      const {id,assume,...data}=d;
+      await setDoc(doc(db,'doseFormulas',id),data);
+      log.innerHTML+=`<div class="ok">✅ นำเข้าแล้ว: ${d.name}</div>`;ok++;
+    }catch(e){
+      log.innerHTML+=`<div class="err">❌ ผิดพลาด: ${d.name} — ${e.message}</div>`;fail++;
+    }
+  }
+  log.innerHTML+=`<div style="margin-top:8px;font-weight:700">เสร็จสิ้น — สำเร็จ ${ok} รายการ, ข้าม ${skip} รายการ, ผิดพลาด ${fail} รายการ</div>`;
+  btn.textContent='นำเข้าเสร็จแล้ว';
+};
+
+onAuthStateChanged(auth, async user=>{
+  const gate=document.getElementById('authgate');
+  if(!user){gate.innerHTML='กรุณาล็อกอินที่ <a href="index.html">หน้าหลักของร้าน</a> ก่อน แล้วค่อยเปิดหน้านี้ใหม่ (ต้องล็อกอินในเบราว์เซอร์เดียวกัน)';return;}
+  try{
+    const snap=await getDoc(doc(db,'members',user.uid));
+    const isAdmin=snap.exists()&&snap.data().role==='admin';
+    if(!isAdmin){gate.innerHTML='หน้านี้สำหรับผู้ดูแลระบบเท่านั้น';return;}
+  }catch(e){gate.innerHTML='ตรวจสอบสิทธิ์ไม่สำเร็จ: '+e.message;return;}
+  gate.style.display='none';
+  document.getElementById('content').style.display='block';
+  document.getElementById('rows').innerHTML=DOSE_DATA.map(rowHtml).join('');
+  updateCount();
+});
+</script>
+</body>
+</html>
