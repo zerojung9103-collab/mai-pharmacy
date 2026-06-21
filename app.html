@@ -898,8 +898,9 @@ const db = getFirestore(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-const APP_VERSION='1.23.1';
+const APP_VERSION='1.24.0';
 const CHANGELOG=[
+  {v:'1.24.0',date:'2026-06-21',changes:['จัดหน้า "เงินสด & ตู้เซฟ" ใหม่ ให้เป็น 2 กล่องแยกชัดเจน — กล่อง "ตู้เซฟ" (ยอด+เติม/เบิก+นับเงินต้น/ปลายวัน+ประวัติเบิก-เติม รวมไว้ในกล่องเดียว) และกล่อง "กระเป๋าเก็บเงิน" (ยอด+เก็บ/ถอน+ประวัติ รวมไว้ในกล่องเดียว) แทนการ์ดแยกกระจาย 6-8 ใบเหมือนเดิม ดูง่ายขึ้นว่าอะไรเกี่ยวกับอะไร']},
   {v:'1.23.1',date:'2026-06-21',changes:['แก้บั๊ก: หน้าจัดการเงินเดือนคำนวณชั่วโมงผิดถ้ามีเวรข้ามคืน (เช่น 20:00-04:00) ได้ชั่วโมงติดลบ — แก้ให้คำนวณถูกต้องเหมือนหน้าประวัติลงเวลาที่รองรับเวรข้ามคืนอยู่แล้ว']},
   {v:'1.23.0',date:'2026-06-21',changes:['เพิ่มกฎหักเงินเดือนกรณีมาสายเล็กน้อย — สาย 1-30 นาที จะยังไม่หักทันที แต่ทบสะสมไว้ พอครบ 60 นาทีจะหัก 1 ชั่วโมงอัตโนมัติ (แยกจากกฎเดิม: สายเกิน 30 นาที หัก 0.5 ชม.ทันที) คำนวณตามลำดับวันที่จริงในแต่ละเดือน ไม่ทบข้ามเดือน — หน้าจัดการเงินเดือนแสดงนาทีที่สะสมไว้ (ยังไม่ครบ 60) ให้เห็นด้วย']},
   {v:'1.22.0',date:'2026-06-21',changes:['หน้าแรกเปลี่ยนกลับมาโชว์ทุกเมนูแบบเรียงกริดเดียว (ไม่จัดเป็นการ์ดหมวดหมู่ใหญ่แล้ว) ตามสิทธิ์ของแต่ละคน — ส่วนแถบด้านล่างบนมือถือ (หน้าแรก/งานของฉัน/ขาย/บริหาร/เพิ่มเติม) ยังเป็นหมวดหมู่อยู่เหมือนเดิม ไว้กดลัดเข้าแต่ละกลุ่มได้เร็วๆ']},
@@ -2457,38 +2458,25 @@ function renderCashPage(){
   // ประวัตินับเงินของสาขานี้ (5 ล่าสุด)
   const branchCounts=cashCounts.filter(c=>c.branch===branch).slice(0,5);
 
-  // การ์ดยอดตู้เซฟ
-  let html=`<div style="background:linear-gradient(135deg,#066046,#16B981);border-radius:var(--rl);padding:1.5rem;color:#fff;margin-bottom:1.25rem">
-    <div style="font-size:13px;opacity:.85;margin-bottom:4px">💰 ยอดเงินในตู้เซฟ (เงินทอน) — ${BRANCHES[branch]}</div>
-    <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${balance.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-    <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
-      ${(isAdmin||hasPerm('cash_refill'))?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="cashAddPrompt(${branch})">+ เติมเงิน</button>`:''}
-      <button class="btn btn-sm" style="background:rgba(255,255,255,.95);color:#066046;border:none;font-weight:700" onclick="cashWithdrawPrompt(${branch})">− เบิกเงินทอน</button>
+  // ===== กล่อง A: ตู้เซฟ (เงินทอน) — รวมยอด + เติม/เบิก + นับเงิน + ประวัติเบิก-เติม ไว้ในกล่องเดียว =====
+  let html=`<div class="card" style="margin-bottom:1.25rem;padding:0;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#066046,#16B981);padding:1.5rem;color:#fff">
+      <div style="font-size:13px;opacity:.85;margin-bottom:4px">🔒 ตู้เซฟ (เงินทอน) — ${BRANCHES[branch]}</div>
+      <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${balance.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
+        ${(isAdmin||hasPerm('cash_refill'))?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="cashAddPrompt(${branch})">+ เติมเงิน</button>`:''}
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.95);color:#066046;border:none;font-weight:700" onclick="cashWithdrawPrompt(${branch})">− เบิกเงินทอน</button>
+      </div>
     </div>
-  </div>`;
-
-  // การ์ดกระเป๋าเก็บเงิน (เงินขายสะสม)
-  const purseBal=purses[branch]||0;
-  html+=`<div style="background:linear-gradient(135deg,#1E3A8A,#3B82F6);border-radius:var(--rl);padding:1.5rem;color:#fff;margin-bottom:1.25rem">
-    <div style="font-size:13px;opacity:.85;margin-bottom:4px">💵 กระเป๋าเก็บเงิน (เงินขายสะสม) — ${BRANCHES[branch]}</div>
-    <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${purseBal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-    <div style="font-size:11px;opacity:.8;margin-top:2px">สะสมจนกว่าผู้ดูแลจะเอาไปฝากธนาคาร</div>
-    <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
-      <button class="btn btn-sm" style="background:rgba(255,255,255,.95);color:#1E3A8A;border:none;font-weight:700" onclick="pursePrompt(${branch},'collect')">+ เก็บเงินขาย</button>
-      ${isAdmin?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="pursePrompt(${branch},'deposit')">− ถอนไปฝาก</button>`:''}
-    </div>
-  </div>`;
-
-  // นับเงินสด
-  html+=`<div class="card" style="margin-bottom:1.25rem">
-    <div style="font-weight:600;font-size:15px;margin-bottom:2px">นับเงินสด</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">นับเงินในลิ้นชักต้นวัน/ปลายวัน แล้วบันทึก</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-sm btn-primary" onclick="cashCountPrompt(${branch},'open')">📥 นับเงินต้นวัน</button>
-      <button class="btn btn-sm btn-blue" onclick="cashCountPrompt(${branch},'close')">📤 นับเงินปลายวัน</button>
-    </div>`;
+    <div style="padding:1.25rem">
+      <div style="font-weight:600;font-size:14px;margin-bottom:2px">📋 นับเงินสด</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">นับเงินในลิ้นชักต้นวัน/ปลายวัน แล้วบันทึก</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="cashCountPrompt(${branch},'open')">📥 นับเงินต้นวัน</button>
+        <button class="btn btn-sm btn-blue" onclick="cashCountPrompt(${branch},'close')">📤 นับเงินปลายวัน</button>
+      </div>`;
   if(branchCounts.length){
-    html+=`<div style="margin-top:1rem;border-top:1px solid var(--border);padding-top:1rem">`;
+    html+=`<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">`;
     branchCounts.forEach(c=>{
       const d=new Date(c.at);
       const dStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
@@ -2501,13 +2489,10 @@ function renderCashPage(){
     });
     html+=`</div>`;
   }
-  html+=`</div>`;
-
-  // ประวัติเบิก-เติม
-  html+=`<div class="card" style="margin-bottom:1.25rem">
-    <div style="font-weight:600;font-size:15px;margin-bottom:1rem">ประวัติเบิก-เติมเงินทอน</div>`;
+  html+=`
+      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem;padding-top:1rem;border-top:1px solid var(--border)">📜 ประวัติเบิก-เติมเงินทอน</div>`;
   if(!branchLogs.length){
-    html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem">ยังไม่มีประวัติ</div>`;
+    html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem 0">ยังไม่มีประวัติ</div>`;
   }else{
     branchLogs.forEach(l=>{
       const d=new Date(l.at);
@@ -2525,14 +2510,25 @@ function renderCashPage(){
       </div>`;
     });
   }
-  html+=`</div>`;
+  html+=`</div></div>`;
 
-  // ประวัติเก็บ-ถอน กระเป๋าเก็บเงิน
+  // ===== กล่อง B: กระเป๋าเก็บเงิน (เงินขายสะสม) — รวมยอด + เก็บ/ถอน + ประวัติ ไว้ในกล่องเดียว =====
+  const purseBal=purses[branch]||0;
   const branchPLogs=purseLogs.filter(l=>l.branch===branch).slice(0,10);
-  html+=`<div class="card" style="margin-bottom:1.25rem">
-    <div style="font-weight:600;font-size:15px;margin-bottom:1rem">ประวัติกระเป๋าเก็บเงิน</div>`;
+  html+=`<div class="card" style="margin-bottom:1.25rem;padding:0;overflow:hidden">
+    <div style="background:linear-gradient(135deg,#1E3A8A,#3B82F6);padding:1.5rem;color:#fff">
+      <div style="font-size:13px;opacity:.85;margin-bottom:4px">💵 กระเป๋าเก็บเงิน (เงินขายสะสม) — ${BRANCHES[branch]}</div>
+      <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${purseBal.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+      <div style="font-size:11px;opacity:.8;margin-top:2px">สะสมจนกว่าผู้ดูแลจะเอาไปฝากธนาคาร</div>
+      <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
+        <button class="btn btn-sm" style="background:rgba(255,255,255,.95);color:#1E3A8A;border:none;font-weight:700" onclick="pursePrompt(${branch},'collect')">+ เก็บเงินขาย</button>
+        ${isAdmin?`<button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="pursePrompt(${branch},'deposit')">− ถอนไปฝาก</button>`:''}
+      </div>
+    </div>
+    <div style="padding:1.25rem">
+      <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">📜 ประวัติกระเป๋าเก็บเงิน</div>`;
   if(!branchPLogs.length){
-    html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem">ยังไม่มีประวัติ</div>`;
+    html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem 0">ยังไม่มีประวัติ</div>`;
   }else{
     branchPLogs.forEach(l=>{
       const d=new Date(l.at);
@@ -2550,12 +2546,11 @@ function renderCashPage(){
       </div>`;
     });
   }
-  html+=`</div>`;
+  html+=`</div></div>`;
 
-  // ปุ่มดู Report
+  // ===== กล่อง C: รายงาน/เครื่องมือเสริม (แยกออกมาเพราะคาบเกี่ยวทั้ง 2 กล่องบน) =====
   html+=`<button class="btn btn-blue" style="width:100%;margin-bottom:1.25rem;padding:12px" onclick="cashReportPrompt(${branch})">📊 ดูรายงานสรุป (Report)</button>`;
 
-  // ปุ่มล้างข้อมูลทดสอบ (admin)
   if(isAdmin){
     html+=`<button class="btn btn-danger" style="width:100%;margin-bottom:1.25rem;padding:10px;font-size:12.5px" onclick="cashClearTestPrompt()">🧹 ล้างข้อมูลทดสอบทั้งหมด (เริ่มใหม่)</button>`;
   }
