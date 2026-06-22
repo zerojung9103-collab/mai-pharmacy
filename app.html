@@ -1014,9 +1014,29 @@ textarea{resize:vertical;min-height:64px}
           <div style="font-weight:700;font-size:14px;margin-bottom:.75rem">🎨 ตั้งค่าฉลาก</div>
           <div class="field-row">
             <div class="field"><label class="fl">สีพื้นหลัง</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="fl-bg-color" value="#FFFFFF" oninput="flRenderPreview()" style="width:38px;height:34px;padding:2px;border-radius:6px;border:1px solid var(--border2);cursor:pointer"><span id="fl-bg-hex" style="font-size:12px;color:var(--text3)">#FFFFFF</span></div></div>
-            <div class="field"><label class="fl">สีตัวอักษร</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="fl-text-color" value="#000000" oninput="flRenderPreview()" style="width:38px;height:34px;padding:2px;border-radius:6px;border:1px solid var(--border2);cursor:pointer"><span id="fl-text-hex" style="font-size:12px;color:var(--text3)">#000000</span></div></div>
+            <div class="field"><label class="fl">สีตัวอักษรทั่วไป</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="fl-text-color" value="#000000" oninput="flRenderPreview()" style="width:38px;height:34px;padding:2px;border-radius:6px;border:1px solid var(--border2);cursor:pointer"><span id="fl-text-hex" style="font-size:12px;color:var(--text3)">#000000</span></div></div>
           </div>
-          <div id="fl-block-list" style="margin-top:.5rem"></div>
+          <div style="border-top:1px solid var(--border);margin:.75rem 0 .5rem;padding-top:.75rem">
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.5rem">📐 Offset เครื่องพิมพ์ (mm) — ชดเชยตำแหน่งที่ไม่ตรง</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div class="field"><label class="fl" style="font-size:11px">บน (Top offset)</label>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="range" id="fl-mg-top" min="-5" max="10" step="0.5" value="0" oninput="flUpdateMargins()" style="flex:1">
+                  <span id="fl-mg-top-v" style="font-size:12px;min-width:30px;color:var(--text2)">0mm</span>
+                </div>
+              </div>
+              <div class="field"><label class="fl" style="font-size:11px">ซ้าย (Left offset)</label>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="range" id="fl-mg-left" min="-5" max="10" step="0.5" value="0" oninput="flUpdateMargins()" style="flex:1">
+                  <span id="fl-mg-left-v" style="font-size:12px;min-width:30px;color:var(--text2)">0mm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="border-top:1px solid var(--border);margin:.75rem 0 .5rem;padding-top:.75rem">
+            <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.5rem">🔡 ขนาดตัวอักษรแต่ละบล็อก</div>
+            <div id="fl-block-list"></div>
+          </div>
         </div>
       </div>
       <!-- ขวา: Preview -->
@@ -1128,8 +1148,9 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.5';
+const APP_VERSION='1.29.6';
 const CHANGELOG=[
+  {v:'1.29.6',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เปลี่ยนเป็น Template C (เส้นสีด้านซ้าย — เขียวบล็อกชื่อยา / น้ำเงินบล็อกวิธีใช้), เพิ่มปรับ Offset เครื่องพิมพ์ (Top/Left mm) แบบ slider เพื่อชดเชยตำแหน่งพิมพ์ไม่ตรง, เปลี่ยน font size เป็น slider ลื่นปรับได้อิสระทีละบล็อก, เพิ่มปรับสีเส้นซ้ายต่อบล็อกได้ — ค่า offset และ template บันทึกรวมกัน']},
   {v:'1.29.5',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เปลี่ยน dropdown ทั้งหมดเป็น search bar — พิมพ์ค้นหาชื่อยาสามัญ/วิธีใช้/สรรพคุณ/คำเตือนได้ทันที (ค้นได้ทั้งภาษาไทยและอังกฤษ) แสดง 40 รายการแรกก่อนพิมพ์ค้น เลือกรายการที่เพิ่งใช้ซ้ำได้ง่ายขึ้น มีปุ่ม ✕ ล้างรายการที่เลือก']},
   {v:'1.29.4',date:'2026-06-21',changes:['แก้ Preview ฉลากยาต่างชาติ: font scale factor ถูกต้อง (1pt=0.3528mm) ทำให้ preview ตรงกับขนาดพิมพ์จริงบนสติกเกอร์ 80x60mm — บล็อกข้อความไม่ทับกันอีกต่อไป ปรับ layout เริ่มต้นใหม่ให้ใช้ y-position ที่คำนวณจากขนาด font จริง ที่อยู่สาขาสั้นลงให้พอดีใน 2 บรรทัด']},
   {v:'1.29.3',date:'2026-06-21',changes:['เพิ่มรองรับ QZ Tray สำหรับพิมพ์ฉลากยาต่างชาติ — เพิ่มการ์ด "ตั้งค่า QZ Tray" ในหน้าตั้งค่า (admin) ใส่ชื่อเครื่องพิมพ์ + ทดสอบ + ดูรายชื่อเครื่องพิมพ์ได้ ลำดับพิมพ์: QZ Tray → PrintBridge → browser print (fallback อัตโนมัติ) — ไม่ต้องใช้ certificate ก็ใช้งานได้ (จะมีป๊อปอัพขอ permission 1 ครั้งต่อ session)']},
@@ -6062,25 +6083,25 @@ const FL_BRANCHES=[
   {name:'ใหม่เภสัช สาขาหมู่บ้านอินดี้',addr:'143 ซ.ทรัพย์บุญชัย28 ถ.ทรัพย์พัฒนา ต.บางเมือง สมุทรปราการ 10270',                       tel:'Tel: 096-914-0261'},
 ];
 
-// 1pt = 0.3528mm, line-height ≈ 1.3 → ทุกตำแหน่ง y คำนวณไม่ให้ทับกัน บน 80x60mm
+// Template C: เส้นสีด้านซ้าย minimal — 1pt=0.3528mm, lineHeight≈1.3
 const FL_DEFAULT_BLOCKS=()=>[
-  {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1, y:1,  w:77,fontSize:7,  bold:true, color:'#000'},
-  {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1, y:5,  w:77,fontSize:5,  bold:false,color:'#444'},
-  {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1, y:12, w:77,fontSize:7,  bold:false,color:'#000'},
-  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:1, y:17, w:77,fontSize:12, bold:true, color:'#000'},
-  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:1, y:24, w:38,fontSize:7,  bold:false,color:'#222'},
-  {id:'b_generic', label:'ชื่อสามัญ',      key:'generic',   x:40,y:24, w:38,fontSize:6.5,bold:false,color:'#555'},
-  {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:1, y:29, w:77,fontSize:8,  bold:true, color:'#000'},
-  {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1, y:38, w:77,fontSize:6.5,bold:false,color:'#222'},
-  {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1, y:43, w:77,fontSize:5.5,bold:false,color:'#555'},
-  {id:'b_date',    label:'วันที่จ่ายยา',   key:'date',      x:1, y:56, w:77,fontSize:5,  bold:false,color:'#888'},
+  {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1,  y:1,  w:77,fontSize:7,  bold:true, color:'#000',leftBorder:''},
+  {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1,  y:5,  w:77,fontSize:5,  bold:false,color:'#555',leftBorder:''},
+  {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1,  y:11, w:77,fontSize:7,  bold:false,color:'#000',leftBorder:''},
+  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:5,  y:16, w:73,fontSize:12, bold:true, color:'#000',leftBorder:'#16B981'},
+  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:5,  y:24, w:36,fontSize:7,  bold:false,color:'#333',leftBorder:''},
+  {id:'b_generic', label:'ชื่อสามัญ',      key:'generic',   x:42, y:24, w:36,fontSize:6.5,bold:false,color:'#888',leftBorder:''},
+  {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:5,  y:29, w:73,fontSize:9,  bold:true, color:'#000',leftBorder:'#3B8EEA'},
+  {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1,  y:39, w:77,fontSize:6.5,bold:false,color:'#333',leftBorder:''},
+  {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1,  y:44, w:77,fontSize:6,  bold:false,color:'#666',leftBorder:''},
+  {id:'b_date',    label:'วันที่จ่ายยา',   key:'date',      x:1,  y:55, w:77,fontSize:5.5,bold:false,color:'#aaa',leftBorder:''},
 ];
 let flBlocks=FL_DEFAULT_BLOCKS();
 let flCustomBlocks=[];
+// offset เครื่องพิมพ์ (mm) — บันทึกใน template
+let flPageMargins={top:0,left:0};
 const FL_MM_TO_PX=3.2;
-// font scale ที่ถูกต้อง: 1pt = 0.3528mm → preview px = pt × 0.3528 × FL_MM_TO_PX
-// ทำให้ preview ตรงกับขนาดพิมพ์จริงบนฉลาก 80mm
-const FL_PT_TO_PX=0.3528*FL_MM_TO_PX; // ≈ 1.129 px/pt
+const FL_PT_TO_PX=0.3528*FL_MM_TO_PX; // ≈1.129 px/pt — ทำให้ preview ตรงกับพิมพ์จริง
 
 async function loadForeignLabelData(){
   try{
@@ -6253,18 +6274,38 @@ window.flRemoveMulti=function(type,id){
   flRenderTags(type);
   flRenderPreview();
 };
+// ===== Margin/Offset settings =====
+window.flUpdateMargins=function(){
+  const t=parseFloat(document.getElementById('fl-mg-top')?.value||0);
+  const l=parseFloat(document.getElementById('fl-mg-left')?.value||0);
+  flPageMargins={top:t,left:l};
+  const tv=document.getElementById('fl-mg-top-v');
+  const lv=document.getElementById('fl-mg-left-v');
+  if(tv)tv.textContent=t+'mm';
+  if(lv)lv.textContent=l+'mm';
+  flRenderPreview();
+};
 // ======= Block settings list =======
 function flRenderBlockList(){
   const el=document.getElementById('fl-block-list');
   if(!el)return;
-  el.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:.5rem">ปรับแต่งบล็อกข้อความ</div>'+
-    flBlocks.map((b,i)=>`<div class="fl-block-row">
-      <label>${b.label}</label>
-      <span style="font-size:10px;color:var(--text3)">px:</span>
-      <input type="number" value="${b.fontSize}" min="5" max="20" step="1" title="ขนาดตัวอักษร (pt)" onchange="flSetBlock(${i},'fontSize',+this.value)">
-      <input type="color" value="${b.color}" title="สีตัวอักษร" oninput="flSetBlock(${i},'color',this.value)">
-      <button class="btn btn-sm" style="padding:2px 6px;font-size:10px" onclick="flToggleBold(${i})" title="ตัวหนา">${b.bold?'<b>B</b>':'B'}</button>
-    </div>`).join('');
+  el.innerHTML=flBlocks.map((b,i)=>`<div class="fl-block-row" style="flex-wrap:wrap;gap:4px 8px">
+    <label style="width:100%;font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px">${b.label}</label>
+    <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:180px">
+      <span style="font-size:10px;color:var(--text3);white-space:nowrap">ขนาด ${b.fontSize}pt</span>
+      <input type="range" min="5" max="20" step="0.5" value="${b.fontSize}" style="flex:1"
+        oninput="flSetBlock(${i},'fontSize',+this.value);this.previousElementSibling.textContent='ขนาด '+this.value+'pt'">
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="color" value="${b.color}" title="สีตัวอักษร" oninput="flSetBlock(${i},'color',this.value)" style="width:28px;height:26px;padding:1px;border-radius:5px;border:1px solid var(--border2);cursor:pointer">
+      <button class="btn btn-sm" style="padding:2px 8px;font-size:10px" onclick="flToggleBold(${i})">${b.bold?'<b>B</b>':'B'}</button>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:10px;color:var(--text3)">เส้นซ้าย</span>
+        <input type="color" value="${b.leftBorder||'#ffffff'}" title="สีเส้นซ้าย (ขาว=ไม่มี)" oninput="flSetBlock(${i},'leftBorder',this.value)" style="width:24px;height:24px;padding:1px;border-radius:5px;border:1px solid var(--border2);cursor:pointer">
+        ${b.leftBorder?`<button class="btn btn-sm" style="padding:1px 6px;font-size:10px" onclick="flSetBlock(${i},'leftBorder','');flRenderBlockList()">✕</button>`:''}
+      </div>
+    </div>
+  </div>`).join('');
 }
 window.flSetBlock=function(i,key,val){
   flBlocks[i][key]=val;
@@ -6337,7 +6378,11 @@ window.flRenderPreview=function(){
     const div=document.createElement('div');
     div.className='fl-pblock';
     div.dataset.bi=bi;
-    div.style.cssText=`left:${b.x*FL_MM_TO_PX}px;top:${b.y*FL_MM_TO_PX}px;width:${b.w*FL_MM_TO_PX}px;font-size:${b.fontSize*FL_PT_TO_PX}px;line-height:1.3;font-weight:${b.bold?700:400};color:${b.color};white-space:pre-wrap;`;
+    const ox=flPageMargins.left*FL_MM_TO_PX;
+    const oy=flPageMargins.top*FL_MM_TO_PX;
+    const hasLB=b.leftBorder&&b.leftBorder!=='#ffffff';
+    const lbW=hasLB?3*FL_MM_TO_PX:0;
+    div.style.cssText=`left:${b.x*FL_MM_TO_PX+ox}px;top:${b.y*FL_MM_TO_PX+oy}px;width:${b.w*FL_MM_TO_PX}px;font-size:${b.fontSize*FL_PT_TO_PX}px;line-height:1.3;font-weight:${b.bold?700:400};color:${b.color};white-space:pre-wrap;${hasLB?`border-left:${lbW}px solid ${b.leftBorder};padding-left:${2*FL_MM_TO_PX}px;`:``}`;
     div.textContent=txt;
     // Drag support
     div.onpointerdown=e=>{e.stopPropagation();flStartDrag(e,bi);};
@@ -6377,7 +6422,10 @@ window.printForeignLabel=async function(){
     const txt=flGetBlockText(b);
     if(!txt)return '';
     const safeHtml=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
-    return `<div style="position:absolute;left:${b.x}mm;top:${b.y}mm;width:${b.w}mm;font-size:${b.fontSize}pt;font-weight:${b.bold?700:400};color:${b.color};line-height:1.25;word-break:break-word;overflow:hidden">${safeHtml}</div>`;
+    const hasLB=b.leftBorder&&b.leftBorder!=='#ffffff';
+    const lbStyle=hasLB?`border-left:3mm solid ${b.leftBorder};padding-left:2mm;`:'';
+    const ox=flPageMargins.left, oy=flPageMargins.top;
+    return `<div style="position:absolute;left:${b.x+ox}mm;top:${b.y+oy}mm;width:${b.w}mm;font-size:${b.fontSize}pt;font-weight:${b.bold?700:400};color:${b.color};line-height:1.3;word-break:break-word;overflow:hidden;${lbStyle}">${safeHtml}</div>`;
   }).join('');
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>ฉลากยา</title>
 <style>
@@ -6437,7 +6485,7 @@ window.flSaveTemplate=async function(){
   const name=document.getElementById('tmpl-name-inp')?.value.trim();
   if(!name){showToast('ตั้งชื่อรูปแบบก่อน','err');return;}
   if(flTemplates.length>=10){showToast('บันทึกได้สูงสุด 10 แบบ — ลบบางแบบออกก่อน','err');return;}
-  const tmpl={id:'t_'+Date.now(),name,lang:flLang,size:flSize,blocks:JSON.parse(JSON.stringify(flBlocks))};
+  const tmpl={id:'t_'+Date.now(),name,lang:flLang,size:flSize,margins:{...flPageMargins},blocks:JSON.parse(JSON.stringify(flBlocks))};
   flTemplates.push(tmpl);
   try{
     await setDoc(doc(db,'config','labelTemplates'),{templates:flTemplates});
@@ -6451,6 +6499,14 @@ window.flLoadTemplate=function(i){
   if(!t)return;
   flLang=t.lang;flSize=t.size;
   flBlocks=JSON.parse(JSON.stringify(t.blocks));
+  flPageMargins=t.margins?{...t.margins}:{top:0,left:0};
+  // reset margin sliders
+  const mt=document.getElementById('fl-mg-top');
+  const ml=document.getElementById('fl-mg-left');
+  const mtv=document.getElementById('fl-mg-top-v');
+  const mlv=document.getElementById('fl-mg-left-v');
+  if(mt){mt.value=flPageMargins.top;if(mtv)mtv.textContent=flPageMargins.top+'mm';}
+  if(ml){ml.value=flPageMargins.left;if(mlv)mlv.textContent=flPageMargins.left+'mm';}
   flSelections={generic:'',direction:'',indications:[],warnings:[]};
   // reset search inputs
   ['generic','dir','ind','warn'].forEach(pfx=>{
