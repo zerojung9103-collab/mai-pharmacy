@@ -1146,8 +1146,9 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.9';
+const APP_VERSION='1.29.10';
 const CHANGELOG=[
+  {v:'1.29.10',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ปรับ default position — ความแรงยาอยู่ต่อท้ายชื่อยาในแนวนอนทันที (ไม่ต้องลากเอง แต่ยังลากย้ายได้อิสระ)']},
   {v:'1.29.9',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: สลับฟิลด์ใหม่ — ลบช่อง "ชื่อยา (บนฉลาก)" (free text) ออก คืนช่องค้นหาชื่อยาจากฐานข้อมูล 271 รายการแทน (ชื่อที่เลือกจะขึ้นบนฉลากโดยตรง), แก้ Custom text block ตกขอบ label (จำกัด y ไม่เกินขอบล่าง)']},
   {v:'1.29.8',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ขยาย Preview จาก 3.2px/mm เป็น 4.5px/mm (80x60mm แสดงเป็น 360x270px แทน 256x192px) ตัวหนังสือชัดขึ้น อ่านง่ายขึ้น ลดปัญหา pixel rounding ที่ทำให้ดูเพลี้ยน ปรับ grid ให้ preview ได้พื้นที่มากขึ้น เพิ่ม horizontal scroll เผื่อจอแคบ']},
   {v:'1.29.7',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ลบช่อง "ชื่อยาสามัญ" ออก (ชื่อยาที่พิมพ์บนฉลากคือชื่อสามัญอยู่แล้ว) + ย้ายความแรงยาให้อยู่ต่อจากชื่อยาในแถวเดียวกัน']},
@@ -6089,8 +6090,8 @@ const FL_DEFAULT_BLOCKS=()=>[
   {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1,  y:1,  w:77,fontSize:7,  bold:true, color:'#000',leftBorder:''},
   {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1,  y:5,  w:77,fontSize:5,  bold:false,color:'#555',leftBorder:''},
   {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1,  y:11, w:77,fontSize:7,  bold:false,color:'#000',leftBorder:''},
-  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:5,  y:16, w:73,fontSize:12, bold:true, color:'#000',leftBorder:'#16B981'},
-  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:5,  y:24, w:73,fontSize:7,  bold:false,color:'#333',leftBorder:''},
+  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:5,  y:16, w:55,fontSize:12, bold:true, color:'#000',leftBorder:'#16B981'},
+  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:62, y:19, w:16,fontSize:8,  bold:false,color:'#333',leftBorder:''},
   {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:5,  y:29, w:73,fontSize:9,  bold:true, color:'#000',leftBorder:'#3B8EEA'},
   {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1,  y:39, w:77,fontSize:6.5,bold:false,color:'#333',leftBorder:''},
   {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1,  y:44, w:77,fontSize:6,  bold:false,color:'#666',leftBorder:''},
