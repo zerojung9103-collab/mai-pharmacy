@@ -931,7 +931,18 @@ textarea{resize:vertical;min-height:64px}
               <button class="btn btn-sm fl-size-btn" data-size="80x50" onclick="flSetSize('80x50')">80×50 mm</button>
             </div>
           </div>
-          <div class="field"><label class="fl">ชื่อยาที่พิมพ์บนฉลาก</label><input type="text" id="fl-drugname" placeholder="เช่น Amoxicillin 500mg" oninput="flRenderPreview()"></div>
+          <div class="field">
+            <label class="fl">สาขา</label>
+            <select id="fl-branch-sel" onchange="flSetBranch(+this.value)">
+              <option value="0">ทรัพย์พัฒนา</option>
+              <option value="1">บางปู</option>
+              <option value="2">หมู่บ้านอินดี้</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field" style="flex:2"><label class="fl">ชื่อยาที่พิมพ์บนฉลาก</label><input type="text" id="fl-drugname" placeholder="เช่น Amoxicillin" oninput="flRenderPreview()"></div>
+            <div class="field" style="flex:1"><label class="fl">ความแรงยา</label><input type="text" id="fl-strength" placeholder="เช่น 500mg" oninput="flRenderPreview()"></div>
+          </div>
           <div class="field"><label class="fl">ชื่อยาสามัญ</label>
             <select id="fl-generic-sel" onchange="flOnSelect('generic',this.value)">
               <option value="">— เลือก (ไม่บังคับ) —</option>
@@ -955,6 +966,11 @@ textarea{resize:vertical;min-height:64px}
             <div id="fl-warn-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
           </div>
           <div class="field"><label class="fl">ชื่อผู้ป่วย (ถ้ามี)</label><input type="text" id="fl-patient" placeholder="ไม่บังคับ" oninput="flRenderPreview()"></div>
+          <div style="border-top:1px solid var(--border);margin:.75rem 0;padding-top:.75rem">
+            <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin-bottom:.5rem">✏️ ข้อความเพิ่มเติมอิสระ</div>
+            <div id="fl-custom-blocks-list"></div>
+            <button class="btn btn-sm" onclick="flAddCustomBlock()" style="margin-top:6px">+ เพิ่มบล็อกข้อความ</button>
+          </div>
         </div>
         <div class="card" style="margin-bottom:1rem">
           <div style="font-weight:700;font-size:14px;margin-bottom:.75rem">🎨 ตั้งค่าฉลาก</div>
@@ -1062,8 +1078,9 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.0';
+const APP_VERSION='1.29.1';
 const CHANGELOG=[
+  {v:'1.29.1',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่มตัวเลือกสาขา (ชื่อ+ที่อยู่+เบอร์โทรขึ้นอัตโนมัติ), เพิ่มช่องความแรงยา, เพิ่มช่องข้อความอิสระ (+ เพิ่มบล็อกได้หลายบล็อก), ปรับ layout เริ่มต้นใหม่ให้ใกล้เคียงฉลาก POS จริง']},
   {v:'1.29.0',date:'2026-06-21',changes:['รื้อระบบฉลากยาต่างชาติใหม่ทั้งหมด — กลายเป็น Label Designer เต็มรูปแบบ (3 เฟสพร้อมกัน): เลือกข้อมูลจาก dropdown (ยา 271 รายการ/วิธีใช้ 36/สรรพคุณ 110/คำเตือน 60 รายการ), ลากวางบล็อกข้อความอิสระใน Preview, ปรับสีตัวอักษร/ขนาด/ความหนาทีละบล็อก, เลือกภาษา EN/ZH/MY, เลือกขนาดกระดาษ 80x60 หรือ 80x50mm, บันทึก template สูงสุด 10 แบบ — พิมพ์ผ่านเบราว์เซอร์ด้วย CSS mm จริง ทุกอุปกรณ์รองรับ (มือถือ/แท็บเล็ต/คอมบน WiFi เดียวกับเครื่องพิมพ์) — ⚠️ ต้องรัน label-import.html ก่อนเพื่อนำเข้าฐานข้อมูลยาเข้า Firestore และต้อง publish Firestore Rules ใหม่']},
   {v:'1.28.0',date:'2026-06-21',changes:['เพิ่มเมนู "ฉลากยาต่างชาติ" — เลือกชื่อยา + เลือกประโยควิธีใช้จากคลังประโยคสำเร็จรูป (มีคำแปล อังกฤษ/จีน/พม่า) แล้วพิมพ์ฉลากให้ลูกค้าต่างชาติ/นักท่องเที่ยวได้ทันที — แอดมินเพิ่ม/ลบประโยคในคลังได้เอง ⚠️ คำแปลภาษาพม่าควรให้ผู้รู้ภาษาตรวจทานก่อนใช้จริง']},
   {v:'1.27.0',date:'2026-06-21',changes:[
@@ -1873,7 +1890,7 @@ window.goto=function(page){
   if(page==='articles')loadArticles();
   if(page==='dosecalc')loadDoseTools();
   if(page==='drugwarn')loadDrugWarnings();
-  if(page==='foreignlabel'){loadForeignLabelData();flRenderBlockList();}
+  if(page==='foreignlabel'){loadForeignLabelData();flRenderBlockList();flRenderCustomBlockInputs();}
   currentPage=page;
 };
 
@@ -5827,25 +5844,35 @@ window.deleteDose=async function(id){
 };
 
 // ===== ฉลากยาต่างชาติ — Label Designer เต็มรูปแบบ =====
-// ข้อมูลอยู่ใน Firestore: labelMaster/{drugs|directions|indications|warnings}
-// Templates: config/labelTemplates = {templates:[...]}
 let flLang='en', flSize='80x60';
 let flDB={drugs:[],directions:[],indications:[],warnings:[]};
 let flSelections={generic:'',direction:'',indications:[],warnings:[]};
 let flTemplates=[], flActiveTemplateId=null;
+let flSelectedBranch=0; // สาขาที่เลือก
 
-// บล็อกข้อความในฉลาก — แต่ละบล็อกมีตำแหน่ง x/y (mm), ขนาดตัวอักษร, สี, ความกว้าง
+// ข้อมูลสาขา (ชื่อ ที่อยู่ เบอร์โทร)
+const FL_BRANCHES=[
+  {name:'ใหม่เภสัช สาขาทรัพย์พัฒนา', addr:'45/8 ห้อง 1,2,3/B ซ.ทรัพย์บุญชัย28 ถ.ทรัพย์พัฒนา ต.บางเมือง อ.เมืองสมุทรปราการ 10270', tel:'Tel: 081-094-9261'},
+  {name:'ใหม่เภสัช สาขาบางปู',         addr:'956 ห้อง 104 อาคารสบาย ST ซ.บางปู75 ถ.สุขุมวิท-บางปู ต.บางปูใหม่ อ.เมืองสมุทรปราการ 10280', tel:'Tel: 080-090-6973'},
+  {name:'ใหม่เภสัช สาขาหมู่บ้านอินดี้',addr:'143 ซ.ทรัพย์บุญชัย28 ถ.ทรัพย์พัฒนา ต.บางเมือง อ.เมืองสมุทรปราการ 10270', tel:'Tel: 096-914-0261'},
+];
+
+// default blocks — layout ใหม่เลียนแบบฉลาก POS จริง (80x60mm)
 const FL_DEFAULT_BLOCKS=()=>[
-  {id:'b_shop',   label:'ชื่อร้าน',    key:'shop_name', x:1,y:1,  w:75,fontSize:7,  bold:true, color:'#000'},
-  {id:'b_drug',   label:'ชื่อยา',      key:'drug_name', x:1,y:9,  w:75,fontSize:10, bold:true, color:'#000'},
-  {id:'b_generic',label:'ชื่อสามัญ',   key:'generic',   x:1,y:20, w:75,fontSize:7,  bold:false,color:'#444'},
-  {id:'b_patient',label:'ชื่อผู้ป่วย', key:'patient',   x:1,y:27, w:75,fontSize:7,  bold:false,color:'#000'},
-  {id:'b_dir',    label:'วิธีใช้',      key:'direction', x:1,y:33, w:75,fontSize:8,  bold:false,color:'#000'},
-  {id:'b_ind',    label:'สรรพคุณ',     key:'indication',x:1,y:44, w:75,fontSize:7,  bold:false,color:'#333'},
-  {id:'b_warn',   label:'คำเตือน',     key:'warning',   x:1,y:52, w:75,fontSize:6,  bold:false,color:'#555'},
+  {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1, y:1,  w:77,fontSize:7.5,bold:true, color:'#000'},
+  {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1, y:8,  w:77,fontSize:5.5,bold:false,color:'#333'},
+  {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1, y:15, w:77,fontSize:7,  bold:false,color:'#000'},
+  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:1, y:20, w:77,fontSize:11, bold:true, color:'#000'},
+  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:1, y:31, w:45,fontSize:7.5,bold:false,color:'#222'},
+  {id:'b_generic', label:'ชื่อสามัญ',      key:'generic',   x:47,y:31, w:31,fontSize:6.5,bold:false,color:'#555'},
+  {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:1, y:37, w:77,fontSize:8,  bold:true, color:'#000'},
+  {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1, y:46, w:77,fontSize:6.5,bold:false,color:'#222'},
+  {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1, y:52, w:77,fontSize:5.5,bold:false,color:'#555'},
+  {id:'b_date',    label:'วันที่จ่ายยา',   key:'date',      x:1, y:57, w:77,fontSize:5.5,bold:false,color:'#888'},
 ];
 let flBlocks=FL_DEFAULT_BLOCKS();
-const FL_MM_TO_PX=3.2; // px ต่อ mm ใน preview
+let flCustomBlocks=[]; // custom text blocks เพิ่มเติม
+const FL_MM_TO_PX=3.2;
 
 async function loadForeignLabelData(){
   try{
@@ -5867,6 +5894,7 @@ async function loadForeignLabelData(){
   }catch(e){flTemplates=[];}
   flPopulateSelects();
   flRenderBlockList();
+  flRenderCustomBlockInputs();
   flRenderPreview();
 }
 function flPopulateSelects(){
@@ -5903,6 +5931,39 @@ window.flSetSize=function(size){
   document.getElementById('fl-size-label').textContent=size.replace('x','×')+' mm';
   flRenderPreview();
 };
+window.flSetBranch=function(idx){
+  flSelectedBranch=idx;
+  flRenderPreview();
+};
+// ======= Custom text blocks =======
+window.flAddCustomBlock=function(){
+  const id='b_c_'+Date.now();
+  const [pw,ph]=flSize.split('x').map(Number);
+  const newBlock={id,label:'ข้อความเพิ่มเติม',key:'custom',customText:'',x:1,y:Math.max(...flBlocks.map(b=>b.y))+7,w:77,fontSize:7,bold:false,color:'#000'};
+  flBlocks.push(newBlock);
+  flRenderBlockList();
+  flRenderCustomBlockInputs();
+  flRenderPreview();
+};
+function flRenderCustomBlockInputs(){
+  const el=document.getElementById('fl-custom-blocks-list');
+  if(!el)return;
+  const cBlocks=flBlocks.filter(b=>b.key==='custom');
+  if(!cBlocks.length){el.innerHTML='<div style="font-size:12px;color:var(--text3)">ยังไม่มีข้อความเพิ่มเติม</div>';return;}
+  el.innerHTML=cBlocks.map((b,i)=>`<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px">
+    <textarea rows="2" style="flex:1;padding:6px 8px;border:1px solid var(--border2);border-radius:8px;font-size:12px;resize:vertical;font-family:inherit" placeholder="พิมพ์ข้อความที่ต้องการ..." oninput="flUpdateCustomText('${b.id}',this.value)">${b.customText||''}</textarea>
+    <button class="btn btn-sm btn-danger" onclick="flRemoveCustomBlock('${b.id}')" style="flex-shrink:0;margin-top:2px">✕</button>
+  </div>`).join('');
+}
+window.flUpdateCustomText=function(id,val){
+  const b=flBlocks.find(x=>x.id===id);
+  if(b){b.customText=val;flRenderPreview();}
+};
+window.flRemoveCustomBlock=function(id){
+  const i=flBlocks.findIndex(x=>x.id===id);
+  if(i>=0){flBlocks.splice(i,1);flRenderBlockList();flRenderCustomBlockInputs();flRenderPreview();}
+};
+
 window.flOnSelect=function(type,val){
   if(type==='generic')flSelections.generic=val;
   else if(type==='direction')flSelections.direction=val;
@@ -5961,17 +6022,20 @@ window.flToggleBold=function(i){
 function flGetBlockText(block){
   const dn=document.getElementById('fl-drugname')?.value.trim()||'';
   const pat=document.getElementById('fl-patient')?.value.trim()||'';
-  const shopName=appearanceCfg?.shopName||'ใหม่เภสัช';
+  const str=document.getElementById('fl-strength')?.value.trim()||'';
+  const br=FL_BRANCHES[flSelectedBranch]||FL_BRANCHES[0];
   const lang=flLang;
   switch(block.key){
-    case 'shop_name': return shopName;
+    case 'shop_name': return br.name;
+    case 'address':   return br.addr+'\n'+br.tel;
     case 'drug_name': return dn||'(ชื่อยา)';
+    case 'strength':  return str;
     case 'generic':{
       if(!flSelections.generic)return '';
       const item=flDB.drugs.find(x=>x.id===flSelections.generic);
       return item?item.name:'';
     }
-    case 'patient': return pat?('Patient: '+pat):'';
+    case 'patient': return pat?pat:'';
     case 'direction':{
       if(!flSelections.direction)return '';
       const item=flDB.directions.find(x=>x.id===flSelections.direction);
@@ -5989,8 +6053,13 @@ function flGetBlockText(block){
       return flSelections.warnings.map(id=>{
         const item=flDB.warnings.find(x=>x.id===id);
         return item?(item[lang]||item.th):'';
-      }).filter(Boolean).join(' ⚠️ ');
+      }).filter(Boolean).join(' | ');
     }
+    case 'date':{
+      const today=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});
+      return 'วันที่จ่ายยา: '+today;
+    }
+    case 'custom': return block.customText||'';
     default: return '';
   }
 }
@@ -6011,7 +6080,7 @@ window.flRenderPreview=function(){
     const div=document.createElement('div');
     div.className='fl-pblock';
     div.dataset.bi=bi;
-    div.style.cssText=`left:${b.x*FL_MM_TO_PX}px;top:${b.y*FL_MM_TO_PX}px;width:${b.w*FL_MM_TO_PX}px;font-size:${b.fontSize*(FL_MM_TO_PX*0.7)}px;font-weight:${b.bold?700:400};color:${b.color};`;
+    div.style.cssText=`left:${b.x*FL_MM_TO_PX}px;top:${b.y*FL_MM_TO_PX}px;width:${b.w*FL_MM_TO_PX}px;font-size:${b.fontSize*(FL_MM_TO_PX*0.7)}px;font-weight:${b.bold?700:400};color:${b.color};white-space:pre-wrap;`;
     div.textContent=txt;
     // Drag support
     div.onpointerdown=e=>{e.stopPropagation();flStartDrag(e,bi);};
@@ -6052,7 +6121,8 @@ window.printForeignLabel=function(){
   const blocksHtml=flBlocks.map(b=>{
     const txt=flGetBlockText(b);
     if(!txt)return '';
-    return `<div style="position:absolute;left:${b.x}mm;top:${b.y}mm;width:${b.w}mm;font-size:${b.fontSize}pt;font-weight:${b.bold?700:400};color:${b.color};line-height:1.25;word-break:break-word;overflow:hidden">${txt.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>`;
+    const safeHtml=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+    return `<div style="position:absolute;left:${b.x}mm;top:${b.y}mm;width:${b.w}mm;font-size:${b.fontSize}pt;font-weight:${b.bold?700:400};color:${b.color};line-height:1.25;word-break:break-word;overflow:hidden">${safeHtml}</div>`;
   }).join('');
   const w=window.open('','_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>ฉลากยา</title>
@@ -6114,7 +6184,7 @@ window.flLoadTemplate=function(i){
   document.querySelectorAll('.fl-lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===flLang));
   document.querySelectorAll('.fl-size-btn').forEach(b=>b.classList.toggle('active',b.dataset.size===flSize));
   document.getElementById('fl-size-label').textContent=flSize.replace('x','×')+' mm';
-  flRenderBlockList();flRenderPreview();
+  flRenderBlockList();flRenderCustomBlockInputs();flRenderPreview();
   closeMD();showToast('โหลดรูปแบบ "'+t.name+'" แล้ว');
 };
 window.flDeleteTemplate=async function(i){
