@@ -319,6 +319,8 @@ textarea{resize:vertical;min-height:64px}
 .pr-net-box .val{font-size:30px;font-weight:700}
 .pr-extra-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
 </style>
+<!-- QZ Tray: silent label printing library -->
+<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
 </head>
 <body>
 <div class="loading" id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--text2);font-weight:500">กำลังโหลด...</div></div>
@@ -719,6 +721,36 @@ textarea{resize:vertical;min-height:64px}
         <button class="btn btn-primary" onclick="saveAppearance()">บันทึกการปรับแต่ง</button>
         <button class="btn" style="margin-left:8px" onclick="resetAppearance()">↺ คืนค่าเริ่มต้น</button>
       </div>
+      <div class="card" id="printbridge-card" style="grid-column:1/-1;display:none">
+        <div class="card-title">🖨️ ตั้งค่า PrintBridge (เครื่องพิมพ์ฉลาก)</div>
+        <div class="card-sub">สำหรับพิมพ์ฉลากยาต่างชาติแบบ silent (ไม่มีป๊อปอัพ) ผ่าน XP-420 / Vozy UR — ต้องติดตั้ง PrintBridge บน Windows ก่อน (<a href="https://www.printbridge.app" target="_blank" style="color:var(--green)">printbridge.app</a> · ทดลองใช้ฟรี 7 วัน)</div>
+        <div class="field-row" style="margin-top:.75rem">
+          <div class="field"><label class="fl">API Key</label><input type="password" id="pb-apikey" placeholder="pb_live_xxxxxxxxxxxxx"></div>
+          <div class="field"><label class="fl">ชื่อเครื่องพิมพ์ (ตรงกับ Windows)</label><input type="text" id="pb-printer" placeholder="เช่น Xprinter XP-420B"></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.5rem">
+          <button class="btn btn-primary" onclick="savePrintBridgeSettings()">บันทึก</button>
+          <button class="btn" onclick="testPrintBridge()">🔌 ทดสอบการเชื่อมต่อ</button>
+          <button class="btn" onclick="getPrintBridgePrinters()">📋 ดูรายชื่อเครื่องพิมพ์</button>
+        </div>
+        <div id="pb-status" style="margin-top:.75rem;font-size:12.5px;color:var(--text3)"></div>
+        <div id="pb-printer-list" style="margin-top:.5rem"></div>
+      </div>
+      <div class="card" id="qztray-card" style="grid-column:1/-1;display:none">
+        <div class="card-title">🖨️ ตั้งค่า QZ Tray (เครื่องพิมพ์ฉลาก)</div>
+        <div class="card-sub">พิมพ์ฉลากยาต่างชาติแบบ silent ผ่าน XP-420 / Vozy UR — ฟรี แต่ต้องติดตั้ง <a href="https://qz.io/download" target="_blank" style="color:var(--green)">QZ Tray</a> + Java 11 บน Windows ก่อน</div>
+        <div class="field" style="margin-top:.75rem">
+          <label class="fl">ชื่อเครื่องพิมพ์ (ตรงกับชื่อใน Windows Devices)</label>
+          <input type="text" id="qz-printer" placeholder="เช่น Xprinter XP-420B">
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="saveQzSettings()">บันทึก</button>
+          <button class="btn" onclick="testQzTray()">🔌 ทดสอบการเชื่อมต่อ</button>
+          <button class="btn" onclick="getQzPrinters()">📋 ดูรายชื่อเครื่องพิมพ์</button>
+        </div>
+        <div id="qz-status" style="margin-top:.75rem;font-size:12.5px;color:var(--text3)"></div>
+        <div id="qz-printer-list" style="margin-top:.5rem"></div>
+      </div>
       <div class="card" id="paytype-card">
         <div class="card-title">ประเภทการชำระ</div>
         <div class="card-sub">เพิ่ม/ลบประเภทได้ตามต้องการ (เฉพาะผู้ดูแลระบบ)</div>
@@ -1078,8 +1110,10 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.1';
+const APP_VERSION='1.29.3';
 const CHANGELOG=[
+  {v:'1.29.3',date:'2026-06-21',changes:['เพิ่มรองรับ QZ Tray สำหรับพิมพ์ฉลากยาต่างชาติ — เพิ่มการ์ด "ตั้งค่า QZ Tray" ในหน้าตั้งค่า (admin) ใส่ชื่อเครื่องพิมพ์ + ทดสอบ + ดูรายชื่อเครื่องพิมพ์ได้ ลำดับพิมพ์: QZ Tray → PrintBridge → browser print (fallback อัตโนมัติ) — ไม่ต้องใช้ certificate ก็ใช้งานได้ (จะมีป๊อปอัพขอ permission 1 ครั้งต่อ session)']},
+  {v:'1.29.2',date:'2026-06-21',changes:['เพิ่มการตั้งค่า PrintBridge ในหน้าตั้งค่า (admin) — ใส่ API key + ชื่อเครื่องพิมพ์ + ทดสอบการเชื่อมต่อ + ดูรายชื่อเครื่องพิมพ์ได้จากแอป ปุ่มพิมพ์ฉลากยาต่างชาติจะลอง PrintBridge ก่อน (silent print ไม่มีป๊อปอัพ) ถ้าไม่ได้รันหรือไม่ได้ตั้งค่าไว้จะ fallback เป็น browser print อัตโนมัติ']},
   {v:'1.29.1',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่มตัวเลือกสาขา (ชื่อ+ที่อยู่+เบอร์โทรขึ้นอัตโนมัติ), เพิ่มช่องความแรงยา, เพิ่มช่องข้อความอิสระ (+ เพิ่มบล็อกได้หลายบล็อก), ปรับ layout เริ่มต้นใหม่ให้ใกล้เคียงฉลาก POS จริง']},
   {v:'1.29.0',date:'2026-06-21',changes:['รื้อระบบฉลากยาต่างชาติใหม่ทั้งหมด — กลายเป็น Label Designer เต็มรูปแบบ (3 เฟสพร้อมกัน): เลือกข้อมูลจาก dropdown (ยา 271 รายการ/วิธีใช้ 36/สรรพคุณ 110/คำเตือน 60 รายการ), ลากวางบล็อกข้อความอิสระใน Preview, ปรับสีตัวอักษร/ขนาด/ความหนาทีละบล็อก, เลือกภาษา EN/ZH/MY, เลือกขนาดกระดาษ 80x60 หรือ 80x50mm, บันทึก template สูงสุด 10 แบบ — พิมพ์ผ่านเบราว์เซอร์ด้วย CSS mm จริง ทุกอุปกรณ์รองรับ (มือถือ/แท็บเล็ต/คอมบน WiFi เดียวกับเครื่องพิมพ์) — ⚠️ ต้องรัน label-import.html ก่อนเพื่อนำเข้าฐานข้อมูลยาเข้า Firestore และต้อง publish Firestore Rules ใหม่']},
   {v:'1.28.0',date:'2026-06-21',changes:['เพิ่มเมนู "ฉลากยาต่างชาติ" — เลือกชื่อยา + เลือกประโยควิธีใช้จากคลังประโยคสำเร็จรูป (มีคำแปล อังกฤษ/จีน/พม่า) แล้วพิมพ์ฉลากให้ลูกค้าต่างชาติ/นักท่องเที่ยวได้ทันที — แอดมินเพิ่ม/ลบประโยคในคลังได้เอง ⚠️ คำแปลภาษาพม่าควรให้ผู้รู้ภาษาตรวจทานก่อนใช้จริง']},
@@ -1454,6 +1488,157 @@ window.resetAppearance=async function(){
     showToast('คืนค่าเริ่มต้นแล้ว');
   }catch(e){showToast('ทำไม่สำเร็จ: '+e.message,'err');}
 };
+
+// ===== PrintBridge Integration =====
+// เก็บใน localStorage (local ต่อเครื่อง ไม่ใช่ Firestore)
+function loadPrintBridgeSettings(){
+  const card=document.getElementById('printbridge-card');
+  if(card)card.style.display=isAdmin?'':'none';
+  if(!isAdmin)return;
+  const key=localStorage.getItem('pb_apikey')||'';
+  const printer=localStorage.getItem('pb_printer')||'';
+  const ki=document.getElementById('pb-apikey');
+  const pi=document.getElementById('pb-printer');
+  if(ki)ki.value=key;
+  if(pi)pi.value=printer;
+}
+window.savePrintBridgeSettings=function(){
+  const key=document.getElementById('pb-apikey')?.value.trim()||'';
+  const printer=document.getElementById('pb-printer')?.value.trim()||'';
+  localStorage.setItem('pb_apikey',key);
+  localStorage.setItem('pb_printer',printer);
+  showToast('บันทึกค่า PrintBridge แล้ว');
+};
+async function pbFetch(path,opts={}){
+  const key=localStorage.getItem('pb_apikey')||'';
+  return fetch('http://127.0.0.1:1337'+path,{
+    ...opts,
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,...(opts.headers||{})},
+  });
+}
+window.testPrintBridge=async function(){
+  const st=document.getElementById('pb-status');
+  if(st)st.textContent='กำลังเชื่อมต่อ...';
+  try{
+    const r=await pbFetch('/status');
+    const d=await r.json();
+    if(st)st.innerHTML=`<span style="color:var(--green)">✅ เชื่อมต่อสำเร็จ — PrintBridge v${d.version||'?'} online</span>`;
+  }catch(e){
+    if(st)st.innerHTML='<span style="color:#C2410C">❌ ไม่สามารถเชื่อมต่อได้ — ตรวจสอบว่า PrintBridge รันอยู่ใน system tray</span>';
+  }
+};
+window.getPrintBridgePrinters=async function(){
+  const st=document.getElementById('pb-status');
+  const pl=document.getElementById('pb-printer-list');
+  if(st)st.textContent='กำลังโหลดรายชื่อเครื่องพิมพ์...';
+  try{
+    const r=await pbFetch('/printers');
+    const d=await r.json();
+    const printers=d.printers||d||[];
+    if(st)st.textContent='';
+    if(pl){
+      if(!printers.length){pl.innerHTML='<div style="font-size:12px;color:var(--text3)">ไม่พบเครื่องพิมพ์</div>';return;}
+      pl.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:4px">คลิกเพื่อเลือก:</div>'+
+        printers.map(p=>{
+          const name=p.name||p;
+          return `<button class="btn btn-sm" style="margin:2px;font-size:11px" onclick="document.getElementById('pb-printer').value='${name.replace(/'/g,"\\'")}';showToast('เลือก: ${name.replace(/'/g,"\\'")}')">
+            ${name}${p.isDefault?' ⭐':''}${p.status?' ('+p.status+')':''}
+          </button>`;
+        }).join('');
+    }
+  }catch(e){
+    if(st)st.innerHTML='<span style="color:#C2410C">❌ PrintBridge ไม่พร้อมใช้งาน — ลองกด "ทดสอบการเชื่อมต่อ" ก่อน</span>';
+  }
+};
+// ฟังก์ชันหลักสำหรับพิมพ์ผ่าน PrintBridge (ส่ง HTML) หรือ fallback window.print()
+async function printViabridge(htmlContent){
+  const key=localStorage.getItem('pb_apikey')||'';
+  const printer=localStorage.getItem('pb_printer')||'';
+  if(!key||!printer){return false;}
+  try{
+    const r=await pbFetch('/print',{
+      method:'POST',
+      body:JSON.stringify({printer,format:'html',content:htmlContent}),
+    });
+    if(!r.ok)return false;
+    return true;
+  }catch(e){return false;}
+}
+
+// ===== QZ Tray Integration =====
+// เก็บค่าใน localStorage (local ต่อเครื่อง)
+function loadQzSettings(){
+  const card=document.getElementById('qztray-card');
+  if(card)card.style.display=isAdmin?'':'none';
+  if(!isAdmin)return;
+  const printer=localStorage.getItem('qz_printer')||'';
+  const pi=document.getElementById('qz-printer');
+  if(pi)pi.value=printer;
+}
+window.saveQzSettings=function(){
+  const printer=document.getElementById('qz-printer')?.value.trim()||'';
+  localStorage.setItem('qz_printer',printer);
+  showToast('บันทึกค่า QZ Tray แล้ว');
+};
+async function qzEnsureConnected(){
+  if(typeof qz==='undefined')throw new Error('QZ Tray library not loaded');
+  if(!qz.websocket.isActive()){
+    // ไม่ใช้ certificate (มีป๊อปอัพ permission 1 ครั้งต่อ session) — พอใช้งานได้
+    qz.security.setCertificatePromise(()=>Promise.resolve(''));
+    qz.security.setSignatureAlgorithm('SHA512');
+    qz.security.setSignaturePromise(()=>()=>Promise.resolve(''));
+    await qz.websocket.connect({retries:2,delay:1});
+  }
+}
+window.testQzTray=async function(){
+  const st=document.getElementById('qz-status');
+  if(st)st.textContent='กำลังเชื่อมต่อ...';
+  try{
+    await qzEnsureConnected();
+    if(st)st.innerHTML='<span style="color:var(--green)">✅ เชื่อมต่อ QZ Tray สำเร็จ — พร้อมใช้งาน</span>';
+  }catch(e){
+    if(st)st.innerHTML=`<span style="color:#C2410C">❌ เชื่อมต่อไม่ได้ — ตรวจสอบว่า QZ Tray รันอยู่ใน system tray<br><small style="color:var(--text3)">${e.message}</small></span>`;
+  }
+};
+window.getQzPrinters=async function(){
+  const st=document.getElementById('qz-status');
+  const pl=document.getElementById('qz-printer-list');
+  if(st)st.textContent='กำลังโหลดรายชื่อเครื่องพิมพ์...';
+  try{
+    await qzEnsureConnected();
+    const printers=await qz.printers.find();
+    const list=Array.isArray(printers)?printers:[printers];
+    if(st)st.textContent='';
+    if(pl){
+      if(!list.length){pl.innerHTML='<div style="font-size:12px;color:var(--text3)">ไม่พบเครื่องพิมพ์</div>';return;}
+      pl.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:4px">คลิกเพื่อเลือก:</div>'+
+        list.map(name=>`<button class="btn btn-sm" style="margin:2px;font-size:11px" onclick="document.getElementById('qz-printer').value='${name.replace(/'/g,"\\'")}';showToast('เลือก: ${name.replace(/'/g,"\\'")}')">${name}</button>`).join('');
+    }
+  }catch(e){
+    if(st)st.innerHTML=`<span style="color:#C2410C">❌ ${e.message}</span>`;
+  }
+};
+// ฟังก์ชันพิมพ์ผ่าน QZ Tray (HTML → render เป็น pixel แล้วส่งเครื่องพิมพ์)
+async function printViaQzTray(htmlContent){
+  const printerName=localStorage.getItem('qz_printer')||'';
+  if(!printerName||typeof qz==='undefined')return false;
+  try{
+    await qzEnsureConnected();
+    const [pw,ph]=flSize.split('x').map(Number);
+    const config=qz.configs.create(printerName,{
+      size:{width:pw,height:ph},
+      units:'mm',
+      colorType:'grayscale',
+      density:203, // XP-420 = 203 DPI
+    });
+    const data=[{type:'html',format:'plain',data:htmlContent}];
+    await qz.print(config,data);
+    return true;
+  }catch(e){
+    console.error('QZ Tray print error:',e);
+    return false;
+  }
+}
 
 // สร้าง SVG น้องแคปซูล (รับสีครึ่งล่าง)
 function capsuleMascot(size,color){
@@ -1881,7 +2066,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();renderAppearanceSettings();}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -6110,22 +6295,19 @@ function flStartDrag(e,bi){
     document.onpointerup=null;
   };
 }
-// ======= Print (browser print, CSS 80x60 or 80x50mm) =======
-window.printForeignLabel=function(){
+// ======= Print — ลอง PrintBridge ก่อน fallback เป็น window.print() =======
+window.printForeignLabel=async function(){
   const dn=document.getElementById('fl-drugname')?.value.trim();
   if(!dn){showToast('กรอกชื่อยาก่อน','err');return;}
   const [pw,ph]=flSize.split('x').map(Number);
   const bgColor=document.getElementById('fl-bg-color')?.value||'#fff';
-  // สร้าง HTML พิมพ์ขนาด mm จริง (ไม่ใช่ preview scale)
-  const MM=1; // 1 unit = 1mm ใน print
   const blocksHtml=flBlocks.map(b=>{
     const txt=flGetBlockText(b);
     if(!txt)return '';
     const safeHtml=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
     return `<div style="position:absolute;left:${b.x}mm;top:${b.y}mm;width:${b.w}mm;font-size:${b.fontSize}pt;font-weight:${b.bold?700:400};color:${b.color};line-height:1.25;word-break:break-word;overflow:hidden">${safeHtml}</div>`;
   }).join('');
-  const w=window.open('','_blank');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>ฉลากยา</title>
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>ฉลากยา</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai&family=Noto+Sans&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
@@ -6133,10 +6315,26 @@ window.printForeignLabel=function(){
 body{width:${pw}mm;height:${ph}mm;background:${bgColor};position:relative;overflow:hidden;
   font-family:'Noto Sans Thai','Noto Sans','Noto Sans Myanmar',sans-serif}
 @media print{html,body{width:${pw}mm;height:${ph}mm}}
-</style></head><body>
-${blocksHtml}
-<script>window.onload=function(){setTimeout(()=>window.print(),400)}<\/script>
-</body></html>`);
+</style></head><body>${blocksHtml}</body></html>`;
+
+  // ลำดับ: QZ Tray → PrintBridge → window.print()
+  showToast('กำลังส่งไปพิมพ์...','');
+
+  // 1. ลอง QZ Tray ก่อน (ถ้าตั้งค่าไว้)
+  if(localStorage.getItem('qz_printer')){
+    const qzOk=await printViaQzTray(html);
+    if(qzOk){showToast('พิมพ์แล้ว ✅ (QZ Tray)');return;}
+  }
+
+  // 2. ลอง PrintBridge
+  if(localStorage.getItem('pb_apikey')&&localStorage.getItem('pb_printer')){
+    const pbOk=await printViabridge(html);
+    if(pbOk){showToast('พิมพ์แล้ว ✅ (PrintBridge)');return;}
+  }
+
+  // 3. Fallback: browser window.print()
+  const w=window.open('','_blank');
+  w.document.write(html+`<script>window.onload=function(){setTimeout(()=>window.print(),400)}<\/script>`);
   w.document.close();
 };
 // ======= Templates (save/load สูงสุด 10 แบบ) =======
