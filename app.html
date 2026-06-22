@@ -972,7 +972,14 @@ textarea{resize:vertical;min-height:64px}
             </select>
           </div>
           <div class="field-row">
-            <div class="field" style="flex:2"><label class="fl">ชื่อยา (บนฉลาก)</label><input type="text" id="fl-drugname" placeholder="เช่น Amoxicillin" oninput="flRenderPreview()"></div>
+            <div class="field" style="flex:2">
+              <label class="fl">ชื่อยา (เลือกจากฐานข้อมูล)</label>
+              <div class="fl-sb-wrap" id="fl-generic-wrap">
+                <input type="text" class="fl-sb-input" id="fl-generic-input" placeholder="ค้นหาชื่อยา เช่น Amoxicillin..." autocomplete="off" oninput="flSearch('generic',this.value)" onfocus="flSearch('generic',this.value)">
+                <div class="fl-sb-dropdown" id="fl-generic-drop"></div>
+                <button class="fl-sb-clear" id="fl-generic-clear" onclick="flClearSingle('generic')" style="display:none">✕</button>
+              </div>
+            </div>
             <div class="field" style="flex:1"><label class="fl">ความแรงยา</label><input type="text" id="fl-strength" placeholder="500mg" oninput="flRenderPreview()"></div>
           </div>
           <div class="field"><label class="fl">วิธีใช้</label>
@@ -1139,8 +1146,9 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.8';
+const APP_VERSION='1.29.9';
 const CHANGELOG=[
+  {v:'1.29.9',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: สลับฟิลด์ใหม่ — ลบช่อง "ชื่อยา (บนฉลาก)" (free text) ออก คืนช่องค้นหาชื่อยาจากฐานข้อมูล 271 รายการแทน (ชื่อที่เลือกจะขึ้นบนฉลากโดยตรง), แก้ Custom text block ตกขอบ label (จำกัด y ไม่เกินขอบล่าง)']},
   {v:'1.29.8',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ขยาย Preview จาก 3.2px/mm เป็น 4.5px/mm (80x60mm แสดงเป็น 360x270px แทน 256x192px) ตัวหนังสือชัดขึ้น อ่านง่ายขึ้น ลดปัญหา pixel rounding ที่ทำให้ดูเพลี้ยน ปรับ grid ให้ preview ได้พื้นที่มากขึ้น เพิ่ม horizontal scroll เผื่อจอแคบ']},
   {v:'1.29.7',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ลบช่อง "ชื่อยาสามัญ" ออก (ชื่อยาที่พิมพ์บนฉลากคือชื่อสามัญอยู่แล้ว) + ย้ายความแรงยาให้อยู่ต่อจากชื่อยาในแถวเดียวกัน']},
   {v:'1.29.6',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เปลี่ยนเป็น Template C (เส้นสีด้านซ้าย — เขียวบล็อกชื่อยา / น้ำเงินบล็อกวิธีใช้), เพิ่มปรับ Offset เครื่องพิมพ์ (Top/Left mm) แบบ slider เพื่อชดเชยตำแหน่งพิมพ์ไม่ตรง, เปลี่ยน font size เป็น slider ลื่นปรับได้อิสระทีละบล็อก, เพิ่มปรับสีเส้นซ้ายต่อบล็อกได้ — ค่า offset และ template บันทึกรวมกัน']},
@@ -6065,7 +6073,7 @@ window.deleteDose=async function(id){
 // ===== ฉลากยาต่างชาติ — Label Designer เต็มรูปแบบ =====
 let flLang='en', flSize='80x60';
 let flDB={drugs:[],directions:[],indications:[],warnings:[]};
-let flSelections={direction:'',indications:[],warnings:[]};
+let flSelections={generic:'',direction:'',indications:[],warnings:[]};
 let flTemplates=[], flActiveTemplateId=null;
 let flSelectedBranch=0; // สาขาที่เลือก
 
@@ -6130,13 +6138,14 @@ function flPopulateSelects(){
 
 // ===== Search bar logic =====
 const FL_SEARCH_SOURCES={
+  generic:    {data:()=>flDB.drugs,       idKey:'id',  labelKey:'name',  subKey:'group',  multi:false},
   direction:  {data:()=>flDB.directions,  idKey:'id',  labelKey:'th',    subKey:null,     multi:false},
   indication: {data:()=>flDB.indications, idKey:'id',  labelKey:'th',    subKey:null,     multi:true},
   warning:    {data:()=>flDB.warnings,    idKey:'id',  labelKey:'th',    subKey:null,     multi:true},
 };
 window.flSearch=function(type,query){
   const src=FL_SEARCH_SOURCES[type];if(!src)return;
-  const pfx=type==='indication'?'ind':type==='warning'?'warn':'dir';
+  const pfx=type==='indication'?'ind':type==='warning'?'warn':type==='generic'?'generic':'dir';
   const drop=document.getElementById(`fl-${pfx}-drop`);
   if(!drop)return;
   const q=(query||'').toLowerCase().trim();
@@ -6162,7 +6171,7 @@ window.flSearch=function(type,query){
 };
 window.flSbSelect=function(type,id){
   const src=FL_SEARCH_SOURCES[type];if(!src)return;
-  const pfx=type==='indication'?'ind':type==='warning'?'warn':'dir';
+  const pfx=type==='indication'?'ind':type==='warning'?'warn':type==='generic'?'generic':'dir';
   if(src.multi){
     // multi-select: toggle tag
     flAddMulti(type==='indication'?'indication':'warning',id);
@@ -6213,7 +6222,9 @@ window.flSetBranch=function(idx){
 window.flAddCustomBlock=function(){
   const id='b_c_'+Date.now();
   const [pw,ph]=flSize.split('x').map(Number);
-  const newBlock={id,label:'ข้อความเพิ่มเติม',key:'custom',customText:'',x:1,y:Math.max(...flBlocks.map(b=>b.y))+7,w:77,fontSize:7,bold:false,color:'#000'};
+  const maxY=flBlocks.length?Math.max(...flBlocks.map(b=>b.y)):1;
+  const newY=Math.min(maxY+7,ph-8); // ไม่ตกขอบ
+  const newBlock={id,label:'ข้อความเพิ่มเติม',key:'custom',customText:'',x:1,y:newY,w:77,fontSize:7,bold:false,color:'#000',leftBorder:''};
   flBlocks.push(newBlock);
   flRenderBlockList();
   flRenderCustomBlockInputs();
@@ -6309,7 +6320,6 @@ window.flToggleBold=function(i){
 };
 // ======= Preview Render =======
 function flGetBlockText(block){
-  const dn=document.getElementById('fl-drugname')?.value.trim()||'';
   const pat=document.getElementById('fl-patient')?.value.trim()||'';
   const str=document.getElementById('fl-strength')?.value.trim()||'';
   const br=FL_BRANCHES[flSelectedBranch]||FL_BRANCHES[0];
@@ -6317,7 +6327,11 @@ function flGetBlockText(block){
   switch(block.key){
     case 'shop_name': return br.name;
     case 'address':   return br.addr+'\n'+br.tel;
-    case 'drug_name': return dn||'(ชื่อยา)';
+    case 'drug_name':{
+      if(!flSelections.generic)return '(เลือกชื่อยาจากช่องด้านซ้าย)';
+      const item=flDB.drugs.find(x=>x.id===flSelections.generic);
+      return item?item.name:'';
+    }
     case 'strength':  return str;
     case 'patient': return pat?pat:'';
     case 'direction':{
@@ -6400,8 +6414,7 @@ function flStartDrag(e,bi){
 }
 // ======= Print — ลอง PrintBridge ก่อน fallback เป็น window.print() =======
 window.printForeignLabel=async function(){
-  const dn=document.getElementById('fl-drugname')?.value.trim();
-  if(!dn){showToast('กรอกชื่อยาก่อน','err');return;}
+  if(!flSelections.generic){showToast('เลือกชื่อยาก่อน','err');return;}
   const [pw,ph]=flSize.split('x').map(Number);
   const bgColor=document.getElementById('fl-bg-color')?.value||'#fff';
   const blocksHtml=flBlocks.map(b=>{
@@ -6493,9 +6506,9 @@ window.flLoadTemplate=function(i){
   const mlv=document.getElementById('fl-mg-left-v');
   if(mt){mt.value=flPageMargins.top;if(mtv)mtv.textContent=flPageMargins.top+'mm';}
   if(ml){ml.value=flPageMargins.left;if(mlv)mlv.textContent=flPageMargins.left+'mm';}
-  flSelections={direction:'',indications:[],warnings:[]};
+  flSelections={generic:'',direction:'',indications:[],warnings:[]};
   // reset search inputs
-  ['dir','ind','warn'].forEach(pfx=>{
+  ['generic','dir','ind','warn'].forEach(pfx=>{
     const inp=document.getElementById(`fl-${pfx}-input`);
     if(inp)inp.value='';
     const clr=document.getElementById(`fl-${pfx}-clear`);
