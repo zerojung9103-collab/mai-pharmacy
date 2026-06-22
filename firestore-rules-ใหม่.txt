@@ -1,0 +1,187 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== ฟังก์ชันช่วยตรวจสอบ =====
+    // ล็อกอินแล้วหรือยัง
+    function signedIn() {
+      return request.auth != null;
+    }
+    // เป็น admin ไหม (อ่าน role จาก members/{uid})
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'admin';
+    }
+    // เป็นเจ้าของ document นี้ไหม (doc id ขึ้นต้นด้วย uid ของตัวเอง)
+    function ownsDoc(docId) {
+      return signedIn() && docId.split('_')[0] == request.auth.uid;
+    }
+
+    // ===== members (ข้อมูลพนักงาน — มีบัตรปชช/บัญชีธนาคาร/เงินเดือน) =====
+    match /members/{uid} {
+      // อ่าน: ตัวเองอ่านได้ / admin อ่านได้ทุกคน
+      // (จำเป็นต้องให้ทุกคนอ่านชื่อ-ชื่อเล่นเพื่อแสดงในตารางเวร จึงเปิด read ให้ผู้ล็อกอิน
+      //  แต่ถ้าต้องการเข้มสุด เปลี่ยนเป็น: allow read: if request.auth.uid == uid || isAdmin();)
+      allow read: if signedIn();
+      // สมัครสมาชิกครั้งแรก: สร้าง doc ของตัวเองได้
+      allow create: if signedIn() && request.auth.uid == uid;
+      // แก้ไข: เฉพาะ admin (กันพนักงานแก้เงินเดือน/สิทธิ์ตัวเอง)
+      allow update, delete: if isAdmin();
+    }
+
+    // ===== payroll (เงินเดือน — อ่อนไหวมาก) =====
+    match /payroll/{docId} {
+      // อ่าน: เจ้าของ (ดูสลิปตัวเอง) หรือ admin
+      allow read: if ownsDoc(docId) || isAdmin();
+      // เขียน: เฉพาะ admin (พนักงานแก้เงินเดือนตัวเองไม่ได้)
+      allow write: if isAdmin();
+    }
+
+    // ===== sales (ยอดขาย) =====
+    match /sales/{docId} {
+      // อ่าน/เขียน: ผู้ล็อกอินที่ได้รับสิทธิ์ (พนักงานบางคนมีหน้าที่กรอกยอดขาย)
+      // การควบคุมว่าใครเห็น Dashboard ทำในแอป (ผ่านสิทธิ์ผู้ใช้)
+      // ลบ: เฉพาะ admin
+      allow read, create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ===== checkins (การลงเวลา) =====
+    match /checkins/{docId} {
+      // อ่าน: ทุกคนที่ล็อกอิน (เพื่อแสดงในตารางเวร)
+      allow read: if signedIn();
+      // สร้าง/แก้: เจ้าของลงเวลาตัวเองได้ หรือ admin แก้ได้ทุกคน
+      allow create, update: if ownsDoc(docId) || isAdmin();
+      // ลบ: เฉพาะ admin
+      allow delete: if isAdmin();
+    }
+
+    // ===== cashbox (ยอดเงินในตู้เซฟแต่ละสาขา) =====
+    match /cashbox/{branch} {
+      // อ่าน: ทุกคนที่ล็อกอิน (ดูยอดตู้เซฟ)
+      allow read: if signedIn();
+      // เขียน: ทุกคนที่ล็อกอิน (เบิกเงินทอนได้ทุกคน, เติมเงินแอปคุม admin)
+      allow write: if signedIn();
+    }
+
+    // ===== cashlogs (ประวัติเบิก-เติมเงินทอน) — แก้ไม่ได้ แต่ admin ลบได้ =====
+    match /cashlogs/{docId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ===== cashcounts (ประวัตินับเงินสด) — แก้ไม่ได้ แต่ admin ลบได้ =====
+    match /cashcounts/{docId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ===== purse (กระเป๋าเก็บเงินขายสะสม แต่ละสาขา) — กันทุจริต: พนักงานทั่วไปอ่านยอดไม่ได้ =====
+    match /purse/{branch} {
+      // อ่าน: เฉพาะ admin เท่านั้น (ไม่ให้พนักงานรู้ยอดสะสม กันทุจริต)
+      allow read: if isAdmin();
+      // สร้างครั้งแรก (ถ้ายังไม่มี doc): ใครก็ได้ที่ล็อกอิน
+      allow create: if signedIn();
+      // แก้ไข: admin แก้ได้ทุกกรณี / พนักงานทั่วไปแก้ได้เฉพาะ "เพิ่มยอด" เท่านั้น (เก็บเงินขาย) ห้ามลดยอด (ถอนไปฝาก)
+      allow update: if isAdmin()
+        || (signedIn() && request.resource.data.balance > resource.data.balance);
+    }
+
+    // ===== purselogs (ประวัติเก็บ-ถอนกระเป๋า) — เฉพาะ admin อ่านได้ (กันทุจริต) แก้ไม่ได้ แต่ admin ลบได้ =====
+    match /purselogs/{docId} {
+      allow read: if isAdmin();
+      allow create: if signedIn();
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ===== leaves (การลา) =====
+    match /leaves/{docId} {
+      // อ่าน: ทุกคนที่ล็อกอิน (แสดงในตารางเวร)
+      allow read: if signedIn();
+      // สร้าง: ล็อกอินแล้วสร้างคำขอลาได้ (ต้องเป็น uid ตัวเอง)
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      // แก้/ลบ: เจ้าของ หรือ admin
+      allow update, delete: if (signedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+    }
+
+    // ===== schedules (ตารางเวร) =====
+    match /schedules/{docId} {
+      // อ่าน: ทุกคน (ดูเวรตัวเอง+เพื่อน)
+      allow read: if signedIn();
+      // เขียน: เฉพาะ admin (จัดเวร)
+      allow write: if isAdmin();
+    }
+
+    // ===== scheduleConfig (ตั้งค่าสร้างตารางอัตโนมัติ) =====
+    match /scheduleConfig/{uid} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== articles (บทความวิชาการ) =====
+    match /articles/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== doseFormulas (สูตรคำนวณยา) =====
+    match /doseFormulas/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== drugWarnings (คำเตือนยา) =====
+    match /drugWarnings/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== config (พิกัด GPS สาขา, ข้อความน้องแคปซูล, labelTemplates ฯลฯ) =====
+    match /config/{docId} {
+      allow read: if signedIn();
+      // ข้อความน้องแคปซูล: admin หรือคนมีสิทธิ์ประกาศแก้ได้ / config อื่น: admin เท่านั้น
+      allow write: if isAdmin()
+        || (docId == 'capsuleMessages' && signedIn()
+            && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+            && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.permissions.announce == true);
+    }
+
+    // ===== announcements (ประกาศจากร้าน) =====
+    match /announcements/{docId} {
+      // อ่าน: ทุกคนที่ล็อกอิน (เห็นประกาศ)
+      allow read: if signedIn();
+      // เขียน/ลบ: admin หรือคนที่มีสิทธิ์ประกาศ (permissions.announce==true)
+      allow write: if isAdmin()
+        || (signedIn()
+            && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+            && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.permissions.announce == true);
+    }
+
+    // ===== activityLogs (บันทึกการใช้งาน) =====
+    match /activityLogs/{docId} {
+      // อ่าน: เฉพาะ admin (ดูว่าใครทำอะไร)
+      allow read: if isAdmin();
+      // สร้าง: ผู้ล็อกอินสร้าง log ของตัวเองได้ (ต้องเป็น uid ตัวเอง)
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      // แก้/ลบ: ห้ามทุกคน (log ต้องแก้ไม่ได้ เพื่อความน่าเชื่อถือ)
+      allow update, delete: if false;
+    }
+
+    // ===== labelMaster (ฐานข้อมูลชื่อยา/วิธีใช้/สรรพคุณ/คำเตือน) =====
+    match /labelMaster/{docId} {
+      allow read: if signedIn();   // ทุกคนที่ล็อกอินดูข้อมูลได้
+      allow write: if isAdmin();   // เฉพาะ admin นำเข้า/อัปเดตข้อมูลได้
+    }
+
+    // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
