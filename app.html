@@ -1110,8 +1110,9 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.3';
+const APP_VERSION='1.29.4';
 const CHANGELOG=[
+  {v:'1.29.4',date:'2026-06-21',changes:['แก้ Preview ฉลากยาต่างชาติ: font scale factor ถูกต้อง (1pt=0.3528mm) ทำให้ preview ตรงกับขนาดพิมพ์จริงบนสติกเกอร์ 80x60mm — บล็อกข้อความไม่ทับกันอีกต่อไป ปรับ layout เริ่มต้นใหม่ให้ใช้ y-position ที่คำนวณจากขนาด font จริง ที่อยู่สาขาสั้นลงให้พอดีใน 2 บรรทัด']},
   {v:'1.29.3',date:'2026-06-21',changes:['เพิ่มรองรับ QZ Tray สำหรับพิมพ์ฉลากยาต่างชาติ — เพิ่มการ์ด "ตั้งค่า QZ Tray" ในหน้าตั้งค่า (admin) ใส่ชื่อเครื่องพิมพ์ + ทดสอบ + ดูรายชื่อเครื่องพิมพ์ได้ ลำดับพิมพ์: QZ Tray → PrintBridge → browser print (fallback อัตโนมัติ) — ไม่ต้องใช้ certificate ก็ใช้งานได้ (จะมีป๊อปอัพขอ permission 1 ครั้งต่อ session)']},
   {v:'1.29.2',date:'2026-06-21',changes:['เพิ่มการตั้งค่า PrintBridge ในหน้าตั้งค่า (admin) — ใส่ API key + ชื่อเครื่องพิมพ์ + ทดสอบการเชื่อมต่อ + ดูรายชื่อเครื่องพิมพ์ได้จากแอป ปุ่มพิมพ์ฉลากยาต่างชาติจะลอง PrintBridge ก่อน (silent print ไม่มีป๊อปอัพ) ถ้าไม่ได้รันหรือไม่ได้ตั้งค่าไว้จะ fallback เป็น browser print อัตโนมัติ']},
   {v:'1.29.1',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่มตัวเลือกสาขา (ชื่อ+ที่อยู่+เบอร์โทรขึ้นอัตโนมัติ), เพิ่มช่องความแรงยา, เพิ่มช่องข้อความอิสระ (+ เพิ่มบล็อกได้หลายบล็อก), ปรับ layout เริ่มต้นใหม่ให้ใกล้เคียงฉลาก POS จริง']},
@@ -6037,27 +6038,30 @@ let flSelectedBranch=0; // สาขาที่เลือก
 
 // ข้อมูลสาขา (ชื่อ ที่อยู่ เบอร์โทร)
 const FL_BRANCHES=[
-  {name:'ใหม่เภสัช สาขาทรัพย์พัฒนา', addr:'45/8 ห้อง 1,2,3/B ซ.ทรัพย์บุญชัย28 ถ.ทรัพย์พัฒนา ต.บางเมือง อ.เมืองสมุทรปราการ 10270', tel:'Tel: 081-094-9261'},
-  {name:'ใหม่เภสัช สาขาบางปู',         addr:'956 ห้อง 104 อาคารสบาย ST ซ.บางปู75 ถ.สุขุมวิท-บางปู ต.บางปูใหม่ อ.เมืองสมุทรปราการ 10280', tel:'Tel: 080-090-6973'},
-  {name:'ใหม่เภสัช สาขาหมู่บ้านอินดี้',addr:'143 ซ.ทรัพย์บุญชัย28 ถ.ทรัพย์พัฒนา ต.บางเมือง อ.เมืองสมุทรปราการ 10270', tel:'Tel: 096-914-0261'},
+  {name:'ใหม่เภสัช สาขาทรัพย์พัฒนา', addr:'45/8 ห้อง 1,2,3/B ซ.ทรัพย์บุญชัย28 ถ.ทรัพย์พัฒนา ต.บางเมือง สมุทรปราการ 10270', tel:'Tel: 081-094-9261'},
+  {name:'ใหม่เภสัช สาขาบางปู',         addr:'956 ห้อง 104 อาคารสบาย ST ซ.บางปู75 ถ.สุขุมวิท-บางปู ต.บางปูใหม่ สมุทรปราการ 10280',    tel:'Tel: 080-090-6973'},
+  {name:'ใหม่เภสัช สาขาหมู่บ้านอินดี้',addr:'143 ซ.ทรัพย์บุญชัย28 ถ.ทรัพย์พัฒนา ต.บางเมือง สมุทรปราการ 10270',                       tel:'Tel: 096-914-0261'},
 ];
 
-// default blocks — layout ใหม่เลียนแบบฉลาก POS จริง (80x60mm)
+// 1pt = 0.3528mm, line-height ≈ 1.3 → ทุกตำแหน่ง y คำนวณไม่ให้ทับกัน บน 80x60mm
 const FL_DEFAULT_BLOCKS=()=>[
-  {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1, y:1,  w:77,fontSize:7.5,bold:true, color:'#000'},
-  {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1, y:8,  w:77,fontSize:5.5,bold:false,color:'#333'},
-  {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1, y:15, w:77,fontSize:7,  bold:false,color:'#000'},
-  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:1, y:20, w:77,fontSize:11, bold:true, color:'#000'},
-  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:1, y:31, w:45,fontSize:7.5,bold:false,color:'#222'},
-  {id:'b_generic', label:'ชื่อสามัญ',      key:'generic',   x:47,y:31, w:31,fontSize:6.5,bold:false,color:'#555'},
-  {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:1, y:37, w:77,fontSize:8,  bold:true, color:'#000'},
-  {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1, y:46, w:77,fontSize:6.5,bold:false,color:'#222'},
-  {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1, y:52, w:77,fontSize:5.5,bold:false,color:'#555'},
-  {id:'b_date',    label:'วันที่จ่ายยา',   key:'date',      x:1, y:57, w:77,fontSize:5.5,bold:false,color:'#888'},
+  {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1, y:1,  w:77,fontSize:7,  bold:true, color:'#000'},
+  {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1, y:5,  w:77,fontSize:5,  bold:false,color:'#444'},
+  {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1, y:12, w:77,fontSize:7,  bold:false,color:'#000'},
+  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:1, y:17, w:77,fontSize:12, bold:true, color:'#000'},
+  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:1, y:24, w:38,fontSize:7,  bold:false,color:'#222'},
+  {id:'b_generic', label:'ชื่อสามัญ',      key:'generic',   x:40,y:24, w:38,fontSize:6.5,bold:false,color:'#555'},
+  {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:1, y:29, w:77,fontSize:8,  bold:true, color:'#000'},
+  {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1, y:38, w:77,fontSize:6.5,bold:false,color:'#222'},
+  {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1, y:43, w:77,fontSize:5.5,bold:false,color:'#555'},
+  {id:'b_date',    label:'วันที่จ่ายยา',   key:'date',      x:1, y:56, w:77,fontSize:5,  bold:false,color:'#888'},
 ];
 let flBlocks=FL_DEFAULT_BLOCKS();
-let flCustomBlocks=[]; // custom text blocks เพิ่มเติม
+let flCustomBlocks=[];
 const FL_MM_TO_PX=3.2;
+// font scale ที่ถูกต้อง: 1pt = 0.3528mm → preview px = pt × 0.3528 × FL_MM_TO_PX
+// ทำให้ preview ตรงกับขนาดพิมพ์จริงบนฉลาก 80mm
+const FL_PT_TO_PX=0.3528*FL_MM_TO_PX; // ≈ 1.129 px/pt
 
 async function loadForeignLabelData(){
   try{
@@ -6257,7 +6261,7 @@ window.flRenderPreview=function(){
   if(!wrap)return;
   const [pw,ph]=flSize.split('x').map(Number);
   const W=pw*FL_MM_TO_PX, H=ph*FL_MM_TO_PX;
-  wrap.style.cssText=`width:${W}px;height:${H}px;background:${bgColor};border:1px solid #ccc;box-shadow:0 2px 8px rgba(0,0,0,.15);position:relative;overflow:hidden`;
+  wrap.style.cssText=`width:${W}px;height:${H}px;background:${bgColor};border:1.5px solid #aaa;box-shadow:0 3px 12px rgba(0,0,0,.2);position:relative;overflow:hidden;font-family:'Noto Sans Thai','Noto Sans',sans-serif`;
   wrap.innerHTML='';
   flBlocks.forEach((b,bi)=>{
     const txt=flGetBlockText(b);
@@ -6265,7 +6269,7 @@ window.flRenderPreview=function(){
     const div=document.createElement('div');
     div.className='fl-pblock';
     div.dataset.bi=bi;
-    div.style.cssText=`left:${b.x*FL_MM_TO_PX}px;top:${b.y*FL_MM_TO_PX}px;width:${b.w*FL_MM_TO_PX}px;font-size:${b.fontSize*(FL_MM_TO_PX*0.7)}px;font-weight:${b.bold?700:400};color:${b.color};white-space:pre-wrap;`;
+    div.style.cssText=`left:${b.x*FL_MM_TO_PX}px;top:${b.y*FL_MM_TO_PX}px;width:${b.w*FL_MM_TO_PX}px;font-size:${b.fontSize*FL_PT_TO_PX}px;line-height:1.3;font-weight:${b.bold?700:400};color:${b.color};white-space:pre-wrap;`;
     div.textContent=txt;
     // Drag support
     div.onpointerdown=e=>{e.stopPropagation();flStartDrag(e,bi);};
