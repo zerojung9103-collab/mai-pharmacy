@@ -980,7 +980,7 @@ textarea{resize:vertical;min-height:64px}
                 <button class="fl-sb-clear" id="fl-generic-clear" onclick="flClearSingle('generic')" style="display:none">✕</button>
               </div>
             </div>
-            <div class="field" style="flex:1"><label class="fl">ความแรงยา</label><input type="text" id="fl-strength" placeholder="500mg" oninput="flRenderPreview()"></div>
+            <div class="field" style="flex:1"><label class="fl">ความแรงยา</label><input type="text" id="fl-strength" placeholder="500mg" oninput="if(flLiveAuto)flAutoSizeFull();else flRenderPreview()"></div>
           </div>
           <div class="field"><label class="fl">วิธีใช้</label>
             <div class="fl-sb-wrap" id="fl-dir-wrap">
@@ -1042,7 +1042,14 @@ textarea{resize:vertical;min-height:64px}
       <!-- ขวา: Preview -->
       <div>
         <div class="card" id="fl-preview-card" style="position:sticky;top:76px;overflow:auto">
-          <div style="font-weight:700;font-size:14px;margin-bottom:.75rem">👁️ Preview <span id="fl-size-label" style="font-weight:400;font-size:12px;color:var(--text3)">80×60 mm</span> <span style="font-size:10px;color:var(--text3);margin-left:4px">· แสดง 4.5×</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:14px">👁️ Preview</span>
+            <span id="fl-size-label" style="font-size:12px;color:var(--text3)">80×60 mm</span>
+            <span style="font-size:10px;color:var(--text3)">· แสดง 4.5×</span>
+            <div style="flex:1"></div>
+            <button id="fl-live-toggle" class="btn btn-sm" onclick="flToggleLiveAuto()" style="background:var(--green-l);color:var(--green-d);border-color:var(--green)">⚡ Live</button>
+            <button class="btn btn-sm btn-primary" onclick="flAutoSize(true)" title="จัดขนาดและตำแหน่งให้พอดีฉลากอัตโนมัติ">✨ Auto</button>
+          </div>
           <div style="overflow:auto;padding-bottom:4px">
             <div id="fl-preview-wrap" style="position:relative"></div>
           </div>
@@ -1146,8 +1153,10 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.10';
+const APP_VERSION='1.29.12';
 const CHANGELOG=[
+  {v:'1.29.12',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่ม Live Auto + per-block font fitting — ⚡ Live เปิดอยู่ทุกครั้งที่เลือกยา/วิธีใช้/สรรพคุณ/คำเตือน ระบบจะวัดข้อความจริงด้วย canvas.measureText() และ binary search หา font size ใหญ่สุดที่พอดีตาม maxLines ของแต่ละบล็อก (ชื่อยา=1บรรทัด, วิธีใช้=2บรรทัด ฯลฯ) แล้วจัด y layout อัตโนมัติ — กดปุ่ม ⚡ Live เพื่อ toggle เปิด/ปิด กด ✨ Auto เพื่อ force run']},
+  {v:'1.29.11',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่มปุ่ม "✨ Auto Size" — วัดขนาดข้อความจริงด้วย canvas measureText(), จับกลุ่มบล็อกที่อยู่แถวเดียวกัน (ชื่อยา+ความแรง), ใช้ binary search หา font scale ที่พอดีกับ label 80x60mm พอดีไม่ล้น ไม่เหลือช่องว่างเกิน แล้วจัด y ทุกบล็อกใหม่อัตโนมัติจากบนลงล่าง']},
   {v:'1.29.10',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ปรับ default position — ความแรงยาอยู่ต่อท้ายชื่อยาในแนวนอนทันที (ไม่ต้องลากเอง แต่ยังลากย้ายได้อิสระ)']},
   {v:'1.29.9',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: สลับฟิลด์ใหม่ — ลบช่อง "ชื่อยา (บนฉลาก)" (free text) ออก คืนช่องค้นหาชื่อยาจากฐานข้อมูล 271 รายการแทน (ชื่อที่เลือกจะขึ้นบนฉลากโดยตรง), แก้ Custom text block ตกขอบ label (จำกัด y ไม่เกินขอบล่าง)']},
   {v:'1.29.8',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ขยาย Preview จาก 3.2px/mm เป็น 4.5px/mm (80x60mm แสดงเป็น 360x270px แทน 256x192px) ตัวหนังสือชัดขึ้น อ่านง่ายขึ้น ลดปัญหา pixel rounding ที่ทำให้ดูเพลี้ยน ปรับ grid ให้ preview ได้พื้นที่มากขึ้น เพิ่ม horizontal scroll เผื่อจอแคบ']},
@@ -6190,7 +6199,7 @@ window.flSbSelect=function(type,id){
     if(clr)clr.style.display='inline-block';
     const drop=document.getElementById(`fl-${pfx}-drop`);
     if(drop)drop.classList.remove('open');
-    flRenderPreview();
+    if(flLiveAuto)flAutoSizeFull();else flRenderPreview();
   }
 };
 window.flClearSingle=function(type){
@@ -6217,8 +6226,145 @@ window.flSetSize=function(size){
 };
 window.flSetBranch=function(idx){
   flSelectedBranch=idx;
-  flRenderPreview();
+  if(flLiveAuto)flAutoSizeFull();else flRenderPreview();
 };
+window.flToggleLiveAuto=function(){
+  flLiveAuto=!flLiveAuto;
+  const btn=document.getElementById('fl-live-toggle');
+  if(btn){
+    btn.style.background=flLiveAuto?'var(--green-l)':'var(--bg)';
+    btn.style.color=flLiveAuto?'var(--green-d)':'var(--text3)';
+    btn.style.borderColor=flLiveAuto?'var(--green)':'var(--border)';
+  }
+  showToast(flLiveAuto?'⚡ Live Auto เปิด — ปรับอัตโนมัติทุกครั้ง':'Live Auto ปิด — กด ✨ Auto เองเมื่อต้องการ');
+};
+// ===== Auto Size Engine =====
+// กฎต่อบล็อก: maxLines = บรรทัดสูงสุด, maxFont/minFont = ขอบ font (pt)
+// autoResize=true = ปรับ font อัตโนมัติ, false = คง font เดิม
+const FL_BLOCK_RULES={
+  shop_name: {maxLines:1,maxFont:9,  minFont:5,  autoResize:false},
+  address:   {maxLines:2,maxFont:6,  minFont:3.5,autoResize:false},
+  drug_name: {maxLines:1,maxFont:18, minFont:7,  autoResize:true},
+  strength:  {maxLines:1,maxFont:11, minFont:5,  autoResize:true},
+  direction: {maxLines:2,maxFont:12, minFont:5,  autoResize:true},
+  indication:{maxLines:2,maxFont:9,  minFont:4,  autoResize:true},
+  warning:   {maxLines:3,maxFont:8,  minFont:3.5,autoResize:true},
+  patient:   {maxLines:1,maxFont:8,  minFont:5,  autoResize:true},
+  date:      {maxLines:1,maxFont:7,  minFont:5,  autoResize:false},
+  custom:    {maxLines:3,maxFont:10, minFont:4,  autoResize:true},
+};
+let flLiveAuto=true; // live auto on by default
+
+const _cvs=document.createElement('canvas');
+const _ctx=_cvs.getContext('2d');
+
+function measureLines(text,fontPt,widthMm,bold){
+  const fsPx=fontPt*FL_PT_TO_PX;
+  _ctx.font=`${bold?700:400} ${fsPx}px sans-serif`;
+  const maxPx=widthMm/0.3528*fsPx/fontPt;
+  const words=text.replace(/\n/g,' \n ').split(' ');
+  let lines=0,cur='';
+  for(const w of words){
+    if(w==='\n'){lines++;cur='';continue;}
+    const test=cur?cur+' '+w:w;
+    if(_ctx.measureText(test).width>maxPx&&cur){lines++;cur=w;}else cur=test;
+  }
+  if(cur)lines++;
+  return Math.max(lines,1);
+}
+
+// Per-block: หา font size ใหญ่สุดที่ทำให้ข้อความพอดี maxLines
+function fitBlockFont(b){
+  const rule=FL_BLOCK_RULES[b.key]||{maxLines:2,maxFont:10,minFont:4,autoResize:true};
+  if(!rule.autoResize)return b.fontSize;
+  const txt=flGetBlockText(b);
+  if(!txt)return b.fontSize;
+  const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?3:0;
+  const w=b.w-lbW;
+  let lo=rule.minFont,hi=rule.maxFont;
+  for(let i=0;i<20;i++){
+    const mid=(lo+hi)/2;
+    measureLines(txt,mid,w,b.bold)<=rule.maxLines?lo=mid:hi=mid;
+  }
+  return Math.round(lo*10)/10;
+}
+
+// ทำ per-block font fit แล้วตามด้วย layout y (Auto Size engine เดิม)
+function flAutoSizeFull(){
+  // 1. Fit font ทีละบล็อก
+  flBlocks.forEach(b=>{b.fontSize=fitBlockFont(b);});
+  // 2. Layout y (เหมือนกดปุ่ม Auto Size)
+  flAutoSize(false); // false = ไม่ showToast ซ้ำ
+}
+
+window.flAutoSize=function(showMsg=true){
+  const [pw,ph]=flSize.split('x').map(Number);
+  const MARGIN_TOP=flPageMargins.top||0;
+  const USABLE_H=ph-MARGIN_TOP-2;
+  const LINE_H=1.3;
+
+  const activeBlocks=flBlocks.filter(b=>flGetBlockText(b).length>0);
+  if(!activeBlocks.length){if(showMsg)showToast('ยังไม่มีข้อมูลในฉลาก','err');return;}
+
+  function blockH(b,scale=1){
+    const fs=b.fontSize*scale;
+    const fsMm=fs*0.3528;
+    const txt=flGetBlockText(b);
+    if(!txt)return 0;
+    const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?3:0;
+    return measureLines(txt,fs,b.w-lbW,b.bold)*fsMm*LINE_H;
+  }
+
+  // จับกลุ่ม row (y ห่าง ≤5mm = แถวเดียวกัน)
+  const sorted=[...activeBlocks].sort((a,b)=>a.y-b.y);
+  const rows=[];
+  for(const b of sorted){
+    const last=rows[rows.length-1];
+    if(last&&Math.abs(b.y-last[0].y)<=5)last.push(b);
+    else rows.push([b]);
+  }
+
+  function totalH(s){
+    let h=0;
+    rows.forEach((row,i)=>{
+      h+=Math.max(...row.map(b=>blockH(b,s)));
+      if(i<rows.length-1)h+=1.2;
+    });
+    return h;
+  }
+
+  // Binary search หา global scale ถ้ายังล้น
+  let scale=1;
+  const tot=totalH(1);
+  if(tot>USABLE_H){
+    let lo=0.4,hi=1;
+    for(let i=0;i<20;i++){const m=(lo+hi)/2;totalH(m)<USABLE_H?lo=m:hi=m;}
+    scale=lo*0.96;
+  }else if(tot<USABLE_H*0.72){
+    let lo=1,hi=1.35;
+    for(let i=0;i<15;i++){const m=(lo+hi)/2;totalH(m)<USABLE_H*0.93?lo=m:hi=m;}
+    scale=lo;
+  }
+
+  // Apply: scale font + จัด y ใหม่
+  let curY=MARGIN_TOP+1;
+  rows.forEach(row=>{
+    const rH=Math.max(...row.map(b=>blockH(b,scale)));
+    row.forEach(b=>{
+      b.y=Math.round(curY*10)/10;
+      if(scale!==1)b.fontSize=Math.round(b.fontSize*scale*10)/10;
+    });
+    curY+=rH+1.2;
+  });
+
+  flRenderBlockList();
+  flRenderPreview();
+  if(showMsg){
+    const pct=Math.round(scale*100);
+    showToast(`✨ Auto Size — ${pct<99?'ย่อ '+pct+'%':pct>101?'ขยาย '+pct+'%':'พอดีพอดี'} (${rows.length} แถว)`);
+  }
+};
+
 // ======= Custom text blocks =======
 window.flAddCustomBlock=function(){
   const id='b_c_'+Date.now();
@@ -6253,12 +6399,10 @@ window.flRemoveCustomBlock=function(id){
 window.flAddMulti=function(type,val){
   if(!val)return;
   const arr=type==='indication'?flSelections.indications:flSelections.warnings;
-  const master=type==='indication'?flDB.indications:flDB.warnings;
-  if(arr.includes(val)){document.getElementById('fl-'+(type==='indication'?'ind':'warn')+'-sel').value='';return;}
+  if(arr.includes(val)){return;}
   arr.push(val);
   flRenderTags(type);
-  document.getElementById('fl-'+(type==='indication'?'ind':'warn')+'-sel').value='';
-  flRenderPreview();
+  if(flLiveAuto)flAutoSizeFull();else flRenderPreview();
 };
 function flRenderTags(type){
   const arr=type==='indication'?flSelections.indications:flSelections.warnings;
@@ -6275,7 +6419,7 @@ window.flRemoveMulti=function(type,id){
   const i=arr.indexOf(id);
   if(i>=0)arr.splice(i,1);
   flRenderTags(type);
-  flRenderPreview();
+  if(flLiveAuto)flAutoSizeFull();else flRenderPreview();
 };
 // ===== Margin/Offset settings =====
 window.flUpdateMargins=function(){
