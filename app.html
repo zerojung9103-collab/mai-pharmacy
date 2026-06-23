@@ -1282,8 +1282,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.1';
+const APP_VERSION='2.2.2';
 const CHANGELOG=[
+  {v:'2.2.2',date:'2026-06-23',changes:['To Do List: เพิ่ม Feature Picker — ตอนสร้าง template เลือกงานจากกริดได้เลย (ลงยอดขาย/นับเงินต้นวัน/นับเงินปลายวัน/เก็บเงินกระเป๋า/เช็คอิน/ฉลากยาต่างชาติ/กำหนดเอง), งานที่มี ✨ auto จะเช็คอัตโนมัติทุกครั้งที่โหลดหน้า ตรวจจาก cashcounts/purselogs/sales/checkin จริงในระบบ']},
   {v:'2.2.1',date:'2026-06-23',changes:['เพิ่ม role "ผู้ทดสอบระบบ" (tester) — admin ตั้งได้ในหน้าจัดการสมาชิก, tester มีสิทธิ์เหมือนพนักงานธรรมดาทุกอย่าง, แสดง banner สีเหลือง "🧪 โหมดทดสอบ" ตลอดเวลา, เช็คอิน/ออกงานโดยไม่ใช้ GPS เลือกสาขาเองได้จาก dropdown']},
   {v:'2.2.0',date:'2026-06-23',changes:['เพิ่มระบบ To Do List — admin สร้าง template งานประจำวัน (recurring) หรืองานพิเศษวันเดียวได้, พนักงานที่มีเวรเห็น checklist ของสาขาตัวเอง, popup ขึ้นอัตโนมัติหลังเช็คอิน, กดงานพาไปหน้านั้นได้เลย (ยอดขาย/เงินสด/ลงเวลา), งานที่ link กับ sales เช็คอัตโนมัติถ้ามีคนลงยอดแล้ว, มีหน้าแยก "งานวันนี้" เปิดดูทีหลังได้ตลอด, แสดง progress bar และชื่อคนที่ทำ']},
   {v:'2.1.1',date:'2026-06-23',changes:['แก้ bugs จากการตรวจสอบ: (1) Firestore rules members — เพิ่ม allow update userTheme field สำหรับพนักงานธรรมดา (ก่อนหน้า saveUserTheme จะ fail ทุกคนที่ไม่ใช่ admin), (2) applyAppearanceConfig ไม่ set --green อีกต่อไป หลีกเลี่ยง flash สี, (3) ลบ CORNER_VALS dead code, (4) ลบ corner:\"soft\" ออกจาก APPEARANCE_DEFAULT, (5) แก้ _todaySalesTotal ถูก set จริงหลังโหลด sales — stat card หน้าแรกแสดงยอดขายวันนี้ได้แล้ว']},
@@ -5293,6 +5294,7 @@ async function renderCheckinPage(){
   // โหลดสถานะวันนี้
   let rec=null;
   try{const d=await getDoc(doc(db,'checkins',todayCheckinId()));if(d.exists())rec=d.data();}catch(e){}
+  window._myCheckinToday=rec; // cache สำหรับ todo auto-check
 
   const hasIn=rec&&rec.checkIn;
   const hasOut=rec&&rec.checkOut;
@@ -7006,13 +7008,50 @@ function renderTodoTemplateSettings(){
   </div>`).join('');
 }
 
+// ===== Smart task definitions =====
+const SMART_TASKS=[
+  {key:'sales_daily',  title:'ลงยอดขายวันนี้',    icon:'📊',linkedPage:'sales',  autoCheck:'sales',   desc:'เช็คอัตโนมัติเมื่อมีคนลงยอดขายในระบบแล้ว'},
+  {key:'cash_open',   title:'นับเงินต้นวัน',       icon:'💰',linkedPage:'cash',   autoCheck:'cash_open', desc:'เช็คอัตโนมัติเมื่อมีการนับเงินต้นวันในระบบ'},
+  {key:'cash_close',  title:'นับเงินปลายวัน',      icon:'💰',linkedPage:'cash',   autoCheck:'cash_close',desc:'เช็คอัตโนมัติเมื่อมีการนับเงินปลายวันในระบบ'},
+  {key:'purse_collect',title:'เก็บเงินเข้ากระเป๋า',icon:'👛',linkedPage:'cash',   autoCheck:'purse',   desc:'เช็คอัตโนมัติเมื่อมีการเก็บเงินเข้ากระเป๋าวันนี้'},
+  {key:'checkin_done',title:'เช็คอินเข้างาน',      icon:'📍',linkedPage:'checkin',autoCheck:'checkin', desc:'เช็คอัตโนมัติเมื่อเช็คอินแล้ว'},
+  {key:'label_print', title:'พิมพ์ฉลากยาต่างชาติ',icon:'🌏',linkedPage:'foreignlabel',autoCheck:'',  desc:'กดแล้วไปหน้าฉลากยาต่างชาติเลย'},
+  {key:'custom',      title:'กำหนดเอง',            icon:'✏️',linkedPage:'',       autoCheck:'',        desc:'พิมพ์ชื่องานเอง'},
+];
+
 window.openAddTodoTemplate=function(){
-  openModal(`<div class="modal-title">+ เพิ่ม Template งาน</div>
-    <div class="field"><label class="fl">ชื่องาน *</label><input type="text" id="tt-title" placeholder="เช่น นับเงินสดท้ายวัน, ลงยอดขาย"></div>
+  window._ttRecurring=true;
+  window._ttBranch=-1;
+  window._ttSelectedKey=null;
+  openModal(`<div class="modal-title">+ เพิ่มงานใน Template</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">เลือกงานจากระบบ หรือพิมพ์ชื่อเอง</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem" id="tt-task-grid">
+      ${SMART_TASKS.map(t=>`<button class="tt-task-chip" data-key="${t.key}" onclick="ttSelectTask('${t.key}')"
+        style="background:var(--bg);border:1.5px solid var(--border2);border-radius:12px;padding:10px 10px;text-align:left;cursor:pointer;font-family:var(--font);transition:.15s">
+        <div style="font-size:16px;margin-bottom:4px">${t.icon}</div>
+        <div style="font-size:12px;font-weight:600;color:var(--text)">${t.title}</div>
+        ${t.autoCheck?`<div style="font-size:10px;color:var(--green-d);margin-top:2px">✨ auto</div>`:''}
+      </button>`).join('')}
+    </div>
+    <div id="tt-custom-field" style="display:none" class="field">
+      <label class="fl">ชื่องาน *</label>
+      <input type="text" id="tt-title" placeholder="พิมพ์ชื่องาน...">
+      <div class="field" style="margin-top:8px"><label class="fl">กดแล้วพาไปหน้า</label>
+        <select id="tt-link">
+          <option value="">— ไม่ link หน้าไหน —</option>
+          <option value="sales">ยอดขาย</option>
+          <option value="cash">เงินสด</option>
+          <option value="checkin">ลงเวลา</option>
+          <option value="foreignlabel">ฉลากยาต่างชาติ</option>
+          <option value="dashboard">ภาพรวม</option>
+        </select>
+      </div>
+    </div>
+    <div id="tt-selected-info" style="display:none;background:var(--green-l);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--green-d);margin-bottom:.75rem"></div>
     <div class="field"><label class="fl">ประเภท</label>
       <div style="display:flex;gap:8px">
-        <button class="btn fl-size-btn active" data-recurring="1" id="tt-rec-1" onclick="ttSetRecurring(1)">🔄 ประจำวัน</button>
-        <button class="btn fl-size-btn" data-recurring="0" id="tt-rec-0" onclick="ttSetRecurring(0)">⭐ พิเศษ (วันนี้อย่างเดียว)</button>
+        <button class="btn fl-size-btn active" data-recurring="1" onclick="ttSetRecurring(1)">🔄 ประจำวัน</button>
+        <button class="btn fl-size-btn" data-recurring="0" onclick="ttSetRecurring(0)">⭐ พิเศษ (วันนี้วันเดียว)</button>
       </div>
     </div>
     <div class="field"><label class="fl">สาขา</label>
@@ -7021,21 +7060,32 @@ window.openAddTodoTemplate=function(){
         ${BRANCHES.map((b,i)=>`<button class="btn fl-size-btn" data-branch="${i}" onclick="ttSetBranch(${i})">${b}</button>`).join('')}
       </div>
     </div>
-    <div class="field"><label class="fl">กดแล้วพาไปหน้า (ไม่บังคับ)</label>
-      <select id="tt-link">
-        <option value="">— ไม่ link หน้าไหน —</option>
-        <option value="sales">ยอดขาย</option>
-        <option value="cash">เงินสด & ตู้เซฟ</option>
-        <option value="checkin">ลงเวลา</option>
-        <option value="dashboard">ภาพรวม</option>
-      </select>
-    </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeMD()">ยกเลิก</button>
       <button class="btn btn-primary" onclick="saveTodoTemplate()">บันทึก</button>
     </div>`);
-  window._ttRecurring=true;
-  window._ttBranch=-1; // -1 = ทุกสาขา
+};
+window.ttSelectTask=function(key){
+  window._ttSelectedKey=key;
+  const task=SMART_TASKS.find(t=>t.key===key);
+  // highlight selected
+  document.querySelectorAll('.tt-task-chip').forEach(b=>{
+    const sel=b.dataset.key===key;
+    b.style.borderColor=sel?'var(--green)':'var(--border2)';
+    b.style.background=sel?'var(--green-l)':'var(--bg)';
+  });
+  const info=document.getElementById('tt-selected-info');
+  const custom=document.getElementById('tt-custom-field');
+  if(key==='custom'){
+    custom.style.display='block';
+    info.style.display='none';
+  }else{
+    custom.style.display='none';
+    if(info){
+      info.style.display='block';
+      info.innerHTML=`<b>${task.icon} ${task.title}</b>${task.autoCheck?`<br>✨ ${task.desc}`:`<br>📎 ${task.desc||'กดแล้วพาไปหน้านั้น'}`}`;
+    }
+  }
 };
 window.ttSetRecurring=function(v){
   window._ttRecurring=!!v;
@@ -7046,14 +7096,23 @@ window.ttSetBranch=function(v){
   document.querySelectorAll('[data-branch]').forEach(b=>b.classList.toggle('active',b.dataset.branch==v));
 };
 window.saveTodoTemplate=async function(){
-  const title=document.getElementById('tt-title')?.value.trim();
-  if(!title){showToast('ใส่ชื่องานก่อน','err');return;}
+  const key=window._ttSelectedKey;
+  if(!key){showToast('เลือกงานก่อน','err');return;}
+  let title,linkedPage,autoCheck='';
+  if(key==='custom'){
+    title=document.getElementById('tt-title')?.value.trim();
+    if(!title){showToast('ใส่ชื่องานก่อน','err');return;}
+    linkedPage=document.getElementById('tt-link')?.value||'';
+  }else{
+    const task=SMART_TASKS.find(t=>t.key===key);
+    if(!task){showToast('ไม่พบงานที่เลือก','err');return;}
+    title=task.title;linkedPage=task.linkedPage;autoCheck=task.autoCheck||'';
+  }
   const data={
-    title,
+    title,linkedPage,autoCheck,smartKey:key,
     recurring:window._ttRecurring!==false,
     allBranches:window._ttBranch===-1,
     linkedBranch:window._ttBranch>=0?window._ttBranch:null,
-    linkedPage:document.getElementById('tt-link')?.value||'',
     createdBy:currentUser.uid,
     createdAt:new Date().toISOString(),
   };
@@ -7080,29 +7139,71 @@ async function ensureTodayTasks(branch){
   const date=todayStr();
   const docId=`${date}_${branch}`;
   const ref=doc(db,'todos',docId);
-  const snap=await getDoc(ref);
-  if(snap.exists())return snap.data();
-  // สร้างใหม่จาก templates ที่ recurring=true และ match branch
-  const tasks=todoTemplates
-    .filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch))
-    .map(t=>({
-      id:'task_'+t.id,title:t.title,done:false,
-      doneBy:null,doneAt:null,linkedPage:t.linkedPage||'',isAuto:false,
-    }));
-  // เช็คงานที่ link กับระบบ (auto-detect)
-  tasks.forEach(task=>{
-    if(task.linkedPage==='sales'){
-      const todayEntry=salesEntries.find(e=>e.date===date&&e.branch===branch);
-      if(todayEntry&&todayEntry.total>0){task.done=true;task.isAuto=true;}
+  let snap=await getDoc(ref);
+  let data=snap.exists()?snap.data():null;
+
+  // โหลด cashcounts + purselogs วันนี้ สำหรับ auto-check
+  let todayCashOpen=false,todayCashClose=false,todayPurse=false;
+  try{
+    const cntSnap=await getDocs(query(collection(db,'cashcounts'),where('branch','==',branch)));
+    const todayTs=new Date(date).toISOString().slice(0,10);
+    cntSnap.docs.forEach(d=>{
+      const r=d.data();
+      if(!r.at)return;
+      if(!r.at.startsWith(todayTs))return;
+      if(r.mode==='open')todayCashOpen=true;
+      if(r.mode==='close')todayCashClose=true;
+    });
+    const plogSnap=await getDocs(query(collection(db,'purselogs'),where('branch','==',branch)));
+    plogSnap.docs.forEach(d=>{
+      const r=d.data();
+      if(r.at&&r.at.startsWith(todayTs))todayPurse=true;
+    });
+  }catch(e){}
+
+  if(!data){
+    // สร้างใหม่จาก templates
+    const tasks=todoTemplates
+      .filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch))
+      .map(t=>makeTaskFromTemplate(t));
+    data={date,branch,tasks,createdAt:new Date().toISOString()};
+    await setDoc(ref,data);
+  }
+
+  // Re-check auto tasks ทุกครั้งที่โหลด
+  let changed=false;
+  data.tasks.forEach(task=>{
+    if(!task.autoCheck||task.done)return;
+    let shouldDone=false;
+    const todaySalesEntry=salesEntries.find(e=>e.date===date&&e.branch===branch);
+    if(task.autoCheck==='sales'&&todaySalesEntry?.total>0)shouldDone=true;
+    if(task.autoCheck==='cash_open'&&todayCashOpen)shouldDone=true;
+    if(task.autoCheck==='cash_close'&&todayCashClose)shouldDone=true;
+    if(task.autoCheck==='purse'&&todayPurse)shouldDone=true;
+    if(task.autoCheck==='checkin'){
+      // เช็คอินแล้วไหม
+      const ciId=`${currentUser.uid}_${date}`;
+      // ใช้ local checkin data (loaded already)
+      if(window._myCheckinToday?.checkIn)shouldDone=true;
     }
-    if(task.linkedPage==='cash'){
-      // เช็คว่ามีการบันทึกเงินสดวันนี้ (ถ้ามี cashlogs วันนี้)
-      // ปล่อยไว้ก่อน ทำ auto-detect ทีหลัง
-    }
+    if(shouldDone){task.done=true;task.isAuto=true;changed=true;}
   });
-  const data={date,branch,tasks,createdAt:new Date().toISOString()};
-  await setDoc(ref,data);
+  if(changed)await setDoc(ref,data);
   return data;
+}
+
+function makeTaskFromTemplate(t){
+  return {
+    id:'task_'+t.id,
+    title:t.title,
+    done:false,
+    doneBy:null,
+    doneAt:null,
+    linkedPage:t.linkedPage||'',
+    autoCheck:t.autoCheck||'',
+    smartKey:t.smartKey||'',
+    isAuto:false,
+  };
 }
 
 // === หน้า Todo ===
