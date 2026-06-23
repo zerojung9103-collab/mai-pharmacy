@@ -227,6 +227,8 @@ textarea{resize:vertical;min-height:64px}
 /* === Mobile: top bar + bottom nav === */
 @media(max-width:768px){
   .main{margin-left:0;padding:1rem;padding-top:calc(72px + env(safe-area-inset-top));padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+  body.tester-mode .main{padding-top:calc(100px + env(safe-area-inset-top))}
+  body.tester-mode #tester-banner{display:block!important}
   .field-row,.field-row3{grid-template-columns:1fr}
   .mobile-topbar{display:flex!important}
   .schedule-grid{grid-template-columns:90px repeat(7,1fr)}
@@ -371,6 +373,7 @@ textarea{resize:vertical;min-height:64px}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
 </button>
 
+<div id="tester-banner" style="display:none;background:#F59E0B;color:#1C1917;text-align:center;padding:6px 16px;font-size:12px;font-weight:600;position:fixed;top:calc(56px + env(safe-area-inset-top));left:0;right:0;z-index:89">🧪 โหมดทดสอบ — ข้อมูลที่บันทึกจะอยู่ในระบบจริง</div>
 <main class="main">
   <button id="home-back-btn" onclick="goto('home')" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);margin-bottom:1rem;box-shadow:var(--shadow)">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
@@ -1279,8 +1282,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.0';
+const APP_VERSION='2.2.1';
 const CHANGELOG=[
+  {v:'2.2.1',date:'2026-06-23',changes:['เพิ่ม role "ผู้ทดสอบระบบ" (tester) — admin ตั้งได้ในหน้าจัดการสมาชิก, tester มีสิทธิ์เหมือนพนักงานธรรมดาทุกอย่าง, แสดง banner สีเหลือง "🧪 โหมดทดสอบ" ตลอดเวลา, เช็คอิน/ออกงานโดยไม่ใช้ GPS เลือกสาขาเองได้จาก dropdown']},
   {v:'2.2.0',date:'2026-06-23',changes:['เพิ่มระบบ To Do List — admin สร้าง template งานประจำวัน (recurring) หรืองานพิเศษวันเดียวได้, พนักงานที่มีเวรเห็น checklist ของสาขาตัวเอง, popup ขึ้นอัตโนมัติหลังเช็คอิน, กดงานพาไปหน้านั้นได้เลย (ยอดขาย/เงินสด/ลงเวลา), งานที่ link กับ sales เช็คอัตโนมัติถ้ามีคนลงยอดแล้ว, มีหน้าแยก "งานวันนี้" เปิดดูทีหลังได้ตลอด, แสดง progress bar และชื่อคนที่ทำ']},
   {v:'2.1.1',date:'2026-06-23',changes:['แก้ bugs จากการตรวจสอบ: (1) Firestore rules members — เพิ่ม allow update userTheme field สำหรับพนักงานธรรมดา (ก่อนหน้า saveUserTheme จะ fail ทุกคนที่ไม่ใช่ admin), (2) applyAppearanceConfig ไม่ set --green อีกต่อไป หลีกเลี่ยง flash สี, (3) ลบ CORNER_VALS dead code, (4) ลบ corner:\"soft\" ออกจาก APPEARANCE_DEFAULT, (5) แก้ _todaySalesTotal ถูก set จริงหลังโหลด sales — stat card หน้าแรกแสดงยอดขายวันนี้ได้แล้ว']},
   {v:'2.1.0',date:'2026-06-23',changes:['Phase 3: Dark mode ครอบคลุมทุก component — อัปเดต CSS global: mobile topbar ใช้ var(--surface) แทน gradient สีเขียวเข้มเดิม, bottom nav ใช้ var(--surface)+border โปร่งแสง, card มี 0.5px border, ตาราง/form/skeleton/loading/modal/buttons ทุกอย่าง dark mode aware ครบ ไม่มีสีขาวหรือ #F8FAF9 hardcode เหลืออีกต่อไป']},
@@ -1954,7 +1958,7 @@ async function loadShiftsFromCloud(){
 }
 
 // ===== STATE =====
-let currentUser=null, profile=null, isAdmin=false;
+let currentUser=null, profile=null, isAdmin=false, isTester=false;
 let allMembers=[], payrollData={};
 let tempStaff=JSON.parse(localStorage.getItem('nm_tempStaff')||'[]'); // รายชื่อพนักงานชั่วคราวที่บันทึกไว้
 
@@ -2103,7 +2107,8 @@ onAuthStateChanged(auth,async user=>{
     const snap=await getDoc(doc(db,'members',user.uid));
     profile=snap.exists()?snap.data():null;
     isAdmin=profile?.role==='admin';
-  }catch(e){profile=null;isAdmin=false;}
+    isTester=profile?.role==='tester';
+  }catch(e){profile=null;isAdmin=false;isTester=false;}
   // ฟังการเปลี่ยนแปลงสิทธิ์/role ของตัวเองแบบเรียลไทม์ → อัปเดตเมนูทันทีโดยไม่ต้อง login ใหม่
   try{
     onSnapshot(doc(db,'members',user.uid),(d)=>{
@@ -2114,6 +2119,7 @@ onAuthStateChanged(auth,async user=>{
       profile=newProfile;
       const wasAdmin=isAdmin;
       isAdmin=profile?.role==='admin';
+      isTester=profile?.role==='tester';
       if(permChanged||roleChanged){
         buildNav();
         // ถ้าอยู่หน้าที่เพิ่งโดนถอนสิทธิ์ → เด้งกลับหน้าที่เข้าได้
@@ -2132,7 +2138,10 @@ onAuthStateChanged(auth,async user=>{
   initYearSelects();
   applyDayTheme();
   loadAppearanceConfig();
-  loadUserTheme(user.uid); // โหลดธีมส่วนตัวจาก Firestore
+  loadUserTheme(user.uid);
+  // Tester mode
+  if(isTester)document.body.classList.add('tester-mode');
+  else document.body.classList.remove('tester-mode');
   buildNav();
   if(isAdmin||canAccessPage('sales'))loadSalesFromCloud();
   loadBranchLocations();
@@ -3884,7 +3893,8 @@ window.viewMember=function(uid){
     <div style="font-size:13px;font-weight:600;margin-bottom:.75rem">บทบาท</div>
     <div class="field">
       <select id="m-role">
-        <option value="member" ${m.role==='member'?'selected':''}>สมาชิก</option>
+        <option value="member" ${m.role==='member'?'selected':''}>สมาชิก (พนักงาน)</option>
+        <option value="tester" ${m.role==='tester'?'selected':''}>🧪 ผู้ทดสอบระบบ</option>
         <option value="admin" ${m.role==='admin'?'selected':''}>ผู้ดูแลระบบ (Admin)</option>
       </select>
     </div>
@@ -5294,8 +5304,15 @@ async function renderCheckinPage(){
       <div style="width:1px;background:var(--border)"></div>
       <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">ออกงาน</div><div style="font-size:24px;font-weight:700;color:${hasOut?'var(--blue-t)':'var(--text3)'}">${hasOut?rec.checkOut:'--:--'}</div></div>
     </div>
-    ${!hasIn?`<button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="doCheckin('in')">📍 เช็คอินเข้างาน</button>`
-      :!hasOut?`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="doCheckin('out')">📍 เช็คเอาท์ออกงาน</button>`
+    ${!hasIn?`
+      ${isTester?`<div style="margin-bottom:10px">
+        <div style="font-size:11px;color:#F59E0B;font-weight:600;margin-bottom:6px">🧪 โหมดทดสอบ — เลือกสาขาเอง</div>
+        <select id="tester-branch-sel" style="margin-bottom:8px">
+          ${BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('')}
+        </select>
+      </div>`:''}
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="${isTester?'doCheckinTester(\'in\')':'doCheckin(\'in\')'}">📍 เช็คอินเข้างาน</button>`
+      :!hasOut?`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="${isTester?'doCheckinTester(\'out\')':'doCheckin(\'out\')'}">📍 เช็คเอาท์ออกงาน</button>`
       :`<div style="background:var(--green-ll);border-radius:10px;padding:1rem;color:var(--green-dd);font-weight:600">✅ ลงเวลาครบแล้ววันนี้</div>`}
     <div id="checkin-msg" style="font-size:12px;color:var(--text3);margin-top:.75rem"></div>
   </div>`;
@@ -5391,6 +5408,33 @@ function calcWorkTime(inT,outT){
   let mins=(oh*60+om)-(ih*60+im);if(mins<0)mins+=1440;
   return `${Math.floor(mins/60)} ชม. ${mins%60} นาที`;
 }
+
+// Tester checkin — ไม่ใช้ GPS เลือกสาขาเอง
+window.doCheckinTester=async function(type){
+  if(!isTester)return;
+  const branch=parseInt(document.getElementById('tester-branch-sel')?.value||0);
+  const now=new Date();
+  const timeStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const id=todayCheckinId();
+  const msg=document.getElementById('checkin-msg');
+  try{
+    let rec={};
+    const ex=await getDoc(doc(db,'checkins',id));
+    if(ex.exists())rec=ex.data();
+    const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'';
+    if(type==='in'){
+      rec.checkIn=timeStr;rec.branchIn=branch;rec.checkInInRadius=true;rec.isTesterCheckin=true;
+    }else{
+      rec.checkOut=timeStr;rec.branchOut=branch;rec.checkOutInRadius=true;rec.isTesterCheckin=true;
+    }
+    rec.uid=currentUser.uid;rec.name=name;rec.date=todayStr();
+    await setDoc(doc(db,'checkins',id),rec);
+    showToast(`🧪 ${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ (ทดสอบ) ${timeStr} สาขา${BRANCHES[branch]}`);
+    logActivity(type==='in'?'checkin':'checkout',`[TEST] ${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[branch]}`);
+    renderCheckinPage();
+    if(type==='in')setTimeout(()=>showTodoPopupAfterCheckin(branch),500);
+  }catch(e){if(msg)msg.innerHTML='<span style="color:var(--red-t)">บันทึกไม่ได้: '+e.message+'</span>';}
+};
 
 window.doCheckin=function(type){
   const msg=document.getElementById('checkin-msg');
