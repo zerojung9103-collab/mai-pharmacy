@@ -726,6 +726,12 @@ textarea{resize:vertical;min-height:64px}
         <button class="btn btn-primary" onclick="saveAppearance()">บันทึกการปรับแต่ง</button>
         <button class="btn" style="margin-left:8px" onclick="resetAppearance()">↺ คืนค่าเริ่มต้น</button>
       </div>
+      <div class="card" id="todo-template-card" style="grid-column:1/-1;display:none">
+        <div class="card-title">✅ งานประจำวัน (To Do Templates)</div>
+        <div class="card-sub">สร้าง template งานที่จะขึ้นให้พนักงานทำทุกวัน — แยกตามสาขาหรือทุกสาขาได้</div>
+        <div id="todo-template-list" style="margin-bottom:1rem"></div>
+        <button class="btn btn-primary" onclick="openAddTodoTemplate()">+ เพิ่ม template งาน</button>
+      </div>
       <div class="card" id="printbridge-card" style="grid-column:1/-1;display:none">
         <div class="card-title">🖨️ ตั้งค่า PrintBridge (เครื่องพิมพ์ฉลาก)</div>
         <div class="card-sub">สำหรับพิมพ์ฉลากยาต่างชาติแบบ silent (ไม่มีป๊อปอัพ) ผ่าน XP-420 / Vozy UR — ต้องติดตั้ง PrintBridge บน Windows ก่อน (<a href="https://www.printbridge.app" target="_blank" style="color:var(--green)">printbridge.app</a> · ทดลองใช้ฟรี 7 วัน)</div>
@@ -1169,6 +1175,16 @@ textarea{resize:vertical;min-height:64px}
       <button class="btn" style="width:100%;margin-top:8px" onclick="resetUserTheme()">↺ คืนค่าเริ่มต้น</button>
     </div>
   </div>
+  <!-- ===== หน้า To Do List วันนี้ ===== -->
+  <div class="page" id="page-todo">
+    <div class="topbar">
+      <div><div class="page-title">งานวันนี้</div><div class="page-sub" id="todo-page-sub">โหลด...</div></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="todo-add-btn" onclick="openAddTodoTask()" style="display:none">+ เพิ่มงานพิเศษ</button>
+      </div>
+    </div>
+    <div id="todo-page-content"><div style="text-align:center;padding:3rem;color:var(--text3)">กำลังโหลด...</div></div>
+  </div>
 </main>
 
 <div class="modal-overlay" id="modal-overlay" onclick="closeMO(event)"><div class="modal" id="modal-box"></div></div>
@@ -1200,7 +1216,7 @@ window.installApp=async function(){
 };
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, orderBy, where, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const app = initializeApp({
@@ -1263,8 +1279,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.1.1';
+const APP_VERSION='2.2.0';
 const CHANGELOG=[
+  {v:'2.2.0',date:'2026-06-23',changes:['เพิ่มระบบ To Do List — admin สร้าง template งานประจำวัน (recurring) หรืองานพิเศษวันเดียวได้, พนักงานที่มีเวรเห็น checklist ของสาขาตัวเอง, popup ขึ้นอัตโนมัติหลังเช็คอิน, กดงานพาไปหน้านั้นได้เลย (ยอดขาย/เงินสด/ลงเวลา), งานที่ link กับ sales เช็คอัตโนมัติถ้ามีคนลงยอดแล้ว, มีหน้าแยก "งานวันนี้" เปิดดูทีหลังได้ตลอด, แสดง progress bar และชื่อคนที่ทำ']},
   {v:'2.1.1',date:'2026-06-23',changes:['แก้ bugs จากการตรวจสอบ: (1) Firestore rules members — เพิ่ม allow update userTheme field สำหรับพนักงานธรรมดา (ก่อนหน้า saveUserTheme จะ fail ทุกคนที่ไม่ใช่ admin), (2) applyAppearanceConfig ไม่ set --green อีกต่อไป หลีกเลี่ยง flash สี, (3) ลบ CORNER_VALS dead code, (4) ลบ corner:\"soft\" ออกจาก APPEARANCE_DEFAULT, (5) แก้ _todaySalesTotal ถูก set จริงหลังโหลด sales — stat card หน้าแรกแสดงยอดขายวันนี้ได้แล้ว']},
   {v:'2.1.0',date:'2026-06-23',changes:['Phase 3: Dark mode ครอบคลุมทุก component — อัปเดต CSS global: mobile topbar ใช้ var(--surface) แทน gradient สีเขียวเข้มเดิม, bottom nav ใช้ var(--surface)+border โปร่งแสง, card มี 0.5px border, ตาราง/form/skeleton/loading/modal/buttons ทุกอย่าง dark mode aware ครบ ไม่มีสีขาวหรือ #F8FAF9 hardcode เหลืออีกต่อไป']},
   {v:'2.0.0',date:'2026-06-23',changes:['Phase 2: Redesign หน้าแรกและ Bottom Nav — หน้าแรกใหม่: header ทักทาย + อวตาร, stat cards ยอดขายวันนี้/น้องแคปซูล, เวรวันนี้แบบกด checkin ได้เลย, เมนูกริด 3 คอลัมน์ compact; Bottom Nav ใหม่: เปลี่ยนจาก SVG เป็น Tabler Icons ดูสะอาดขึ้น active indicator bar ด้านบน; เวอร์ชัน 2.0.0 เริ่มต้น UI Redesign']},
@@ -1357,6 +1374,7 @@ const CATEGORIES=[
 ];
 const FEATURE_DEFS=[
   {page:'checkin',icon:'📍',label:'ลงเวลา',color:'#16B981',cat:'mywork',perm:null},
+  {page:'todo',icon:'✅',label:'งานวันนี้',color:'#3B8EEA',cat:'mywork',perm:null},
   {page:'schedule',icon:'📅',label:'ตารางเวร',color:'#3B8EEA',cat:'mywork',perm:'schedule'},
   {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',cat:'mywork',perm:null},
   {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',cat:'mywork',perm:null},
@@ -2163,6 +2181,7 @@ const PAGE_PERM={
   'payroll':'payroll_all',
   'my-payroll':'payroll_self',
   'checkin':null,
+  'todo':null,
   'checkin-history':'checkin_all',
   'leave':null,
   'leave-admin':'leave_admin',
@@ -2227,7 +2246,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();loadTodoTemplates().then(renderTodoTemplateSettings);}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -2238,6 +2257,7 @@ window.goto=function(page){
   if(page==='drugwarn')loadDrugWarnings();
   if(page==='foreignlabel'){loadForeignLabelData();flRenderBlockList();flRenderCustomBlockInputs();}
   if(page==='theme')renderThemePage();
+  if(page==='todo')loadTodoPage();
   currentPage=page;
   localStorage.setItem('lastPage',page); // จำหน้าปัจจุบันไว้ข้าม refresh
 };
@@ -5442,6 +5462,8 @@ window.doCheckin=function(type){
       showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}`);
       logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}${type==='in'&&rec.isLate?` (สาย ${rec.lateMinutes} นาที)`:''}`);
       renderCheckinPage();
+      // ===== Todo popup หลังเช็คอิน =====
+      if(type==='in') setTimeout(()=>showTodoPopupAfterCheckin(matchedBranch),500);
       // ===== แจ้งเตือนสาย (popup) =====
       if(type==='in'&&lateInfo){
         const hh=Math.floor(lateInfo.lateMin/60), mm=lateInfo.lateMin%60;
@@ -6902,6 +6924,288 @@ window.flDeleteTemplate=async function(i){
     showToast('ลบแล้ว');
   }catch(e){flTemplates.splice(i,0,flTemplates[i]);showToast('ลบไม่สำเร็จ: '+e.message,'err');}
 };
+
+// ===== TO DO LIST =====
+// Firestore:
+//   todoTemplates/{id} = {title, linkedPage, linkedBranch, allBranches, recurring, createdBy}
+//   todos/{date}_{branch} = {tasks:[{id,title,done,doneBy,doneAt,linkedPage,isAuto}], date, branch}
+let todoTemplates=[];
+
+async function loadTodoTemplates(){
+  try{
+    const snap=await getDocs(collection(db,'todoTemplates'));
+    todoTemplates=snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){todoTemplates=[];}
+}
+
+// === Settings: template list ===
+function renderTodoTemplateSettings(){
+  const card=document.getElementById('todo-template-card');
+  if(card)card.style.display=isAdmin?'':'none';
+  if(!isAdmin)return;
+  const el=document.getElementById('todo-template-list');
+  if(!el)return;
+  if(!todoTemplates.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:.5rem 0">ยังไม่มี template — กด "เพิ่ม template งาน" เพื่อเริ่ม</div>';
+    return;
+  }
+  el.innerHTML=todoTemplates.map(t=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:600">${t.title}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">
+        ${t.recurring?'🔄 ประจำวัน':'⭐ พิเศษ'} · 
+        ${t.allBranches?'ทุกสาขา':'สาขา'+BRANCHES[t.linkedBranch||0]}
+        ${t.linkedPage?` · กดพาไปหน้า "${t.linkedPage}"`:''}
+      </div>
+    </div>
+    <button class="btn btn-sm btn-danger" onclick="deleteTodoTemplate('${t.id}')">ลบ</button>
+  </div>`).join('');
+}
+
+window.openAddTodoTemplate=function(){
+  openModal(`<div class="modal-title">+ เพิ่ม Template งาน</div>
+    <div class="field"><label class="fl">ชื่องาน *</label><input type="text" id="tt-title" placeholder="เช่น นับเงินสดท้ายวัน, ลงยอดขาย"></div>
+    <div class="field"><label class="fl">ประเภท</label>
+      <div style="display:flex;gap:8px">
+        <button class="btn fl-size-btn active" data-recurring="1" id="tt-rec-1" onclick="ttSetRecurring(1)">🔄 ประจำวัน</button>
+        <button class="btn fl-size-btn" data-recurring="0" id="tt-rec-0" onclick="ttSetRecurring(0)">⭐ พิเศษ (วันนี้อย่างเดียว)</button>
+      </div>
+    </div>
+    <div class="field"><label class="fl">สาขา</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap" id="tt-branch-wrap">
+        <button class="btn fl-size-btn active" data-branch="-1" onclick="ttSetBranch(-1)">ทุกสาขา</button>
+        ${BRANCHES.map((b,i)=>`<button class="btn fl-size-btn" data-branch="${i}" onclick="ttSetBranch(${i})">${b}</button>`).join('')}
+      </div>
+    </div>
+    <div class="field"><label class="fl">กดแล้วพาไปหน้า (ไม่บังคับ)</label>
+      <select id="tt-link">
+        <option value="">— ไม่ link หน้าไหน —</option>
+        <option value="sales">ยอดขาย</option>
+        <option value="cash">เงินสด & ตู้เซฟ</option>
+        <option value="checkin">ลงเวลา</option>
+        <option value="dashboard">ภาพรวม</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMD()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveTodoTemplate()">บันทึก</button>
+    </div>`);
+  window._ttRecurring=true;
+  window._ttBranch=-1; // -1 = ทุกสาขา
+};
+window.ttSetRecurring=function(v){
+  window._ttRecurring=!!v;
+  document.querySelectorAll('[data-recurring]').forEach(b=>b.classList.toggle('active',b.dataset.recurring==v));
+};
+window.ttSetBranch=function(v){
+  window._ttBranch=v;
+  document.querySelectorAll('[data-branch]').forEach(b=>b.classList.toggle('active',b.dataset.branch==v));
+};
+window.saveTodoTemplate=async function(){
+  const title=document.getElementById('tt-title')?.value.trim();
+  if(!title){showToast('ใส่ชื่องานก่อน','err');return;}
+  const data={
+    title,
+    recurring:window._ttRecurring!==false,
+    allBranches:window._ttBranch===-1,
+    linkedBranch:window._ttBranch>=0?window._ttBranch:null,
+    linkedPage:document.getElementById('tt-link')?.value||'',
+    createdBy:currentUser.uid,
+    createdAt:new Date().toISOString(),
+  };
+  try{
+    const ref=await addDoc(collection(db,'todoTemplates'),data);
+    await loadTodoTemplates();
+    renderTodoTemplateSettings();
+    closeMD();
+    showToast('เพิ่ม template แล้ว');
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+};
+window.deleteTodoTemplate=async function(id){
+  if(!await capsuleConfirm('ลบ template นี้?'))return;
+  try{
+    await deleteDoc(doc(db,'todoTemplates',id));
+    await loadTodoTemplates();
+    renderTodoTemplateSettings();
+    showToast('ลบแล้ว');
+  }catch(e){showToast(e.message,'err');}
+};
+
+// === Generate tasks ต่อสาขาต่อวัน ===
+async function ensureTodayTasks(branch){
+  const date=todayStr();
+  const docId=`${date}_${branch}`;
+  const ref=doc(db,'todos',docId);
+  const snap=await getDoc(ref);
+  if(snap.exists())return snap.data();
+  // สร้างใหม่จาก templates ที่ recurring=true และ match branch
+  const tasks=todoTemplates
+    .filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch))
+    .map(t=>({
+      id:'task_'+t.id,title:t.title,done:false,
+      doneBy:null,doneAt:null,linkedPage:t.linkedPage||'',isAuto:false,
+    }));
+  // เช็คงานที่ link กับระบบ (auto-detect)
+  tasks.forEach(task=>{
+    if(task.linkedPage==='sales'){
+      const todayEntry=salesEntries.find(e=>e.date===date&&e.branch===branch);
+      if(todayEntry&&todayEntry.total>0){task.done=true;task.isAuto=true;}
+    }
+    if(task.linkedPage==='cash'){
+      // เช็คว่ามีการบันทึกเงินสดวันนี้ (ถ้ามี cashlogs วันนี้)
+      // ปล่อยไว้ก่อน ทำ auto-detect ทีหลัง
+    }
+  });
+  const data={date,branch,tasks,createdAt:new Date().toISOString()};
+  await setDoc(ref,data);
+  return data;
+}
+
+// === หน้า Todo ===
+async function loadTodoPage(){
+  // หาสาขาที่เวรวันนี้ หรือให้เลือกเอง
+  const today=todayStr();
+  const myShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
+  const branch=myShift?.branch??0;
+  const sub=document.getElementById('todo-page-sub');
+  if(sub)sub.textContent=`${today} · สาขา${BRANCHES[branch]}`;
+  const addBtn=document.getElementById('todo-add-btn');
+  if(addBtn)addBtn.style.display=isAdmin?'inline-flex':'none';
+  window._todoBranch=branch;
+  await loadTodoTemplates();
+  const data=await ensureTodayTasks(branch);
+  renderTodoPageContent(data,branch);
+}
+function renderTodoPageContent(data,branch){
+  const el=document.getElementById('todo-page-content');
+  if(!el)return;
+  const tasks=data?.tasks||[];
+  if(!tasks.length){
+    el.innerHTML=`<div style="text-align:center;padding:3rem">
+      <div style="font-size:48px;margin-bottom:1rem">✅</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text2)">ยังไม่มีงานวันนี้</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:6px">${isAdmin?'กดปุ่ม "+ เพิ่มงานพิเศษ" หรือตั้ง template ในหน้าตั้งค่า':'ติดต่อ admin เพื่อตั้ง template งาน'}</div>
+    </div>`;
+    return;
+  }
+  const done=tasks.filter(t=>t.done).length;
+  const pct=Math.round(done/tasks.length*100);
+  el.innerHTML=`
+    <div style="margin-bottom:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:13px;font-weight:600;color:var(--text2)">ความคืบหน้า</span>
+        <span style="font-size:13px;font-weight:700;color:${pct===100?'var(--green)':'var(--text2)'}">${done}/${tasks.length} งาน (${pct}%)</span>
+      </div>
+      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
+        <div style="height:100%;background:var(--green);border-radius:4px;width:${pct}%;transition:.4s"></div>
+      </div>
+      ${pct===100?'<div style="text-align:center;margin-top:8px;font-size:13px;color:var(--green);font-weight:600">🎉 เสร็จครบทุกงานแล้ว!</div>':''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${tasks.map((t,i)=>`<div style="background:var(--surface);border:1px solid ${t.done?'var(--green)':'var(--border)'};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:.15s;${t.done?'opacity:.75':''}">
+        <button onclick="toggleTodoTask('${data.date}',${branch},${i})" style="width:26px;height:26px;border-radius:50%;border:2px solid ${t.done?'var(--green)':'var(--border2)'};background:${t.done?'var(--green)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s" aria-label="${t.done?'ยกเลิก':'เสร็จแล้ว'}">
+          ${t.done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
+        </button>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text);text-decoration:${t.done?'line-through':'none'}">${t.title}</div>
+          ${t.done&&t.doneBy?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${t.isAuto?'✨ ระบบตรวจพบอัตโนมัติ':'✅ ทำโดย '+memberName(t.doneBy)} · ${t.doneAt?new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''}</div>`:''}
+        </div>
+        ${t.linkedPage&&!t.done?`<button onclick="closeMD();goto('${t.linkedPage}')" style="background:var(--green-l);color:var(--green-d);border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">ไปหน้า${t.linkedPage==='sales'?'ยอดขาย':t.linkedPage==='cash'?'เงินสด':t.linkedPage} →</button>`:''}
+        ${isAdmin?`<button onclick="deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:14px" title="ลบงานนี้">✕</button>`:''}
+      </div>`).join('')}
+    </div>`;
+}
+window.toggleTodoTask=async function(date,branch,idx){
+  const docId=`${date}_${branch}`;
+  try{
+    const snap=await getDoc(doc(db,'todos',docId));
+    if(!snap.exists())return;
+    const data=snap.data();
+    const task=data.tasks[idx];
+    if(!task)return;
+    task.done=!task.done;
+    task.doneBy=task.done?currentUser.uid:null;
+    task.doneAt=task.done?new Date().toISOString():null;
+    task.isAuto=false;
+    await setDoc(doc(db,'todos',docId),data);
+    renderTodoPageContent(data,branch);
+  }catch(e){showToast(e.message,'err');}
+};
+window.deleteTodoTask=async function(date,branch,idx){
+  if(!isAdmin)return;
+  const docId=`${date}_${branch}`;
+  try{
+    const snap=await getDoc(doc(db,'todos',docId));
+    if(!snap.exists())return;
+    const data=snap.data();
+    data.tasks.splice(idx,1);
+    await setDoc(doc(db,'todos',docId),data);
+    renderTodoPageContent(data,branch);
+  }catch(e){showToast(e.message,'err');}
+};
+window.openAddTodoTask=async function(){
+  const branch=window._todoBranch??0;
+  openModal(`<div class="modal-title">+ เพิ่มงานพิเศษวันนี้</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">งานนี้จะขึ้นแค่วันนี้ที่สาขา${BRANCHES[branch]} ไม่ใช่ทุกวัน</div>
+    <div class="field"><label class="fl">ชื่องาน *</label><input type="text" id="toadd-title" placeholder="เช่น เช็คสต็อก Paracetamol"></div>
+    <div class="field"><label class="fl">กดแล้วพาไปหน้า (ไม่บังคับ)</label>
+      <select id="toadd-link">
+        <option value="">— ไม่ link —</option>
+        <option value="sales">ยอดขาย</option>
+        <option value="cash">เงินสด</option>
+        <option value="checkin">ลงเวลา</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMD()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="saveAddTodoTask(${branch})">เพิ่มงาน</button>
+    </div>`);
+};
+window.saveAddTodoTask=async function(branch){
+  const title=document.getElementById('toadd-title')?.value.trim();
+  if(!title){showToast('ใส่ชื่องานก่อน','err');return;}
+  const linkedPage=document.getElementById('toadd-link')?.value||'';
+  const date=todayStr();
+  const docId=`${date}_${branch}`;
+  try{
+    let data;
+    const snap=await getDoc(doc(db,'todos',docId));
+    if(snap.exists()){data=snap.data();}
+    else{data={date,branch,tasks:[],createdAt:new Date().toISOString()};}
+    data.tasks.push({id:'task_'+Date.now(),title,done:false,doneBy:null,doneAt:null,linkedPage,isAuto:false});
+    await setDoc(doc(db,'todos',docId),data);
+    closeMD();
+    renderTodoPageContent(data,branch);
+    showToast('เพิ่มงานแล้ว');
+  }catch(e){showToast(e.message,'err');}
+};
+
+// === Popup หลังเช็คอิน ===
+async function showTodoPopupAfterCheckin(branch){
+  try{
+    await loadTodoTemplates();
+    const data=await ensureTodayTasks(branch);
+    const tasks=data?.tasks||[];
+    if(!tasks.length)return;
+    const pendingCount=tasks.filter(t=>!t.done).length;
+    openModal(`<div style="text-align:center;padding:.5rem 0">
+      <div style="font-size:36px;margin-bottom:8px">📋</div>
+      <div class="modal-title">งานวันนี้ สาขา${BRANCHES[branch]}</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:1.25rem">มีงานรอทำอยู่ ${pendingCount} งาน</div>
+      <div style="text-align:left;display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem">
+        ${tasks.slice(0,5).map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg);border-radius:10px">
+          <span style="font-size:14px">${t.done?'✅':'⬜'}</span>
+          <span style="font-size:13px;color:${t.done?'var(--text3)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.title}</span>
+        </div>`).join('')}
+        ${tasks.length>5?`<div style="font-size:12px;color:var(--text3);text-align:center">+ อีก ${tasks.length-5} งาน</div>`:''}
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="flex:1" onclick="closeMD()">ปิด</button>
+        <button class="btn btn-primary" style="flex:1" onclick="closeMD();goto('todo')">ดูงานทั้งหมด →</button>
+      </div>
+    </div>`);
+  }catch(e){console.error('showTodoPopup',e);}
+}
 
 // ===== DRUG WARNINGS =====
 
