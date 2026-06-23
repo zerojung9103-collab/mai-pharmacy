@@ -1282,8 +1282,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.6';
+const APP_VERSION='2.2.7';
 const CHANGELOG=[
+  {v:'2.2.7',date:'2026-06-24',changes:[
+    'To Do List: แก้ popup ไม่ขึ้นสาขาทรัพย์พัฒนา (index=0) — แก้เงื่อนไข rebuild doc ที่ตรวจ todoTemplates.length===0 ผิด ควรเป็น >0',
+    'To Do List: แก้งานวันนี้ไม่แสดงเมื่อ doc ถูกสร้างก่อน templates โหลดเสร็จ'
+  ]},
   {v:'2.2.6',date:'2026-06-24',changes:[
     'To Do List: แก้งานไม่แสดงเมื่อ ensureTodayTasks รันก่อน loadTodoTemplates เสร็จ — เพิ่ม await loadTodoTemplates() ใน ensureTodayTasks และ rebuild doc ถ้า tasks ว่าง'
   ]},
@@ -7270,9 +7274,9 @@ async function ensureTodayTasks(branch){
       .map(t=>makeTaskFromTemplate(t));
     data={date,branch,tasks,createdAt:new Date().toISOString()};
     await setDoc(ref,data);
-  } else if(data.tasks&&data.tasks.length===0&&todoTemplates.length===0){
+  } else if(data.tasks&&data.tasks.length===0){
     // doc มีอยู่แต่ tasks ว่าง — อาจถูกสร้างก่อน templates โหลด ให้ rebuild
-    await loadTodoTemplates();
+    if(!todoTemplates.length) await loadTodoTemplates();
     if(todoTemplates.length){
       const tasks=todoTemplates
         .filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch))
