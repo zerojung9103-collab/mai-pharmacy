@@ -1282,8 +1282,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.2';
+const APP_VERSION='2.2.3';
 const CHANGELOG=[
+  {v:'2.2.3',date:'2026-06-23',changes:['tester mode: เพิ่มปุ่ม "🔄 รีเซ็ตเพื่อทดสอบใหม่" หลังเช็คอิน/ออกครบ — ล้างข้อมูลเช็คอินวันนี้ออกแล้วทดสอบได้ใหม่ทันที (ปุ่มนี้จะไม่เห็นสำหรับพนักงานธรรมดา)']},
   {v:'2.2.2',date:'2026-06-23',changes:['To Do List: เพิ่ม Feature Picker — ตอนสร้าง template เลือกงานจากกริดได้เลย (ลงยอดขาย/นับเงินต้นวัน/นับเงินปลายวัน/เก็บเงินกระเป๋า/เช็คอิน/ฉลากยาต่างชาติ/กำหนดเอง), งานที่มี ✨ auto จะเช็คอัตโนมัติทุกครั้งที่โหลดหน้า ตรวจจาก cashcounts/purselogs/sales/checkin จริงในระบบ']},
   {v:'2.2.1',date:'2026-06-23',changes:['เพิ่ม role "ผู้ทดสอบระบบ" (tester) — admin ตั้งได้ในหน้าจัดการสมาชิก, tester มีสิทธิ์เหมือนพนักงานธรรมดาทุกอย่าง, แสดง banner สีเหลือง "🧪 โหมดทดสอบ" ตลอดเวลา, เช็คอิน/ออกงานโดยไม่ใช้ GPS เลือกสาขาเองได้จาก dropdown']},
   {v:'2.2.0',date:'2026-06-23',changes:['เพิ่มระบบ To Do List — admin สร้าง template งานประจำวัน (recurring) หรืองานพิเศษวันเดียวได้, พนักงานที่มีเวรเห็น checklist ของสาขาตัวเอง, popup ขึ้นอัตโนมัติหลังเช็คอิน, กดงานพาไปหน้านั้นได้เลย (ยอดขาย/เงินสด/ลงเวลา), งานที่ link กับ sales เช็คอัตโนมัติถ้ามีคนลงยอดแล้ว, มีหน้าแยก "งานวันนี้" เปิดดูทีหลังได้ตลอด, แสดง progress bar และชื่อคนที่ทำ']},
@@ -5315,7 +5316,9 @@ async function renderCheckinPage(){
       </div>`:''}
       <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="${isTester?'doCheckinTester(\'in\')':'doCheckin(\'in\')'}">📍 เช็คอินเข้างาน</button>`
       :!hasOut?`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="${isTester?'doCheckinTester(\'out\')':'doCheckin(\'out\')'}">📍 เช็คเอาท์ออกงาน</button>`
-      :`<div style="background:var(--green-ll);border-radius:10px;padding:1rem;color:var(--green-dd);font-weight:600">✅ ลงเวลาครบแล้ววันนี้</div>`}
+      :`<div style="background:var(--green-ll);border-radius:10px;padding:1rem;color:var(--green-dd);font-weight:600">✅ ลงเวลาครบแล้ววันนี้
+        ${isTester?`<br><button onclick="resetTesterCheckin()" style="margin-top:8px;background:var(--amber-l);color:var(--amber-t);border:1px solid var(--amber);border-radius:8px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">🔄 รีเซ็ตเพื่อทดสอบใหม่</button>`:''}
+      </div>`}
     <div id="checkin-msg" style="font-size:12px;color:var(--text3);margin-top:.75rem"></div>
   </div>`;
 
@@ -5412,6 +5415,37 @@ function calcWorkTime(inT,outT){
 }
 
 // Tester checkin — ไม่ใช้ GPS เลือกสาขาเอง
+window.resetTesterCheckin=async function(){
+  if(!isTester)return;
+  if(!await capsuleConfirm('ล้างข้อมูลเช็คอินวันนี้เพื่อทดสอบใหม่?'))return;
+  try{
+    await deleteDoc(doc(db,'checkins',todayCheckinId()));
+    window._myCheckinToday=null;
+    showToast('🔄 รีเซ็ตแล้ว — เช็คอินใหม่ได้เลย');
+    renderCheckinPage();
+  }catch(e){showToast('รีเซ็ตไม่สำเร็จ: '+e.message,'err');}
+};
+window.resetTesterCheckin=async function(){
+  if(!isTester)return;
+  if(!await capsuleConfirm('รีเซ็ตการเช็คอินวันนี้เพื่อทดสอบใหม่?'))return;
+  try{
+    await deleteDoc(doc(db,'checkins',todayCheckinId()));
+    window._myCheckinToday=null;
+    showToast('🔄 รีเซ็ตแล้ว — ทดสอบเช็คอินได้อีกครั้ง');
+    renderCheckinPage();
+  }catch(e){showToast('รีเซ็ตไม่สำเร็จ: '+e.message,'err');}
+};
+window.resetTesterCheckin=async function(){
+  if(!isTester)return;
+  if(!await capsuleConfirm('รีเซ็ตข้อมูลเช็คอินวันนี้? (เพื่อทดสอบใหม่)'))return;
+  try{
+    await deleteDoc(doc(db,'checkins',todayCheckinId()));
+    window._myCheckinToday=null;
+    showToast('รีเซ็ตแล้ว — ทดสอบเช็คอินใหม่ได้เลย');
+    renderCheckinPage();
+  }catch(e){showToast('รีเซ็ตไม่สำเร็จ: '+e.message,'err');}
+};
+
 window.doCheckinTester=async function(type){
   if(!isTester)return;
   const branch=parseInt(document.getElementById('tester-branch-sel')?.value||0);
