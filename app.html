@@ -5956,18 +5956,25 @@ async function checkNotifications(){
       }catch(e){}
     }
 
-    // ===== แจ้งเตือน To Do List ค้าง (ทุกคน) =====
+    // ===== แจ้งเตือน To Do List ค้าง =====
     try{
       const todayDate=todayStr();
       const myShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayDate);
       const branch=myShift?.branch??0;
-      const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
-      if(todoSnap.exists()){
-        const tasks=todoSnap.data().tasks||[];
-        const pending=tasks.filter(t=>!t.done);
-        if(pending.length>0){
-          alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pending.length} รายการ`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
+      let pendingCount=0;
+      try{
+        const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
+        if(todoSnap.exists()){
+          pendingCount=(todoSnap.data().tasks||[]).filter(t=>!t.done).length;
+        }else{
+          // ยังไม่มี doc → นับจาก template recurring ที่ตรงกับสาขา
+          pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
         }
+      }catch(e2){
+        pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
+      }
+      if(pendingCount>0){
+        alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pendingCount} รายการ`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
       }
     }catch(e){}
   }catch(e){console.error('checkNotifications',e);}
@@ -7071,32 +7078,43 @@ const SMART_TASKS=[
 window.openAddTodoTemplate=function(){
   window._ttRecurring=true;
   window._ttBranch=-1;
-  window._ttSelectedKey=null;
+  // กรองเฉพาะ SMART_TASKS ที่ยังไม่มีใน todoTemplates
+  const existingKeys=new Set(todoTemplates.map(t=>t.smartKey||''));
+  const available=SMART_TASKS.filter(t=>t.key!=='custom'&&!existingKeys.has(t.key));
+  const hasCustom=!existingKeys.has('custom');
   openModal(`<div class="modal-title">+ เพิ่มงานใน Template</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">เลือกงานจากระบบ หรือพิมพ์ชื่อเอง</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem" id="tt-task-grid">
-      ${SMART_TASKS.map(t=>`<button class="tt-task-chip" data-key="${t.key}" onclick="ttSelectTask('${t.key}')"
-        style="background:var(--bg);border:1.5px solid var(--border2);border-radius:12px;padding:10px 10px;text-align:left;cursor:pointer;font-family:var(--font);transition:.15s">
-        <div style="font-size:16px;margin-bottom:4px">${t.icon}</div>
-        <div style="font-size:12px;font-weight:600;color:var(--text)">${t.title}</div>
-        ${t.autoCheck?`<div style="font-size:10px;color:var(--green-d);margin-top:2px">✨ auto</div>`:''}
-      </button>`).join('')}
+    <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">ติ๊กเลือกงานที่ต้องการ (เลือกได้หลายอัน)</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:1rem" id="tt-task-list">
+      ${available.map(t=>`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:12px;cursor:pointer;background:var(--bg);transition:.15s" class="tt-check-row">
+        <input type="checkbox" value="${t.key}" style="width:16px;height:16px;accent-color:var(--green);flex-shrink:0" onchange="ttUpdateCheckStyle(this)">
+        <span style="font-size:18px">${t.icon}</span>
+        <span style="flex:1">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">${t.title}</span>
+          ${t.autoCheck?`<span style="font-size:10px;color:var(--green-d);margin-left:6px">✨ auto</span>`:''}
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">${t.desc}</div>
+        </span>
+      </label>`).join('')}
+      ${hasCustom?`<label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid var(--border2);border-radius:12px;cursor:pointer;background:var(--bg)" class="tt-check-row">
+        <input type="checkbox" value="custom" style="width:16px;height:16px;accent-color:var(--green);flex-shrink:0" onchange="ttToggleCustom(this)">
+        <span style="font-size:18px">✏️</span>
+        <span style="font-size:13px;font-weight:600;color:var(--text)">กำหนดเอง</span>
+      </label>
+      <div id="tt-custom-field" style="display:none;padding:0 4px" class="field">
+        <label class="fl">ชื่องาน *</label>
+        <input type="text" id="tt-title" placeholder="พิมพ์ชื่องาน...">
+        <div class="field" style="margin-top:8px"><label class="fl">กดแล้วพาไปหน้า</label>
+          <select id="tt-link">
+            <option value="">— ไม่ link หน้าไหน —</option>
+            <option value="sales">ยอดขาย</option>
+            <option value="cash">เงินสด</option>
+            <option value="checkin">ลงเวลา</option>
+            <option value="foreignlabel">ฉลากยาต่างชาติ</option>
+            <option value="dashboard">ภาพรวม</option>
+          </select>
+        </div>
+      </div>`:''}
+      ${!available.length&&!hasCustom?`<div style="color:var(--text3);font-size:13px;padding:12px;text-align:center">✅ เพิ่มทุกงานในระบบไว้แล้ว</div>`:''}
     </div>
-    <div id="tt-custom-field" style="display:none" class="field">
-      <label class="fl">ชื่องาน *</label>
-      <input type="text" id="tt-title" placeholder="พิมพ์ชื่องาน...">
-      <div class="field" style="margin-top:8px"><label class="fl">กดแล้วพาไปหน้า</label>
-        <select id="tt-link">
-          <option value="">— ไม่ link หน้าไหน —</option>
-          <option value="sales">ยอดขาย</option>
-          <option value="cash">เงินสด</option>
-          <option value="checkin">ลงเวลา</option>
-          <option value="foreignlabel">ฉลากยาต่างชาติ</option>
-          <option value="dashboard">ภาพรวม</option>
-        </select>
-      </div>
-    </div>
-    <div id="tt-selected-info" style="display:none;background:var(--green-l);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--green-d);margin-bottom:.75rem"></div>
     <div class="field"><label class="fl">ประเภท</label>
       <div style="display:flex;gap:8px">
         <button class="btn fl-size-btn active" data-recurring="1" onclick="ttSetRecurring(1)">🔄 ประจำวัน</button>
@@ -7111,30 +7129,20 @@ window.openAddTodoTemplate=function(){
     </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeMD()">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="saveTodoTemplate()">บันทึก</button>
+      <button class="btn btn-primary" onclick="saveTodoTemplates()">+ เพิ่มที่เลือก</button>
     </div>`);
 };
-window.ttSelectTask=function(key){
-  window._ttSelectedKey=key;
-  const task=SMART_TASKS.find(t=>t.key===key);
-  // highlight selected
-  document.querySelectorAll('.tt-task-chip').forEach(b=>{
-    const sel=b.dataset.key===key;
-    b.style.borderColor=sel?'var(--green)':'var(--border2)';
-    b.style.background=sel?'var(--green-l)':'var(--bg)';
-  });
-  const info=document.getElementById('tt-selected-info');
-  const custom=document.getElementById('tt-custom-field');
-  if(key==='custom'){
-    custom.style.display='block';
-    info.style.display='none';
-  }else{
-    custom.style.display='none';
-    if(info){
-      info.style.display='block';
-      info.innerHTML=`<b>${task.icon} ${task.title}</b>${task.autoCheck?`<br>✨ ${task.desc}`:`<br>📎 ${task.desc||'กดแล้วพาไปหน้านั้น'}`}`;
-    }
+window.ttUpdateCheckStyle=function(cb){
+  const row=cb.closest('.tt-check-row');
+  if(row){
+    row.style.borderColor=cb.checked?'var(--green)':'var(--border2)';
+    row.style.background=cb.checked?'var(--green-l)':'var(--bg)';
   }
+};
+window.ttToggleCustom=function(cb){
+  ttUpdateCheckStyle(cb);
+  const cf=document.getElementById('tt-custom-field');
+  if(cf)cf.style.display=cb.checked?'block':'none';
 };
 window.ttSetRecurring=function(v){
   window._ttRecurring=!!v;
@@ -7144,33 +7152,36 @@ window.ttSetBranch=function(v){
   window._ttBranch=v;
   document.querySelectorAll('[data-branch]').forEach(b=>b.classList.toggle('active',b.dataset.branch==v));
 };
-window.saveTodoTemplate=async function(){
-  const key=window._ttSelectedKey;
-  if(!key){showToast('เลือกงานก่อน','err');return;}
-  let title,linkedPage,autoCheck='';
-  if(key==='custom'){
-    title=document.getElementById('tt-title')?.value.trim();
-    if(!title){showToast('ใส่ชื่องานก่อน','err');return;}
-    linkedPage=document.getElementById('tt-link')?.value||'';
-  }else{
-    const task=SMART_TASKS.find(t=>t.key===key);
-    if(!task){showToast('ไม่พบงานที่เลือก','err');return;}
-    title=task.title;linkedPage=task.linkedPage;autoCheck=task.autoCheck||'';
+// บันทึกทีเดียวหลายงาน
+window.saveTodoTemplates=async function(){
+  const checked=[...document.querySelectorAll('#tt-task-list input[type=checkbox]:checked')].map(c=>c.value);
+  if(!checked.length){showToast('เลือกงานก่อนอย่างน้อย 1 อัน','err');return;}
+  const toSave=[];
+  for(const key of checked){
+    if(key==='custom'){
+      const title=document.getElementById('tt-title')?.value.trim();
+      if(!title){showToast('ใส่ชื่องานก่อน','err');return;}
+      toSave.push({title,linkedPage:document.getElementById('tt-link')?.value||'',autoCheck:'',smartKey:'custom'});
+    }else{
+      const task=SMART_TASKS.find(t=>t.key===key);
+      if(task)toSave.push({title:task.title,linkedPage:task.linkedPage,autoCheck:task.autoCheck||'',smartKey:key});
+    }
   }
-  const data={
-    title,linkedPage,autoCheck,smartKey:key,
-    recurring:window._ttRecurring!==false,
-    allBranches:window._ttBranch===-1,
-    linkedBranch:window._ttBranch>=0?window._ttBranch:null,
-    createdBy:currentUser.uid,
-    createdAt:new Date().toISOString(),
-  };
   try{
-    const ref=await addDoc(collection(db,'todoTemplates'),data);
+    for(const item of toSave){
+      await addDoc(collection(db,'todoTemplates'),{
+        ...item,
+        recurring:window._ttRecurring!==false,
+        allBranches:window._ttBranch===-1,
+        linkedBranch:window._ttBranch>=0?window._ttBranch:null,
+        createdBy:currentUser.uid,
+        createdAt:new Date().toISOString(),
+      });
+    }
     await loadTodoTemplates();
     renderTodoTemplateSettings();
     closeMD();
-    showToast('เพิ่ม template แล้ว');
+    showToast(`เพิ่ม ${toSave.length} งานแล้ว`);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
 };
 window.deleteTodoTemplate=async function(id){
