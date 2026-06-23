@@ -1263,8 +1263,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.1.0';
+const APP_VERSION='2.1.1';
 const CHANGELOG=[
+  {v:'2.1.1',date:'2026-06-23',changes:['แก้ bugs จากการตรวจสอบ: (1) Firestore rules members — เพิ่ม allow update userTheme field สำหรับพนักงานธรรมดา (ก่อนหน้า saveUserTheme จะ fail ทุกคนที่ไม่ใช่ admin), (2) applyAppearanceConfig ไม่ set --green อีกต่อไป หลีกเลี่ยง flash สี, (3) ลบ CORNER_VALS dead code, (4) ลบ corner:\"soft\" ออกจาก APPEARANCE_DEFAULT, (5) แก้ _todaySalesTotal ถูก set จริงหลังโหลด sales — stat card หน้าแรกแสดงยอดขายวันนี้ได้แล้ว']},
   {v:'2.1.0',date:'2026-06-23',changes:['Phase 3: Dark mode ครอบคลุมทุก component — อัปเดต CSS global: mobile topbar ใช้ var(--surface) แทน gradient สีเขียวเข้มเดิม, bottom nav ใช้ var(--surface)+border โปร่งแสง, card มี 0.5px border, ตาราง/form/skeleton/loading/modal/buttons ทุกอย่าง dark mode aware ครบ ไม่มีสีขาวหรือ #F8FAF9 hardcode เหลืออีกต่อไป']},
   {v:'2.0.0',date:'2026-06-23',changes:['Phase 2: Redesign หน้าแรกและ Bottom Nav — หน้าแรกใหม่: header ทักทาย + อวตาร, stat cards ยอดขายวันนี้/น้องแคปซูล, เวรวันนี้แบบกด checkin ได้เลย, เมนูกริด 3 คอลัมน์ compact; Bottom Nav ใหม่: เปลี่ยนจาก SVG เป็น Tabler Icons ดูสะอาดขึ้น active indicator bar ด้านบน; เวอร์ชัน 2.0.0 เริ่มต้น UI Redesign']},
   {v:'1.27.0',date:'2026-06-23',changes:['เพิ่มหน้า "ธีมของฉัน" — เข้าได้จากเมนูบัญชี (icon อวตาร์มุมขวาบน): เลือกโหมดสว่าง/มืด/ตามเครื่อง, เลือก accent color 6 สีหรือกำหนดสีเองได้, ปรับขนาดเนื้อหาส่วนตัว — บันทึกลง Firestore sync ข้ามทุกเครื่องที่ล็อกอิน, ลบ dark mode toggle เก่าออกจากเมนูบัญชี, ลบทรงมุมปุ่มออกจากตั้งค่าร้าน (design ตายตัว)']},
@@ -1435,13 +1436,14 @@ function updateCapsuleFabBadge(){
 const APPEARANCE_DEFAULT={
   shopName:'ใหม่เภสัช',shopTagline:'ระบบจัดการร้าน 3 สาขา',
   primaryColor:'#16B981',logoEmoji:'💊',
-  corner:'soft',size:'normal',
+  size:'normal',
   navOrder:['mywork','sales','admin','more'],navEnabled:{mywork:true,sales:true,admin:true,more:true}
 };
 let appearanceCfg={...APPEARANCE_DEFAULT};
-// ปรับสีให้อ่อน/เข้มขึ้น (percent: ลบ=เข้มขึ้น, บวก=อ่อนขึ้น) — ใช้คำนวณเฉดสีทั้งชุดจากสีเดียว
+const SIZE_ZOOM={compact:'.9',normal:'1',large:'1.12'};
+// ปรับสีให้อ่อน/เข้มขึ้น — ใช้คำนวณเฉดสีทั้งชุดจากสีเดียว
 function shadeColor(hex,percent){
-  const h=hex.replace('#','');
+  const h=(hex||'#16B981').replace('#','');
   let r=parseInt(h.substring(0,2),16),g=parseInt(h.substring(2,4),16),b=parseInt(h.substring(4,6),16);
   const adj=(c)=>{
     const v=percent<0?c*(1+percent/100):c+(255-c)*(percent/100);
@@ -1450,13 +1452,11 @@ function shadeColor(hex,percent){
   r=adj(r);g=adj(g);b=adj(b);
   return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');
 }
-const CORNER_VALS={sharp:['6px','10px'],soft:['16px','22px'],round:['24px','32px']};
-const SIZE_ZOOM={compact:'.9',normal:'1',large:'1.12'};
+const CORNER_VALS=null; // legacy — ไม่ใช้แล้ว (ลบ UI ออกแล้ว)
 function applyAppearanceConfig(cfg){
   const root=document.documentElement.style;
-  const c=cfg.primaryColor||APPEARANCE_DEFAULT.primaryColor;
-  root.setProperty('--green',c);
-  root.setProperty('--green-d',shadeColor(c,-15));
+  // NOTE: ไม่ set --green ที่นี่ — user theme (applyUserThemeCfg) จัดการ accent color เอง
+  // admin brand color จะถูกใช้เป็น default ใน USER_THEME_DEFAULT.accent เท่านั้น
   const mainEl=document.querySelector('.main');
   if(mainEl)mainEl.style.zoom=SIZE_ZOOM[cfg.size]||'1';
   // ชื่อร้าน/โลโก้
@@ -3710,12 +3710,14 @@ async function loadSalesFromCloud(){
     const snap=await getDocs(collection(db,'sales'));
     salesEntries=snap.docs.map(d=>{
       const x=d.data();
-      // แปลง amounts เป็นตัวเลขเสมอ (กันข้อมูลเก่าที่เป็น string)
       const amounts={};
       Object.keys(x.amounts||{}).forEach(k=>{amounts[k]=parseFloat(x.amounts[k])||0;});
       const total=Object.values(amounts).reduce((a,v)=>a+v,0);
       return{date:x.date,branch:x.branch,amounts,total,note:x.note||'',updatedBy:x.updatedBy||'',updatedAt:x.updatedAt||''};
     });
+    // คำนวณยอดขายรวมวันนี้ (ใช้ใน renderHome stat card)
+    const today=todayStr();
+    window._todaySalesTotal=salesEntries.filter(e=>e.date===today).reduce((s,e)=>s+e.total,0);
     saveLocal();
     // รีเฟรชหน้าจอถ้ากำลังดูอยู่
     if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderHistory();
