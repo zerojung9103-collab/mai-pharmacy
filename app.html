@@ -1153,8 +1153,9 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.12';
+const APP_VERSION='1.29.13';
 const CHANGELOG=[
+  {v:'1.29.13',date:'2026-06-21',changes:['Smart Auto Size Engine v2: โหลด Noto Sans Thai จริงก่อนวัด (document.fonts.load), line-height ตามภาษา EN=1.25/ZH=1.15/MY=1.6, แบ่ง zone: header ยึดบน / body justify กระจาย space / footer pin ล่าง, วัดด้วย actualBoundingBoxAscent/Descent, body scale แยกจาก header+footer, global scale fallback ถ้า body ยังล้น']},
   {v:'1.29.12',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่ม Live Auto + per-block font fitting — ⚡ Live เปิดอยู่ทุกครั้งที่เลือกยา/วิธีใช้/สรรพคุณ/คำเตือน ระบบจะวัดข้อความจริงด้วย canvas.measureText() และ binary search หา font size ใหญ่สุดที่พอดีตาม maxLines ของแต่ละบล็อก (ชื่อยา=1บรรทัด, วิธีใช้=2บรรทัด ฯลฯ) แล้วจัด y layout อัตโนมัติ — กดปุ่ม ⚡ Live เพื่อ toggle เปิด/ปิด กด ✨ Auto เพื่อ force run']},
   {v:'1.29.11',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่มปุ่ม "✨ Auto Size" — วัดขนาดข้อความจริงด้วย canvas measureText(), จับกลุ่มบล็อกที่อยู่แถวเดียวกัน (ชื่อยา+ความแรง), ใช้ binary search หา font scale ที่พอดีกับ label 80x60mm พอดีไม่ล้น ไม่เหลือช่องว่างเกิน แล้วจัด y ทุกบล็อกใหม่อัตโนมัติจากบนลงล่าง']},
   {v:'1.29.10',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: ปรับ default position — ความแรงยาอยู่ต่อท้ายชื่อยาในแนวนอนทันที (ไม่ต้องลากเอง แต่ยังลากย้ายได้อิสระ)']},
@@ -6241,27 +6242,43 @@ window.flToggleLiveAuto=function(){
 // ===== Auto Size Engine =====
 // กฎต่อบล็อก: maxLines = บรรทัดสูงสุด, maxFont/minFont = ขอบ font (pt)
 // autoResize=true = ปรับ font อัตโนมัติ, false = คง font เดิม
+// ===== Smart Auto Size Engine v2 =====
+// กฎต่อบล็อก — zone: 'header'=ยึดบน, 'body'=กระจาย, 'footer'=ยึดล่าง
 const FL_BLOCK_RULES={
-  shop_name: {maxLines:1,maxFont:9,  minFont:5,  autoResize:false},
-  address:   {maxLines:2,maxFont:6,  minFont:3.5,autoResize:false},
-  drug_name: {maxLines:1,maxFont:18, minFont:7,  autoResize:true},
-  strength:  {maxLines:1,maxFont:11, minFont:5,  autoResize:true},
-  direction: {maxLines:2,maxFont:12, minFont:5,  autoResize:true},
-  indication:{maxLines:2,maxFont:9,  minFont:4,  autoResize:true},
-  warning:   {maxLines:3,maxFont:8,  minFont:3.5,autoResize:true},
-  patient:   {maxLines:1,maxFont:8,  minFont:5,  autoResize:true},
-  date:      {maxLines:1,maxFont:7,  minFont:5,  autoResize:false},
-  custom:    {maxLines:3,maxFont:10, minFont:4,  autoResize:true},
+  shop_name: {zone:'header',maxLines:1, maxFont:9,   minFont:5,   autoResize:false, pinBottom:false},
+  address:   {zone:'header',maxLines:2, maxFont:6,   minFont:3.5, autoResize:false, pinBottom:false},
+  patient:   {zone:'header',maxLines:1, maxFont:7.5, minFont:5,   autoResize:true,  pinBottom:false},
+  drug_name: {zone:'body',  maxLines:1, maxFont:20,  minFont:7,   autoResize:true,  pinBottom:false},
+  strength:  {zone:'body',  maxLines:1, maxFont:11,  minFont:5,   autoResize:true,  pinBottom:false},
+  direction: {zone:'body',  maxLines:2, maxFont:13,  minFont:5,   autoResize:true,  pinBottom:false},
+  indication:{zone:'body',  maxLines:2, maxFont:9,   minFont:4,   autoResize:true,  pinBottom:false},
+  warning:   {zone:'body',  maxLines:3, maxFont:8,   minFont:3.5, autoResize:true,  pinBottom:false},
+  custom:    {zone:'body',  maxLines:4, maxFont:10,  minFont:4,   autoResize:true,  pinBottom:false},
+  date:      {zone:'footer',maxLines:1, maxFont:6,   minFont:4,   autoResize:false, pinBottom:true},
 };
-let flLiveAuto=true; // live auto on by default
+// line-height ตามภาษา (พม่าสูงกว่า EN/ZH มาก)
+const FL_LINE_H={en:1.25,zh:1.15,my:1.6};
+
+let flLiveAuto=true;
+let _fontReady=false;
+
+// โหลด Noto Sans Thai ก่อนวัด เพื่อให้ measureText แม่น
+async function ensureFonts(){
+  if(_fontReady)return;
+  try{await document.fonts.load('700 12px "Noto Sans Thai"');await document.fonts.load('400 12px "Noto Sans Thai"');}catch(e){}
+  _fontReady=true;
+}
 
 const _cvs=document.createElement('canvas');
 const _ctx=_cvs.getContext('2d');
 
+// วัดจำนวนบรรทัดจริงด้วย canvas + ใช้ Noto Sans Thai
 function measureLines(text,fontPt,widthMm,bold){
   const fsPx=fontPt*FL_PT_TO_PX;
-  _ctx.font=`${bold?700:400} ${fsPx}px sans-serif`;
-  const maxPx=widthMm/0.3528*fsPx/fontPt;
+  const fontFace=`${bold?700:400} ${fsPx}px "Noto Sans Thai","Noto Sans",sans-serif`;
+  _ctx.font=fontFace;
+  // ความกว้างสูงสุดในหน่วย px = (widthMm / 0.3528mm/pt) * (fsPx/fontPt)
+  const maxPx=widthMm*fsPx/(fontPt*0.3528);
   const words=text.replace(/\n/g,' \n ').split(' ');
   let lines=0,cur='';
   for(const w of words){
@@ -6273,7 +6290,24 @@ function measureLines(text,fontPt,widthMm,bold){
   return Math.max(lines,1);
 }
 
-// Per-block: หา font size ใหญ่สุดที่ทำให้ข้อความพอดี maxLines
+// วัดความสูงบล็อกจริง (mm) รวม line-height ตามภาษา
+function blockHeightMm(b,fontScale=1){
+  const txt=flGetBlockText(b);
+  if(!txt)return 0;
+  const fs=b.fontSize*fontScale;
+  const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?3:0;
+  const lh=FL_LINE_H[flLang]||1.3;
+  const lines=measureLines(txt,fs,b.w-lbW,b.bold);
+  // ความสูงจริง: ใช้ actualBoundingBox ถ้าวัดได้ มิฉะนั้นประมาณ
+  const fsPx=fs*FL_PT_TO_PX;
+  _ctx.font=`${b.bold?700:400} ${fsPx}px "Noto Sans Thai","Noto Sans",sans-serif`;
+  const m=_ctx.measureText('Agป|');
+  const lineHeightPx=(m.actualBoundingBoxAscent+m.actualBoundingBoxDescent)*lh;
+  const lineHeightMm=lineHeightPx/FL_PT_TO_PX*0.3528;
+  return lines*lineHeightMm;
+}
+
+// Binary search หา font size ใหญ่สุดที่พอดีใน maxLines
 function fitBlockFont(b){
   const rule=FL_BLOCK_RULES[b.key]||{maxLines:2,maxFont:10,minFont:4,autoResize:true};
   if(!rule.autoResize)return b.fontSize;
@@ -6282,87 +6316,110 @@ function fitBlockFont(b){
   const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?3:0;
   const w=b.w-lbW;
   let lo=rule.minFont,hi=rule.maxFont;
-  for(let i=0;i<20;i++){
+  for(let i=0;i<22;i++){
     const mid=(lo+hi)/2;
     measureLines(txt,mid,w,b.bold)<=rule.maxLines?lo=mid:hi=mid;
   }
   return Math.round(lo*10)/10;
 }
 
-// ทำ per-block font fit แล้วตามด้วย layout y (Auto Size engine เดิม)
-function flAutoSizeFull(){
-  // 1. Fit font ทีละบล็อก
-  flBlocks.forEach(b=>{b.fontSize=fitBlockFont(b);});
-  // 2. Layout y (เหมือนกดปุ่ม Auto Size)
-  flAutoSize(false); // false = ไม่ showToast ซ้ำ
-}
-
-window.flAutoSize=function(showMsg=true){
+// ฟังก์ชันหลัก: per-block fit + zone layout + justify spacing
+async function flAutoSizeFull(){
+  await ensureFonts();
   const [pw,ph]=flSize.split('x').map(Number);
-  const MARGIN_TOP=flPageMargins.top||0;
-  const USABLE_H=ph-MARGIN_TOP-2;
-  const LINE_H=1.3;
+  const MT=flPageMargins.top||0;   // top offset
+  const ML=flPageMargins.left||0;  // left offset
+  const USABLE_H=ph-MT-1.5;        // พื้นที่ใช้ได้ (เว้นขอบล่าง 1.5mm)
+  const GAP_MIN=0.8;               // ระยะห่างขั้นต่ำระหว่าง row (mm)
 
-  const activeBlocks=flBlocks.filter(b=>flGetBlockText(b).length>0);
-  if(!activeBlocks.length){if(showMsg)showToast('ยังไม่มีข้อมูลในฉลาก','err');return;}
+  // 1. Per-block font fitting
+  flBlocks.forEach(b=>{b.fontSize=fitBlockFont(b);});
 
-  function blockH(b,scale=1){
-    const fs=b.fontSize*scale;
-    const fsMm=fs*0.3528;
-    const txt=flGetBlockText(b);
-    if(!txt)return 0;
-    const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?3:0;
-    return measureLines(txt,fs,b.w-lbW,b.bold)*fsMm*LINE_H;
-  }
+  // 2. กรองและแบ่ง zone
+  const active=flBlocks.filter(b=>flGetBlockText(b).length>0);
+  if(!active.length)return;
 
-  // จับกลุ่ม row (y ห่าง ≤5mm = แถวเดียวกัน)
-  const sorted=[...activeBlocks].sort((a,b)=>a.y-b.y);
+  // เรียงตาม zone order: header → body → footer (เรียง y ภายใน zone)
+  const zoneOrder={header:0,body:1,footer:2};
+  const sorted=[...active].sort((a,b)=>{
+    const az=zoneOrder[FL_BLOCK_RULES[a.key]?.zone||'body'];
+    const bz=zoneOrder[FL_BLOCK_RULES[b.key]?.zone||'body'];
+    if(az!==bz)return az-bz;
+    return a.y-b.y; // ภายใน zone เรียงตาม y เดิม
+  });
+
+  // จับกลุ่ม row (บล็อกที่ y ห่างกัน ≤5mm หรือ zone เดียวกันและ y ห่างมากแต่ยัง body)
+  // ใช้ key เดิมเป็นตัวตัดสิน: ชื่อยา+ความแรงถ้า y ห่างกัน ≤8mm ถือเป็นแถวเดียวกัน
   const rows=[];
   for(const b of sorted){
+    const rule=FL_BLOCK_RULES[b.key]||{zone:'body'};
     const last=rows[rows.length-1];
-    if(last&&Math.abs(b.y-last[0].y)<=5)last.push(b);
+    const sameZone=last&&(FL_BLOCK_RULES[last[0].key]?.zone||'body')===rule.zone;
+    const closeY=last&&Math.abs(b.y-last[0].y)<=8;
+    if(last&&sameZone&&closeY)last.push(b);
     else rows.push([b]);
   }
 
-  function totalH(s){
-    let h=0;
-    rows.forEach((row,i)=>{
-      h+=Math.max(...row.map(b=>blockH(b,s)));
-      if(i<rows.length-1)h+=1.2;
-    });
-    return h;
-  }
+  // 3. คำนวณความสูงแต่ละ row
+  const rowHeights=rows.map(row=>Math.max(...row.map(b=>blockHeightMm(b))));
+  const headerRows=rows.filter(r=>(FL_BLOCK_RULES[r[0].key]?.zone||'body')==='header');
+  const bodyRows=rows.filter(r=>(FL_BLOCK_RULES[r[0].key]?.zone||'body')==='body');
+  const footerRows=rows.filter(r=>(FL_BLOCK_RULES[r[0].key]?.zone||'body')==='footer');
 
-  // Binary search หา global scale ถ้ายังล้น
-  let scale=1;
-  const tot=totalH(1);
-  if(tot>USABLE_H){
+  const headerH=headerRows.reduce((s,r)=>s+blockHeightMm(r[0])+GAP_MIN,0);
+  const footerH=footerRows.reduce((s,r)=>s+blockHeightMm(r[0])+GAP_MIN,0);
+  const bodyAvail=USABLE_H-headerH-footerH;
+
+  // 4. ถ้า body ยังล้น → global scale ลงจนพอดี
+  let bodyScale=1;
+  const bodyTotalH=()=>bodyRows.reduce((s,r)=>s+Math.max(...r.map(b=>blockHeightMm(b,bodyScale)))+GAP_MIN,0)-GAP_MIN;
+  if(bodyTotalH()>bodyAvail&&bodyAvail>0){
     let lo=0.4,hi=1;
-    for(let i=0;i<20;i++){const m=(lo+hi)/2;totalH(m)<USABLE_H?lo=m:hi=m;}
-    scale=lo*0.96;
-  }else if(tot<USABLE_H*0.72){
-    let lo=1,hi=1.35;
-    for(let i=0;i<15;i++){const m=(lo+hi)/2;totalH(m)<USABLE_H*0.93?lo=m:hi=m;}
-    scale=lo;
+    for(let i=0;i<22;i++){const m=(lo+hi)/2;bodyTotalH()<=bodyAvail?lo=m:hi=m;}
+    bodyScale=lo*0.97;
+    bodyRows.forEach(row=>row.forEach(b=>{
+      if(FL_BLOCK_RULES[b.key]?.autoResize!==false)
+        b.fontSize=Math.round(b.fontSize*bodyScale*10)/10;
+    }));
   }
 
-  // Apply: scale font + จัด y ใหม่
-  let curY=MARGIN_TOP+1;
-  rows.forEach(row=>{
-    const rH=Math.max(...row.map(b=>blockH(b,scale)));
-    row.forEach(b=>{
-      b.y=Math.round(curY*10)/10;
-      if(scale!==1)b.fontSize=Math.round(b.fontSize*scale*10)/10;
-    });
-    curY+=rH+1.2;
+  // 5. คำนวณ gap ระหว่าง body rows (justify distribute ถ้าพื้นที่เหลือ)
+  const bodyUsed=bodyRows.reduce((s,r)=>s+Math.max(...r.map(b=>blockHeightMm(b))),0);
+  const bodyGapTotal=Math.max(bodyAvail-bodyUsed,bodyRows.length*GAP_MIN);
+  const bodyGap=bodyRows.length>1?bodyGapTotal/Math.max(bodyRows.length-1,1):GAP_MIN;
+  const clampedGap=Math.max(Math.min(bodyGap,4),GAP_MIN); // ห่างสูงสุด 4mm
+
+  // 6. จัด y ทุกบล็อก
+  let curY=MT+1;
+  // header
+  headerRows.forEach(row=>{
+    const rH=Math.max(...row.map(b=>blockHeightMm(b)));
+    row.forEach(b=>{b.y=Math.round(curY*10)/10;});
+    curY+=rH+GAP_MIN;
+  });
+  // body
+  bodyRows.forEach((row,i)=>{
+    const rH=Math.max(...row.map(b=>blockHeightMm(b)));
+    row.forEach(b=>{b.y=Math.round(curY*10)/10;});
+    curY+=rH+(i<bodyRows.length-1?clampedGap:0);
+  });
+  // footer — pin ล่าง
+  let footerCurY=ph-MT-1;
+  [...footerRows].reverse().forEach(row=>{
+    const rH=Math.max(...row.map(b=>blockHeightMm(b)));
+    footerCurY-=rH;
+    row.forEach(b=>{b.y=Math.round(Math.max(footerCurY,curY+GAP_MIN)*10)/10;});
+    footerCurY-=GAP_MIN;
   });
 
   flRenderBlockList();
   flRenderPreview();
-  if(showMsg){
-    const pct=Math.round(scale*100);
-    showToast(`✨ Auto Size — ${pct<99?'ย่อ '+pct+'%':pct>101?'ขยาย '+pct+'%':'พอดีพอดี'} (${rows.length} แถว)`);
-  }
+}
+
+window.flAutoSize=function(showMsg=true){
+  flAutoSizeFull().then(()=>{
+    if(showMsg)showToast('✨ Auto — จัดขนาดและตำแหน่งเสร็จแล้ว');
+  });
 };
 
 // ======= Custom text blocks =======
