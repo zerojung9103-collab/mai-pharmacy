@@ -1282,8 +1282,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.5';
+const APP_VERSION='2.2.6';
 const CHANGELOG=[
+  {v:'2.2.6',date:'2026-06-24',changes:[
+    'To Do List: แก้งานไม่แสดงเมื่อ ensureTodayTasks รันก่อน loadTodoTemplates เสร็จ — เพิ่ม await loadTodoTemplates() ใน ensureTodayTasks และ rebuild doc ถ้า tasks ว่าง'
+  ]},
   {v:'2.2.5',date:'2026-06-24',changes:[
     'To Do List: แก้งานวันนี้ไม่แสดงเมื่อเพิ่งสร้าง template ใหม่ — แก้ timezone bug ใน ensureTodayTasks (ใช้ local date แทน UTC)',
     'Changelog: เพิ่มรายละเอียดทุก version ครบถ้วน'
@@ -7260,12 +7263,25 @@ async function ensureTodayTasks(branch){
   }catch(e){}
 
   if(!data){
-    // สร้างใหม่จาก templates
+    // โหลด templates ถ้ายังว่าง (กรณี ensureTodayTasks รันก่อน loadTodoTemplates เสร็จ)
+    if(!todoTemplates.length) await loadTodoTemplates();
     const tasks=todoTemplates
       .filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch))
       .map(t=>makeTaskFromTemplate(t));
     data={date,branch,tasks,createdAt:new Date().toISOString()};
     await setDoc(ref,data);
+  } else if(data.tasks&&data.tasks.length===0&&todoTemplates.length===0){
+    // doc มีอยู่แต่ tasks ว่าง — อาจถูกสร้างก่อน templates โหลด ให้ rebuild
+    await loadTodoTemplates();
+    if(todoTemplates.length){
+      const tasks=todoTemplates
+        .filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch))
+        .map(t=>makeTaskFromTemplate(t));
+      if(tasks.length){
+        data.tasks=tasks;
+        await setDoc(ref,data);
+      }
+    }
   }
 
   // Re-check auto tasks ทุกครั้งที่โหลด
