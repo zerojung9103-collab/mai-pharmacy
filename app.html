@@ -1153,8 +1153,9 @@ window.toggleDarkMode=function(){
 };
 applyDarkMode();
 
-const APP_VERSION='1.29.13';
+const APP_VERSION='1.29.14';
 const CHANGELOG=[
+  {v:'1.29.14',date:'2026-06-21',changes:['จำหน้าปัจจุบันข้าม refresh — กด F5 แล้วกลับมาหน้าเดิมเสมอ (บันทึกลง localStorage ทุกครั้งที่เปลี่ยนหน้า) แทนที่จะวนกลับหน้าแรกเสมอ']},
   {v:'1.29.13',date:'2026-06-21',changes:['Smart Auto Size Engine v2: โหลด Noto Sans Thai จริงก่อนวัด (document.fonts.load), line-height ตามภาษา EN=1.25/ZH=1.15/MY=1.6, แบ่ง zone: header ยึดบน / body justify กระจาย space / footer pin ล่าง, วัดด้วย actualBoundingBoxAscent/Descent, body scale แยกจาก header+footer, global scale fallback ถ้า body ยังล้น']},
   {v:'1.29.12',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่ม Live Auto + per-block font fitting — ⚡ Live เปิดอยู่ทุกครั้งที่เลือกยา/วิธีใช้/สรรพคุณ/คำเตือน ระบบจะวัดข้อความจริงด้วย canvas.measureText() และ binary search หา font size ใหญ่สุดที่พอดีตาม maxLines ของแต่ละบล็อก (ชื่อยา=1บรรทัด, วิธีใช้=2บรรทัด ฯลฯ) แล้วจัด y layout อัตโนมัติ — กดปุ่ม ⚡ Live เพื่อ toggle เปิด/ปิด กด ✨ Auto เพื่อ force run']},
   {v:'1.29.11',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่มปุ่ม "✨ Auto Size" — วัดขนาดข้อความจริงด้วย canvas measureText(), จับกลุ่มบล็อกที่อยู่แถวเดียวกัน (ชื่อยา+ความแรง), ใช้ binary search หา font scale ที่พอดีกับ label 80x60mm พอดีไม่ล้น ไม่เหลือช่องว่างเกิน แล้วจัด y ทุกบล็อกใหม่อัตโนมัติจากบนลงล่าง']},
@@ -1929,8 +1930,9 @@ function buildNav(){
   // โหลด member bdays สำหรับตารางเวร
   loadMemberBdays();
   buildBottomNav();
-  // เปิดแอปมาที่หน้าแรก (เมนูรวม) เสมอ
-  goto('home');
+  // กลับไปหน้าที่ค้างอยู่ก่อน refresh — ถ้าไม่มีค่อยไปหน้าแรก
+  const savedPage=localStorage.getItem('lastPage')||'home';
+  goto(savedPage);
 }
 
 // สร้าง Bottom Nav (มือถือ) — เลือกหน้าสำคัญสูงสุด 5 หน้า
@@ -2130,6 +2132,7 @@ window.goto=function(page){
   if(page==='drugwarn')loadDrugWarnings();
   if(page==='foreignlabel'){loadForeignLabelData();flRenderBlockList();flRenderCustomBlockInputs();}
   currentPage=page;
+  localStorage.setItem('lastPage',page); // จำหน้าปัจจุบันไว้ข้าม refresh
 };
 
 // ===== ปุ่มรีเฟรช (โหลดข้อมูลใหม่จาก cloud สำหรับหน้าปัจจุบัน) =====
