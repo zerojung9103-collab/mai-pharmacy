@@ -1282,9 +1282,21 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.4';
+const APP_VERSION='2.2.5';
 const CHANGELOG=[
-  {v:'2.2.3',date:'2026-06-23',changes:['tester mode: เพิ่มปุ่ม "🔄 รีเซ็ตเพื่อทดสอบใหม่" หลังเช็คอิน/ออกครบ — ล้างข้อมูลเช็คอินวันนี้ออกแล้วทดสอบได้ใหม่ทันที (ปุ่มนี้จะไม่เห็นสำหรับพนักงานธรรมดา)']},
+  {v:'2.2.5',date:'2026-06-24',changes:[
+    'To Do List: แก้งานวันนี้ไม่แสดงเมื่อเพิ่งสร้าง template ใหม่ — แก้ timezone bug ใน ensureTodayTasks (ใช้ local date แทน UTC)',
+    'Changelog: เพิ่มรายละเอียดทุก version ครบถ้วน'
+  ]},
+  {v:'2.2.4',date:'2026-06-24',changes:[
+    'แจ้งเตือน To Do List ค้างทุกครั้งที่เปิดโปรแกรม — โหลด todoTemplates ใน init flow แล้ว',
+    'ถ้ายังไม่มี todo doc วันนี้ จะนับจาก template recurring แทน ไม่รอให้เข้าหน้า todo ก่อน'
+  ]},
+  {v:'2.2.3',date:'2026-06-23',changes:[
+    'tester mode: เพิ่มปุ่ม "🔄 รีเซ็ตเพื่อทดสอบใหม่" หลังเช็คอิน/ออกครบ',
+    'To Do List: เปลี่ยน feature picker เป็น checkbox เลือกได้หลายงานพร้อมกัน กด "+ เพิ่มที่เลือก" ครั้งเดียวบันทึกทุกงาน',
+    'Firestore rules: เพิ่ม isTester() function — tester ลบ checkin ของตัวเองได้เพื่อรีเซ็ตทดสอบ'
+  ]},
   {v:'2.2.2',date:'2026-06-23',changes:['To Do List: เพิ่ม Feature Picker — ตอนสร้าง template เลือกงานจากกริดได้เลย (ลงยอดขาย/นับเงินต้นวัน/นับเงินปลายวัน/เก็บเงินกระเป๋า/เช็คอิน/ฉลากยาต่างชาติ/กำหนดเอง), งานที่มี ✨ auto จะเช็คอัตโนมัติทุกครั้งที่โหลดหน้า ตรวจจาก cashcounts/purselogs/sales/checkin จริงในระบบ']},
   {v:'2.2.1',date:'2026-06-23',changes:['เพิ่ม role "ผู้ทดสอบระบบ" (tester) — admin ตั้งได้ในหน้าจัดการสมาชิก, tester มีสิทธิ์เหมือนพนักงานธรรมดาทุกอย่าง, แสดง banner สีเหลือง "🧪 โหมดทดสอบ" ตลอดเวลา, เช็คอิน/ออกงานโดยไม่ใช้ GPS เลือกสาขาเองได้จาก dropdown']},
   {v:'2.2.0',date:'2026-06-23',changes:['เพิ่มระบบ To Do List — admin สร้าง template งานประจำวัน (recurring) หรืองานพิเศษวันเดียวได้, พนักงานที่มีเวรเห็น checklist ของสาขาตัวเอง, popup ขึ้นอัตโนมัติหลังเช็คอิน, กดงานพาไปหน้านั้นได้เลย (ยอดขาย/เงินสด/ลงเวลา), งานที่ link กับ sales เช็คอัตโนมัติถ้ามีคนลงยอดแล้ว, มีหน้าแยก "งานวันนี้" เปิดดูทีหลังได้ตลอด, แสดง progress bar และชื่อคนที่ทำ']},
@@ -7229,18 +7241,21 @@ async function ensureTodayTasks(branch){
   let todayCashOpen=false,todayCashClose=false,todayPurse=false;
   try{
     const cntSnap=await getDocs(query(collection(db,'cashcounts'),where('branch','==',branch)));
-    const todayTs=new Date(date).toISOString().slice(0,10);
+    const todayTs=date; // ใช้ local date string ตรงๆ กัน timezone bug
     cntSnap.docs.forEach(d=>{
       const r=d.data();
       if(!r.at)return;
-      if(!r.at.startsWith(todayTs))return;
+      // ใช้ dateStr(new Date()) กัน timezone — at อาจเป็น ISO UTC ที่วันต่างจากไทย
+      try{if(dateStr(new Date(r.at))!==todayTs)return;}catch(e){if(!r.at.startsWith(todayTs))return;}
       if(r.mode==='open')todayCashOpen=true;
       if(r.mode==='close')todayCashClose=true;
     });
     const plogSnap=await getDocs(query(collection(db,'purselogs'),where('branch','==',branch)));
     plogSnap.docs.forEach(d=>{
       const r=d.data();
-      if(r.at&&r.at.startsWith(todayTs))todayPurse=true;
+      if(!r.at)return;
+      try{if(dateStr(new Date(r.at))!==todayTs)return;}catch(e){if(!r.at.startsWith(todayTs))return;}
+      todayPurse=true;
     });
   }catch(e){}
 
