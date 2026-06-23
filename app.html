@@ -5955,6 +5955,21 @@ async function checkNotifications(){
         }
       }catch(e){}
     }
+
+    // ===== แจ้งเตือน To Do List ค้าง (ทุกคน) =====
+    try{
+      const todayDate=todayStr();
+      const myShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayDate);
+      const branch=myShift?.branch??0;
+      const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
+      if(todoSnap.exists()){
+        const tasks=todoSnap.data().tasks||[];
+        const pending=tasks.filter(t=>!t.done);
+        if(pending.length>0){
+          alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pending.length} รายการ`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
+        }
+      }
+    }catch(e){}
   }catch(e){console.error('checkNotifications',e);}
 
   window._currentAlerts=alerts;
