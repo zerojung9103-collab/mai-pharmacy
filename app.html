@@ -50,6 +50,11 @@ body.dark .drag-row{background:var(--bg)}
 .drag-row.dragging{box-shadow:var(--shadow-md);background:var(--green-l);z-index:50;position:relative}
 .drag-handle{cursor:grab;color:var(--text3);font-size:18px;padding:4px;flex-shrink:0;touch-action:none}
 .drag-handle:active{cursor:grabbing}
+.theme-mode-btn{background:var(--bg);border:1.5px solid var(--border2);border-radius:12px;padding:12px 8px;text-align:center;cursor:pointer;color:var(--text2);transition:.15s}
+.theme-mode-btn:hover{border-color:var(--green);color:var(--text)}
+.theme-mode-btn.active{border-color:var(--green);background:var(--green-l);color:var(--green-d);font-weight:600}
+.theme-color-dot{width:32px;height:32px;border-radius:50%;cursor:pointer;position:relative;flex-shrink:0;transition:.15s;border:2.5px solid transparent}
+.theme-color-dot.active{border-color:var(--text);box-shadow:0 0 0 2px var(--surface),0 0 0 4px currentColor}
 .fl-lang-btn{opacity:.55}
 .fl-lang-btn.active{opacity:1;background:var(--green);color:#fff;border-color:var(--green)}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
@@ -246,10 +251,11 @@ textarea{resize:vertical;min-height:64px}
 .cmdk-row .tag{margin-left:auto;font-size:10.5px;color:var(--text3);font-weight:500}
 /* Bottom Navigation (mobile) */
 .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:calc(64px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--border);z-index:95;align-items:center;justify-content:space-around;padding-left:4px;padding-right:4px;box-shadow:0 -2px 16px rgba(20,40,80,.06)}
-.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;font-weight:600;padding:6px 2px;border-radius:12px;transition:.15s;position:relative;max-width:80px}
-.bn-item svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:.15s}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:none;border:none;cursor:pointer;color:var(--text3);font-family:var(--font);font-size:10px;font-weight:500;padding:6px 2px;border-radius:12px;transition:.15s;position:relative;max-width:80px}
+.bn-item i{transition:.15s}
 .bn-item.active{color:var(--green)}
-.bn-item.active svg{transform:translateY(-2px) scale(1.08)}
+.bn-item.active i{color:var(--green)}
+.bn-item.active i{transform:translateY(-1px) scale(1.08)}
 .bn-item.active::before{content:'';position:absolute;top:0;width:28px;height:3px;border-radius:0 0 4px 4px;background:var(--grad-green)}
 .bn-item:active{transform:scale(.92)}
 @media(min-width:769px){.bottom-nav{display:none!important}}
@@ -321,6 +327,8 @@ textarea{resize:vertical;min-height:64px}
 </style>
 <!-- QZ Tray: silent label printing library -->
 <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
+<!-- Tabler Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
 </head>
 <body>
 <div class="loading" id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--text2);font-weight:500">กำลังโหลด...</div></div>
@@ -711,8 +719,7 @@ textarea{resize:vertical;min-height:64px}
           <div style="font-size:11px;color:var(--text3);margin-top:4px">รองรับ PNG/JPG/WebP/SVG ขนาดไม่เกิน 1MB</div>
         </div>
         <div class="field-row">
-          <div class="field"><label class="fl">ทรงมุมปุ่ม/การ์ด</label><select id="ap-corner"><option value="sharp">เหลี่ยม</option><option value="soft" selected>มนนิดหน่อย (ค่าเริ่มต้น)</option><option value="round">มนมาก</option></select></div>
-          <div class="field"><label class="fl">ขนาดเมนู/เนื้อหา</label><select id="ap-size"><option value="compact">กะทัดรัด</option><option value="normal" selected>ปกติ (ค่าเริ่มต้น)</option><option value="large">ใหญ่</option></select></div>
+          <div class="field"><label class="fl">ขนาดเนื้อหาเริ่มต้นทั้งร้าน <span style="font-size:11px;color:var(--text3)">(พนักงานปรับเองได้ที่ "ธีมของฉัน")</span></label><select id="ap-size"><option value="compact">กะทัดรัด</option><option value="normal" selected>ปกติ</option><option value="large">ใหญ่</option></select></div>
         </div>
         <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1rem 0 .5rem">ลำดับหมวดหมู่ในแถบล่าง (มือถือ)</div>
         <div id="ap-navorder-list" style="margin-bottom:1rem"></div>
@@ -1089,6 +1096,81 @@ textarea{resize:vertical;min-height:64px}
       .fl-sb-item.selected{background:var(--green-ll)}
     </style>
   </div>
+  <!-- ===== หน้าธีมส่วนตัว ===== -->
+  <div class="page" id="page-theme">
+    <div class="topbar">
+      <div><div class="page-title">ธีมของฉัน</div><div class="page-sub">ปรับแต่งการแสดงผลเฉพาะบัญชีของคุณ — ไม่กระทบคนอื่น</div></div>
+    </div>
+    <div style="max-width:560px">
+      <!-- Mode -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">🌓 โหมดแสดงผล</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-mode-grid">
+          <div class="theme-mode-btn active" data-mode="light" onclick="selectThemeMode('light')">
+            <i class="ti ti-sun" style="font-size:22px" aria-hidden="true"></i>
+            <div style="font-size:12px;margin-top:4px">สว่าง</div>
+          </div>
+          <div class="theme-mode-btn" data-mode="dark" onclick="selectThemeMode('dark')">
+            <i class="ti ti-moon" style="font-size:22px" aria-hidden="true"></i>
+            <div style="font-size:12px;margin-top:4px">มืด</div>
+          </div>
+          <div class="theme-mode-btn" data-mode="system" onclick="selectThemeMode('system')">
+            <i class="ti ti-device-mobile" style="font-size:22px" aria-hidden="true"></i>
+            <div style="font-size:12px;margin-top:4px">ตามเครื่อง</div>
+          </div>
+        </div>
+      </div>
+      <!-- Accent color -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-weight:600;font-size:14px;margin-bottom:.25rem">🎨 สีเน้น (Accent)</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">เปลี่ยนสีปุ่ม ไอคอน active และ highlight ให้เป็นสีของคุณเอง</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem" id="theme-accent-grid">
+          <div class="theme-color-dot active" data-color="#16B981" onclick="selectAccent('#16B981')" style="background:#16B981" title="เขียว (ค่าเริ่มต้น)"></div>
+          <div class="theme-color-dot" data-color="#534AB7" onclick="selectAccent('#534AB7')" style="background:#534AB7" title="ม่วง"></div>
+          <div class="theme-color-dot" data-color="#D4537E" onclick="selectAccent('#D4537E')" style="background:#D4537E" title="ชมพู"></div>
+          <div class="theme-color-dot" data-color="#378ADD" onclick="selectAccent('#378ADD')" style="background:#378ADD" title="ฟ้า"></div>
+          <div class="theme-color-dot" data-color="#EF9F27" onclick="selectAccent('#EF9F27')" style="background:#EF9F27" title="ส้ม"></div>
+          <div class="theme-color-dot" data-color="#E24B4A" onclick="selectAccent('#E24B4A')" style="background:#E24B4A" title="แดง"></div>
+          <!-- custom color -->
+          <label style="cursor:pointer" title="กำหนดสีเอง">
+            <div class="theme-color-dot" id="theme-custom-dot" style="background:conic-gradient(red,yellow,green,blue,red);position:relative">
+              <i class="ti ti-plus" style="font-size:12px;color:#fff;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)" aria-hidden="true"></i>
+            </div>
+            <input type="color" id="theme-custom-color" style="position:absolute;opacity:0;width:0;height:0" onchange="selectAccent(this.value)">
+          </label>
+        </div>
+        <!-- preview -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px">
+          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">ตัวอย่าง</div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn btn-primary btn-sm" style="pointer-events:none">บันทึก</button>
+            <span class="badge" id="theme-preview-badge" style="background:var(--green-l);color:var(--green-d)">active</span>
+            <span style="font-size:12px;color:var(--green)">ลิงก์สีเน้น</span>
+          </div>
+        </div>
+      </div>
+      <!-- Size -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">📐 ขนาดเนื้อหา</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-size-grid">
+          <div class="theme-mode-btn" data-size="compact" onclick="selectThemeSize('compact')">
+            <i class="ti ti-layout-grid" style="font-size:18px" aria-hidden="true"></i>
+            <div style="font-size:12px;margin-top:4px">กะทัดรัด</div>
+          </div>
+          <div class="theme-mode-btn active" data-size="normal" onclick="selectThemeSize('normal')">
+            <i class="ti ti-layout-grid-add" style="font-size:20px" aria-hidden="true"></i>
+            <div style="font-size:12px;margin-top:4px">ปกติ</div>
+          </div>
+          <div class="theme-mode-btn" data-size="large" onclick="selectThemeSize('large')">
+            <i class="ti ti-layout-grid" style="font-size:24px" aria-hidden="true"></i>
+            <div style="font-size:12px;margin-top:4px">ใหญ่</div>
+          </div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="saveUserTheme()">บันทึกธีม</button>
+      <button class="btn" style="width:100%;margin-top:8px" onclick="resetUserTheme()">↺ คืนค่าเริ่มต้น</button>
+    </div>
+  </div>
 </main>
 
 <div class="modal-overlay" id="modal-overlay" onclick="closeMO(event)"><div class="modal" id="modal-box"></div></div>
@@ -1139,22 +1221,54 @@ const storage = getStorage(app);
 const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
-// ===== โหมดมืด (ส่วนตัวต่อเครื่อง ไม่ใช่ตั้งค่าร้าน) =====
-function applyDarkMode(){
-  const dark=localStorage.getItem('darkMode')==='1';
-  document.body.classList.toggle('dark',dark);
+// ===== ระบบธีมส่วนตัว (per-user: mode + accent + size) =====
+const USER_THEME_DEFAULT={mode:'light',accent:'#16B981',size:'normal'};
+let userThemeCfg={...USER_THEME_DEFAULT};
+let _systemDarkMQ=window.matchMedia('(prefers-color-scheme: dark)');
+
+function applyUserThemeCfg(cfg){
+  const mode=cfg.mode||'light';
+  const isDark=mode==='dark'||(mode==='system'&&_systemDarkMQ.matches);
+  document.body.classList.toggle('dark',isDark);
+  // accent color — override --green และ derived vars
+  const accent=cfg.accent||'#16B981';
+  const root=document.documentElement.style;
+  root.setProperty('--green',accent);
+  root.setProperty('--green-d',shadeColor(accent,-15));
+  root.setProperty('--green-dd',shadeColor(accent,-28));
+  root.setProperty('--green-l',shadeColor(accent,72));
+  root.setProperty('--green-ll',shadeColor(accent,88));
+  root.setProperty('--grad-green',`linear-gradient(135deg,${accent},${shadeColor(accent,-12)})`);
+  // size
+  const mainEl=document.querySelector('.main');
+  const sizeMap={compact:'.9',normal:'1',large:'1.12'};
+  if(mainEl)mainEl.style.zoom=sizeMap[cfg.size||'normal']||'1';
 }
-window.toggleDarkMode=function(){
-  const dark=!document.body.classList.contains('dark');
-  document.body.classList.toggle('dark',dark);
-  localStorage.setItem('darkMode',dark?'1':'0');
-  const btn=document.getElementById('dark-toggle-label');
-  if(btn)btn.textContent=dark?'☀️ โหมดสว่าง':'🌙 โหมดมืด';
-};
+// listen for system dark mode change
+_systemDarkMQ.addEventListener('change',()=>{
+  if(userThemeCfg.mode==='system')applyUserThemeCfg(userThemeCfg);
+});
+
+// โหลดธีมจาก Firestore (members/{uid}.userTheme) หลัง login
+async function loadUserTheme(uid){
+  try{
+    const snap=await getDoc(doc(db,'members',uid));
+    userThemeCfg={...USER_THEME_DEFAULT,...(snap.data()?.userTheme||{})};
+  }catch(e){userThemeCfg={...USER_THEME_DEFAULT};}
+  applyUserThemeCfg(userThemeCfg);
+}
+// Apply dark mode ก่อน login (อ่านจาก localStorage เป็น fallback)
+function applyDarkMode(){
+  const saved=JSON.parse(localStorage.getItem('userThemeLocal')||'{}');
+  userThemeCfg={...USER_THEME_DEFAULT,...saved};
+  applyUserThemeCfg(userThemeCfg);
+}
 applyDarkMode();
 
-const APP_VERSION='1.29.14';
+const APP_VERSION='2.0.0';
 const CHANGELOG=[
+  {v:'2.0.0',date:'2026-06-23',changes:['Phase 2: Redesign หน้าแรกและ Bottom Nav — หน้าแรกใหม่: header ทักทาย + อวตาร, stat cards ยอดขายวันนี้/น้องแคปซูล, เวรวันนี้แบบกด checkin ได้เลย, เมนูกริด 3 คอลัมน์ compact; Bottom Nav ใหม่: เปลี่ยนจาก SVG เป็น Tabler Icons ดูสะอาดขึ้น active indicator bar ด้านบน; เวอร์ชัน 2.0.0 เริ่มต้น UI Redesign']},
+  {v:'1.27.0',date:'2026-06-23',changes:['เพิ่มหน้า "ธีมของฉัน" — เข้าได้จากเมนูบัญชี (icon อวตาร์มุมขวาบน): เลือกโหมดสว่าง/มืด/ตามเครื่อง, เลือก accent color 6 สีหรือกำหนดสีเองได้, ปรับขนาดเนื้อหาส่วนตัว — บันทึกลง Firestore sync ข้ามทุกเครื่องที่ล็อกอิน, ลบ dark mode toggle เก่าออกจากเมนูบัญชี, ลบทรงมุมปุ่มออกจากตั้งค่าร้าน (design ตายตัว)']},
   {v:'1.29.14',date:'2026-06-21',changes:['จำหน้าปัจจุบันข้าม refresh — กด F5 แล้วกลับมาหน้าเดิมเสมอ (บันทึกลง localStorage ทุกครั้งที่เปลี่ยนหน้า) แทนที่จะวนกลับหน้าแรกเสมอ']},
   {v:'1.29.13',date:'2026-06-21',changes:['Smart Auto Size Engine v2: โหลด Noto Sans Thai จริงก่อนวัด (document.fonts.load), line-height ตามภาษา EN=1.25/ZH=1.15/MY=1.6, แบ่ง zone: header ยึดบน / body justify กระจาย space / footer pin ล่าง, วัดด้วย actualBoundingBoxAscent/Descent, body scale แยกจาก header+footer, global scale fallback ถ้า body ยังล้น']},
   {v:'1.29.12',date:'2026-06-21',changes:['ฉลากยาต่างชาติ: เพิ่ม Live Auto + per-block font fitting — ⚡ Live เปิดอยู่ทุกครั้งที่เลือกยา/วิธีใช้/สรรพคุณ/คำเตือน ระบบจะวัดข้อความจริงด้วย canvas.measureText() และ binary search หา font size ใหญ่สุดที่พอดีตาม maxLines ของแต่ละบล็อก (ชื่อยา=1บรรทัด, วิธีใช้=2บรรทัด ฯลฯ) แล้วจัด y layout อัตโนมัติ — กดปุ่ม ⚡ Live เพื่อ toggle เปิด/ปิด กด ✨ Auto เพื่อ force run']},
@@ -1263,9 +1377,9 @@ const FEATURE_DEFS=[
 function featureShow(f){return isAdmin||f.perm===null||hasPerm(f.perm);}
 function catFeatures(catId){return FEATURE_DEFS.filter(f=>f.cat===catId&&featureShow(f));}
 function featureCardBtn(f){
-  return `<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:1.1rem 1rem;box-shadow:var(--shadow);min-height:94px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.15s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-    <span style="width:42px;height:42px;border-radius:12px;background:${f.color}1A;display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
-    <span style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
+  return `<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1rem;box-shadow:var(--shadow);min-height:86px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.18s;width:100%" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
+    <span style="width:38px;height:38px;border-radius:11px;background:${f.color}22;display:flex;align-items:center;justify-content:center;font-size:20px">${f.icon}</span>
+    <span style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3;margin-top:10px">${f.label}</span>
   </button>`;
 }
 // หน้าหมวดหมู่ (เปิดจาก bottom nav มือถือ หรือการ์ดหมวดหมู่หน้าแรกคอม)
@@ -1344,13 +1458,6 @@ function applyAppearanceConfig(cfg){
   const c=cfg.primaryColor||APPEARANCE_DEFAULT.primaryColor;
   root.setProperty('--green',c);
   root.setProperty('--green-d',shadeColor(c,-15));
-  root.setProperty('--green-dd',shadeColor(c,-28));
-  root.setProperty('--green-l',shadeColor(c,72));
-  root.setProperty('--green-ll',shadeColor(c,88));
-  root.setProperty('--grad-green',`linear-gradient(135deg,${c},${shadeColor(c,-12)})`);
-  const corner=CORNER_VALS[cfg.corner]||CORNER_VALS.soft;
-  root.setProperty('--r',corner[0]);
-  root.setProperty('--rl',corner[1]);
   const mainEl=document.querySelector('.main');
   if(mainEl)mainEl.style.zoom=SIZE_ZOOM[cfg.size]||'1';
   // ชื่อร้าน/โลโก้
@@ -1385,7 +1492,7 @@ function renderAppearanceSettings(){
   document.getElementById('ap-color').value=appearanceCfg.primaryColor||'#16B981';
   document.getElementById('ap-color-text').value=appearanceCfg.primaryColor||'#16B981';
   document.getElementById('ap-emoji').value=appearanceCfg.logoEmoji||'';
-  document.getElementById('ap-corner').value=appearanceCfg.corner||'soft';
+  
   document.getElementById('ap-size').value=appearanceCfg.size||'normal';
   renderLogoPreview();
   renderNavOrderList();
@@ -1520,7 +1627,7 @@ window.saveAppearance=async function(){
     shopTagline:document.getElementById('ap-tagline').value.trim()||APPEARANCE_DEFAULT.shopTagline,
     primaryColor:color,
     logoEmoji:document.getElementById('ap-emoji').value.trim()||APPEARANCE_DEFAULT.logoEmoji,
-    corner:document.getElementById('ap-corner').value,
+    
     size:document.getElementById('ap-size').value,
   };
   try{
@@ -1939,21 +2046,19 @@ function buildNav(){
 function buildBottomNav(){
   const nav=document.getElementById('bottom-nav');
   if(!nav)return;
-  const ic={
-    home:'<path d="M3 9.5L12 3l9 6.5"/><path d="M5 10v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V10"/>',
-    mywork:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
-    sales:'<line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-    admin:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/>',
-    more:'<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>'
-  };
+  // ใช้ Tabler icon names แทน SVG path
+  const ic={home:'home',mywork:'calendar-event',sales:'chart-bar',admin:'users',more:'dots'};
   const lbl={home:'หน้าแรก',mywork:'งานของฉัน',sales:'ขาย',admin:'บริหาร',more:'เพิ่มเติม'};
-  // แท็บ = หน้าแรก + หมวดที่เปิดไว้ (ตามลำดับที่ตั้งค่า) และมีเมนูให้คนนี้เห็นอย่างน้อย 1 อัน
   const navOrder=appearanceCfg.navOrder||APPEARANCE_DEFAULT.navOrder;
   const navEnabled=appearanceCfg.navEnabled||APPEARANCE_DEFAULT.navEnabled;
   let candidates=['home',...navOrder.filter(id=>navEnabled[id]!==false&&catFeatures(id).length>0)].slice(0,5);
-  nav.innerHTML=candidates.map(p=>`<button class="bn-item" data-page="${p==='home'?'home':'cat-'+p}" onclick="goto('${p==='home'?'home':'cat-'+p}')">
-    <svg viewBox="0 0 24 24">${ic[p]||''}</svg><span>${lbl[p]||p}</span>
-  </button>`).join('');
+  nav.innerHTML=candidates.map(p=>{
+    const page=p==='home'?'home':'cat-'+p;
+    return `<button class="bn-item" data-page="${page}" onclick="goto('${page}')">
+      <i class="ti ti-${ic[p]||'dots'}" style="font-size:22px" aria-hidden="true"></i>
+      <span>${lbl[p]||p}</span>
+    </button>`;
+  }).join('');
 }
 
 // ===== AUTH =====
@@ -2010,6 +2115,7 @@ onAuthStateChanged(auth,async user=>{
   initYearSelects();
   applyDayTheme();
   loadAppearanceConfig();
+  loadUserTheme(user.uid); // โหลดธีมส่วนตัวจาก Firestore
   buildNav();
   if(isAdmin||canAccessPage('sales'))loadSalesFromCloud();
   loadBranchLocations();
@@ -2038,7 +2144,7 @@ window.openAccountMenu=function(){
     </div>
     <button class="assist-chip" onclick="closeMD();goto('settings')"><span class="ic">⚙️</span><span>ตั้งค่าระบบ</span></button>
     <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION} — ดูประวัติอัปเดต</span></button>
-    <button class="assist-chip" onclick="toggleDarkMode()"><span class="ic">${document.body.classList.contains('dark')?'☀️':'🌙'}</span><span id="dark-toggle-label">${document.body.classList.contains('dark')?'โหมดสว่าง':'โหมดมืด'}</span></button>
+    <button class="assist-chip" onclick="closeMD();goto('theme')"><span class="ic">🎨</span><span>ธีมของฉัน</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
     <button class="assist-chip" onclick="doLogout()" style="color:var(--red-t)"><span class="ic">🚪</span><span>ออกจากระบบ</span></button>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
@@ -2131,11 +2237,58 @@ window.goto=function(page){
   if(page==='dosecalc')loadDoseTools();
   if(page==='drugwarn')loadDrugWarnings();
   if(page==='foreignlabel'){loadForeignLabelData();flRenderBlockList();flRenderCustomBlockInputs();}
+  if(page==='theme')renderThemePage();
   currentPage=page;
   localStorage.setItem('lastPage',page); // จำหน้าปัจจุบันไว้ข้าม refresh
 };
 
-// ===== ปุ่มรีเฟรช (โหลดข้อมูลใหม่จาก cloud สำหรับหน้าปัจจุบัน) =====
+// ===== หน้าธีมส่วนตัว =====
+function renderThemePage(){
+  selectThemeMode(userThemeCfg.mode||'light');
+  selectAccentUI(userThemeCfg.accent||'#16B981');
+  selectThemeSize(userThemeCfg.size||'normal');
+}
+window.selectThemeMode=function(mode){
+  userThemeCfg.mode=mode;
+  document.querySelectorAll('#theme-mode-grid .theme-mode-btn').forEach(b=>
+    b.classList.toggle('active',b.dataset.mode===mode));
+  applyUserThemeCfg(userThemeCfg);
+};
+function selectAccentUI(color){
+  document.querySelectorAll('#theme-accent-grid .theme-color-dot[data-color]').forEach(d=>
+    d.classList.toggle('active',d.dataset.color===color));
+  const custom=document.getElementById('theme-custom-dot');
+  const isPreset=['#16B981','#534AB7','#D4537E','#378ADD','#EF9F27','#E24B4A'].includes(color);
+  if(custom)custom.classList.toggle('active',!isPreset);
+}
+window.selectAccent=function(color){
+  userThemeCfg.accent=color;
+  selectAccentUI(color);
+  applyUserThemeCfg(userThemeCfg);
+};
+window.selectThemeSize=function(size){
+  userThemeCfg.size=size;
+  document.querySelectorAll('#theme-size-grid .theme-mode-btn').forEach(b=>
+    b.classList.toggle('active',b.dataset.size===size));
+  applyUserThemeCfg(userThemeCfg);
+};
+window.saveUserTheme=async function(){
+  // บันทึกลง localStorage (ใช้ได้ทันที) + Firestore (sync ข้ามเครื่อง)
+  localStorage.setItem('userThemeLocal',JSON.stringify(userThemeCfg));
+  try{
+    await updateDoc(doc(db,'members',auth.currentUser?.uid),{userTheme:userThemeCfg});
+    showToast('บันทึกธีมแล้ว — ใช้งานทุกอุปกรณ์ที่ล็อกอินด้วยบัญชีนี้');
+  }catch(e){showToast('บันทึก local แล้ว (sync cloud ไม่สำเร็จ)','warn');}
+};
+window.resetUserTheme=async function(){
+  if(!await capsuleConfirm('คืนค่าธีมกลับเป็นค่าเริ่มต้น?'))return;
+  userThemeCfg={...USER_THEME_DEFAULT};
+  renderThemePage();
+  applyUserThemeCfg(userThemeCfg);
+  localStorage.removeItem('userThemeLocal');
+  try{await updateDoc(doc(db,'members',auth.currentUser?.uid),{userTheme:USER_THEME_DEFAULT});}catch(e){}
+  showToast('คืนค่าเริ่มต้นแล้ว');
+};
 let currentPage='home';
 window.refreshCurrentPage=async function(){
   const btn=document.getElementById('refresh-fab');
@@ -4766,48 +4919,60 @@ function renderHome(){
   const myName=profile?.nickname||profile?.firstName||'คุณ';
   const today=todayStr();
   const todayShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
-  // ข้อความน้องแคปซูล — ถ้ามีประกาศจริงจัง แสดงประกาศ (โทนจริงจัง) ไม่งั้นกวนๆ
   let bubble,bubbleSerious=false;
-  if(window._activeAnnounce){
-    bubble=`📢 <b>ประกาศ:</b> ${window._activeAnnounce}`;
-    bubbleSerious=true;
-  }else{
-    bubble=capsuleSays(todayShift);
-  }
+  if(window._activeAnnounce){bubble=`📢 ${window._activeAnnounce}`;bubbleSerious=true;}
+  else{bubble=capsuleSays(todayShift);}
 
-  // การ์ดต้อนรับ + น้องแคปซูล (แตะเพื่อเปิดผู้ช่วยส่วนตัว) — สีวันแบบอ่อนจางไล่ระดับ
-  let html=`<div onclick="openAssistant()" style="cursor:pointer;background:linear-gradient(160deg,${hexA(dc.main,.10)},${hexA(dc.main,.22)} 100%);border:1px solid ${hexA(dc.main,.18)};border-radius:var(--rl);padding:1.25rem;color:${dc.dark};margin-bottom:1.25rem">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="width:48px;height:48px;border-radius:50%;background:${hexA(dc.main,.18)};display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:600;color:${dc.dark}">${myName.charAt(0)}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:16px;font-weight:600">${greet}, ${myName}</div>
-        <div style="font-size:12px;opacity:.75">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
-      </div>
+  // ===== Header: ทักทาย + อวตาร =====
+  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+    <div>
+      <div style="font-size:13px;color:var(--text3)">${greet}</div>
+      <div style="font-size:20px;font-weight:700;color:var(--text)">${myName}</div>
+      <div style="font-size:12px;color:var(--text3);margin-top:2px">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
     </div>
-    <div style="display:flex;align-items:center;gap:12px;margin-top:1rem">
-      ${capsuleMascot(76,dc.main)}
-      <div style="background:rgba(255,255,255,.85);border-radius:16px;border-bottom-left-radius:4px;padding:10px 14px;flex:1${bubbleSerious?`;border:2px solid ${dc.main}`:''}">
-        <div style="font-size:12.5px;color:${bubbleSerious?'#7A1F1F':dc.dark};font-weight:500;line-height:1.5">${bubble}</div>
+    <button onclick="openAssistant()" style="background:none;border:none;cursor:pointer;padding:0" aria-label="ผู้ช่วยส่วนตัว">
+      <div style="width:46px;height:46px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;position:relative">
+        ${myName.charAt(0).toUpperCase()}
+        <span style="position:absolute;bottom:0;right:0;width:14px;height:14px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
       </div>
-    </div>
-    <div style="text-align:center;font-size:11px;opacity:.65;margin-top:.6rem">💬 แตะเพื่อถามอะไรก็ได้</div>
+    </button>
   </div>`;
 
-  // การ์ดเวรวันนี้ (ถ้ามี)
+  // ===== Stat cards: 2 การ์ดข้อมูลสำคัญ =====
+  const todaySales=window._todaySalesTotal||0;
+  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
+    <div style="background:var(--green);border-radius:16px;padding:14px;color:#fff">
+      <div style="font-size:11px;opacity:.85;margin-bottom:4px">ยอดขายวันนี้</div>
+      <div style="font-size:20px;font-weight:700">${todaySales>0?'฿'+todaySales.toLocaleString():'—'}</div>
+      <div style="font-size:10px;opacity:.75;margin-top:3px">3 สาขา</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px">
+      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">น้องแคปซูลบอกว่า</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5;font-weight:${bubbleSerious?600:400}">${bubble}</div>
+    </div>
+  </div>`;
+
+  // ===== เวรวันนี้ (ถ้ามี) =====
   if(todayShift){
-    html+=`<div style="background:linear-gradient(135deg,#085041,#1D9E75);border-radius:var(--rl);padding:1rem 1.25rem;color:#fff;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div><div style="font-size:11px;opacity:.85">📅 เวรของคุณวันนี้</div><div style="font-size:20px;font-weight:700">${todayShift.start} - ${todayShift.end}</div></div>
-      <div style="background:rgba(255,255,255,.2);padding:5px 14px;border-radius:20px;font-size:13px;font-weight:600">📍 ${BRANCHES[todayShift.branch]}</div>
+    html+=`<div onclick="goto('checkin')" style="cursor:pointer;background:linear-gradient(135deg,${dc.dark},${dc.main});border-radius:16px;padding:14px 16px;color:#fff;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;opacity:.8">เวรของคุณวันนี้</div>
+        <div style="font-size:19px;font-weight:700;margin-top:2px">${todayShift.start} – ${todayShift.end}</div>
+        <div style="font-size:11px;opacity:.8;margin-top:2px">📍 ${BRANCHES[todayShift.branch]}</div>
+      </div>
+      <div style="background:rgba(255,255,255,.2);padding:8px 14px;border-radius:12px;font-size:12px;font-weight:600">เช็คอิน →</div>
     </div>`;
   }
 
-  // เมนูทั้งหมดแบบแบน (ไม่จัดกลุ่มหมวดหมู่) — bottom nav มือถือยังเป็นหมวดหมู่อยู่ ไว้กดลัดได้
+  // ===== เมนูกริด =====
   const order=currentMenuOrder();
   const allFeats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&featureShow(f));
-
-  html+=`<div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:.75rem;padding-left:2px">เมนู</div>`;
-  html+=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
-    ${allFeats.map(featureCardBtn).join('')}
+  html+=`<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:.6rem;letter-spacing:.5px">เมนู</div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+    ${allFeats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:.75rem .5rem;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);transition:.15s;width:100%" onmouseover="this.style.background='var(--green-l)'" onmouseout="this.style.background='var(--surface)'">
+      <span style="font-size:22px">${f.icon}</span>
+      <span style="font-size:11px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3">${f.label}</span>
+    </button>`).join('')}
   </div>`;
 
   el.innerHTML=html;
