@@ -1282,7 +1282,7 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.3';
+const APP_VERSION='2.2.4';
 const CHANGELOG=[
   {v:'2.2.3',date:'2026-06-23',changes:['tester mode: เพิ่มปุ่ม "🔄 รีเซ็ตเพื่อทดสอบใหม่" หลังเช็คอิน/ออกครบ — ล้างข้อมูลเช็คอินวันนี้ออกแล้วทดสอบได้ใหม่ทันที (ปุ่มนี้จะไม่เห็นสำหรับพนักงานธรรมดา)']},
   {v:'2.2.2',date:'2026-06-23',changes:['To Do List: เพิ่ม Feature Picker — ตอนสร้าง template เลือกงานจากกริดได้เลย (ลงยอดขาย/นับเงินต้นวัน/นับเงินปลายวัน/เก็บเงินกระเป๋า/เช็คอิน/ฉลากยาต่างชาติ/กำหนดเอง), งานที่มี ✨ auto จะเช็คอัตโนมัติทุกครั้งที่โหลดหน้า ตรวจจาก cashcounts/purselogs/sales/checkin จริงในระบบ']},
@@ -2150,6 +2150,7 @@ onAuthStateChanged(auth,async user=>{
   loadPayTypesFromCloud();
   loadTempStaffFromCloud();
   loadCapMessages();
+  loadTodoTemplates();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
   loadLeavesForSchedule();
   // บันทึก log การเข้าใช้งาน (ครั้งเดียวต่อ session)
@@ -5968,6 +5969,28 @@ async function checkNotifications(){
           pendingCount=(todoSnap.data().tasks||[]).filter(t=>!t.done).length;
         }else{
           // ยังไม่มี doc → นับจาก template recurring ที่ตรงกับสาขา
+          pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
+        }
+      }catch(e2){
+        pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
+      }
+      if(pendingCount>0){
+        alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pendingCount} รายการ`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
+      }
+    }catch(e){}
+
+    // ===== แจ้งเตือน To Do List ค้าง =====
+    try{
+      if(!todoTemplates.length) await loadTodoTemplates();
+      const todayDate=todayStr();
+      const myShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayDate);
+      const branch=myShift?.branch??0;
+      let pendingCount=0;
+      try{
+        const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
+        if(todoSnap.exists()){
+          pendingCount=(todoSnap.data().tasks||[]).filter(t=>!t.done).length;
+        }else{
           pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
         }
       }catch(e2){
