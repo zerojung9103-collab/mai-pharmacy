@@ -1421,8 +1421,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.4.1';
+const APP_VERSION='3.4.2';
 const CHANGELOG=[
+  {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
   {v:'3.3.4',date:'2026-06-25',changes:['ฉลากยาต่างชาติ: กันพลาดตอนพิมพ์ — ถ้าเบราว์เซอร์บล็อก popup หน้าต่างพิมพ์ จะแจ้งเตือนแทนที่จะ error เงียบ ๆ']},
@@ -2062,50 +2063,7 @@ function capsuleMascot(size,color){
 
 // ===== ข้อความน้องแคปซูล (กวนๆ แข็งๆ ตลกๆ เรียกตัวเอง "ข้า" เรียก user "เจ้า") =====
 let capMessages=[]; // ข้อความที่เจ้าของกำหนดเอง (โหลดจาก config/capsuleMessages)
-function capsuleSays(todayShift){
-  const dc=todayColor();
-  const hr=new Date().getHours();
-  // ทักทายตามเวลา
-  const morning=[
-    'อรุณสวัสดิ์เจ้า ข้าเฝ้าร้านมาทั้งคืน เจ้าเพิ่งโผล่มาเนี่ยนะ',
-    'เช้าแล้วเจ้า ลุกขึ้นมาทำมาหากินซะ ข้าหิวข้าวแทนเจ้าเลย',
-    'เจ้ามาแต่เช้าเชียว ข้าเริ่มเกรงใจในความขยันของเจ้าแล้ว'
-  ];
-  const afternoon=[
-    'บ่ายแล้วเจ้า ง่วงรึยัง ข้านี่แทบหลับคาเคาน์เตอร์',
-    'เที่ยงวันแสกๆ เจ้ากินข้าวรึยัง ข้าไม่อยากได้ยินเสียงท้องเจ้าร้อง',
-    'บ่ายโมงแล้วเจ้า อย่ามัวอู้ ข้าจับตาดูอยู่นะ'
-  ];
-  const evening=[
-    'เย็นแล้วเจ้า ใกล้ได้กลับบ้านแล้ว อดทนอีกนิดนะเจ้า',
-    'ค่ำแล้วเจ้า วันนี้เหนื่อยไหม ข้าก็เหนื่อย... แต่ข้ายืนเฉยๆ',
-    'เย็นย่ำแล้วเจ้า เก็บร้านให้เรียบร้อยล่ะ ข้าจะได้พักสายตา'
-  ];
-  // ถ้ามีเวรวันนี้
-  if(todayShift){
-    const shiftMsgs=[
-      `วันนี้เจ้ามีเวร ${todayShift.start} น. เช็คอินซะ อย่าให้ข้าต้องทวง`,
-      `เวรเจ้าเริ่ม ${todayShift.start} น. นะ ข้าจดไว้แล้ว หนีไม่พ้นข้าหรอก`,
-      `${todayShift.start} น. เจ้าต้องเข้าเวร ข้าเตือนแล้วนะ อย่ามาบอกว่าลืม`
-    ];
-    return shiftMsgs[Math.floor(Math.random()*shiftMsgs.length)];
-  }
-  // สุ่มข้อความกวนๆ ทั่วไป
-  const general=[
-    'เจ้ามาแล้วหรือ ข้าเฝ้าร้านจนจะเป็นสนิมอยู่แล้ว',
-    'ขยันนักนะเจ้า ข้าเริ่มเกรงใจแล้วเนี่ย',
-    'วันนี้ยอดขายต้องพุ่ง ข้าสั่งได้... แค่ขอนะ',
-    'ยิ้มไว้ก่อนนะเจ้า ลูกค้าชอบร้านยิ้มแย้ม',
-    'เจ้าทำงานไป ข้าเฝ้ามองอยู่ตรงนี้ อย่าทำตัวแปลกๆ ล่ะ',
-    'เหนื่อยก็พักได้นะเจ้า แต่อย่าพักนานจนข้าเหงา'
-  ];
-  // ข้อความที่เจ้าของกำหนดเอง (เฉพาะที่เปิดใช้) — ถ้ามี ใช้แทนทั้งหมด
-  const custom=(capMessages||[]).filter(m=>m.enabled).map(m=>m.text);
-  if(custom.length)return custom[Math.floor(Math.random()*custom.length)];
-  const pool=hr<12?morning:hr<17?afternoon:evening;
-  const all=pool.concat(general);
-  return all[Math.floor(Math.random()*all.length)];
-}
+function capsuleSays(){ return ''; }
 const PERM_LABELS={
   schedule:'ดู/แก้ไขตารางเวร',
   sales:'บันทึกยอดขาย',
@@ -4419,7 +4377,7 @@ window.selectPRPerson=async function(uid){
       }
     }
   });
-  const hours=Math.round((rawHours-lateDeduction)*10)/10;
+  const hours=Math.max(0,Math.round((rawHours-lateDeduction)*10)/10); // กันชั่วโมงติดลบ (ถ้าหักสายเกินชั่วโมงทำงาน)
 
   // โหลด record ที่บันทึกไว้
   let saved=null;
@@ -5303,9 +5261,6 @@ function renderHome(){
   const myName=profile?.nickname||profile?.firstName||'คุณ';
   const today=todayStr();
   const todayShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
-  let bubble,bubbleSerious=false;
-  if(window._activeAnnounce){bubble=`📢 ${window._activeAnnounce}`;bubbleSerious=true;}
-  else{bubble=capsuleSays(todayShift);}
 
   // ===== Header: ทักทาย + อวตาร =====
   let html=`<div style="max-width:1080px;margin:0 auto"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
@@ -7297,8 +7252,11 @@ function flGetBlockText(block){
       }).filter(Boolean).join(' | ');
     }
     case 'date':{
-      const today=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});
-      return 'วันที่จ่ายยา: '+today;
+      const d=new Date();
+      const pad=n=>String(n).padStart(2,'0');
+      const dmy=`${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()}`;
+      const label=lang==='zh'?'配药日期: ':lang==='my'?'ဆေးထုတ်သည့်ရက်: ':'Date dispensed: ';
+      return label+dmy;
     }
     case 'custom': return block.customText||'';
     default: return '';
