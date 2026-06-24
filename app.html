@@ -1314,8 +1314,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.4.1';
+const APP_VERSION='2.4.2';
 const CHANGELOG=[
+  {v:'2.4.2',date:'2026-06-24',changes:['หน้าหลัก: จำกัดความกว้าง + พื้นครีม ไม่เขียวล้นจอ','การ์ดเมนูเป็นแนวนอนกระชับ ไอคอนชิปสีแยกตามหมวด (มินต์/ม่วง/โรส/ฟ้า)']},
   {v:'2.4.1',date:'2026-06-24',changes:['เอาระบบสีเปลี่ยนตามวันออก — ล็อกเป็นสีมินต์ของธีมเสมอ','ปรับกล่องสีเด่น/มาสคอต/ค่าเริ่มต้นให้เข้าพาเลตใหม่']},
   {v:'2.4.0',date:'2026-06-24',changes:['ดีไซน์ใหม่: พาเลตครีม-มินต์-โรส ดูแพงขึ้น','หัวข้อใช้ฟอนต์ Serif ไทย (Noto Serif Thai) แทน Itim','Sidebar เขียวเข้มหรู โหมดผู้ดูแลระบบ','ปรับไอคอน/การ์ดให้ประณีตขึ้น','Dark mode = Midnight Mint']},
   {v:'2.2.10',date:'2026-06-24',changes:['งานวันนี้ใช้สาขาจาก branchIn (เช็คอินจริง) แทนตารางเวร — ถ้ายังไม่เช็คอินจะแสดง "กรุณาเช็คอินก่อน" + ปุ่มพาไปหน้าเช็คอิน, notification บนหน้าแรกก็ใช้ branchIn เช่นกัน — ถ้ายังไม่เช็คอินจะไม่แสดง notification งาน']},
@@ -1505,8 +1506,8 @@ function applyDayTheme(){
   // อัปเดต theme-color (แถบสถานะมือถือ)
   const tc=document.querySelector('meta[name="theme-color"]');
   if(tc)tc.setAttribute('content',dc.grad[0]);
-  // พื้นหลังแอปทั้งหมด — ทาบสีวันแบบจางมาก ไล่ระดับเบาๆ (ไม่แตะปุ่ม/สีฟังก์ชัน)
-  document.body.style.background=`linear-gradient(160deg,${hexA(dc.main,.05)},${hexA(dc.main,.09)} 70%)`;
+  // พื้นหลังแอป = สีธีม (ครีม/มิดไนต์) — ไม่ทาบสีตามวันอีกต่อไป
+  document.body.style.background='';
   // ไอคอนปุ่มแคปซูลลอย
   const cfIcon=document.getElementById('capsule-fab-icon');
   if(cfIcon)cfIcon.innerHTML=capsuleMascot(32,dc.main);
@@ -5020,7 +5021,7 @@ function renderHome(){
   else{bubble=capsuleSays(todayShift);}
 
   // ===== Header: ทักทาย + อวตาร =====
-  let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+  let html=`<div style="max-width:1080px;margin:0 auto"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
     <div>
       <div style="font-size:13px;color:var(--text3)">${greet}</div>
       <div style="font-size:25px;font-weight:600;font-family:var(--disp);color:var(--text)">${myName}</div>
@@ -5065,20 +5066,26 @@ function renderHome(){
 
   // ===== เมนูจัดกลุ่มตามหมวด =====
   const order=currentMenuOrder();
-  const catTint={mywork:'#DBF5EC',sales:'#ECE9FF',admin:'#FFEAE1',more:'#E0F4FE'};
+  const catStyle={
+    mywork:{chip:'var(--green-l)',ic:'var(--green-d)'},
+    sales:{chip:'var(--purple-l)',ic:'var(--purple-t)'},
+    admin:{chip:'var(--rose-l)',ic:'var(--rose-d)'},
+    more:{chip:'var(--blue-l)',ic:'var(--blue-t)'}
+  };
   CATEGORIES.forEach(cat=>{
     const feats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&f.cat===cat.id&&featureShow(f));
     if(!feats.length)return;
-    html+=`<div style="display:flex;align-items:center;gap:8px;font-family:var(--disp);font-size:16px;color:var(--text2);margin:1.4rem 2px .7rem"><span style="font-size:17px">${cat.icon}</span>${cat.label}</div>`;
-    html+=`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
-      ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:.9rem .5rem;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:var(--font);transition:.15s;width:100%" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.transform='';this.style.boxShadow='none'">
-        <span style="width:44px;height:44px;border-radius:15px;background:${catTint[cat.id]||'#DBF5EC'};display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
-        <span style="font-size:11px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3">${f.label}</span>
+    const cs=catStyle[cat.id]||catStyle.mywork;
+    html+=`<div style="font-family:var(--disp);font-weight:600;font-size:17px;color:var(--text);margin:1.6rem 2px .8rem;display:flex;align-items:center;gap:9px"><span style="font-size:16px">${cat.icon}</span>${cat.label}</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px">
+      ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;display:flex;align-items:center;gap:13px;cursor:pointer;font-family:var(--font);text-align:left;transition:.15s;width:100%;box-shadow:var(--shadow)" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
+        <span style="width:46px;height:46px;border-radius:14px;background:${cs.chip};color:${cs.ic};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${f.icon}</span>
+        <span style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
       </button>`).join('')}
     </div>`;
   });
 
-  el.innerHTML=html;
+  el.innerHTML=html+'</div>';
 }
 
 // ===== ผู้ช่วยส่วนตัว (แตะการ์ดทักทาย) — ตอบจากข้อมูลจริงในระบบ ไม่ใช่ AI ภายนอก =====
