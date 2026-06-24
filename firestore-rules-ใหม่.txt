@@ -26,8 +26,10 @@ service cloud.firestore {
       allow read: if signedIn();
       // สมัครสมาชิกครั้งแรก: สร้าง doc ของตัวเองได้
       allow create: if signedIn() && request.auth.uid == uid;
-      // แก้ไข: เฉพาะ admin (กันพนักงานแก้เงินเดือน/สิทธิ์ตัวเอง)
-      allow update, delete: if isAdmin();
+      // แก้ไข: admin แก้ได้ทุกอย่าง / พนักงานแก้ได้เฉพาะ userTheme ของตัวเอง
+      allow update: if isAdmin()
+        || (request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userTheme']));
     }
 
     // ===== payroll (เงินเดือน — อ่อนไหวมาก) =====
@@ -173,10 +175,23 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ===== labelMaster (ฐานข้อมูลชื่อยา/วิธีใช้/สรรพคุณ/คำเตือน) =====
+    // ===== labelMaster =====
     match /labelMaster/{docId} {
-      allow read: if signedIn();   // ทุกคนที่ล็อกอินดูข้อมูลได้
-      allow write: if isAdmin();   // เฉพาะ admin นำเข้า/อัปเดตข้อมูลได้
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== todoTemplates (template งานประจำวัน — admin สร้าง) =====
+    match /todoTemplates/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== todos (งานรายวันต่อสาขา — ทุกคน toggle ได้) =====
+    match /todos/{docId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn();
+      allow delete: if isAdmin();
     }
 
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====

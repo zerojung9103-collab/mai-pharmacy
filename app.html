@@ -1282,8 +1282,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.8';
+const APP_VERSION='2.2.10';
 const CHANGELOG=[
+  {v:'2.2.10',date:'2026-06-24',changes:['งานวันนี้ใช้สาขาจาก branchIn (เช็คอินจริง) แทนตารางเวร — ถ้ายังไม่เช็คอินจะแสดง "กรุณาเช็คอินก่อน" + ปุ่มพาไปหน้าเช็คอิน, notification บนหน้าแรกก็ใช้ branchIn เช่นกัน — ถ้ายังไม่เช็คอินจะไม่แสดง notification งาน']},
+  {v:'2.2.9',date:'2026-06-24',changes:['แก้ To Do notification ขึ้น 2 อัน — อีกแชทเพิ่ม block แจ้งเตือนซ้อนทับของเดิมโดยไม่ลบออก ลบ block ซ้ำออกแล้ว เหลือแค่อันเดียวที่ดีกว่า (มี loadTodoTemplates check)']},
   {v:'2.2.8',date:'2026-06-24',changes:['แก้ resetTesterCheckin: เปลี่ยนจาก deleteDoc เป็น setDoc เขียนทับด้วยข้อมูลว่าง (ไม่มี checkIn/checkOut) — ใช้ rule update ปกติได้เลย ไม่ต้อง rule พิเศษ, ลบ definition ซ้ำ 3 อัน (bug จากอีกแชท) เหลือแค่อันเดียว, คืน Firestore rules checkins delete กลับเป็น isAdmin() เท่านั้น']},
   {v:'2.2.7',date:'2026-06-24',changes:[
     'To Do List: แก้ popup ไม่ขึ้นสาขาทรัพย์พัฒนา (index=0) — แก้เงื่อนไข rebuild doc ที่ตรวจ todoTemplates.length===0 ผิด ควรเป็น >0',
@@ -5964,45 +5966,26 @@ async function checkNotifications(){
 
     // ===== แจ้งเตือน To Do List ค้าง =====
     try{
-      const todayDate=todayStr();
-      const myShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayDate);
-      const branch=myShift?.branch??0;
-      let pendingCount=0;
-      try{
-        const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
-        if(todoSnap.exists()){
-          pendingCount=(todoSnap.data().tasks||[]).filter(t=>!t.done).length;
-        }else{
-          // ยังไม่มี doc → นับจาก template recurring ที่ตรงกับสาขา
-          pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
-        }
-      }catch(e2){
-        pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
-      }
-      if(pendingCount>0){
-        alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pendingCount} รายการ`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
-      }
-    }catch(e){}
-
-    // ===== แจ้งเตือน To Do List ค้าง =====
-    try{
       if(!todoTemplates.length) await loadTodoTemplates();
       const todayDate=todayStr();
-      const myShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayDate);
-      const branch=myShift?.branch??0;
-      let pendingCount=0;
-      try{
-        const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
-        if(todoSnap.exists()){
-          pendingCount=(todoSnap.data().tasks||[]).filter(t=>!t.done).length;
-        }else{
+      // ใช้ branchIn จาก checkin จริง — ถ้ายังไม่ได้เช็คอินไม่แสดง notification งาน
+      const ciRec=window._myCheckinToday;
+      if(ciRec?.checkIn){
+        const branch=ciRec.branchIn??0;
+        let pendingCount=0;
+        try{
+          const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
+          if(todoSnap.exists()){
+            pendingCount=(todoSnap.data().tasks||[]).filter(t=>!t.done).length;
+          }else{
+            pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
+          }
+        }catch(e2){
           pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
         }
-      }catch(e2){
-        pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
-      }
-      if(pendingCount>0){
-        alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pendingCount} รายการ`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
+        if(pendingCount>0){
+          alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pendingCount} รายการ (สาขา${BRANCHES[branch]})`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
+        }
       }
     }catch(e){}
   }catch(e){console.error('checkNotifications',e);}
@@ -7312,11 +7295,33 @@ function makeTaskFromTemplate(t){
 
 // === หน้า Todo ===
 async function loadTodoPage(){
-  // หาสาขาที่เวรวันนี้ หรือให้เลือกเอง
   const today=todayStr();
-  const myShift=shifts.find(s=>s.staffId===currentUser.uid&&s.date===today);
-  const branch=myShift?.branch??0;
+  const el=document.getElementById('todo-page-content');
   const sub=document.getElementById('todo-page-sub');
+
+  // โหลด checkin วันนี้ก่อน
+  let rec=window._myCheckinToday;
+  if(!rec){
+    try{const d=await getDoc(doc(db,'checkins',todayCheckinId()));if(d.exists())rec=d.data();}catch(e){}
+    window._myCheckinToday=rec||null;
+  }
+
+  // ถ้ายังไม่ได้เช็คอิน → แสดงข้อความให้ไปเช็คอินก่อน
+  if(!rec?.checkIn){
+    if(sub)sub.textContent=today+' · ยังไม่ได้เช็คอิน';
+    const addBtn=document.getElementById('todo-add-btn');
+    if(addBtn)addBtn.style.display='none';
+    if(el)el.innerHTML=`<div style="text-align:center;padding:3rem">
+      <div style="font-size:52px;margin-bottom:1rem">📍</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text2);margin-bottom:8px">กรุณาเช็คอินก่อน</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:1.25rem">รายการงานจะแสดงตามสาขาที่คุณเช็คอิน</div>
+      <button class="btn btn-primary" onclick="goto('checkin')">📍 ไปหน้าเช็คอิน</button>
+    </div>`;
+    return;
+  }
+
+  // ได้ branchIn จาก checkin จริง
+  const branch=rec.branchIn??0;
   if(sub)sub.textContent=`${today} · สาขา${BRANCHES[branch]}`;
   const addBtn=document.getElementById('todo-add-btn');
   if(addBtn)addBtn.style.display=isAdmin?'inline-flex':'none';
