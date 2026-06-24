@@ -11,22 +11,22 @@
 <meta name="apple-mobile-web-app-title" content="ใหม่เภสัช">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#16B981;--green-d:#0F8A63;--green-dd:#066046;--green-l:#DCFAEF;--green-ll:#EFFCF7;
+  --green:#2BC79A;--green-d:#179B77;--green-dd:#0C6B51;--green-l:#DBF5EC;--green-ll:#EEFAF5;
   --blue:#3B8EEA;--blue-d:#1E63B5;--blue-l:#E3F0FE;--blue-t:#0C447C;
   --amber:#F7A823;--amber-l:#FDF0D8;--amber-t:#7A4E06;
   --purple:#8B7FF0;--purple-l:#EFEDFE;--purple-t:#3C3489;
   --red:#F0524F;--red-l:#FDEAEA;--red-t:#A32D2D;
   --pink:#EC4899;--pink-l:#FCE7F3;--pink-t:#9D174D;
   --teal:#14B8C4;--teal-l:#D7F6F8;--teal-t:#0B5E66;
-  --bg:#F5F5F7;--surface:#fff;--border:#ECECEF;--border2:#DEDEE3;
-  --text:#1D1D1F;--text2:#6E6E73;--text3:#A1A1A8;
-  --r:16px;--rl:22px;--font:'Noto Sans Thai',-apple-system,system-ui,sans-serif;
-  --shadow:0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.05);
-  --shadow-md:0 2px 8px rgba(0,0,0,.05),0 10px 32px rgba(0,0,0,.07);
+  --bg:#EAF6F0;--surface:#FFFFFF;--border:#E4F0EA;--border2:#D3E5DD;
+  --text:#1E3A33;--text2:#5E7A72;--text3:#9FB7AE;
+  --r:18px;--rl:24px;--font:'Noto Sans Thai',-apple-system,system-ui,sans-serif;--disp:'Itim',cursive;
+  --shadow:0 4px 14px rgba(43,160,130,.08),0 1px 3px rgba(43,160,130,.05);
+  --shadow-md:0 10px 28px rgba(43,160,130,.13),0 4px 12px rgba(43,160,130,.08);
   --grad-green:linear-gradient(135deg,#16B981,#0EA472);
   --grad-blue:linear-gradient(135deg,#3B8EEA,#2D6FD4);
   --grad-amber:linear-gradient(135deg,#F7A823,#F08C1A);
@@ -34,12 +34,14 @@
   --grad-pink:linear-gradient(135deg,#EC4899,#DB2777);
 }
 body.dark{
-  --bg:#16161A;--surface:#1F1F24;--border:#2C2C32;--border2:#3A3A42;
-  --text:#F0F0F2;--text2:#A8A8B0;--text3:#76767E;
-  --green-l:#0F3D30;--green-ll:#0A2A22;
-  --blue-l:#0F2A47;--amber-l:#3D2E0A;--purple-l:#251F4A;--red-l:#3D1717;--pink-l:#3D1228;--teal-l:#0A3033;
-  --shadow:0 1px 2px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.35);
-  --shadow-md:0 2px 8px rgba(0,0,0,.3),0 10px 32px rgba(0,0,0,.4);
+  --green:#2FE0A4;--green-d:#22C88F;--green-dd:#7FEDC9;
+  --bg:#0E1413;--surface:#151D1B;--border:#222D29;--border2:#2F3B37;
+  --text:#E7EEEA;--text2:#9CABA5;--text3:#6A7872;
+  --green-l:#123127;--green-ll:#0D241D;
+  --blue-l:#0F2A47;--blue-t:#9CC4F5;--amber-l:#3A2C0A;--amber-t:#F0C679;--purple-l:#251F4A;--purple-t:#BBB2F5;--red-l:#3A1616;--red-t:#F2A6A4;--pink-l:#3A1126;--pink-t:#F3A8CE;--teal-l:#0A3033;--teal-t:#7FD9DF;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.4);
+  --shadow-md:0 4px 14px rgba(0,0,0,.4),0 16px 38px rgba(0,0,0,.5);
+  --grad-green:linear-gradient(135deg,#2FE0A4,#19B98A);
 }
 body.dark .topbar-desktop{background:var(--surface);border-color:var(--border)}
 body.dark .tbd-search{background:var(--bg);border-color:var(--border2)}
@@ -58,7 +60,7 @@ body.dark .drag-row{background:var(--bg)}
 .fl-lang-btn{opacity:.55}
 .fl-lang-btn.active{opacity:1;background:var(--green);color:#fff;border-color:var(--green)}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(165deg,#0F2922,#16202E 60%,#1A1530);display:flex;flex-direction:column;z-index:100}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(180deg,#1E9E79,#136B53);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.08)}
 .sb-brand{padding:1.5rem 1.25rem 1.25rem;padding-top:calc(1.5rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.07)}
 .sb-icon{width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.75rem}
 .sb-brand h1{font-size:16px;font-weight:700;color:#fff}
@@ -67,7 +69,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sb-sec{font-size:10px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:.1em;text-transform:uppercase;padding:.75rem .75rem .35rem;margin-top:.25rem}
 .sb-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;transition:.12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
-.sb-item.active{background:var(--green);color:#fff;box-shadow:0 2px 10px rgba(22,185,129,.3)}
+.sb-item.active{background:#fff;color:#0C6B51;font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,.14)}
 .sb-item.hidden{display:none}
 .sb-item svg{width:17px;height:17px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.07)}
@@ -89,7 +91,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .card-title{font-size:15px;font-weight:600;margin-bottom:.25rem}
 .card-sub{font-size:12px;color:var(--text3);margin-bottom:1rem}
 .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:1.25rem}
-.mcard{background:var(--surface);border:none;border-radius:var(--rl);padding:1.3rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+.mcard{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.3rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
 .mcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .mcard-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:.85rem}
 .mcard.c-green .mcard-icon{background:var(--green-l);color:var(--green-dd)}
@@ -239,8 +241,8 @@ textarea{resize:vertical;min-height:64px}
 .tbd-brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
 .tbd-icon{width:30px;height:30px;border-radius:9px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:15px}
 .tbd-brand-name{font-size:14px;font-weight:700;color:var(--text)}
-.tbd-search{flex:1;max-width:420px;display:flex;align-items:center;gap:10px;border:1.5px solid var(--border2);border-radius:999px;padding:9px 16px;cursor:pointer;color:var(--text3);font-size:13px;transition:.12s;background:#FAFBFB}
-.tbd-search:hover{border-color:var(--green);background:#fff}
+.tbd-search{flex:1;max-width:420px;display:flex;align-items:center;gap:10px;border:1.5px solid var(--border2);border-radius:999px;padding:9px 16px;cursor:pointer;color:var(--text3);font-size:13px;transition:.12s;background:var(--bg)}
+.tbd-search:hover{border-color:var(--green);background:var(--surface)}
 .tbd-search kbd{margin-left:auto;font-size:10.5px;border:1px solid var(--border2);border-radius:6px;padding:1px 6px;color:var(--text3);font-family:var(--font)}
 .tbd-spacer{flex:1}
 .cmdk-input{width:100%;font-family:var(--font);font-size:15px;padding:12px 14px;border:1.5px solid var(--border2);border-radius:12px;outline:none;margin-bottom:.75rem}
@@ -284,7 +286,7 @@ textarea{resize:vertical;min-height:64px}
 .cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--text3);padding:8px 0;letter-spacing:.04em;min-width:0;overflow:hidden}
 .dow-short{display:none}
 .cal-cell{background:var(--surface);border:1px solid var(--border);border-radius:10px;min-height:120px;min-width:0;padding:6px;display:flex;flex-direction:column;gap:3px;transition:.12s;position:relative}
-.cal-cell.other-month{background:#FAFBFB;opacity:.5}
+.cal-cell.other-month{background:var(--bg);opacity:.5}
 .cal-cell.today{border-color:var(--green);border-width:2px;box-shadow:0 0 0 3px rgba(29,158,117,.08)}
 .cal-cell:hover{border-color:var(--border2)}
 .cal-date{font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;justify-content:space-between}
@@ -320,10 +322,35 @@ textarea{resize:vertical;min-height:64px}
 .pr-line-input{width:140px;text-align:right}
 .pr-line-add{color:var(--green-d);font-weight:600}
 .pr-line-ded{color:var(--red-t);font-weight:600}
-.pr-net-box{background:linear-gradient(135deg,#085041,#1D9E75);border-radius:12px;padding:1.5rem;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+.pr-net-box{background:linear-gradient(135deg,#179B77,#2BC79A);border-radius:20px;padding:1.5rem;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
 .pr-net-box .lbl{font-size:13px;opacity:.85}
 .pr-net-box .val{font-size:30px;font-weight:700}
 .pr-extra-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+/* ===== Cute theme overrides ===== */
+.page-title{font-family:var(--disp);font-weight:400;letter-spacing:0}
+.sb-brand h1,.tbd-brand-name{font-family:var(--disp);font-weight:400}
+.mcard-val{font-family:var(--disp);font-weight:400;letter-spacing:0}
+.btn{border-radius:13px}.btn-sm{border-radius:11px}
+.tbd-icon{background:var(--green-l)}
+body.dark .sidebar{background:linear-gradient(180deg,#10302A,#0A1E1A)}
+body.dark .sb-item.active{background:rgba(47,224,164,.16);color:#7FEDC9;box-shadow:0 0 18px rgba(47,224,164,.18)}
+input,select,textarea{border-radius:14px}
+.cmdk-input{border-radius:16px}
+.tabs{border-radius:16px;padding:4px}
+.tab{border-radius:13px;padding:7px 18px}
+.branch-tab{border-radius:13px}
+.week-btn{border-radius:12px}
+.cal-cell{border-radius:15px}
+.cal-shift{border-radius:9px}
+.cal-add{border-radius:9px}
+.mcard-icon{border-radius:13px}
+.cmdk-row{border-radius:13px}
+.toast{border-radius:14px}
+.badge{border-radius:16px}
+.card-title{font-family:var(--disp);font-weight:400;font-size:16px}
+.week-lbl{font-family:var(--disp);font-weight:400}
+.btn-primary{box-shadow:0 4px 14px rgba(43,199,154,.3)}
+.mcard:hover{transform:translateY(-3px)}
 </style>
 <!-- QZ Tray: silent label printing library -->
 <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
@@ -1282,8 +1309,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.10';
+const APP_VERSION='3.0.0';
 const CHANGELOG=[
+  {v:'3.0.0',date:'2026-06-24',changes:['ใหม่เภสัช v3.0.0 — รวม features ทั้งหมดจาก v2.x: UI Redesign (dark/light mode, per-user theme, bottom nav ใหม่), ระบบ To Do List (template งานประจำวัน+งานพิเศษ, smart auto-check จาก sales/cashcounts/purselogs, feature picker), งานวันนี้ใช้สาขาจากการเช็คอินจริง, tester role, ฉลากยาต่างชาติ (Auto Size Engine v2, Template C, QZ Tray), แก้ bugs จาก code review รอบสำคัญ']},
   {v:'2.2.10',date:'2026-06-24',changes:['งานวันนี้ใช้สาขาจาก branchIn (เช็คอินจริง) แทนตารางเวร — ถ้ายังไม่เช็คอินจะแสดง "กรุณาเช็คอินก่อน" + ปุ่มพาไปหน้าเช็คอิน, notification บนหน้าแรกก็ใช้ branchIn เช่นกัน — ถ้ายังไม่เช็คอินจะไม่แสดง notification งาน']},
   {v:'2.2.9',date:'2026-06-24',changes:['แก้ To Do notification ขึ้น 2 อัน — อีกแชทเพิ่ม block แจ้งเตือนซ้อนทับของเดิมโดยไม่ลบออก ลบ block ซ้ำออกแล้ว เหลือแค่อันเดียวที่ดีกว่า (มี loadTodoTemplates check)']},
   {v:'2.2.8',date:'2026-06-24',changes:['แก้ resetTesterCheckin: เปลี่ยนจาก deleteDoc เป็น setDoc เขียนทับด้วยข้อมูลว่าง (ไม่มี checkIn/checkOut) — ใช้ rule update ปกติได้เลย ไม่ต้อง rule พิเศษ, ลบ definition ซ้ำ 3 อัน (bug จากอีกแชท) เหลือแค่อันเดียว, คืน Firestore rules checkins delete กลับเป็น isAdmin() เท่านั้น']},
