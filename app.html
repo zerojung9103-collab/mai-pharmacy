@@ -282,6 +282,11 @@ textarea{resize:vertical;min-height:64px}
 .bn-item.active i{transform:translateY(-1px) scale(1.08)}
 .bn-item.active::before{content:'';position:absolute;top:0;width:28px;height:3px;border-radius:0 0 4px 4px;background:var(--grad-green)}
 .bn-item:active{transform:scale(.92)}
+/* ปุ่มเช็คอินกลาง (FAB) */
+.bn-fab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;background:none;border:none;cursor:pointer;color:var(--green-d);font-family:var(--font);font-size:10px;font-weight:700;position:relative;max-width:84px;padding:0}
+.bn-fab i{width:54px;height:54px;margin-top:-24px;border-radius:18px;background:var(--grad-green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:27px;box-shadow:0 8px 18px rgba(18,124,98,.42);transition:.15s}
+.bn-fab:active i{transform:scale(.93)}
+.bn-fab.active i{box-shadow:0 8px 22px rgba(18,124,98,.55)}
 @media(min-width:769px){.bottom-nav{display:none!important}}
 /* Skeleton loading */
 .skeleton{background:var(--border);background:linear-gradient(90deg,var(--border) 25%,var(--bg) 50%,var(--border) 75%);background-size:200% 100%;animation:skel 1.3s ease-in-out infinite;border-radius:8px}
@@ -1401,8 +1406,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.1.0';
+const APP_VERSION='3.2.0';
 const CHANGELOG=[
+  {v:'3.2.0',date:'2026-06-24',changes:['ออกแบบหน้าแรกใหม่ — แยกโซน “ใช้บ่อย” (การ์ดใหญ่กดง่าย) · “เครื่องมือเภสัช” · “จัดการร้าน” (admin) ให้หาเมนูง่ายขึ้น','Bottom nav ใหม่ — เหลือเฉพาะที่ใช้จริง + ปุ่มเช็คอินกลางเด่น (FAB) · ปุ่มที่ 2 ปรับตาม role','หน้า “เพิ่มเติม” รวมเมนูใช้นานๆ ครั้ง จัดเป็นหมวด (งานของฉัน/เครื่องมือ/จัดการร้าน/บัญชี)']},
   {v:'3.1.0',date:'2026-06-24',changes:['เพิ่มหน้าประวัติการขาย (admin) — กรองรายวัน/รายเดือน/รายปี, เลือกดูทุกสาขาพร้อมกันหรือทีละสาขา, ตารางแสดงยอด+บิล+เฉลี่ยต่อบิล, แก้ไขย้อนหลังได้ทันที; เพิ่มช่อง "จำนวนบิล" ในฟอร์มบันทึกยอดขายต่อสาขา พร้อมแสดงยอดเฉลี่ยต่อบิล']},
   {v:'3.0.0',date:'2026-06-24',changes:['ใหม่เภสัช v3.0.0 — Major release: ธีมใหม่ Elegant (ครีม/มินต์/โรส), ฟอนต์ IBM Plex Sans Thai + Noto Serif Thai, เมนูหน้าแรกจัดกลุ่มตามหมวด, dark mode Midnight Mint, To Do List (smart auto-check), ฉลากยาต่างชาติ Auto Size Engine v2, tester role, งานวันนี้ใช้ branchIn จากเช็คอินจริง']},
   {v:'2.7.7',date:'2026-06-24',changes:['พนักงานเห็นแค่หมายเลขเวอร์ชัน · ผู้ดูแลระบบเห็นประวัติการอัปเดตทั้งหมด']},
@@ -1538,27 +1544,55 @@ const CATEGORIES=[
   {id:'admin',label:'บริหาร',icon:'🛠️'},
   {id:'more',label:'เพิ่มเติม',icon:'⋯'},
 ];
+// zone: daily=ใช้บ่อย(การ์ดใหญ่) · tool=เครื่องมือเภสัช · admin=จัดการร้าน · more=เพิ่มเติม(หน้ารวม)
 const FEATURE_DEFS=[
-  {page:'checkin',icon:'📍',label:'ลงเวลา',color:'#16B981',cat:'mywork',perm:null},
-  {page:'todo',icon:'✅',label:'งานวันนี้',color:'#3B8EEA',cat:'mywork',perm:null},
-  {page:'schedule',icon:'📅',label:'ตารางเวร',color:'#3B8EEA',cat:'mywork',perm:'schedule'},
-  {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',cat:'mywork',perm:null},
-  {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',cat:'mywork',perm:null},
-  {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'mywork',perm:'payroll_self'},
-  {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',cat:'sales',perm:'sales'},
-  {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',color:'#EC4899',cat:'sales',perm:'dashboard_admin'},
-  {page:'sales-history',icon:'📋',label:'ประวัติการขาย',color:'#534AB7',cat:'sales',perm:null},
-  {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',perm:'members'},
-  {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',perm:'payroll_all'},
-  {page:'checkin-history',icon:'🕐',label:'ประวัติลงเวลา',color:'#534AB7',cat:'admin',perm:'checkin_all'},
-  {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',cat:'admin',perm:'leave_admin'},
-  {page:'activity',icon:'📜',label:'ประวัติใช้งาน',color:'#888780',cat:'admin',perm:'activity_admin'},
-  {page:'articles',icon:'📖',label:'บทความ',color:'#D4537E',cat:'more',perm:null},
-  {page:'dosecalc',icon:'💊',label:'คำนวณยา',color:'#639922',cat:'more',perm:null},
-  {page:'drugwarn',icon:'⚠️',label:'คำเตือนยา',color:'#D4690E',cat:'more',perm:null},
-  {page:'foreignlabel',icon:'🌏',label:'ฉลากยาต่างชาติ',color:'#3B8EEA',cat:'sales',perm:null},
-  {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',cat:'more',perm:null},
+  {page:'checkin',icon:'📍',label:'ลงเวลา',color:'#16B981',cat:'mywork',zone:'daily',perm:null},
+  {page:'todo',icon:'✅',label:'งานวันนี้',color:'#3B8EEA',cat:'mywork',zone:'daily',perm:null},
+  {page:'schedule',icon:'📅',label:'ตารางเวร',color:'#3B8EEA',cat:'mywork',zone:'more',perm:'schedule'},
+  {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',cat:'mywork',zone:'daily',perm:null},
+  {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',cat:'mywork',zone:'more',perm:null},
+  {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'mywork',zone:'more',perm:'payroll_self'},
+  {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',cat:'sales',zone:'daily',perm:'sales'},
+  {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
+  {page:'sales-history',icon:'📋',label:'ประวัติการขาย',color:'#534AB7',cat:'sales',zone:'admin',perm:null},
+  {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',zone:'admin',perm:'members'},
+  {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',zone:'admin',perm:'payroll_all'},
+  {page:'checkin-history',icon:'🕐',label:'ประวัติลงเวลา',color:'#534AB7',cat:'admin',zone:'admin',perm:'checkin_all'},
+  {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',cat:'admin',zone:'admin',perm:'leave_admin'},
+  {page:'activity',icon:'📜',label:'ประวัติใช้งาน',color:'#888780',cat:'admin',zone:'admin',perm:'activity_admin'},
+  {page:'articles',icon:'📖',label:'บทความ',color:'#D4537E',cat:'more',zone:'more',perm:null},
+  {page:'dosecalc',icon:'💊',label:'คำนวณยา',color:'#639922',cat:'more',zone:'tool',perm:null},
+  {page:'drugwarn',icon:'⚠️',label:'คำเตือนยา',color:'#D4690E',cat:'more',zone:'tool',perm:null},
+  {page:'foreignlabel',icon:'🌏',label:'ฉลากยาต่างชาติ',color:'#3B8EEA',cat:'sales',zone:'tool',perm:null},
+  {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',cat:'more',zone:'more',perm:null},
 ];
+const ZONE_PAL=[['var(--green-l)','var(--green-d)'],['var(--blue-l)','var(--blue-t)'],['var(--amber-l)','var(--amber-t)'],['var(--purple-l)','var(--purple-t)'],['var(--rose-l)','var(--rose-d)']];
+const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'ภาพรวมยอดขาย/กราฟ','sales-history':'ดู/แก้ยอดย้อนหลัง',foreignlabel:'แปลฉลาก/วิธีใช้',members:'พนักงาน/สิทธิ์/เงินเดือน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณตามน้ำหนัก/อายุ',drugwarn:'ข้อควรระวัง/ปฏิกิริยา',settings:'สาขา/GPS/ประเภทจ่าย'};
+function zoneFeatures(z){return FEATURE_DEFS.filter(f=>f.zone===z&&featureShow(f));}
+// แถวเมนูแบบรายการ (ไอคอนชิป + ชื่อ + คำบรรยาย)
+function featRowBtn(f,i){const pal=ZONE_PAL[i%ZONE_PAL.length];return `<button onclick="goto('${f.page}')" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;width:100%;cursor:pointer;font-family:var(--font);text-align:left;box-shadow:var(--shadow);margin-bottom:9px">
+    <span style="width:40px;height:40px;border-radius:12px;background:${pal[0]};color:${pal[1]};display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${f.icon}</span>
+    <span style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600;color:var(--text)">${f.label}</div><div style="font-size:11px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${FEAT_DESC[f.page]||''}</div></span>
+    <span style="color:var(--text3);font-size:18px">›</span>
+  </button>`;}
+// การ์ดใหญ่ "ใช้บ่อย" (2 คอลัมน์)
+function featBigTile(f,i){const pal=ZONE_PAL[i%ZONE_PAL.length];return `<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow);min-height:104px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);width:100%">
+    <span style="width:44px;height:44px;border-radius:14px;background:${pal[0]};color:${pal[1]};display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
+    <span style="margin-top:auto"><div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.25">${f.label}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${FEAT_DESC[f.page]||''}</div></span>
+  </button>`;}
+// หน้า "เพิ่มเติม" จัดกลุ่มเป็นหมวด
+function renderMoreGrouped(){
+  const byPage={};FEATURE_DEFS.forEach(f=>byPage[f.page]=f);
+  const grp=(title,pages)=>{const fs=pages.map(p=>byPage[p]).filter(f=>f&&featureShow(f));if(!fs.length)return '';
+    return `<div style="font-family:var(--disp);font-weight:600;font-size:15px;color:var(--text2);margin:1.3rem 2px .7rem">${title}</div>${fs.map((f,i)=>featRowBtn(f,i)).join('')}`;};
+  let h='<div style="max-width:680px;margin:0 auto">';
+  h+=grp('งานของฉัน',['schedule','leave','my-payroll']);
+  h+=grp('เครื่องมือเภสัช',['dosecalc','drugwarn','foreignlabel','articles']);
+  if(isAdmin||zoneFeatures('admin').length) h+=grp('จัดการร้าน',['dashboard','sales-history','members','payroll','checkin-history','leave-admin','activity']);
+  h+=grp('บัญชี & ตั้งค่า',['settings']);
+  h+='</div>';
+  return h;
+}
 function featureShow(f){
   if(f.page==='sales-history')return isAdmin;
   return isAdmin||f.perm===null||hasPerm(f.perm);
@@ -1574,6 +1608,7 @@ function featureCardBtn(f){
 function renderCatPage(catId){
   const el=document.getElementById('cat-grid-'+catId);
   if(!el)return;
+  if(catId==='more'){el.innerHTML=renderMoreGrouped();return;}
   const feats=catFeatures(catId);
   if(!feats.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีเมนูในหมวดนี้สำหรับคุณ</div>';return;}
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">${feats.map(featureCardBtn).join('')}</div>`;
@@ -2245,17 +2280,23 @@ function buildSidebar(){
 function buildBottomNav(){
   const nav=document.getElementById('bottom-nav');
   if(!nav)return;
-  // ใช้ Tabler icon names แทน SVG path
-  const ic={home:'home',mywork:'calendar-event',sales:'chart-bar',admin:'users',more:'dots'};
-  const lbl={home:'หน้าแรก',mywork:'งานของฉัน',sales:'ขาย',admin:'บริหาร',more:'เพิ่มเติม'};
-  const navOrder=appearanceCfg.navOrder||APPEARANCE_DEFAULT.navOrder;
-  const navEnabled=appearanceCfg.navEnabled||APPEARANCE_DEFAULT.navEnabled;
-  let candidates=['home',...navOrder.filter(id=>navEnabled[id]!==false&&catFeatures(id).length>0)].slice(0,5);
-  nav.innerHTML=candidates.map(p=>{
-    const page=p==='home'?'home':'cat-'+p;
-    return `<button class="bn-item" data-page="${page}" onclick="goto('${page}')">
-      <i class="ti ti-${ic[p]||'dots'}" style="font-size:22px" aria-hidden="true"></i>
-      <span>${lbl[p]||p}</span>
+  // ปุ่มที่ 2 ปรับตาม role: admin→แดชบอร์ด, มีสิทธิ์ขาย→ยอดขาย, อื่นๆ→ตารางเวร
+  const secondary=(isAdmin||hasPerm('dashboard_admin'))?{page:'dashboard',ic:'chart-bar',lbl:'แดชบอร์ด'}
+    :(hasPerm('sales'))?{page:'sales',ic:'cash',lbl:'ยอดขาย'}
+    :{page:'schedule',ic:'calendar-event',lbl:'ตารางเวร'};
+  const slots=[
+    {page:'home',ic:'home',lbl:'หน้าหลัก'},
+    secondary,
+    {page:'checkin',ic:'map-pin',lbl:'เช็คอิน',fab:true},
+    {page:'todo',ic:'checklist',lbl:'งานฉัน'},
+    {page:'cat-more',ic:'dots',lbl:'เพิ่มเติม'},
+  ];
+  nav.innerHTML=slots.map(s=>{
+    if(s.fab)return `<button class="bn-fab" data-page="${s.page}" onclick="goto('${s.page}')">
+      <i class="ti ti-${s.ic}" aria-hidden="true"></i><span>${s.lbl}</span></button>`;
+    return `<button class="bn-item" data-page="${s.page}" onclick="goto('${s.page}')">
+      <i class="ti ti-${s.ic}" style="font-size:22px" aria-hidden="true"></i>
+      <span>${s.lbl}</span>
     </button>`;
   }).join('');
 }
@@ -2418,9 +2459,10 @@ window.goto=function(page){
   if(pageEl)pageEl.classList.add('active');
   if(navEl)navEl.classList.add('active');
   // sync bottom nav (ถ้าเป็นหน้าฟีเจอร์ลูก ให้ไฮไลต์แท็บหมวดหมู่ของมันแทน)
-  const ownerFeat=FEATURE_DEFS.find(f=>f.page===page);
-  const bnKey=page.startsWith('cat-')?page:(ownerFeat?'cat-'+ownerFeat.cat:page);
-  document.querySelectorAll('.bn-item').forEach(b=>b.classList.toggle('active',b.dataset.page===bnKey));
+  // sync bottom nav — ไฮไลต์ช่องที่ตรงกับหน้าปัจจุบัน (หน้าที่ไม่อยู่ใน nav → ตกที่ "เพิ่มเติม")
+  const navPages=[...document.querySelectorAll('#bottom-nav [data-page]')].map(b=>b.dataset.page);
+  const bnKey=navPages.includes(page)?page:(page==='home'?'home':(page.startsWith('cat-')?page:'cat-more'));
+  document.querySelectorAll('#bottom-nav [data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===bnKey));
   if(typeof window.scrollTo==='function')window.scrollTo({top:0,behavior:'smooth'});
   // ปุ่มย้อนกลับหน้าแรก (แสดงทุกหน้ายกเว้นหน้าแรกและหน้าหมวดหมู่ระดับบนสุด)
   const backBtn=document.getElementById('home-back-btn');
@@ -5291,28 +5333,16 @@ function renderHome(){
     </div>`;
   }
 
-  // ===== เมนูจัดหมวด (แสดงเฉพาะมือถือ — คอมใช้ sidebar) =====
-  const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'ภาพรวมยอดขาย',foreignlabel:'ฉลากยาต่างชาติ',members:'จัดการพนักงาน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณโดสยา',drugwarn:'คำเตือนการใช้ยา',settings:'ตั้งค่าระบบ'};
+  // ===== เมนูจัดโซน (แสดงเฉพาะมือถือ — คอมใช้ sidebar) =====
   const order=currentMenuOrder();
-  const catStyle={
-    mywork:{chip:'var(--green-l)',ic:'var(--green-d)'},
-    sales:{chip:'var(--purple-l)',ic:'var(--purple-t)'},
-    admin:{chip:'var(--rose-l)',ic:'var(--rose-d)'},
-    more:{chip:'var(--blue-l)',ic:'var(--blue-t)'}
-  };
+  const inOrder=(z)=>order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&f.zone===z&&featureShow(f));
+  const daily=inOrder('daily'),tools=inOrder('tool'),adminF=inOrder('admin');
+  const secHead=(t,extra='')=>`<div style="display:flex;align-items:center;justify-content:space-between;margin:1.5rem 2px .85rem"><div style="font-family:var(--disp);font-weight:600;font-size:16px;color:var(--text)">${t}</div>${extra}</div>`;
   let menuHtml='';
-  CATEGORIES.forEach(cat=>{
-    const feats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&f.cat===cat.id&&featureShow(f));
-    if(!feats.length)return;
-    const cs=catStyle[cat.id]||catStyle.mywork;
-    menuHtml+=`<div style="font-family:var(--disp);font-weight:600;font-size:17px;color:var(--text);margin:1.5rem 2px .8rem;display:flex;align-items:center;gap:9px"><span style="font-size:16px">${cat.icon}</span>${cat.label}</div>`;
-    menuHtml+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px">
-      ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;font-family:var(--font);text-align:left;width:100%;box-shadow:var(--shadow)">
-        <span style="width:46px;height:46px;border-radius:14px;background:${cs.chip};color:${cs.ic};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${f.icon}</span>
-        <span style="min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.2">${f.label}</div>${FEAT_DESC[f.page]?`<div style="font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${FEAT_DESC[f.page]}</div>`:''}</span>
-      </button>`).join('')}
-    </div>`;
-  });
+  if(daily.length){menuHtml+=secHead('ใช้บ่อย');menuHtml+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">${daily.map((f,i)=>featBigTile(f,i)).join('')}</div>`;}
+  if(tools.length){menuHtml+=secHead('เครื่องมือเภสัช');menuHtml+=tools.map((f,i)=>featRowBtn(f,i)).join('');}
+  if(adminF.length){menuHtml+=secHead('จัดการร้าน','<span style="font-size:12px;color:var(--rose-d);font-weight:600">admin</span>');menuHtml+=adminF.map((f,i)=>featRowBtn(f,i)).join('');}
+  menuHtml+=`<button onclick="goto('cat-more')" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:1.1rem;padding:13px;border-radius:16px;border:1px dashed var(--border2);background:transparent;color:var(--text2);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">ดูเมนูทั้งหมด · เพิ่มเติม ›</button>`;
   html+=`<div class="home-menu">${menuHtml}</div>`;
 
   if(isAdmin||hasPerm('dashboard_admin')){ html+=`<div id="home-staff-status" style="margin-top:1.6rem"></div>`; }
