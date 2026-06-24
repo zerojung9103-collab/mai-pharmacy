@@ -1309,8 +1309,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.10';
+const APP_VERSION='2.3.0';
 const CHANGELOG=[
+  {v:'2.3.0',date:'2026-06-24',changes:['ปรับดีไซน์ใหม่ทั้งระบบ: ธีมน่ารักโทนพาสเทลมินต์ + ฟอนต์หัวข้อ Itim','หน้าหลัก: การ์ดยอดขายไล่สี + มาสคอตน้องแคปซูล + ไอคอนเมนูพาสเทล','จัดเมนูหน้าหลักใหม่เป็นหมวด งานของฉัน/ขาย/บริหาร/เพิ่มเติม','การ์ด/ปุ่ม/ปฏิทิน/อินพุต มุมโค้งกลมขึ้น เงานุ่มโทนมินต์','Dark mode ปรับเป็นโทน Midnight Mint']},
   {v:'2.2.10',date:'2026-06-24',changes:['งานวันนี้ใช้สาขาจาก branchIn (เช็คอินจริง) แทนตารางเวร — ถ้ายังไม่เช็คอินจะแสดง "กรุณาเช็คอินก่อน" + ปุ่มพาไปหน้าเช็คอิน, notification บนหน้าแรกก็ใช้ branchIn เช่นกัน — ถ้ายังไม่เช็คอินจะไม่แสดง notification งาน']},
   {v:'2.2.9',date:'2026-06-24',changes:['แก้ To Do notification ขึ้น 2 อัน — อีกแชทเพิ่ม block แจ้งเตือนซ้อนทับของเดิมโดยไม่ลบออก ลบ block ซ้ำออกแล้ว เหลือแค่อันเดียวที่ดีกว่า (มี loadTodoTemplates check)']},
   {v:'2.2.8',date:'2026-06-24',changes:['แก้ resetTesterCheckin: เปลี่ยนจาก deleteDoc เป็น setDoc เขียนทับด้วยข้อมูลว่าง (ไม่มี checkIn/checkOut) — ใช้ rule update ปกติได้เลย ไม่ต้อง rule พิเศษ, ลบ definition ซ้ำ 3 อัน (bug จากอีกแชท) เหลือแค่อันเดียว, คืน Firestore rules checkins delete กลับเป็น isAdmin() เท่านั้น']},
@@ -5051,16 +5052,20 @@ function renderHome(){
     </div>`;
   }
 
-  // ===== เมนูกริด =====
+  // ===== เมนูจัดกลุ่มตามหมวด =====
   const order=currentMenuOrder();
-  const allFeats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&featureShow(f));
-  html+=`<div style="font-family:var(--disp);font-size:16px;color:var(--text2);margin-bottom:.6rem">เมนู</div>`;
-  html+=`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
-    ${allFeats.map((f,i)=>{const pal=['#DBF5EC','#E0F4FE','#FFF2D4','#ECE9FF','#FFEAE1'];const k=i%pal.length;return `<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:.9rem .5rem;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:var(--font);transition:.15s;width:100%" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.transform='';this.style.boxShadow='none'">
-      <span style="width:44px;height:44px;border-radius:15px;background:${pal[k]};display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
-      <span style="font-size:11px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3">${f.label}</span>
-    </button>`}).join('')}
-  </div>`;
+  const catTint={mywork:'#DBF5EC',sales:'#ECE9FF',admin:'#FFEAE1',more:'#E0F4FE'};
+  CATEGORIES.forEach(cat=>{
+    const feats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&f.cat===cat.id&&featureShow(f));
+    if(!feats.length)return;
+    html+=`<div style="display:flex;align-items:center;gap:8px;font-family:var(--disp);font-size:16px;color:var(--text2);margin:1.4rem 2px .7rem"><span style="font-size:17px">${cat.icon}</span>${cat.label}</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+      ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:.9rem .5rem;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:var(--font);transition:.15s;width:100%" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.transform='';this.style.boxShadow='none'">
+        <span style="width:44px;height:44px;border-radius:15px;background:${catTint[cat.id]||'#DBF5EC'};display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
+        <span style="font-size:11px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3">${f.label}</span>
+      </button>`).join('')}
+    </div>`;
+  });
 
   el.innerHTML=html;
 }
