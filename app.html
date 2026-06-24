@@ -712,8 +712,8 @@ input,select,textarea{border-radius:14px}
     <div class="card">
       <div style="overflow-x:auto">
         <table class="payroll-table" id="mpr-table">
-          <thead><tr><th>เดือน</th><th>ประเภท</th><th>ฐานเงินเดือน</th><th>ชั่วโมงทำงาน</th><th>โบนัส</th><th>หัก</th><th>รวมสุทธิ</th><th>สถานะ</th><th>สลิป</th></tr></thead>
-          <tbody id="mpr-tbody"><tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">กด "ดูประวัติ" เพื่อโหลดข้อมูล</td></tr></tbody>
+          <thead><tr><th>เดือน</th><th>รายได้รวม</th><th style="text-align:right">สถานะ</th></tr></thead>
+          <tbody id="mpr-tbody"><tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text3)">กด "ดูประวัติ" เพื่อโหลดข้อมูล</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1351,8 +1351,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.7.3';
+const APP_VERSION='2.7.7';
 const CHANGELOG=[
+  {v:'2.7.7',date:'2026-06-24',changes:['พนักงานเห็นแค่หมายเลขเวอร์ชัน · ผู้ดูแลระบบเห็นประวัติการอัปเดตทั้งหมด']},
+  {v:'2.7.6',date:'2026-06-24',changes:['เงินเดือน: เอาไทล์“โบนัสรวม”ออก เหลือรายได้รวมปี + ได้รับแล้ว']},
+  {v:'2.7.5',date:'2026-06-24',changes:['ประวัติเงินเดือน: ย่อเหลือแค่ เดือน + รายได้รวม + สถานะ/สลิป (ตัดรายละเอียดยิบย่อยออก)']},
+  {v:'2.7.4',date:'2026-06-24',changes:['มือถือตามดีไซน์: เมนูมีคำบรรยายใต้ไอคอน, หน้าเช็คอินเป็นวงแหวน GPS, หน้าเงินเดือนมีการ์ดรอบล่าสุดโทนโรส']},
   {v:'2.7.3',date:'2026-06-24',changes:['มือถือ: การ์ดเวรวันนี้แบบ hero + chip (สถานะ/เวรเดือนนี้/สาขา) + เมนู 2 คอลัมน์ — ตามดีไซน์']},
   {v:'2.7.2',date:'2026-06-24',changes:['มือถือ: แสดงเมนูการ์ดในหน้าแรก (ใช้ง่าย) + ซ่อน dashboard หนักๆ — คอมยังเป็น dashboard เต็ม','แก้หน้ามือถือโล่งสำหรับพนักงาน']},
   {v:'2.7.1',date:'2026-06-24',changes:['เอาเมนูจัดหมวดออกจากหน้าแรก (ซ้ำกับ sidebar) — หน้าแรกเน้นการ์ดสถิติ + กราฟ + ตารางพนักงาน']},
@@ -2288,7 +2292,7 @@ window.openAccountMenu=function(){
       <div><div style="font-weight:700;font-size:14px">${name||'—'}</div><div style="font-size:12px;color:var(--text3)">${isAdmin?'ผู้ดูแลระบบ':'สมาชิก'}</div></div>
     </div>
     <button class="assist-chip" onclick="closeMD();goto('settings')"><span class="ic">⚙️</span><span>ตั้งค่าระบบ</span></button>
-    <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION} — ดูประวัติอัปเดต</span></button>
+    <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION}${isAdmin?' — ดูประวัติอัปเดต':''}</span></button>
     <button class="assist-chip" onclick="closeMD();goto('theme')"><span class="ic">🎨</span><span>ธีมของฉัน</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
     <button class="assist-chip" onclick="doLogout()" style="color:var(--red-t)"><span class="ic">🚪</span><span>ออกจากระบบ</span></button>
@@ -2524,9 +2528,9 @@ window.dbApplyMonth=function(){
 
 // แสดงประวัติการเปลี่ยนแปลง (changelog)
 window.showChangelog=function(){
-  openModal(`<div class="modal-title">📋 ประวัติการอัปเดต</div>
+  openModal(`<div class="modal-title">📋 ${isAdmin?'ประวัติการอัปเดต':'เวอร์ชันแอป'}</div>
     <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">เวอร์ชันปัจจุบัน v${APP_VERSION}</div>
-    <div style="max-height:60vh;overflow-y:auto">
+    ${isAdmin?`<div style="max-height:60vh;overflow-y:auto">
     ${CHANGELOG.map((c,idx)=>`<div style="margin-bottom:1rem;padding-bottom:1rem;${idx<CHANGELOG.length-1?'border-bottom:1px solid var(--border)':''}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
         <span style="background:${idx===0?'var(--green)':'var(--bg)'};color:${idx===0?'#fff':'var(--text2)'};font-size:12px;font-weight:700;padding:3px 10px;border-radius:8px">v${c.v}</span>
@@ -2537,7 +2541,11 @@ window.showChangelog=function(){
         ${c.changes.map(ch=>`<li>${ch}</li>`).join('')}
       </ul>
     </div>`).join('')}
-    </div>
+    </div>`:`<div style="text-align:center;padding:1.5rem 0">
+      <div style="width:64px;height:64px;border-radius:18px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 14px">💊</div>
+      <div style="font-family:var(--disp);font-weight:600;font-size:22px;color:var(--text)">ใหม่เภสัช</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px">เวอร์ชัน ${APP_VERSION}</div>
+    </div>`}
     <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
 };
 // สรุปภาพรวมวันนี้ (admin)
@@ -4582,24 +4590,19 @@ window.loadMyPayroll=async function(){
     const totalNet=myPayrollRecords.reduce((a,r)=>a+r.net,0);
     const totalPaid=myPayrollRecords.filter(r=>r.status==='paid').reduce((a,r)=>a+r.net,0);
     const totalBonus=myPayrollRecords.reduce((a,r)=>a+(r.bonus||0),0);
-    document.getElementById('mpr-metrics').innerHTML=`
+    const _latest=myPayrollRecords[myPayrollRecords.length-1];
+    const _hero=_latest?`<div style="grid-column:1/-1;background:var(--grad-rose);border-radius:20px;padding:20px;color:#fff;box-shadow:0 12px 28px rgba(200,90,117,.28);position:relative;overflow:hidden;margin-bottom:2px"><div style="position:absolute;right:-30px;top:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,.14)"></div><div style="font-size:12.5px;opacity:.92;position:relative">รอบล่าสุด · ${MONTHS_TH[_latest.month-1]} ${_latest.year}</div><div style="font-family:var(--disp);font-weight:700;font-size:33px;margin-top:2px;position:relative">฿${fmt(_latest.net)}</div><div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.22);border-radius:16px;padding:5px 13px;font-size:12px;margin-top:9px;position:relative">${_latest.status==='paid'?'✓ จ่ายแล้ว':'🕒 รอจ่าย'}</div></div>`:'';
+    document.getElementById('mpr-metrics').innerHTML=_hero+`
       <div class="mcard c-green"><div class="mcard-label">รายได้รวมปี ${selectedYear}</div><div class="mcard-val">฿${fmt(totalNet)}</div><div class="mcard-sub">${myPayrollRecords.length} เดือน</div></div>
       <div class="mcard c-blue"><div class="mcard-label">ได้รับแล้ว</div><div class="mcard-val">฿${fmt(totalPaid)}</div><div class="mcard-sub">${myPayrollRecords.filter(r=>r.status==='paid').length} เดือน</div></div>
-      <div class="mcard c-amber"><div class="mcard-label">โบนัสรวม</div><div class="mcard-val">฿${fmt(totalBonus)}</div><div class="mcard-sub">ทั้งปี</div></div>
     `;
     document.getElementById('mpr-tbody').innerHTML=myPayrollRecords.length===0
-      ?`<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีประวัติเงินเดือนในปี ${selectedYear}</td></tr>`
-      :myPayrollRecords.map((r,i)=>`<tr>
+      ?`<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีประวัติเงินเดือนในปี ${selectedYear}</td></tr>`
+      :myPayrollRecords.slice().reverse().map((r)=>{const i=myPayrollRecords.indexOf(r);return `<tr>
         <td style="font-weight:600">${MONTHS_TH[r.month-1]} ${r.year}</td>
-        <td><span class="badge ${r.salaryType==='fixed'?'badge-blue':r.salaryType==='hourly'?'badge-amber':'badge-purple'}">${r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'ชั่วโมง':'ผสม'}</span></td>
-        <td>฿${fmt(r.baseAmt)}</td>
-        <td>${r.hours||0} ชม.<div style="font-size:11px;color:var(--text3)">${r.otHours?`OT ${r.otHours} ชม.`:`฿${fmt(r.hourlyAmt||0)}`}</div></td>
-        <td style="color:var(--green-d)">+฿${fmt((r.bonus||0)+(r.otAmt||0))}${r.otAmt?`<div style="font-size:10px;color:var(--text3)">รวม OT</div>`:''}</td>
-        <td style="color:var(--red-t)">-฿${fmt(r.deduction||0)}</td>
-        <td style="font-weight:700;color:var(--green-dd)">฿${fmt(r.net)}</td>
-        <td><span class="${r.status==='paid'?'sta-on':'sta-off'}">${r.status==='paid'?'ได้รับแล้ว':'รอดำเนินการ'}</span></td>
-        <td>${r.status==='paid'?`<button class="btn btn-sm btn-blue" onclick="downloadMonthSlip(${i})">📥 สลิป</button>`:'<span style="font-size:11px;color:var(--text3)">ยังไม่จ่าย</span>'}</td>
-      </tr>`).join('');
+        <td style="font-family:var(--disp);font-weight:700;font-size:16px;color:var(--green-dd)">฿${fmt(r.net)}</td>
+        <td style="text-align:right"><span class="${r.status==='paid'?'sta-on':'sta-off'}">${r.status==='paid'?'จ่ายแล้ว':'รอจ่าย'}</span>${r.status==='paid'?` <button class="btn btn-sm btn-blue" style="margin-left:6px" onclick="downloadMonthSlip(${i})">สลิป</button>`:''}</td>
+      </tr>`;}).join('');
   }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
   loading(false);
 };
@@ -5227,6 +5230,7 @@ function renderHome(){
   }
 
   // ===== เมนูจัดหมวด (แสดงเฉพาะมือถือ — คอมใช้ sidebar) =====
+  const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'ภาพรวมยอดขาย',foreignlabel:'ฉลากยาต่างชาติ',members:'จัดการพนักงาน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณโดสยา',drugwarn:'คำเตือนการใช้ยา',settings:'ตั้งค่าระบบ'};
   const order=currentMenuOrder();
   const catStyle={
     mywork:{chip:'var(--green-l)',ic:'var(--green-d)'},
@@ -5243,7 +5247,7 @@ function renderHome(){
     menuHtml+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px">
       ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;font-family:var(--font);text-align:left;width:100%;box-shadow:var(--shadow)">
         <span style="width:46px;height:46px;border-radius:14px;background:${cs.chip};color:${cs.ic};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${f.icon}</span>
-        <span style="font-size:14px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
+        <span style="min-width:0"><div style="font-size:14px;font-weight:600;color:var(--text);line-height:1.2">${f.label}</div>${FEAT_DESC[f.page]?`<div style="font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${FEAT_DESC[f.page]}</div>`:''}</span>
       </button>`).join('')}
     </div>`;
   });
@@ -5554,23 +5558,31 @@ async function renderCheckinPage(){
   const hasIn=rec&&rec.checkIn;
   const hasOut=rec&&rec.checkOut;
 
-  card.innerHTML=`<div class="card" style="text-align:center">
-    <div style="font-size:13px;color:var(--text3);margin-bottom:.5rem">${new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
-    <div style="display:flex;justify-content:center;gap:2rem;margin:1.25rem 0">
-      <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">เข้างาน</div><div style="font-size:24px;font-weight:700;color:${hasIn?'var(--green-d)':'var(--text3)'}">${hasIn?rec.checkIn:'--:--'}</div></div>
-      <div style="width:1px;background:var(--border)"></div>
-      <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">ออกงาน</div><div style="font-size:24px;font-weight:700;color:${hasOut?'var(--blue-t)':'var(--text3)'}">${hasOut?rec.checkOut:'--:--'}</div></div>
+  const _pct=hasOut?100:(hasIn?66:25);
+  const _circ=(2*Math.PI*66).toFixed(1);
+  const _off=(_circ*(1-_pct/100)).toFixed(1);
+  const _ringTxt=hasOut?'ลงเวลาครบแล้ว':(hasIn?'กำลังทำงาน':'พร้อมเช็คอิน');
+  const _ringSub=hasIn?('เข้างาน '+rec.checkIn):('เวลา '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
+  card.innerHTML=`<div class="card" style="text-align:center;border-radius:26px;padding:24px 20px">
+    <div style="width:160px;height:160px;margin:0 auto 16px;position:relative">
+      <svg width="160" height="160" viewBox="0 0 160 160" style="transform:rotate(-90deg)">
+        <circle cx="80" cy="80" r="66" fill="none" stroke="var(--border)" stroke-width="11"/>
+        <circle cx="80" cy="80" r="66" fill="none" stroke="var(--green)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${_circ}" stroke-dashoffset="${_off}"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
+        <div style="font-family:var(--disp);font-weight:600;font-size:17px;margin-top:6px;color:var(--text)">${_ringTxt}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${_ringSub}</div>
+      </div>
     </div>
     ${!hasIn?`
       ${isTester?`<div style="margin-bottom:10px">
         <div style="font-size:11px;color:#F59E0B;font-weight:600;margin-bottom:6px">🧪 โหมดทดสอบ — เลือกสาขาเอง</div>
-        <select id="tester-branch-sel" style="margin-bottom:8px">
-          ${BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('')}
-        </select>
+        <select id="tester-branch-sel" style="margin-bottom:8px">${BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('')}</select>
       </div>`:''}
-      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="${isTester?'doCheckinTester(\'in\')':'doCheckin(\'in\')'}">📍 เช็คอินเข้างาน</button>`
-      :!hasOut?`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="${isTester?'doCheckinTester(\'out\')':'doCheckin(\'out\')'}">📍 เช็คเอาท์ออกงาน</button>`
-      :`<div style="background:var(--green-ll);border-radius:10px;padding:1rem;color:var(--green-dd);font-weight:600">✅ ลงเวลาครบแล้ววันนี้
+      <button class="btn btn-primary" style="width:100%;padding:15px;font-size:15px;border-radius:15px" onclick="${isTester?'doCheckinTester(\'in\')':'doCheckin(\'in\')'}">📍 เช็คอินเข้างาน</button>`
+      :!hasOut?`<button class="btn btn-blue" style="width:100%;padding:15px;font-size:15px;border-radius:15px" onclick="${isTester?'doCheckinTester(\'out\')':'doCheckin(\'out\')'}">📍 เช็คเอาท์ออกงาน</button>`
+      :`<div style="background:var(--green-ll);border-radius:14px;padding:1rem;color:var(--green-dd);font-weight:600">✅ ลงเวลาครบแล้ววันนี้ · รวม ${calcWorkTime(rec.checkIn,rec.checkOut)}
         ${isTester?`<br><button onclick="resetTesterCheckin()" style="margin-top:8px;background:var(--amber-l);color:var(--amber-t);border:1px solid var(--amber);border-radius:8px;padding:5px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">🔄 รีเซ็ตเพื่อทดสอบใหม่</button>`:''}
       </div>`}
     <div id="checkin-msg" style="font-size:12px;color:var(--text3);margin-top:.75rem"></div>
