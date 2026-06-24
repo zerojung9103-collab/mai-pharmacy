@@ -1207,11 +1207,14 @@ input,select,textarea{border-radius:14px}
         <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">เปลี่ยนสีปุ่ม ไอคอน active และ highlight ให้เป็นสีของคุณเอง</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem" id="theme-accent-grid">
           <div class="theme-color-dot active" data-color="#1FAE8B" onclick="selectAccent('#1FAE8B')" style="background:#1FAE8B" title="มินต์ (ค่าเริ่มต้น)"></div>
-          <div class="theme-color-dot" data-color="#534AB7" onclick="selectAccent('#534AB7')" style="background:#534AB7" title="ม่วง"></div>
-          <div class="theme-color-dot" data-color="#D4537E" onclick="selectAccent('#D4537E')" style="background:#D4537E" title="ชมพู"></div>
-          <div class="theme-color-dot" data-color="#378ADD" onclick="selectAccent('#378ADD')" style="background:#378ADD" title="ฟ้า"></div>
-          <div class="theme-color-dot" data-color="#EF9F27" onclick="selectAccent('#EF9F27')" style="background:#EF9F27" title="ส้ม"></div>
-          <div class="theme-color-dot" data-color="#E24B4A" onclick="selectAccent('#E24B4A')" style="background:#E24B4A" title="แดง"></div>
+          <div class="theme-color-dot" data-color="#0E8C8C" onclick="selectAccent('#0E8C8C')" style="background:#0E8C8C" title="เทอร์คอยซ์"></div>
+          <div class="theme-color-dot" data-color="#3E8E5A" onclick="selectAccent('#3E8E5A')" style="background:#3E8E5A" title="เขียวป่า"></div>
+          <div class="theme-color-dot" data-color="#3A6EA5" onclick="selectAccent('#3A6EA5')" style="background:#3A6EA5" title="น้ำเงินหม่น"></div>
+          <div class="theme-color-dot" data-color="#5A5BB8" onclick="selectAccent('#5A5BB8')" style="background:#5A5BB8" title="คราม"></div>
+          <div class="theme-color-dot" data-color="#8E5A9E" onclick="selectAccent('#8E5A9E')" style="background:#8E5A9E" title="พลัม"></div>
+          <div class="theme-color-dot" data-color="#D06A86" onclick="selectAccent('#D06A86')" style="background:#D06A86" title="โรส"></div>
+          <div class="theme-color-dot" data-color="#C96F4A" onclick="selectAccent('#C96F4A')" style="background:#C96F4A" title="ดินเผา"></div>
+          <div class="theme-color-dot" data-color="#C99A3F" onclick="selectAccent('#C99A3F')" style="background:#C99A3F" title="อำพัน"></div>
           <!-- custom color -->
           <label style="cursor:pointer" title="กำหนดสีเอง">
             <div class="theme-color-dot" id="theme-custom-dot" style="background:conic-gradient(red,yellow,green,blue,red);position:relative">
@@ -1294,7 +1297,6 @@ input,select,textarea{border-radius:14px}
           <label class="fl">สาขา</label>
           <div class="tabs" id="sh-branch-tabs" style="margin:0">
             <button class="tab active" data-branch="-1" onclick="shSetBranch(-1,this)">ทุกสาขา</button>
-            ${BRANCHES.map((b,i)=>`<button class="tab" data-branch="${i}" onclick="shSetBranch(${i},this)">${b}</button>`).join('')}
           </div>
         </div>
       </div>
@@ -1406,8 +1408,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.2.0';
+const APP_VERSION='3.2.2';
 const CHANGELOG=[
+  {v:'3.2.2',date:'2026-06-24',changes:['ปรับชุดสีธีม (Accent) ให้เรียบหรูลงตัว — เทอร์คอยซ์ · เขียวป่า · น้ำเงินหม่น · คราม · พลัม · โรส · ดินเผา · อำพัน (เลือกได้ที่ ตั้งค่า → ธีมของฉัน)']},
+  {v:'3.2.1',date:'2026-06-24',changes:['แก้บั๊ก: ตัวกรองสาขาในหน้า “ประวัติการขาย” แสดงโค้ดดิบ — เปลี่ยนเป็นปุ่มสาขาปกติ']},
   {v:'3.2.0',date:'2026-06-24',changes:['ออกแบบหน้าแรกใหม่ — แยกโซน “ใช้บ่อย” (การ์ดใหญ่กดง่าย) · “เครื่องมือเภสัช” · “จัดการร้าน” (admin) ให้หาเมนูง่ายขึ้น','Bottom nav ใหม่ — เหลือเฉพาะที่ใช้จริง + ปุ่มเช็คอินกลางเด่น (FAB) · ปุ่มที่ 2 ปรับตาม role','หน้า “เพิ่มเติม” รวมเมนูใช้นานๆ ครั้ง จัดเป็นหมวด (งานของฉัน/เครื่องมือ/จัดการร้าน/บัญชี)']},
   {v:'3.1.0',date:'2026-06-24',changes:['เพิ่มหน้าประวัติการขาย (admin) — กรองรายวัน/รายเดือน/รายปี, เลือกดูทุกสาขาพร้อมกันหรือทีละสาขา, ตารางแสดงยอด+บิล+เฉลี่ยต่อบิล, แก้ไขย้อนหลังได้ทันที; เพิ่มช่อง "จำนวนบิล" ในฟอร์มบันทึกยอดขายต่อสาขา พร้อมแสดงยอดเฉลี่ยต่อบิล']},
   {v:'3.0.0',date:'2026-06-24',changes:['ใหม่เภสัช v3.0.0 — Major release: ธีมใหม่ Elegant (ครีม/มินต์/โรส), ฟอนต์ IBM Plex Sans Thai + Noto Serif Thai, เมนูหน้าแรกจัดกลุ่มตามหมวด, dark mode Midnight Mint, To Do List (smart auto-check), ฉลากยาต่างชาติ Auto Size Engine v2, tester role, งานวันนี้ใช้ branchIn จากเช็คอินจริง']},
@@ -7393,6 +7397,11 @@ window.shSetBranch=function(b,el){
   shRender();
 };
 function shInitPage(){
+  // สร้างแท็บสาขาแบบไดนามิก (ครั้งเดียว)
+  const bt=document.getElementById('sh-branch-tabs');
+  if(bt&&bt.querySelectorAll('.tab').length<=1){
+    BRANCHES.forEach((b,i)=>{const btn=document.createElement('button');btn.className='tab';btn.dataset.branch=i;btn.textContent=b;btn.onclick=function(){shSetBranch(i,this);};bt.appendChild(btn);});
+  }
   // ตั้งค่าเริ่มต้น
   const d=document.getElementById('sh-date');
   if(d&&!d.value)d.value=todayStr();
