@@ -5,13 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ใหม่เภสัช — ระบบหลัก</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#16B981">
+<meta name="theme-color" content="#1FAE8B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ใหม่เภสัช">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Itim&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -327,7 +327,7 @@ textarea{resize:vertical;min-height:64px}
 .pr-line-input{width:140px;text-align:right}
 .pr-line-add{color:var(--green-d);font-weight:600}
 .pr-line-ded{color:var(--red-t);font-weight:600}
-.pr-net-box{background:linear-gradient(135deg,#179B77,#2BC79A);border-radius:20px;padding:1.5rem;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+.pr-net-box{background:var(--grad-green);border-radius:20px;padding:1.5rem;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
 .pr-net-box .lbl{font-size:13px;opacity:.85}
 .pr-net-box .val{font-size:30px;font-weight:700}
 .pr-extra-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
@@ -1164,7 +1164,7 @@ input,select,textarea{border-radius:14px}
         <div style="font-weight:600;font-size:14px;margin-bottom:.25rem">🎨 สีเน้น (Accent)</div>
         <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">เปลี่ยนสีปุ่ม ไอคอน active และ highlight ให้เป็นสีของคุณเอง</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem" id="theme-accent-grid">
-          <div class="theme-color-dot active" data-color="#16B981" onclick="selectAccent('#16B981')" style="background:#16B981" title="เขียว (ค่าเริ่มต้น)"></div>
+          <div class="theme-color-dot active" data-color="#1FAE8B" onclick="selectAccent('#1FAE8B')" style="background:#1FAE8B" title="มินต์ (ค่าเริ่มต้น)"></div>
           <div class="theme-color-dot" data-color="#534AB7" onclick="selectAccent('#534AB7')" style="background:#534AB7" title="ม่วง"></div>
           <div class="theme-color-dot" data-color="#D4537E" onclick="selectAccent('#D4537E')" style="background:#D4537E" title="ชมพู"></div>
           <div class="theme-color-dot" data-color="#378ADD" onclick="selectAccent('#378ADD')" style="background:#378ADD" title="ฟ้า"></div>
@@ -1271,7 +1271,7 @@ const BRANCHES=['ทรัพย์พัฒนา','บางปู','อิน
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
 // ===== ระบบธีมส่วนตัว (per-user: mode + accent + size) =====
-const USER_THEME_DEFAULT={mode:'light',accent:'#16B981',size:'normal'};
+const USER_THEME_DEFAULT={mode:'light',accent:'#1FAE8B',size:'normal'};
 let userThemeCfg={...USER_THEME_DEFAULT};
 let _systemDarkMQ=window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -1314,8 +1314,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.4.0';
+const APP_VERSION='2.4.1';
 const CHANGELOG=[
+  {v:'2.4.1',date:'2026-06-24',changes:['เอาระบบสีเปลี่ยนตามวันออก — ล็อกเป็นสีมินต์ของธีมเสมอ','ปรับกล่องสีเด่น/มาสคอต/ค่าเริ่มต้นให้เข้าพาเลตใหม่']},
   {v:'2.4.0',date:'2026-06-24',changes:['ดีไซน์ใหม่: พาเลตครีม-มินต์-โรส ดูแพงขึ้น','หัวข้อใช้ฟอนต์ Serif ไทย (Noto Serif Thai) แทน Itim','Sidebar เขียวเข้มหรู โหมดผู้ดูแลระบบ','ปรับไอคอน/การ์ดให้ประณีตขึ้น','Dark mode = Midnight Mint']},
   {v:'2.2.10',date:'2026-06-24',changes:['งานวันนี้ใช้สาขาจาก branchIn (เช็คอินจริง) แทนตารางเวร — ถ้ายังไม่เช็คอินจะแสดง "กรุณาเช็คอินก่อน" + ปุ่มพาไปหน้าเช็คอิน, notification บนหน้าแรกก็ใช้ branchIn เช่นกัน — ถ้ายังไม่เช็คอินจะไม่แสดง notification งาน']},
   {v:'2.2.9',date:'2026-06-24',changes:['แก้ To Do notification ขึ้น 2 อัน — อีกแชทเพิ่ม block แจ้งเตือนซ้อนทับของเดิมโดยไม่ลบออก ลบ block ซ้ำออกแล้ว เหลือแค่อันเดียวที่ดีกว่า (มี loadTodoTemplates check)']},
@@ -1481,7 +1482,12 @@ const DAY_COLORS=[
   {name:'ศุกร์',main:'#3B8EEA',dark:'#0C447C',grad:['#1E63B5','#3B8EEA','#9AC4F4']},   // ฟ้า
   {name:'เสาร์',main:'#8B5CF6',dark:'#5B21B6',grad:['#6D28D9','#8B5CF6','#C4B5FD']}    // ม่วง
 ];
-function todayColor(){return DAY_COLORS[new Date().getDay()];}
+const DAY_NAMES=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+function todayColor(){
+  // คงชื่อวันไว้ แต่ล็อกสีเป็นมินต์ของธีมเสมอ (ไม่เปลี่ยนตามวัน)
+  const accent=(userThemeCfg&&userThemeCfg.accent)||'#1FAE8B';
+  return {name:DAY_NAMES[new Date().getDay()],main:accent,dark:shadeColor(accent,-28),grad:[shadeColor(accent,-18),accent,shadeColor(accent,38)]};
+}
 
 // ใช้สีประจำวันกับแถบหัวมือถือ + แถบสถานะ
 // แปลง hex เป็น rgba (alpha) — ใช้ทำสีอ่อนจากสีประจำวันโดยไม่ต้องนั่งกำหนดสีอ่อนเองทีละวัน
@@ -1514,7 +1520,7 @@ function updateCapsuleFabBadge(){
 // ===== ปรับแต่งหน้าตาแอป (config/appearance) — ชื่อร้าน/สี/โลโก้/ทรงมุม/ขนาด/ลำดับเมนู =====
 const APPEARANCE_DEFAULT={
   shopName:'ใหม่เภสัช',shopTagline:'ระบบจัดการร้าน 3 สาขา',
-  primaryColor:'#16B981',logoEmoji:'💊',
+  primaryColor:'#1FAE8B',logoEmoji:'💊',
   size:'normal',
   navOrder:['mywork','sales','admin','more'],navEnabled:{mywork:true,sales:true,admin:true,more:true}
 };
@@ -1934,7 +1940,7 @@ function capsuleSays(todayShift){
     'เจ้ามาแล้วหรือ ข้าเฝ้าร้านจนจะเป็นสนิมอยู่แล้ว',
     'ขยันนักนะเจ้า ข้าเริ่มเกรงใจแล้วเนี่ย',
     'วันนี้ยอดขายต้องพุ่ง ข้าสั่งได้... แค่ขอนะ',
-    `วันนี้วัน${dc.name} สีประจำตัวข้าคือสีนี้ สวยไหมล่ะเจ้า`,
+    'ยิ้มไว้ก่อนนะเจ้า ลูกค้าชอบร้านยิ้มแย้ม',
     'เจ้าทำงานไป ข้าเฝ้ามองอยู่ตรงนี้ อย่าทำตัวแปลกๆ ล่ะ',
     'เหนื่อยก็พักได้นะเจ้า แต่อย่าพักนานจนข้าเหงา'
   ];
@@ -2345,7 +2351,7 @@ function selectAccentUI(color){
   document.querySelectorAll('#theme-accent-grid .theme-color-dot[data-color]').forEach(d=>
     d.classList.toggle('active',d.dataset.color===color));
   const custom=document.getElementById('theme-custom-dot');
-  const isPreset=['#16B981','#534AB7','#D4537E','#378ADD','#EF9F27','#E24B4A'].includes(color);
+  const isPreset=['#1FAE8B','#534AB7','#D4537E','#378ADD','#EF9F27','#E24B4A'].includes(color);
   if(custom)custom.classList.toggle('active',!isPreset);
 }
 window.selectAccent=function(color){
@@ -3368,7 +3374,7 @@ function renderCashPage(){
 
   // ===== กล่อง A: ตู้เซฟ (เงินทอน) — รวมยอด + เติม/เบิก + นับเงิน + ประวัติเบิก-เติม ไว้ในกล่องเดียว =====
   let html=`<div class="card" style="margin-bottom:1.25rem;padding:0;overflow:hidden">
-    <div style="background:linear-gradient(135deg,#066046,#16B981);padding:1.5rem;color:#fff">
+    <div style="background:var(--grad-green);padding:1.5rem;color:#fff">
       <div style="font-size:13px;opacity:.85;margin-bottom:4px">🔒 ตู้เซฟ (เงินทอน) — ${BRANCHES[branch]}</div>
       <div style="font-size:34px;font-weight:700;letter-spacing:-1px">฿${balance.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
       <div style="display:flex;gap:8px;margin-top:1rem;flex-wrap:wrap">
@@ -5037,7 +5043,7 @@ function renderHome(){
       <div style="font-size:10px;opacity:.8;margin-top:3px">3 สาขา</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:16px;display:flex;gap:10px;align-items:flex-start">
-      ${capsuleMascot(34,'#2BC79A')}
+      ${capsuleMascot(34,'#1FAE8B')}
       <div style="flex:1">
         <div style="font-size:11px;color:var(--text3);margin-bottom:3px">น้องแคปซูลบอกว่า</div>
         <div style="font-size:12px;color:var(--text);line-height:1.5;font-weight:${bubbleSerious?600:400}">${bubble}</div>
