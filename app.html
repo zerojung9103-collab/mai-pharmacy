@@ -217,7 +217,7 @@ textarea{resize:vertical;min-height:64px}
 .mobile-topbar{position:fixed;top:0;left:0;right:0;height:calc(56px + env(safe-area-inset-top));padding-top:env(safe-area-inset-top);background:var(--surface);border-bottom:0.5px solid var(--border);z-index:90;align-items:center;padding-left:1rem;padding-right:1rem;gap:12px;display:none}
 .mobile-topbar-title{font-size:15px;font-weight:700;color:var(--text);flex:1}
 /* ปุ่มรีเฟรชลอย */
-#refresh-fab{position:fixed;right:18px;bottom:90px;width:48px;height:48px;border-radius:50%;background:var(--green);color:#fff;border:none;box-shadow:0 4px 16px rgba(22,185,129,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:80;transition:transform .15s ease}
+#refresh-fab{display:none!important}
 #refresh-fab svg{width:22px;height:22px}
 #refresh-fab:hover{transform:scale(1.08);background:var(--green-d)}
 #refresh-fab:active{transform:scale(.92)}
@@ -1419,9 +1419,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.2.4';
+const APP_VERSION='3.2.5';
 const CHANGELOG=[
-  {v:'3.2.4',date:'2026-06-24',changes:['มือถือ: เอาปุ่มรีเฟรชลอยออก เปลี่ยนเป็น “ดึงหน้าจอลงเพื่อรีเฟรช” (pull-to-refresh) — หน้าจอโล่งขึ้น (จอคอมยังมีปุ่มรีเฟรชเหมือนเดิม)']},
+  {v:'3.2.5',date:'2026-06-24',changes:['เอาปุ่มรีเฟรชลอยออกทั้งหมด — มือถือใช้ดึงหน้าจอลง (pull-to-refresh) · จอคอมกด F5 รีเฟรชได้']},
+  {v:'3.2.4',date:'2026-06-24',changes:['มือถือ: เอาปุ่มรีเฟรชลอยออก เปลี่ยนเป็น “ดึงหน้าจอลงเพื่อรีเฟรช” (pull-to-refresh)']},
   {v:'3.2.3',date:'2026-06-24',changes:['ขัดเงา UI: ช่องค้นหาไม่ตัดบรรทัดทับ Ctrl K · ปุ่ม “← หน้าแรก” ไม่ตก 2 บรรทัด · จุดสถานะบนอวตารพอดีวง · การ์ดสถิติหน้าแรกจัดระดับเท่ากัน']},
   {v:'3.2.2',date:'2026-06-24',changes:['ปรับชุดสีธีม (Accent) ให้เรียบหรูลงตัว — เทอร์คอยซ์ · เขียวป่า · น้ำเงินหม่น · คราม · พลัม · โรส · ดินเผา · อำพัน (เลือกได้ที่ ตั้งค่า → ธีมของฉัน)']},
   {v:'3.2.1',date:'2026-06-24',changes:['แก้บั๊ก: ตัวกรองสาขาในหน้า “ประวัติการขาย” แสดงโค้ดดิบ — เปลี่ยนเป็นปุ่มสาขาปกติ']},
