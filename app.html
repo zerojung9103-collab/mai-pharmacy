@@ -266,6 +266,10 @@ textarea{resize:vertical;min-height:64px}
 .tbd-search{flex:1;max-width:420px;display:flex;align-items:center;gap:10px;border:1.5px solid var(--border2);border-radius:999px;padding:9px 16px;cursor:pointer;color:var(--text3);font-size:13px;transition:.12s;background:var(--bg)}
 .tbd-search:hover{border-color:var(--green);background:var(--surface)}
 .tbd-search kbd{margin-left:auto;font-size:10.5px;border:1px solid var(--border2);border-radius:6px;padding:1px 6px;color:var(--text3);font-family:var(--font)}
+.tbd-search>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.tbd-search kbd{flex-shrink:0;white-space:nowrap}
+#home-back-btn{white-space:nowrap}
+#home-back-btn svg{flex-shrink:0}
 .tbd-spacer{flex:1}
 .cmdk-input{width:100%;font-family:var(--font);font-size:15px;padding:12px 14px;border:1.5px solid var(--border2);border-radius:12px;outline:none;margin-bottom:.75rem}
 .cmdk-input:focus{border-color:var(--green)}
@@ -1408,8 +1412,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.2.2';
+const APP_VERSION='3.2.3';
 const CHANGELOG=[
+  {v:'3.2.3',date:'2026-06-24',changes:['ขัดเงา UI: ช่องค้นหาไม่ตัดบรรทัดทับ Ctrl K · ปุ่ม “← หน้าแรก” ไม่ตก 2 บรรทัด · จุดสถานะบนอวตารพอดีวง · การ์ดสถิติหน้าแรกจัดระดับเท่ากัน']},
   {v:'3.2.2',date:'2026-06-24',changes:['ปรับชุดสีธีม (Accent) ให้เรียบหรูลงตัว — เทอร์คอยซ์ · เขียวป่า · น้ำเงินหม่น · คราม · พลัม · โรส · ดินเผา · อำพัน (เลือกได้ที่ ตั้งค่า → ธีมของฉัน)']},
   {v:'3.2.1',date:'2026-06-24',changes:['แก้บั๊ก: ตัวกรองสาขาในหน้า “ประวัติการขาย” แสดงโค้ดดิบ — เปลี่ยนเป็นปุ่มสาขาปกติ']},
   {v:'3.2.0',date:'2026-06-24',changes:['ออกแบบหน้าแรกใหม่ — แยกโซน “ใช้บ่อย” (การ์ดใหญ่กดง่าย) · “เครื่องมือเภสัช” · “จัดการร้าน” (admin) ให้หาเมนูง่ายขึ้น','Bottom nav ใหม่ — เหลือเฉพาะที่ใช้จริง + ปุ่มเช็คอินกลางเด่น (FAB) · ปุ่มที่ 2 ปรับตาม role','หน้า “เพิ่มเติม” รวมเมนูใช้นานๆ ครั้ง จัดเป็นหมวด (งานของฉัน/เครื่องมือ/จัดการร้าน/บัญชี)']},
@@ -5260,7 +5265,7 @@ function renderHome(){
     </div>
     <div style="width:46px;height:46px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;position:relative">
       ${myName.charAt(0).toUpperCase()}
-      <span style="position:absolute;bottom:0;right:0;width:14px;height:14px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
+      <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
     </div>
   </div>`;
 
@@ -5274,10 +5279,10 @@ function renderHome(){
     const moSales=salesEntries.filter(e=>e.date.startsWith(moStr)).reduce((s,e)=>s+(e.total||0),0);
     const dayShifts=shifts.filter(s=>s.date===today);
     const checkedIn=dayShifts.filter(s=>!s.tempName&&(allCheckins||[]).find(c=>c.uid===s.staffId&&c.date===today&&c.checkIn)).length;
-    const card=(chip,ic,lbl,val,sub,subColor)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)"><div style="width:40px;height:40px;border-radius:12px;background:${chip};display:flex;align-items:center;justify-content:center;margin-bottom:13px">${ic}</div><div style="font-size:12px;color:var(--text3);font-weight:500">${lbl}</div><div style="font-family:var(--disp);font-weight:700;font-size:25px;color:var(--text);margin-top:4px;letter-spacing:-.5px">${val}</div><div style="font-size:11px;margin-top:5px;color:${subColor||'var(--text3)'};font-weight:${subColor?600:400}">${sub}</div></div>`;
+    const card=(chip,ic,lbl,val,sub,subColor)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)"><div style="width:40px;height:40px;border-radius:12px;background:${chip};display:flex;align-items:center;justify-content:center;margin-bottom:13px">${ic}</div><div style="font-size:12px;color:var(--text3);font-weight:500;min-height:18px">${lbl}</div><div style="font-family:var(--disp);font-weight:700;font-size:25px;color:var(--text);margin-top:4px;letter-spacing:-.5px">${val}</div><div style="font-size:11px;margin-top:5px;color:${subColor||'var(--text3)'};font-weight:${subColor?600:400}">${sub}</div></div>`;
     const sv=(p)=>`<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
     html+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.25rem" class="home-stat-grid">
-      ${card('var(--green-l)','<span style="color:var(--green-d)">'+sv('<path d=\'M3 3v18h18\'/><path d=\'M7 14l4-4 3 3 5-6\'/>')+'</span>','ยอดขายวันนี้ · ทุกสาขา',todaySales>0?'฿'+todaySales.toLocaleString():'—',pct!==0?(pct>0?'▲ '+pct+'% จากเมื่อวาน':'▼ '+Math.abs(pct)+'% จากเมื่อวาน'):'เทียบเมื่อวาน',pct>0?'var(--green-d)':(pct<0?'var(--rose-d)':null))}
+      ${card('var(--green-l)','<span style="color:var(--green-d)">'+sv('<path d=\'M3 3v18h18\'/><path d=\'M7 14l4-4 3 3 5-6\'/>')+'</span>','ยอดขายวันนี้',todaySales>0?'฿'+todaySales.toLocaleString():'—',pct!==0?(pct>0?'▲ '+pct+'% จากเมื่อวาน':'▼ '+Math.abs(pct)+'% จากเมื่อวาน'):'เทียบเมื่อวาน',pct>0?'var(--green-d)':(pct<0?'var(--rose-d)':null))}
       ${card('var(--blue-l)','<span style="color:var(--blue-t)">'+sv('<rect x=\'4\' y=\'3\' width=\'16\' height=\'18\' rx=\'2\'/><path d=\'M8 8h8M8 12h8M8 16h5\'/>')+'</span>','ยอดรวมเดือนนี้','฿'+moSales.toLocaleString(),MONTHS_TH[new Date().getMonth()])}
       ${card('var(--amber-l)','<span style="color:var(--amber-t)">'+sv('<rect x=\'3\' y=\'4\' width=\'18\' height=\'17\' rx=\'2\'/><path d=\'M3 9h18M8 2v4M16 2v4\'/>')+'</span>','เวรวันนี้',dayShifts.length+' เวร',new Set(dayShifts.map(s=>s.branch)).size+' สาขา')}
       ${card('var(--rose-l)','<span style="color:var(--rose-d)">'+sv('<path d=\'M20 6L9 17l-5-5\'/>')+'</span>','เข้างานแล้ว',checkedIn+' / '+dayShifts.length,'เช็คอินแล้ววันนี้')}
