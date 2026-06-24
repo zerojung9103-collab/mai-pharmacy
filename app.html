@@ -224,6 +224,12 @@ textarea{resize:vertical;min-height:64px}
 #refresh-fab.spinning svg{animation:fabspin .6s linear}
 @keyframes fabspin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 @media(min-width:769px){#refresh-fab{bottom:24px}}
+/* มือถือ: ซ่อนปุ่มรีเฟรชลอย ใช้ดึงหน้าจอลงแทน (pull-to-refresh) */
+@media(max-width:768px){#refresh-fab{display:none!important}}
+#ptr-ind{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-50px);width:38px;height:38px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;z-index:120;color:var(--green);opacity:0;transition:transform .18s ease,opacity .18s ease;pointer-events:none}
+#ptr-ind svg{width:20px;height:20px}
+#ptr-ind.spin svg{animation:fabspin .7s linear infinite}
+@media(min-width:769px){#ptr-ind{display:none}}
 #capsule-fab{position:fixed;left:18px;bottom:90px;width:54px;height:54px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border2);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:80;transition:transform .15s ease;padding:0}
 #capsule-fab:hover{transform:scale(1.06)}
 #capsule-fab:active{transform:scale(.92)}
@@ -442,7 +448,8 @@ input,select,textarea{border-radius:14px}
   <span id="sb-role" style="display:none"></span>
 </div>
 
-<!-- ปุ่มรีเฟรชลอย (ทุกหน้า) -->
+<!-- ปุ่มรีเฟรชลอย (เฉพาะจอคอม) -->
+<div id="ptr-ind"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
 <button id="refresh-fab" onclick="refreshCurrentPage()" title="รีเฟรชข้อมูลล่าสุด" aria-label="รีเฟรช">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
 </button>
@@ -1412,8 +1419,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.2.3';
+const APP_VERSION='3.2.4';
 const CHANGELOG=[
+  {v:'3.2.4',date:'2026-06-24',changes:['มือถือ: เอาปุ่มรีเฟรชลอยออก เปลี่ยนเป็น “ดึงหน้าจอลงเพื่อรีเฟรช” (pull-to-refresh) — หน้าจอโล่งขึ้น (จอคอมยังมีปุ่มรีเฟรชเหมือนเดิม)']},
   {v:'3.2.3',date:'2026-06-24',changes:['ขัดเงา UI: ช่องค้นหาไม่ตัดบรรทัดทับ Ctrl K · ปุ่ม “← หน้าแรก” ไม่ตก 2 บรรทัด · จุดสถานะบนอวตารพอดีวง · การ์ดสถิติหน้าแรกจัดระดับเท่ากัน']},
   {v:'3.2.2',date:'2026-06-24',changes:['ปรับชุดสีธีม (Accent) ให้เรียบหรูลงตัว — เทอร์คอยซ์ · เขียวป่า · น้ำเงินหม่น · คราม · พลัม · โรส · ดินเผา · อำพัน (เลือกได้ที่ ตั้งค่า → ธีมของฉัน)']},
   {v:'3.2.1',date:'2026-06-24',changes:['แก้บั๊ก: ตัวกรองสาขาในหน้า “ประวัติการขาย” แสดงโค้ดดิบ — เปลี่ยนเป็นปุ่มสาขาปกติ']},
@@ -2570,6 +2578,39 @@ window.refreshCurrentPage=async function(){
   }catch(e){showToast('รีเฟรชไม่สำเร็จ: '+e.message,'err');}
   if(btn)setTimeout(()=>btn.classList.remove('spinning'),600);
 };
+// ===== Pull-to-refresh (มือถือ) — ดึงหน้าจอลงเพื่อรีเฟรช =====
+(function initPullToRefresh(){
+  if(!('ontouchstart' in window))return;
+  const ind=document.getElementById('ptr-ind');
+  if(!ind)return;
+  let startY=0,pulling=false,dist=0,busy=false;
+  const THRESH=68,MAX=120;
+  const reset=()=>{ind.style.transform='translateX(-50%) translateY(-50px)';ind.style.opacity='';};
+  window.addEventListener('touchstart',e=>{
+    if(busy||window.innerWidth>768)return;
+    if(window.scrollY>0||document.querySelector('.modal-overlay.open, .loading.show'))return;
+    startY=e.touches[0].clientY;pulling=true;dist=0;
+  },{passive:true});
+  window.addEventListener('touchmove',e=>{
+    if(!pulling||busy)return;
+    dist=e.touches[0].clientY-startY;
+    if(dist<=0||window.scrollY>0){pulling=false;reset();return;}
+    const d=Math.min(dist*.5,MAX);
+    ind.style.transform=`translateX(-50%) translateY(${Math.min(d-44,20)}px)`;
+    ind.style.opacity=String(Math.min(d/THRESH,1));
+  },{passive:true});
+  window.addEventListener('touchend',()=>{
+    if(!pulling||busy){pulling=false;return;}
+    pulling=false;
+    if(dist*.5>=THRESH){
+      busy=true;ind.classList.add('spin');
+      ind.style.transform='translateX(-50%) translateY(18px)';ind.style.opacity='1';
+      Promise.resolve(refreshCurrentPage()).finally(()=>{
+        setTimeout(()=>{ind.classList.remove('spin');reset();busy=false;},450);
+      });
+    }else{reset();}
+  });
+})();
 
 // ===== YEAR SELECTS =====
 function initYearSelects(){
