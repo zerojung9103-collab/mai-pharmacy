@@ -1309,9 +1309,8 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.0.0';
+const APP_VERSION='2.2.10';
 const CHANGELOG=[
-  {v:'3.0.0',date:'2026-06-24',changes:['ใหม่เภสัช v3.0.0 — รวม features ทั้งหมดจาก v2.x: UI Redesign (dark/light mode, per-user theme, bottom nav ใหม่), ระบบ To Do List (template งานประจำวัน+งานพิเศษ, smart auto-check จาก sales/cashcounts/purselogs, feature picker), งานวันนี้ใช้สาขาจากการเช็คอินจริง, tester role, ฉลากยาต่างชาติ (Auto Size Engine v2, Template C, QZ Tray), แก้ bugs จาก code review รอบสำคัญ']},
   {v:'2.2.10',date:'2026-06-24',changes:['งานวันนี้ใช้สาขาจาก branchIn (เช็คอินจริง) แทนตารางเวร — ถ้ายังไม่เช็คอินจะแสดง "กรุณาเช็คอินก่อน" + ปุ่มพาไปหน้าเช็คอิน, notification บนหน้าแรกก็ใช้ branchIn เช่นกัน — ถ้ายังไม่เช็คอินจะไม่แสดง notification งาน']},
   {v:'2.2.9',date:'2026-06-24',changes:['แก้ To Do notification ขึ้น 2 อัน — อีกแชทเพิ่ม block แจ้งเตือนซ้อนทับของเดิมโดยไม่ลบออก ลบ block ซ้ำออกแล้ว เหลือแค่อันเดียวที่ดีกว่า (มี loadTodoTemplates check)']},
   {v:'2.2.8',date:'2026-06-24',changes:['แก้ resetTesterCheckin: เปลี่ยนจาก deleteDoc เป็น setDoc เขียนทับด้วยข้อมูลว่าง (ไม่มี checkIn/checkOut) — ใช้ rule update ปกติได้เลย ไม่ต้อง rule พิเศษ, ลบ definition ซ้ำ 3 อัน (bug จากอีกแชท) เหลือแค่อันเดียว, คืน Firestore rules checkins delete กลับเป็น isAdmin() เท่านั้น']},
@@ -5012,7 +5011,7 @@ function renderHome(){
   let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
     <div>
       <div style="font-size:13px;color:var(--text3)">${greet}</div>
-      <div style="font-size:20px;font-weight:700;color:var(--text)">${myName}</div>
+      <div style="font-size:24px;font-weight:400;font-family:var(--disp);color:var(--text)">${myName}</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
     </div>
     <button onclick="openAssistant()" style="background:none;border:none;cursor:pointer;padding:0" aria-label="ผู้ช่วยส่วนตัว">
@@ -5026,23 +5025,26 @@ function renderHome(){
   // ===== Stat cards: 2 การ์ดข้อมูลสำคัญ =====
   const todaySales=window._todaySalesTotal||0;
   html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-    <div style="background:var(--green);border-radius:16px;padding:14px;color:#fff">
-      <div style="font-size:11px;opacity:.85;margin-bottom:4px">ยอดขายวันนี้</div>
-      <div style="font-size:20px;font-weight:700">${todaySales>0?'฿'+todaySales.toLocaleString():'—'}</div>
-      <div style="font-size:10px;opacity:.75;margin-top:3px">3 สาขา</div>
+    <div style="background:linear-gradient(140deg,#3FD6AB,#1E9E79);border-radius:22px;padding:16px;color:#fff;box-shadow:0 10px 24px rgba(30,158,121,.28)">
+      <div style="font-size:11px;opacity:.9;margin-bottom:4px">ยอดขายวันนี้</div>
+      <div style="font-size:26px;font-weight:400;font-family:var(--disp)">${todaySales>0?'฿'+todaySales.toLocaleString():'—'}</div>
+      <div style="font-size:10px;opacity:.8;margin-top:3px">3 สาขา</div>
     </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px">
-      <div style="font-size:11px;color:var(--text3);margin-bottom:4px">น้องแคปซูลบอกว่า</div>
-      <div style="font-size:12px;color:var(--text);line-height:1.5;font-weight:${bubbleSerious?600:400}">${bubble}</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:16px;display:flex;gap:10px;align-items:flex-start">
+      ${capsuleMascot(34,'#2BC79A')}
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:3px">น้องแคปซูลบอกว่า</div>
+        <div style="font-size:12px;color:var(--text);line-height:1.5;font-weight:${bubbleSerious?600:400}">${bubble}</div>
+      </div>
     </div>
   </div>`;
 
   // ===== เวรวันนี้ (ถ้ามี) =====
   if(todayShift){
-    html+=`<div onclick="goto('checkin')" style="cursor:pointer;background:linear-gradient(135deg,${dc.dark},${dc.main});border-radius:16px;padding:14px 16px;color:#fff;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
+    html+=`<div onclick="goto('checkin')" style="cursor:pointer;background:linear-gradient(135deg,${dc.dark},${dc.main});border-radius:20px;padding:14px 16px;color:#fff;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
       <div>
         <div style="font-size:11px;opacity:.8">เวรของคุณวันนี้</div>
-        <div style="font-size:19px;font-weight:700;margin-top:2px">${todayShift.start} – ${todayShift.end}</div>
+        <div style="font-size:21px;font-weight:400;font-family:var(--disp);margin-top:2px">${todayShift.start} – ${todayShift.end}</div>
         <div style="font-size:11px;opacity:.8;margin-top:2px">📍 ${BRANCHES[todayShift.branch]}</div>
       </div>
       <div style="background:rgba(255,255,255,.2);padding:8px 14px;border-radius:12px;font-size:12px;font-weight:600">เช็คอิน →</div>
@@ -5052,12 +5054,12 @@ function renderHome(){
   // ===== เมนูกริด =====
   const order=currentMenuOrder();
   const allFeats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&featureShow(f));
-  html+=`<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:.6rem;letter-spacing:.5px">เมนู</div>`;
-  html+=`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-    ${allFeats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:.75rem .5rem;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;font-family:var(--font);transition:.15s;width:100%" onmouseover="this.style.background='var(--green-l)'" onmouseout="this.style.background='var(--surface)'">
-      <span style="font-size:22px">${f.icon}</span>
+  html+=`<div style="font-family:var(--disp);font-size:16px;color:var(--text2);margin-bottom:.6rem">เมนู</div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+    ${allFeats.map((f,i)=>{const pal=['#DBF5EC','#E0F4FE','#FFF2D4','#ECE9FF','#FFEAE1'];const k=i%pal.length;return `<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:.9rem .5rem;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;font-family:var(--font);transition:.15s;width:100%" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow)'" onmouseout="this.style.transform='';this.style.boxShadow='none'">
+      <span style="width:44px;height:44px;border-radius:15px;background:${pal[k]};display:flex;align-items:center;justify-content:center;font-size:22px">${f.icon}</span>
       <span style="font-size:11px;font-weight:600;color:var(--text2);text-align:center;line-height:1.3">${f.label}</span>
-    </button>`).join('')}
+    </button>`}).join('')}
   </div>`;
 
   el.innerHTML=html;
