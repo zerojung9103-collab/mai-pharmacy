@@ -1063,6 +1063,13 @@ input,select,textarea{border-radius:14px}
             </div>
           </div>
           <div class="field">
+            <label class="fl">ดีไซน์ฉลาก</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-sm fl-layout-btn active" data-fl-layout="classic" onclick="flSetLayout('classic')">เส้นข้าง (เดิม)</button>
+              <button class="btn btn-sm fl-layout-btn" data-fl-layout="banner" onclick="flSetLayout('banner')">แถบหัว (แบบ A)</button>
+            </div>
+          </div>
+          <div class="field">
             <label class="fl">สาขา</label>
             <select id="fl-branch-sel" onchange="flSetBranch(+this.value)">
               <option value="0">ทรัพย์พัฒนา</option>
@@ -1111,10 +1118,6 @@ input,select,textarea{border-radius:14px}
         </div>
         <div class="card" style="margin-bottom:1rem">
           <div style="font-weight:700;font-size:14px;margin-bottom:.75rem">🎨 ตั้งค่าฉลาก</div>
-          <div class="field-row">
-            <div class="field"><label class="fl">สีพื้นหลัง</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="fl-bg-color" value="#FFFFFF" oninput="flRenderPreview()" style="width:38px;height:34px;padding:2px;border-radius:6px;border:1px solid var(--border2);cursor:pointer"><span id="fl-bg-hex" style="font-size:12px;color:var(--text3)">#FFFFFF</span></div></div>
-            <div class="field"><label class="fl">สีตัวอักษรทั่วไป</label><div style="display:flex;gap:6px;align-items:center"><input type="color" id="fl-text-color" value="#000000" oninput="flRenderPreview()" style="width:38px;height:34px;padding:2px;border-radius:6px;border:1px solid var(--border2);cursor:pointer"><span id="fl-text-hex" style="font-size:12px;color:var(--text3)">#000000</span></div></div>
-          </div>
           <div style="border-top:1px solid var(--border);margin:.75rem 0 .5rem;padding-top:.75rem">
             <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:.5rem">📐 Offset เครื่องพิมพ์ (mm) — ชดเชยตำแหน่งที่ไม่ตรง</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -1146,8 +1149,7 @@ input,select,textarea{border-radius:14px}
             <span id="fl-size-label" style="font-size:12px;color:var(--text3)">80×60 mm</span>
             <span style="font-size:10px;color:var(--text3)">· แสดง 4.5×</span>
             <div style="flex:1"></div>
-            <button id="fl-live-toggle" class="btn btn-sm" onclick="flToggleLiveAuto()" style="background:var(--green-l);color:var(--green-d);border-color:var(--green)">⚡ Live</button>
-            <button class="btn btn-sm btn-primary" onclick="flAutoSize(true)" title="จัดขนาดและตำแหน่งให้พอดีฉลากอัตโนมัติ">✨ Auto</button>
+            <button class="btn btn-sm btn-primary" onclick="flAutoSize(true)" title="จัดขนาดตัวอักษรและตำแหน่งให้พอดีกับฉลากอัตโนมัติ">✨ จัดให้พอดี</button>
           </div>
           <div style="overflow:auto;padding-bottom:4px">
             <div id="fl-preview-wrap" style="position:relative"></div>
@@ -1419,8 +1421,15 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.2.5';
+const APP_VERSION='3.4.1';
 const CHANGELOG=[
+  {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
+  {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
+  {v:'3.3.4',date:'2026-06-25',changes:['ฉลากยาต่างชาติ: กันพลาดตอนพิมพ์ — ถ้าเบราว์เซอร์บล็อก popup หน้าต่างพิมพ์ จะแจ้งเตือนแทนที่จะ error เงียบ ๆ']},
+  {v:'3.3.3',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — ปรับให้เหมาะเครื่องพิมพ์ความร้อน (ขาวดำ): เอาช่อง “สีพื้นหลัง” + ตัวเลือกสีต่อบล็อกออก · เส้นขีดซ้ายเป็นปุ่มเปิด/ปิด (เส้นดำ)']},
+  {v:'3.3.2',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เก็บกวาด: ลบช่อง “สีตัวอักษรทั่วไป” ที่ไม่ทำงาน · แก้บั๊กสลับดีไซน์แล้วรายการขนาดตัวอักษรไม่อัปเดต · สลับดีไซน์ไม่ลบบล็อกข้อความอิสระ']},
+  {v:'3.3.1',date:'2026-06-25',changes:['แก้พรีวิวฉลากแบบ “แถบหัว” ที่เพี้ยน — ย้ายที่อยู่ลงใต้แถบ · จัดกรอบคำเตือน/เส้นคั่น/วันที่ไม่ให้ทับกัน']},
+  {v:'3.3.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ: เพิ่มดีไซน์ “แถบหัว (แบบ A)” — แถบหัวดำตัวอักษรขาว, กรอบคำเตือน · ขาวดำล้วน เหมาะเครื่องพิมพ์ความร้อน']},
   {v:'3.2.5',date:'2026-06-24',changes:['เอาปุ่มรีเฟรชลอยออกทั้งหมด — มือถือใช้ดึงหน้าจอลง (pull-to-refresh) · จอคอมกด F5 รีเฟรชได้']},
   {v:'3.2.4',date:'2026-06-24',changes:['มือถือ: เอาปุ่มรีเฟรชลอยออก เปลี่ยนเป็น “ดึงหน้าจอลงเพื่อรีเฟรช” (pull-to-refresh)']},
   {v:'3.2.3',date:'2026-06-24',changes:['ขัดเงา UI: ช่องค้นหาไม่ตัดบรรทัดทับ Ctrl K · ปุ่ม “← หน้าแรก” ไม่ตก 2 บรรทัด · จุดสถานะบนอวตารพอดีวง · การ์ดสถิติหน้าแรกจัดระดับเท่ากัน']},
@@ -6793,15 +6802,51 @@ const FL_DEFAULT_BLOCKS=()=>[
   {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1,  y:1,  w:77,fontSize:7,  bold:true, color:'#000',leftBorder:''},
   {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1,  y:5,  w:77,fontSize:5,  bold:false,color:'#555',leftBorder:''},
   {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1,  y:11, w:77,fontSize:7,  bold:false,color:'#000',leftBorder:''},
-  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:5,  y:16, w:55,fontSize:12, bold:true, color:'#000',leftBorder:'#16B981'},
+  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:5,  y:16, w:55,fontSize:12, bold:true, color:'#000',leftBorder:'#000'},
   {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:62, y:19, w:16,fontSize:8,  bold:false,color:'#333',leftBorder:''},
-  {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:5,  y:29, w:73,fontSize:9,  bold:true, color:'#000',leftBorder:'#3B8EEA'},
+  {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:5,  y:29, w:73,fontSize:9,  bold:true, color:'#000',leftBorder:'#000'},
   {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1,  y:39, w:77,fontSize:6.5,bold:false,color:'#333',leftBorder:''},
   {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1,  y:44, w:77,fontSize:6,  bold:false,color:'#666',leftBorder:''},
   {id:'b_date',    label:'วันที่จ่ายยา',   key:'date',      x:1,  y:55, w:77,fontSize:5.5,bold:false,color:'#aaa',leftBorder:''},
 ];
 let flBlocks=FL_DEFAULT_BLOCKS();
 let flCustomBlocks=[];
+let flLayout='classic';
+// แบบ A (แถบหัว) — โครงเดียวกับ mockup แต่ขาวดำสำหรับเครื่องพิมพ์ความร้อน
+const FL_BANNER_BLOCKS=()=>[
+  {id:'b_shop',    label:'ชื่อร้าน+สาขา', key:'shop_name', x:2,  y:1.3, w:76,fontSize:7.5,bold:true, color:'#ffffff',leftBorder:''},
+  {id:'b_addr',    label:'ที่อยู่+เบอร์', key:'address',   x:2,  y:8.5, w:76,fontSize:4.4,bold:false,color:'#000',leftBorder:''},
+  {id:'b_patient', label:'ชื่อผู้ป่วย',   key:'patient',   x:2,  y:16.5,w:76,fontSize:7,  bold:true, color:'#000',leftBorder:''},
+  {id:'b_drug',    label:'ชื่อยา',         key:'drug_name', x:2,  y:22,  w:52,fontSize:12, bold:true, color:'#000',leftBorder:''},
+  {id:'b_strength',label:'ความแรงยา',     key:'strength',  x:54, y:24.5,w:24,fontSize:8,  bold:false,color:'#000',leftBorder:''},
+  {id:'b_dir',     label:'วิธีใช้',        key:'direction', x:2,  y:31,  w:76,fontSize:9,  bold:true, color:'#000',leftBorder:''},
+  {id:'b_ind',     label:'สรรพคุณ',       key:'indication',x:2,  y:40,  w:76,fontSize:6,  bold:false,color:'#000',leftBorder:''},
+  {id:'b_warn',    label:'คำเตือน',       key:'warning',   x:3,  y:47,  w:74,fontSize:6,  bold:true, color:'#000',leftBorder:''},
+  {id:'b_date',    label:'วันที่จ่ายยา',  key:'date',      x:2,  y:55.5,w:76,fontSize:5.5,bold:false,color:'#000',leftBorder:''},
+];
+window.flSetLayout=function(layout){
+  const customs=flBlocks.filter(b=>b.key==='custom'); // เก็บบล็อกข้อความอิสระไว้ตอนสลับดีไซน์
+  flLayout=layout==='banner'?'banner':'classic';
+  flBlocks=(flLayout==='banner'?FL_BANNER_BLOCKS():FL_DEFAULT_BLOCKS()).concat(customs);
+  document.querySelectorAll('[data-fl-layout]').forEach(b=>b.classList.toggle('active',b.dataset.flLayout===flLayout));
+  flRenderBlockList();flRenderCustomBlockInputs();
+  if(flLiveAuto&&flLayout!=='banner')flAutoSizeFull();else flRenderPreview();
+};
+// องค์ประกอบตกแต่งแบบ A (แถบหัวดำ + เส้นคั่นล่าง + กรอบคำเตือน) — ขาวดำ
+function flDecoHtml(mode){
+  if(flLayout!=='banner')return '';
+  const [pw,ph]=flSize.split('x').map(Number);
+  const f=mode==='preview'?FL_MM_TO_PX:1;
+  const s=mode==='preview'?'px':'mm';
+  const oxmm=flPageMargins.left||0, oymm=flPageMargins.top||0;
+  const bw=(0.4*f)+s; // ความหนาเส้น/กรอบ
+  const box=(x,y,w,hh,style)=>`<div style="position:absolute;left:${(x+oxmm)*f}${s};top:${(y+oymm)*f}${s};width:${w*f}${s};height:${hh*f}${s};${style}"></div>`;
+  let h='';
+  h+=box(0,0,pw,7.5,'background:#000');                      // แถบหัวดำ (ชื่อร้าน)
+  h+=box(1.5,45.6,pw-3,7.2,'border:'+bw+' solid #000;border-radius:'+(0.8*f)+s);  // กรอบคำเตือน
+  h+=box(0,54.2,pw,0,'border-top:'+bw+' solid #000');        // เส้นคั่นเหนือวันที่
+  return h;
+}
 // offset เครื่องพิมพ์ (mm) — บันทึกใน template
 let flPageMargins={top:0,left:0};
 const FL_MM_TO_PX=4.5;
@@ -6952,7 +6997,7 @@ const FL_BLOCK_RULES={
 // line-height ตามภาษา (พม่าสูงกว่า EN/ZH มาก)
 const FL_LINE_H={en:1.25,zh:1.15,my:1.6};
 
-let flLiveAuto=true;
+let flLiveAuto=false;
 let _fontReady=false;
 
 // โหลด Noto Sans Thai ก่อนวัด เพื่อให้ measureText แม่น
@@ -7018,6 +7063,7 @@ function fitBlockFont(b){
 
 // ฟังก์ชันหลัก: per-block fit + zone layout + justify spacing
 async function flAutoSizeFull(){
+  if(flLayout==='banner'){flRenderPreview();return;}
   await ensureFonts();
   const [pw,ph]=flSize.split('x').map(Number);
   const MT=flPageMargins.top||0;   // top offset
@@ -7049,7 +7095,9 @@ async function flAutoSizeFull(){
     const last=rows[rows.length-1];
     const sameZone=last&&(FL_BLOCK_RULES[last[0].key]?.zone||'body')===rule.zone;
     const closeY=last&&Math.abs(b.y-last[0].y)<=8;
-    if(last&&sameZone&&closeY)last.push(b);
+    // จะอยู่แถวเดียวกันได้ต้องไม่ซ้อนแนวนอน (เช่น ชื่อยา+ความแรง) — ถ้าเต็มความกว้างซ้อนกัน ต้องแยกคนละแถว
+    const noHOverlap=last&&last.every(pb=>(b.x>=pb.x+pb.w-0.5)||(b.x+b.w<=pb.x+0.5));
+    if(last&&sameZone&&closeY&&noHOverlap)last.push(b);
     else rows.push([b]);
   }
 
@@ -7080,7 +7128,7 @@ async function flAutoSizeFull(){
   const bodyUsed=bodyRows.reduce((s,r)=>s+Math.max(...r.map(b=>blockHeightMm(b))),0);
   const bodyGapTotal=Math.max(bodyAvail-bodyUsed,bodyRows.length*GAP_MIN);
   const bodyGap=bodyRows.length>1?bodyGapTotal/Math.max(bodyRows.length-1,1):GAP_MIN;
-  const clampedGap=Math.max(Math.min(bodyGap,4),GAP_MIN); // ห่างสูงสุด 4mm
+  const clampedGap=Math.max(Math.min(bodyGap,2.5),GAP_MIN); // ห่างสูงสุด 2.5mm — ไม่เกลี่ยช่องว่างจนดูแปลก
 
   // 6. จัด y ทุกบล็อก
   let curY=MT+1;
@@ -7194,13 +7242,8 @@ function flRenderBlockList(){
         oninput="flSetBlock(${i},'fontSize',+this.value);this.previousElementSibling.textContent='ขนาด '+this.value+'pt'">
     </div>
     <div style="display:flex;gap:6px;align-items:center">
-      <input type="color" value="${b.color}" title="สีตัวอักษร" oninput="flSetBlock(${i},'color',this.value)" style="width:28px;height:26px;padding:1px;border-radius:5px;border:1px solid var(--border2);cursor:pointer">
-      <button class="btn btn-sm" style="padding:2px 8px;font-size:10px" onclick="flToggleBold(${i})">${b.bold?'<b>B</b>':'B'}</button>
-      <div style="display:flex;align-items:center;gap:4px">
-        <span style="font-size:10px;color:var(--text3)">เส้นซ้าย</span>
-        <input type="color" value="${b.leftBorder||'#ffffff'}" title="สีเส้นซ้าย (ขาว=ไม่มี)" oninput="flSetBlock(${i},'leftBorder',this.value)" style="width:24px;height:24px;padding:1px;border-radius:5px;border:1px solid var(--border2);cursor:pointer">
-        ${b.leftBorder?`<button class="btn btn-sm" style="padding:1px 6px;font-size:10px" onclick="flSetBlock(${i},'leftBorder','');flRenderBlockList()">✕</button>`:''}
-      </div>
+      <button class="btn btn-sm" style="padding:2px 10px;font-size:11px" title="ตัวหนา" onclick="flToggleBold(${i})">${b.bold?'<b>B</b>':'B'}</button>
+      <button class="btn btn-sm" style="padding:2px 10px;font-size:10px${b.leftBorder?';background:var(--green-l);color:var(--green-d);border-color:var(--green)':''}" title="เส้นขีดซ้ายหน้าบล็อก (ดำ)" onclick="flToggleBorder(${i})">▍ เส้นซ้าย${b.leftBorder?' ✓':''}</button>
     </div>
   </div>`).join('');
 }
@@ -7210,6 +7253,11 @@ window.flSetBlock=function(i,key,val){
 };
 window.flToggleBold=function(i){
   flBlocks[i].bold=!flBlocks[i].bold;
+  flRenderBlockList();
+  flRenderPreview();
+};
+window.flToggleBorder=function(i){
+  flBlocks[i].leftBorder=flBlocks[i].leftBorder?'':'#000';
   flRenderBlockList();
   flRenderPreview();
 };
@@ -7258,15 +7306,14 @@ function flGetBlockText(block){
 }
 window.flRenderPreview=function(){
   const bgColor=document.getElementById('fl-bg-color')?.value||'#ffffff';
-  const textColorGlobal=document.getElementById('fl-text-color')?.value||'#000000';
-  document.getElementById('fl-bg-hex').textContent=bgColor;
-  document.getElementById('fl-text-hex').textContent=textColorGlobal;
+  const bgHex=document.getElementById('fl-bg-hex');if(bgHex)bgHex.textContent=bgColor;
   const wrap=document.getElementById('fl-preview-wrap');
   if(!wrap)return;
   const [pw,ph]=flSize.split('x').map(Number);
   const W=pw*FL_MM_TO_PX, H=ph*FL_MM_TO_PX;
   wrap.style.cssText=`width:${W}px;height:${H}px;background:${bgColor};border:2px solid #999;box-shadow:2px 2px 12px rgba(0,0,0,.2);position:relative;overflow:hidden;font-family:'Noto Sans Thai','Noto Sans',sans-serif;-webkit-font-smoothing:antialiased`;
   wrap.innerHTML='';
+  wrap.insertAdjacentHTML('beforeend',flDecoHtml('preview'));
   flBlocks.forEach((b,bi)=>{
     const txt=flGetBlockText(b);
     if(!txt)return;
@@ -7329,7 +7376,7 @@ window.printForeignLabel=async function(){
 body{width:${pw}mm;height:${ph}mm;background:${bgColor};position:relative;overflow:hidden;
   font-family:'Noto Sans Thai','Noto Sans','Noto Sans Myanmar',sans-serif}
 @media print{html,body{width:${pw}mm;height:${ph}mm}}
-</style></head><body>${blocksHtml}</body></html>`;
+</style></head><body>${flDecoHtml('print')}${blocksHtml}</body></html>`;
 
   // ลำดับ: QZ Tray → PrintBridge → window.print()
   showToast('กำลังส่งไปพิมพ์...','');
@@ -7348,6 +7395,7 @@ body{width:${pw}mm;height:${ph}mm;background:${bgColor};position:relative;overfl
 
   // 3. Fallback: browser window.print()
   const w=window.open('','_blank');
+  if(!w){showToast('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาต popup ของเว็บนี้แล้วลองใหม่','err');return;}
   w.document.write(html+`<script>window.onload=function(){setTimeout(()=>window.print(),400)}<\/script>`);
   w.document.close();
 };
