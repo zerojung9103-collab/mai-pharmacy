@@ -1282,8 +1282,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.2.7';
+const APP_VERSION='2.2.8';
 const CHANGELOG=[
+  {v:'2.2.8',date:'2026-06-24',changes:['แก้ resetTesterCheckin: เปลี่ยนจาก deleteDoc เป็น setDoc เขียนทับด้วยข้อมูลว่าง (ไม่มี checkIn/checkOut) — ใช้ rule update ปกติได้เลย ไม่ต้อง rule พิเศษ, ลบ definition ซ้ำ 3 อัน (bug จากอีกแชท) เหลือแค่อันเดียว, คืน Firestore rules checkins delete กลับเป็น isAdmin() เท่านั้น']},
   {v:'2.2.7',date:'2026-06-24',changes:[
     'To Do List: แก้ popup ไม่ขึ้นสาขาทรัพย์พัฒนา (index=0) — แก้เงื่อนไข rebuild doc ที่ตรวจ todoTemplates.length===0 ผิด ควรเป็น >0',
     'To Do List: แก้งานวันนี้ไม่แสดงเมื่อ doc ถูกสร้างก่อน templates โหลดเสร็จ'
@@ -5435,37 +5436,22 @@ function calcWorkTime(inT,outT){
 }
 
 // Tester checkin — ไม่ใช้ GPS เลือกสาขาเอง
+
 window.resetTesterCheckin=async function(){
   if(!isTester)return;
   if(!await capsuleConfirm('ล้างข้อมูลเช็คอินวันนี้เพื่อทดสอบใหม่?'))return;
   try{
-    await deleteDoc(doc(db,'checkins',todayCheckinId()));
+    // ใช้ setDoc เขียนทับ (ไม่ใช้ deleteDoc) — ใช้ rule update ปกติได้เลย ไม่ต้อง rule พิเศษ
+    // checkIn/checkOut ไม่ใส่ → แอปเห็นว่ายังไม่ได้เช็คอิน
+    await setDoc(doc(db,'checkins',todayCheckinId()),{
+      uid:currentUser.uid,
+      date:todayStr(),
+    });
     window._myCheckinToday=null;
     showToast('🔄 รีเซ็ตแล้ว — เช็คอินใหม่ได้เลย');
     renderCheckinPage();
   }catch(e){showToast('รีเซ็ตไม่สำเร็จ: '+e.message,'err');}
 };
-window.resetTesterCheckin=async function(){
-  if(!isTester)return;
-  if(!await capsuleConfirm('รีเซ็ตการเช็คอินวันนี้เพื่อทดสอบใหม่?'))return;
-  try{
-    await deleteDoc(doc(db,'checkins',todayCheckinId()));
-    window._myCheckinToday=null;
-    showToast('🔄 รีเซ็ตแล้ว — ทดสอบเช็คอินได้อีกครั้ง');
-    renderCheckinPage();
-  }catch(e){showToast('รีเซ็ตไม่สำเร็จ: '+e.message,'err');}
-};
-window.resetTesterCheckin=async function(){
-  if(!isTester)return;
-  if(!await capsuleConfirm('รีเซ็ตข้อมูลเช็คอินวันนี้? (เพื่อทดสอบใหม่)'))return;
-  try{
-    await deleteDoc(doc(db,'checkins',todayCheckinId()));
-    window._myCheckinToday=null;
-    showToast('รีเซ็ตแล้ว — ทดสอบเช็คอินใหม่ได้เลย');
-    renderCheckinPage();
-  }catch(e){showToast('รีเซ็ตไม่สำเร็จ: '+e.message,'err');}
-};
-
 window.doCheckinTester=async function(type){
   if(!isTester)return;
   const branch=parseInt(document.getElementById('tester-branch-sel')?.value||0);
