@@ -173,6 +173,15 @@ textarea{resize:vertical;min-height:64px}
 .bcard-bar-bg{height:5px;background:var(--bg);border-radius:3px;margin-bottom:.75rem}
 .bcard-bar{height:5px;border-radius:3px;transition:.4s}
 .chart-wrap{position:relative;width:100%;height:280px;margin-top:.5rem}
+.db-2col{display:grid;grid-template-columns:1.6fr 1fr;gap:1rem;margin-bottom:1rem;align-items:start}
+@media(max-width:900px){.db-2col{grid-template-columns:1fr}}
+.bsplit-row{display:flex;align-items:center;gap:11px;padding:13px 0;border-bottom:1px solid var(--border)}
+.bsplit-row:last-child{border-bottom:none}
+.bsplit-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.bsplit-name{font-size:13px;font-weight:600;flex:1;color:var(--text)}
+.bsplit-val{font-family:var(--disp);font-weight:600;font-size:14px;color:var(--ink,var(--text))}
+.bsplit-bg{height:6px;background:var(--bg);border-radius:3px;margin-top:7px;overflow:hidden}
+.bsplit-bar{height:6px;border-radius:3px;transition:.4s}
 .legend-row{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text2)}
 .legend-item{display:flex;align-items:center;gap:6px}
 .legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
@@ -446,16 +455,20 @@ input,select,textarea{border-radius:14px}
     <div id="db-today-overview" style="margin-bottom:1.25rem"></div>
     <div id="db-filter" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem"></div>
     <div class="metric-grid" id="db-metrics"></div>
-    <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
-        <div><div style="font-size:14px;font-weight:700">กราฟยอดขายแยกสาขา</div><div id="db-chart-sub" style="font-size:11px;color:var(--text3);margin-top:2px"></div></div>
-        <div class="legend-row" id="db-legend"></div>
+    <div class="db-2col">
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+          <div><div style="font-family:var(--disp);font-weight:600;font-size:16px">กราฟยอดขายแยกสาขา</div><div id="db-chart-sub" style="font-size:11px;color:var(--text3);margin-top:2px"></div></div>
+          <div class="legend-row" id="db-legend"></div>
+        </div>
+        <div class="chart-wrap"><canvas id="dbChart" role="img" aria-label="กราฟยอดขาย"></canvas></div>
       </div>
-      <div class="chart-wrap"><canvas id="dbChart" role="img" aria-label="กราฟยอดขาย"></canvas></div>
+      <div class="card" id="db-branch-split"></div>
     </div>
     <div class="branch-cards" id="db-bcards" style="margin-top:1rem"></div>
     <div id="db-paystat" style="margin-top:1rem"></div>
     <div id="db-day-detail" style="margin-top:1rem"></div>
+    <div id="db-staff-status" style="margin-top:1rem"></div>
   </div>
 
   <!-- SCHEDULE -->
@@ -1314,8 +1327,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.4.2';
+const APP_VERSION='2.5.1';
 const CHANGELOG=[
+  {v:'2.5.1',date:'2026-06-24',changes:['เพิ่มตาราง“สถานะพนักงานวันนี้”ท้ายหน้า Dashboard — ชื่อ/สาขา/เวร/เช็คอิน/สถานะ (ตรงเวลา/สาย/ยังไม่เข้า)']},
+  {v:'2.5.0',date:'2026-06-24',changes:['หน้าภาพรวมร้าน: กราฟยอดขาย + พาเนล“ยอดแยกสาขา” วางคู่กันแบบดีไซน์ใหม่','แถบ progress แต่ละสาขา + ยอดรวมทุกสาขา','จัดวางกราฟ/สาขาแบบระบบ admin console']},
   {v:'2.4.2',date:'2026-06-24',changes:['หน้าหลัก: จำกัดความกว้าง + พื้นครีม ไม่เขียวล้นจอ','การ์ดเมนูเป็นแนวนอนกระชับ ไอคอนชิปสีแยกตามหมวด (มินต์/ม่วง/โรส/ฟ้า)']},
   {v:'2.4.1',date:'2026-06-24',changes:['เอาระบบสีเปลี่ยนตามวันออก — ล็อกเป็นสีมินต์ของธีมเสมอ','ปรับกล่องสีเด่น/มาสคอต/ค่าเริ่มต้นให้เข้าพาเลตใหม่']},
   {v:'2.4.0',date:'2026-06-24',changes:['ดีไซน์ใหม่: พาเลตครีม-มินต์-โรส ดูแพงขึ้น','หัวข้อใช้ฟอนต์ Serif ไทย (Noto Serif Thai) แทน Itim','Sidebar เขียวเข้มหรู โหมดผู้ดูแลระบบ','ปรับไอคอน/การ์ดให้ประณีตขึ้น','Dark mode = Midnight Mint']},
@@ -2559,6 +2574,7 @@ function dbRender(){
     const sub=document.getElementById('db-chart-sub');if(sub)sub.textContent='';
     if(dbChart){dbChart.destroy();dbChart=null;}
     const cw=document.querySelector('.chart-wrap');if(cw)cw.style.display='none';
+    const bs=document.getElementById('db-branch-split');if(bs)bs.innerHTML='';
     document.getElementById('db-bcards').innerHTML='';
     if(payStatChart){payStatChart.destroy();payStatChart=null;}
     document.getElementById('db-paystat').innerHTML='';
@@ -2570,6 +2586,13 @@ function dbRender(){
     return;
   }
   const cw=document.querySelector('.chart-wrap');if(cw)cw.style.display='';
+  // ===== พาเนลยอดแยกสาขา (ขวาของกราฟ) =====
+  const bsTitle=dbMode==='day'?'ยอดวันนี้แยกสาขา':'ยอดรวมแยกสาขา';
+  const bsMax=Math.max(...totals,1);
+  const bsplit=document.getElementById('db-branch-split');
+  if(bsplit){bsplit.innerHTML=`<div style="font-family:var(--disp);font-weight:600;font-size:16px;margin-bottom:.5rem">${bsTitle}</div>`+
+    BRANCHES.map((b,bi)=>`<div class="bsplit-row"><span class="bsplit-dot" style="background:${BCOLORS[bi]}"></span><div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center"><span class="bsplit-name">${b}</span><span class="bsplit-val">฿${fmt(totals[bi])}</span></div><div class="bsplit-bg"><div class="bsplit-bar" style="width:${Math.round(totals[bi]/bsMax*100)}%;background:${BCOLORS[bi]}"></div></div></div></div>`).join('')+
+    `<div style="margin-top:14px;padding:12px;border-radius:13px;background:var(--green-ll);color:var(--green-d);font-size:12px;font-weight:600;text-align:center">ยอดรวมทุกสาขา ฿${fmt(grand)}</div>`;}
 
   // ===== การ์ดยอดรวม =====
   document.getElementById('db-metrics').innerHTML=`<div class="mcard c-green"><div class="mcard-icon" style="background:var(--green-l);color:var(--green)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div class="mcard-label">ยอดรวมทุกสาขา</div><div class="mcard-val">฿${fmt(grand)}</div><div class="mcard-sub">${periodLabel}</div></div>${BRANCHES.map((b,bi)=>`<div class="mcard ${['c-green','c-blue','c-amber'][bi]}"><div class="mcard-icon" style="background:${BCOLORS_L[bi]};color:${BCOLORS[bi]}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(totals[bi])}</div><div class="mcard-sub">${grand?Math.round(totals[bi]/grand*100):0}%</div></div>`).join('')}`;
@@ -2614,6 +2637,63 @@ function dbRender(){
   renderPayStat(payByBranch);
   renderDayDetail();
   renderMonthDetail();
+  renderStaffStatus();
+}
+
+// ===== ตารางสถานะพนักงานวันนี้ (admin) =====
+async function renderStaffStatus(){
+  const el=document.getElementById('db-staff-status');
+  if(!el)return;
+  const today=todayStr();
+  let dayShifts=shifts.filter(s=>s.date===today);
+  // โหลดเช็คอินวันนี้ลง allCheckins (ถ้ายังไม่มี)
+  try{
+    const snap=await getDocs(query(collection(db,'checkins'),where('date','==',today)));
+    const todayCi=snap.docs.map(d=>({...d.data(),id:d.id}));
+    todayCi.forEach(c=>{if(!allCheckins.find(x=>x.uid===c.uid&&x.date===c.date))allCheckins.push(c);});
+  }catch(e){}
+  if(!dayShifts.length){
+    el.innerHTML=`<div class="card"><div style="font-family:var(--disp);font-weight:600;font-size:16px;margin-bottom:.25rem">สถานะพนักงานวันนี้</div><div style="font-size:13px;color:var(--text3);padding:1rem 0;text-align:center">ยังไม่มีเวรในตารางวันนี้</div></div>`;
+    return;
+  }
+  // เรียงตามสาขา แล้วเวลาเริ่มเวร
+  dayShifts=dayShifts.slice().sort((a,b)=>a.branch-b.branch||(a.start||'').localeCompare(b.start||''));
+  const rowsHtml=dayShifts.map(s=>{
+    const nm=shiftFullName(s);
+    const initials=(shiftShortName(s)||'?').slice(0,2);
+    const ci=s.tempName?null:getCheckinFor(s.staffId,today);
+    let statusPill,ciTime='—';
+    if(s.tempName){statusPill=`<span style="font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;background:var(--bg);color:var(--text2)">ชั่วคราว</span>`;}
+    else if(ci&&ci.checkIn){
+      ciTime=ci.checkIn;
+      let late=false;
+      if(s.start){const[sh,sm]=s.start.split(':').map(Number);const[ch,cm]=ci.checkIn.split(':').map(Number);late=(ch*60+cm)-(sh*60+sm)>10;}
+      statusPill=late?`<span style="font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;background:var(--gold-l);color:#A6781F">สาย</span>`:`<span style="font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;background:var(--green-l);color:var(--green-d)">ตรงเวลา</span>`;
+    }else{statusPill=`<span style="font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;background:var(--bg);color:var(--text2)">ยังไม่เข้า</span>`;}
+    return `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:13px 10px"><span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:${BCOLORS[s.branch]};color:#fff;font-size:11px;font-weight:700;margin-right:9px;vertical-align:middle">${initials}</span><span style="font-weight:600">${nm}</span></td>
+      <td style="padding:13px 10px;color:var(--text2)">${BRANCHES[s.branch]}</td>
+      <td style="padding:13px 10px;color:var(--text2)">${s.start} – ${s.end}</td>
+      <td style="padding:13px 10px;color:var(--text2)">${ciTime}</td>
+      <td style="padding:13px 10px">${statusPill}</td>
+    </tr>`;
+  }).join('');
+  el.innerHTML=`<div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">
+      <div style="font-family:var(--disp);font-weight:600;font-size:16px">สถานะพนักงานวันนี้</div>
+      <div style="font-size:11.5px;color:var(--text3)">${dayShifts.length} เวร · ${new Set(dayShifts.map(s=>s.branch)).size} สาขา</div>
+    </div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:0 10px 12px">พนักงาน</th>
+        <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:0 10px 12px">สาขา</th>
+        <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:0 10px 12px">เวร</th>
+        <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:0 10px 12px">เช็คอิน</th>
+        <th style="text-align:left;font-size:11px;font-weight:600;color:var(--text3);padding:0 10px 12px">สถานะ</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table></div>
+  </div>`;
 }
 
 // สถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม + รายการ)
