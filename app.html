@@ -1257,6 +1257,56 @@ input,select,textarea{border-radius:14px}
     </div>
     <div id="todo-page-content"><div style="text-align:center;padding:3rem;color:var(--text3)">กำลังโหลด...</div></div>
   </div>
+  <!-- ===== หน้าประวัติการขาย (admin) ===== -->
+  <div class="page" id="page-sales-history">
+    <div class="topbar">
+      <div><div class="page-title">ประวัติการขาย</div><div class="page-sub">ยอดขายย้อนหลัง — แก้ไขได้ (admin เท่านั้น)</div></div>
+    </div>
+    <!-- Filter bar -->
+    <div class="card" style="margin-bottom:1rem;padding:1rem 1.25rem">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div class="field" style="margin:0;flex:0 0 auto">
+          <label class="fl">ดูแบบ</label>
+          <div class="tabs" id="sh-period-tabs" style="margin:0">
+            <button class="tab active" onclick="shSetPeriod('day',this)">รายวัน</button>
+            <button class="tab" onclick="shSetPeriod('month',this)">รายเดือน</button>
+            <button class="tab" onclick="shSetPeriod('year',this)">รายปี</button>
+          </div>
+        </div>
+        <div class="field" style="margin:0" id="sh-day-picker">
+          <label class="fl">วันที่</label>
+          <input type="date" id="sh-date" style="width:auto" onchange="shRender()">
+        </div>
+        <div class="field" style="margin:0" id="sh-month-picker" style="display:none">
+          <label class="fl">เดือน</label>
+          <input type="month" id="sh-month" style="width:auto" onchange="shRender()">
+        </div>
+        <div class="field" style="margin:0" id="sh-year-picker" style="display:none">
+          <label class="fl">ปี</label>
+          <select id="sh-year" onchange="shRender()"></select>
+        </div>
+        <div class="field" style="margin:0;flex:0 0 auto">
+          <label class="fl">สาขา</label>
+          <div class="tabs" id="sh-branch-tabs" style="margin:0">
+            <button class="tab active" data-branch="-1" onclick="shSetBranch(-1,this)">ทุกสาขา</button>
+            ${BRANCHES.map((b,i)=>`<button class="tab" data-branch="${i}" onclick="shSetBranch(${i},this)">${b}</button>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Summary cards -->
+    <div class="metric-grid" id="sh-summary" style="margin-bottom:1rem"></div>
+    <!-- Table -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div id="sh-table-wrap" style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:13px" id="sh-table">
+          <thead id="sh-thead"></thead>
+          <tbody id="sh-tbody"></tbody>
+        </table>
+      </div>
+      <div id="sh-empty" style="display:none;text-align:center;padding:3rem;color:var(--text3)">ไม่มีข้อมูลในช่วงที่เลือก</div>
+    </div>
+  </div>
 </main>
 
 <div class="modal-overlay" id="modal-overlay" onclick="closeMO(event)"><div class="modal" id="modal-box"></div></div>
@@ -1351,8 +1401,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.7.7';
+const APP_VERSION='3.1.0';
 const CHANGELOG=[
+  {v:'3.1.0',date:'2026-06-24',changes:['เพิ่มหน้าประวัติการขาย (admin) — กรองรายวัน/รายเดือน/รายปี, เลือกดูทุกสาขาพร้อมกันหรือทีละสาขา, ตารางแสดงยอด+บิล+เฉลี่ยต่อบิล, แก้ไขย้อนหลังได้ทันที; เพิ่มช่อง "จำนวนบิล" ในฟอร์มบันทึกยอดขายต่อสาขา พร้อมแสดงยอดเฉลี่ยต่อบิล']},
+  {v:'3.0.0',date:'2026-06-24',changes:['ใหม่เภสัช v3.0.0 — Major release: ธีมใหม่ Elegant (ครีม/มินต์/โรส), ฟอนต์ IBM Plex Sans Thai + Noto Serif Thai, เมนูหน้าแรกจัดกลุ่มตามหมวด, dark mode Midnight Mint, To Do List (smart auto-check), ฉลากยาต่างชาติ Auto Size Engine v2, tester role, งานวันนี้ใช้ branchIn จากเช็คอินจริง']},
   {v:'2.7.7',date:'2026-06-24',changes:['พนักงานเห็นแค่หมายเลขเวอร์ชัน · ผู้ดูแลระบบเห็นประวัติการอัปเดตทั้งหมด']},
   {v:'2.7.6',date:'2026-06-24',changes:['เงินเดือน: เอาไทล์“โบนัสรวม”ออก เหลือรายได้รวมปี + ได้รับแล้ว']},
   {v:'2.7.5',date:'2026-06-24',changes:['ประวัติเงินเดือน: ย่อเหลือแค่ เดือน + รายได้รวม + สถานะ/สลิป (ตัดรายละเอียดยิบย่อยออก)']},
@@ -1495,6 +1547,7 @@ const FEATURE_DEFS=[
   {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'mywork',perm:'payroll_self'},
   {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',cat:'sales',perm:'sales'},
   {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',color:'#EC4899',cat:'sales',perm:'dashboard_admin'},
+  {page:'sales-history',icon:'📋',label:'ประวัติการขาย',color:'#534AB7',cat:'sales',perm:null},
   {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',perm:'members'},
   {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',perm:'payroll_all'},
   {page:'checkin-history',icon:'🕐',label:'ประวัติลงเวลา',color:'#534AB7',cat:'admin',perm:'checkin_all'},
@@ -1506,7 +1559,10 @@ const FEATURE_DEFS=[
   {page:'foreignlabel',icon:'🌏',label:'ฉลากยาต่างชาติ',color:'#3B8EEA',cat:'sales',perm:null},
   {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',cat:'more',perm:null},
 ];
-function featureShow(f){return isAdmin||f.perm===null||hasPerm(f.perm);}
+function featureShow(f){
+  if(f.page==='sales-history')return isAdmin;
+  return isAdmin||f.perm===null||hasPerm(f.perm);
+}
 function catFeatures(catId){return FEATURE_DEFS.filter(f=>f.cat===catId&&featureShow(f));}
 function featureCardBtn(f){
   return `<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1rem;box-shadow:var(--shadow);min-height:86px;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;cursor:pointer;text-align:left;font-family:var(--font);transition:.18s;width:100%" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
@@ -2308,6 +2364,7 @@ const PAGE_PERM={
   'dashboard':'dashboard_admin',
   'schedule':'schedule',
   'sales':'sales',
+  'sales-history':'sales',
   'cash':null,
   'members':'members',
   'payroll':'payroll_all',
@@ -2390,6 +2447,7 @@ window.goto=function(page){
   if(page==='foreignlabel'){loadForeignLabelData();flRenderBlockList();flRenderCustomBlockInputs();}
   if(page==='theme')renderThemePage();
   if(page==='todo')loadTodoPage();
+  if(page==='sales-history'){if(!isAdmin){showToast('เฉพาะ admin','err');goto('home');return;}loadSalesFromCloud().then(shInitPage);}
   currentPage=page;
   localStorage.setItem('lastPage',page); // จำหน้าปัจจุบันไว้ข้าม refresh
 };
@@ -3896,33 +3954,37 @@ window.cashClearTestDo=async function(){
 };
 
 // ===== SALES =====
-let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''};
+let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''},salesBillCounts={0:'',1:'',2:''};
 window.salesSetView=function(v,el){document.querySelectorAll('#sales-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('sales-entry').style.display=v==='entry'?'':'none';document.getElementById('sales-history').style.display=v==='history'?'':'none';if(v==='history')salesRenderHistory();};
-window.salesSetBranch=function(i,el){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBranch=i;document.querySelectorAll('.branch-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');salesRenderForm();};
+window.salesSetBranch=function(i,el){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesBranch=i;document.querySelectorAll('.branch-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');salesRenderForm();};
 function salesRenderForm(){
   const amounts=salesAmounts[salesBranch];
   const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
   const rows=payTypes.map(p=>`<div class="pay-row"><span class="pay-label">${p}</span><input class="pay-input" type="number" min="0" placeholder="0" value="${amounts[p]||''}" oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)"><span class="pay-unit">บาท</span></div>`).join('');
-  document.getElementById('sales-form').innerHTML=`<div style="font-size:14px;font-weight:700;margin-bottom:1rem;color:${BCOLORS[salesBranch]}">สาขา${BRANCHES[salesBranch]}</div>${rows}<div class="total-row"><span class="total-lbl">ยอดรวมสาขานี้</span><span class="total-val" id="sales-total">฿${fmt(total)}</span></div><div class="field" style="margin-top:1rem;margin-bottom:0"><label class="fl">หมายเหตุ</label><textarea id="sales-note" placeholder="เช่น มีคืนยา / เครื่องรูดบัตรขัดข้อง...">${salesNotes[salesBranch]||''}</textarea></div>`;
+  document.getElementById('sales-form').innerHTML=`<div style="font-size:14px;font-weight:700;margin-bottom:1rem;color:${BCOLORS[salesBranch]}">สาขา${BRANCHES[salesBranch]}</div>${rows}<div class="total-row"><span class="total-lbl">ยอดรวมสาขานี้</span><span class="total-val" id="sales-total">฿${fmt(total)}</span></div>
+  <div class="field-row" style="margin-top:1rem;gap:1rem">
+    <div class="field" style="flex:1"><label class="fl">จำนวนบิล</label><input type="number" id="sales-billcount" min="0" placeholder="0" value="${salesBillCounts[salesBranch]||''}" style="text-align:center"><span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">บิล ${salesBillCounts[salesBranch]&&total?'· เฉลี่ย ฿'+fmt(Math.round(total/(parseInt(salesBillCounts[salesBranch])||1)))+'/บิล':''}</span></div>
+    <div class="field" style="flex:2"><label class="fl">หมายเหตุ</label><textarea id="sales-note" placeholder="เช่น มีคืนยา / เครื่องรูดบัตรขัดข้อง...">${salesNotes[salesBranch]||''}</textarea></div>
+  </div>`;
   if(!document.getElementById('sales-date').value)document.getElementById('sales-date').value=todayStr();
 }
 window.salesUpdateAmt=function(p,v){salesAmounts[salesBranch][p]=v;const total=payTypes.reduce((a,pt)=>a+(parseFloat(salesAmounts[salesBranch][pt])||0),0);const el=document.getElementById('sales-total');if(el)el.textContent='฿'+fmt(total);};
 window.salesSave=function(){
   salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';
+  salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';
   const date=document.getElementById('sales-date').value;
   if(!date){showToast('กรุณาเลือกวันที่','err');return;}
-  // แปลงทุกค่าเป็นตัวเลขเสมอ (กันบั๊ก string ต่อกัน)
   const amounts={};
   payTypes.forEach(p=>{amounts[p]=parseFloat(salesAmounts[salesBranch]?.[p])||0;});
   const total=payTypes.reduce((a,p)=>a+amounts[p],0);
+  const billCount=parseInt(salesBillCounts[salesBranch])||0;
   const idx=salesEntries.findIndex(e=>e.date===date&&e.branch===salesBranch);
-  const rec={date,branch:salesBranch,amounts,total,note:salesNotes[salesBranch]};
+  const rec={date,branch:salesBranch,amounts,total,billCount,note:salesNotes[salesBranch]};
   if(idx>=0)salesEntries[idx]=rec;else salesEntries.push(rec);
   saveLocal();
-  // บันทึกลง Firestore (ใช้ร่วมกันทุกเครื่อง)
   const docId=`${date}_${salesBranch}`;
   setDoc(doc(db,'sales',docId),{...rec,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''})
-    .then(()=>{showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย');logActivity('sales_save',`ยอดขายสาขา${BRANCHES[salesBranch]} วันที่ ${date} = ฿${total.toLocaleString()}`);})
+    .then(()=>{showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย');logActivity('sales_save',`ยอดขายสาขา${BRANCHES[salesBranch]} วันที่ ${date} = ฿${total.toLocaleString()} (${billCount} บิล)`);})
     .catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+e.message,'err'));
 };
 
@@ -3935,7 +3997,7 @@ async function loadSalesFromCloud(){
       const amounts={};
       Object.keys(x.amounts||{}).forEach(k=>{amounts[k]=parseFloat(x.amounts[k])||0;});
       const total=Object.values(amounts).reduce((a,v)=>a+v,0);
-      return{date:x.date,branch:x.branch,amounts,total,note:x.note||'',updatedBy:x.updatedBy||'',updatedAt:x.updatedAt||''};
+      return{date:x.date,branch:x.branch,amounts,total,billCount:x.billCount||0,note:x.note||'',updatedBy:x.updatedBy||'',updatedAt:x.updatedAt||''};
     });
     // คำนวณยอดขายรวมวันนี้ (ใช้ใน renderHome stat card)
     const today=todayStr();
@@ -7283,7 +7345,169 @@ window.flDeleteTemplate=async function(i){
   }catch(e){flTemplates.splice(i,0,flTemplates[i]);showToast('ลบไม่สำเร็จ: '+e.message,'err');}
 };
 
-// ===== TO DO LIST =====
+// ===== ประวัติการขาย (admin) =====
+let shPeriod='day', shBranch=-1;
+window.shSetPeriod=function(p,el){
+  shPeriod=p;
+  document.querySelectorAll('#sh-period-tabs .tab').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('sh-day-picker').style.display=p==='day'?'':'none';
+  document.getElementById('sh-month-picker').style.display=p==='month'?'':'none';
+  document.getElementById('sh-year-picker').style.display=p==='year'?'':'none';
+  shRender();
+};
+window.shSetBranch=function(b,el){
+  shBranch=b;
+  document.querySelectorAll('#sh-branch-tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  shRender();
+};
+function shInitPage(){
+  // ตั้งค่าเริ่มต้น
+  const d=document.getElementById('sh-date');
+  if(d&&!d.value)d.value=todayStr();
+  const m=document.getElementById('sh-month');
+  if(m&&!m.value)m.value=todayStr().slice(0,7);
+  // ปี dropdown
+  const ySel=document.getElementById('sh-year');
+  if(ySel&&!ySel.options.length){
+    const years=[...new Set(salesEntries.map(e=>e.date.slice(0,4)))].sort().reverse();
+    if(!years.length)years.push(new Date().getFullYear().toString());
+    years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=parseInt(y)+543;ySel.appendChild(o);});
+  }
+  shRender();
+}
+function shGetEntries(){
+  let entries=salesEntries;
+  // กรองสาขา
+  if(shBranch>=0)entries=entries.filter(e=>e.branch===shBranch);
+  // กรองช่วงเวลา
+  if(shPeriod==='day'){
+    const d=document.getElementById('sh-date')?.value||todayStr();
+    entries=entries.filter(e=>e.date===d);
+  }else if(shPeriod==='month'){
+    const m=document.getElementById('sh-month')?.value||todayStr().slice(0,7);
+    entries=entries.filter(e=>e.date.startsWith(m));
+  }else{
+    const y=document.getElementById('sh-year')?.value||new Date().getFullYear().toString();
+    entries=entries.filter(e=>e.date.startsWith(y));
+  }
+  return [...entries].sort((a,b)=>b.date.localeCompare(a.date)||a.branch-b.branch);
+}
+window.shRender=function(){
+  const entries=shGetEntries();
+  const empty=document.getElementById('sh-empty');
+  const wrap=document.getElementById('sh-table-wrap');
+  if(!entries.length){
+    if(empty)empty.style.display='';
+    if(wrap)wrap.style.display='none';
+    document.getElementById('sh-summary').innerHTML='';
+    return;
+  }
+  if(empty)empty.style.display='none';
+  if(wrap)wrap.style.display='';
+
+  // Summary cards
+  const grandTotal=entries.reduce((s,e)=>s+e.total,0);
+  const grandBills=entries.reduce((s,e)=>s+(e.billCount||0),0);
+  const avgPerBill=grandBills?Math.round(grandTotal/grandBills):0;
+  const branchTotals=BRANCHES.map((_,i)=>entries.filter(e=>e.branch===i).reduce((s,e)=>s+e.total,0));
+  document.getElementById('sh-summary').innerHTML=`
+    <div class="mcard c-green"><div class="mcard-label">ยอดรวม</div><div class="mcard-val">฿${fmt(grandTotal)}</div><div class="mcard-sub">${entries.length} รายการ</div></div>
+    <div class="mcard c-blue"><div class="mcard-label">จำนวนบิลรวม</div><div class="mcard-val">${grandBills.toLocaleString()}</div><div class="mcard-sub">เฉลี่ย ฿${fmt(avgPerBill)}/บิล</div></div>
+    ${shBranch<0?BRANCHES.map((b,i)=>`<div class="mcard ${['c-green','c-blue','c-amber'][i]}"><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(branchTotals[i])}</div><div class="mcard-sub">${entries.filter(e=>e.branch===i).reduce((s,e)=>s+(e.billCount||0),0)} บิล</div></div>`).join(''):''}`;
+
+  // Table
+  const showBranchCol=shBranch<0;
+  const isGrouped=shPeriod!=='day'&&showBranchCol;
+  let rows='';
+  if(isGrouped){
+    // รวมยอดตามวันถ้าดูหลายสาขา
+    const byDate={};
+    entries.forEach(e=>{
+      if(!byDate[e.date])byDate[e.date]={date:e.date,branches:{}};
+      byDate[e.date].branches[e.branch]=e;
+    });
+    rows=Object.values(byDate).sort((a,b)=>b.date.localeCompare(a.date)).map(row=>{
+      const dayTotal=Object.values(row.branches).reduce((s,e)=>s+e.total,0);
+      const dayBills=Object.values(row.branches).reduce((s,e)=>s+(e.billCount||0),0);
+      return `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px 12px;font-weight:600">${row.date}</td>
+        ${BRANCHES.map((_,i)=>{
+          const e=row.branches[i];
+          return `<td style="padding:10px 12px;text-align:right;color:${e?BCOLORS[i]:'var(--text3)'}">
+            ${e?`฿${fmt(e.total)}<br><span style="font-size:10px;color:var(--text3)">${e.billCount||0} บิล</span>`:'—'}
+          </td>`;
+        }).join('')}
+        <td style="padding:10px 12px;text-align:right;font-weight:700">฿${fmt(dayTotal)}<br><span style="font-size:10px;color:var(--text3)">${dayBills} บิล</span></td>
+        <td style="padding:10px 12px;text-align:center">
+          ${isAdmin?`<button class="btn btn-sm" onclick="shEditDay('${row.date}')">แก้ไข</button>`:''}
+        </td>
+      </tr>`;
+    }).join('');
+  }else{
+    rows=entries.map(e=>{
+      const avg=e.billCount?Math.round(e.total/e.billCount):0;
+      return `<tr style="border-bottom:1px solid var(--border)">
+        <td style="padding:10px 12px;font-weight:600">${e.date}</td>
+        ${showBranchCol?`<td style="padding:10px 12px"><span style="color:${BCOLORS[e.branch]};font-weight:600">${BRANCHES[e.branch]}</span></td>`:''}
+        <td style="padding:10px 12px;text-align:right;font-weight:700;color:${BCOLORS[e.branch]}">฿${fmt(e.total)}</td>
+        <td style="padding:10px 12px;text-align:right">${e.billCount||'—'}</td>
+        <td style="padding:10px 12px;text-align:right">${avg?'฿'+fmt(avg):'—'}</td>
+        <td style="padding:10px 12px;text-align:center;display:flex;gap:6px;justify-content:center">
+          ${isAdmin?`<button class="btn btn-sm" onclick="shEditEntry('${e.date}',${e.branch})">แก้ไข</button>`:''}
+        </td>
+      </tr>`;
+    }).join('');
+  }
+  const thead=isGrouped
+    ?`<tr style="background:var(--bg);border-bottom:2px solid var(--border)"><th style="padding:10px 12px;text-align:left">วันที่</th>${BRANCHES.map(b=>`<th style="padding:10px 12px;text-align:right">${b}</th>`).join('')}<th style="padding:10px 12px;text-align:right">รวม</th><th style="padding:10px 12px"></th></tr>`
+    :`<tr style="background:var(--bg);border-bottom:2px solid var(--border)"><th style="padding:10px 12px;text-align:left">วันที่</th>${showBranchCol?'<th style="padding:10px 12px">สาขา</th>':''}<th style="padding:10px 12px;text-align:right">ยอดขาย</th><th style="padding:10px 12px;text-align:right">บิล</th><th style="padding:10px 12px;text-align:right">เฉลี่ย/บิล</th><th style="padding:10px 12px"></th></tr>`;
+  document.getElementById('sh-thead').innerHTML=thead;
+  document.getElementById('sh-tbody').innerHTML=rows;
+};
+
+// แก้ไขรายการเดียว
+window.shEditEntry=function(date,branch){
+  const e=salesEntries.find(x=>x.date===date&&x.branch===branch);
+  if(!e)return;
+  const amtRows=payTypes.map(p=>`<div class="pay-row"><span class="pay-label">${p}</span><input class="pay-input" type="number" min="0" value="${e.amounts[p]||0}" id="she-${p.replace(/\s/g,'_')}"><span class="pay-unit">บาท</span></div>`).join('');
+  openModal(`<div class="modal-title">แก้ไขยอดขาย — ${BRANCHES[branch]} วันที่ ${date}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">admin เท่านั้น</div>
+    ${amtRows}
+    <div class="field-row" style="margin-top:1rem">
+      <div class="field"><label class="fl">จำนวนบิล</label><input type="number" id="she-billcount" min="0" value="${e.billCount||0}"></div>
+      <div class="field"><label class="fl">หมายเหตุ</label><input type="text" id="she-note" value="${e.note||''}"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMD()">ยกเลิก</button>
+      <button class="btn btn-danger" onclick="salesDelete('${date}',${branch});closeMD();shRender()">ลบ</button>
+      <button class="btn btn-primary" onclick="shSaveEntry('${date}',${branch})">บันทึก</button>
+    </div>`);
+};
+window.shSaveEntry=async function(date,branch){
+  const amounts={};
+  payTypes.forEach(p=>{amounts[p]=parseFloat(document.getElementById('she-'+p.replace(/\s/g,'_'))?.value)||0;});
+  const total=Object.values(amounts).reduce((a,v)=>a+v,0);
+  const billCount=parseInt(document.getElementById('she-billcount')?.value)||0;
+  const note=document.getElementById('she-note')?.value||'';
+  const rec={date,branch,amounts,total,billCount,note,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''};
+  try{
+    await setDoc(doc(db,'sales',`${date}_${branch}`),rec);
+    const idx=salesEntries.findIndex(e=>e.date===date&&e.branch===branch);
+    if(idx>=0)salesEntries[idx]={...rec};else salesEntries.push({...rec});
+    saveLocal();
+    closeMD();shRender();
+    showToast('แก้ไขยอดขายแล้ว');
+  }catch(err){showToast('บันทึกไม่สำเร็จ: '+err.message,'err');}
+};
+// แก้ไขทั้งวัน (เปิด modal เลือกสาขา)
+window.shEditDay=function(date){
+  openModal(`<div class="modal-title">แก้ไขยอดขาย — ${date}</div>
+    <div style="font-size:13px;color:var(--text3);margin-bottom:1rem">เลือกสาขาที่ต้องการแก้ไข</div>
+    ${BRANCHES.map((b,i)=>`<button class="btn" style="width:100%;margin-bottom:8px;text-align:left;padding:12px 16px" onclick="closeMD();shEditEntry('${date}',${i})"><span style="color:${BCOLORS[i]};font-weight:700">${b}</span> — ฿${fmt(salesEntries.find(e=>e.date===date&&e.branch===i)?.total||0)}</button>`).join('')}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+};
 // Firestore:
 //   todoTemplates/{id} = {title, linkedPage, linkedBranch, allBranches, recurring, createdBy}
 //   todos/{date}_{branch} = {tasks:[{id,title,done,doneBy,doneAt,linkedPage,isAuto}], date, branch}
