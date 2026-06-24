@@ -86,6 +86,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sb-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);padding:5px;border-radius:7px;transition:.12s}
 .sb-logout:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
 .sb-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
+.home-menu{display:none}
 .main{margin-left:0;padding:2rem;min-height:100vh}
 .page{display:none}
 .page.active{display:block;animation:pageIn .35s cubic-bezier(.22,.61,.36,1)}
@@ -255,6 +256,8 @@ textarea{resize:vertical;min-height:64px}
   .bottom-nav{display:flex!important}
   .topbar-desktop{display:none!important}
   .sidebar{display:none!important}
+  .home-stat-grid,.home-dash-grid,#home-staff-status{display:none!important}
+  .home-menu{display:block!important}
 }
 .topbar-desktop{display:none;position:sticky;top:0;align-items:center;gap:20px;padding:0 1.75rem;height:60px;background:var(--surface);border-bottom:1px solid var(--border);z-index:90}
 .tbd-brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
@@ -1348,8 +1351,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.7.1';
+const APP_VERSION='2.7.2';
 const CHANGELOG=[
+  {v:'2.7.2',date:'2026-06-24',changes:['มือถือ: แสดงเมนูการ์ดในหน้าแรก (ใช้ง่าย) + ซ่อน dashboard หนักๆ — คอมยังเป็น dashboard เต็ม','แก้หน้ามือถือโล่งสำหรับพนักงาน']},
   {v:'2.7.1',date:'2026-06-24',changes:['เอาเมนูจัดหมวดออกจากหน้าแรก (ซ้ำกับ sidebar) — หน้าแรกเน้นการ์ดสถิติ + กราฟ + ตารางพนักงาน']},
   {v:'2.7.0',date:'2026-06-24',changes:['หน้าแรก: การ์ดสถิติ 4 ใบ (ยอดขายวันนี้/เดือนนี้/เวรวันนี้/เข้างาน) + ตารางสถานะพนักงานวันนี้ — แบบ dashboard','ถอด“น้องแคปซูล”ออกทั้งหมด (มาสคอต/ปุ่มลอย/การ์ดทักทาย/ข้อความกวนๆ)']},
   {v:'2.6.1',date:'2026-06-24',changes:['หน้าแรกมีกราฟภาพรวมยอดขาย 7 วัน + ยอดวันนี้แยกสาขา (เฉพาะผู้มีสิทธิ์) — แบบ dashboard']},
@@ -5210,7 +5214,28 @@ function renderHome(){
     </div>`;
   }
 
-  // (เมนูจัดหมวดย้ายไป sidebar / bottom nav แล้ว — ไม่ซ้ำในหน้าแรก)
+  // ===== เมนูจัดหมวด (แสดงเฉพาะมือถือ — คอมใช้ sidebar) =====
+  const order=currentMenuOrder();
+  const catStyle={
+    mywork:{chip:'var(--green-l)',ic:'var(--green-d)'},
+    sales:{chip:'var(--purple-l)',ic:'var(--purple-t)'},
+    admin:{chip:'var(--rose-l)',ic:'var(--rose-d)'},
+    more:{chip:'var(--blue-l)',ic:'var(--blue-t)'}
+  };
+  let menuHtml='';
+  CATEGORIES.forEach(cat=>{
+    const feats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&f.cat===cat.id&&featureShow(f));
+    if(!feats.length)return;
+    const cs=catStyle[cat.id]||catStyle.mywork;
+    menuHtml+=`<div style="font-family:var(--disp);font-weight:600;font-size:17px;color:var(--text);margin:1.5rem 2px .8rem;display:flex;align-items:center;gap:9px"><span style="font-size:16px">${cat.icon}</span>${cat.label}</div>`;
+    menuHtml+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+      ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;font-family:var(--font);text-align:left;width:100%;box-shadow:var(--shadow)">
+        <span style="width:46px;height:46px;border-radius:14px;background:${cs.chip};color:${cs.ic};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${f.icon}</span>
+        <span style="font-size:14px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
+      </button>`).join('')}
+    </div>`;
+  });
+  html+=`<div class="home-menu">${menuHtml}</div>`;
 
   if(isAdmin||hasPerm('dashboard_admin')){ html+=`<div id="home-staff-status" style="margin-top:1.6rem"></div>`; }
 
