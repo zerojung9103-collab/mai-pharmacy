@@ -11,43 +11,48 @@
 <meta name="apple-mobile-web-app-title" content="ใหม่เภสัช">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Itim&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Itim&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#2BC79A;--green-d:#179B77;--green-dd:#0C6B51;--green-l:#DBF5EC;--green-ll:#EEFAF5;
-  --blue:#3B8EEA;--blue-d:#1E63B5;--blue-l:#E3F0FE;--blue-t:#0C447C;
-  --amber:#F7A823;--amber-l:#FDF0D8;--amber-t:#7A4E06;
+  --green:#1FAE8B;--green-d:#147A60;--green-dd:#0C5544;--green-l:#E3F5EF;--green-ll:#F1FAF6;
+  --blue:#5B91D6;--blue-d:#3A6CB0;--blue-l:#E7F0FB;--blue-t:#274C82;
+  --amber:#D8A657;--amber-l:#F8EFDD;--amber-t:#8A6418;
   --purple:#8B7FF0;--purple-l:#EFEDFE;--purple-t:#3C3489;
-  --red:#F0524F;--red-l:#FDEAEA;--red-t:#A32D2D;
-  --pink:#EC4899;--pink-l:#FCE7F3;--pink-t:#9D174D;
+  --red:#D9596B;--red-l:#FBEAEE;--red-t:#9F2A3C;
+  --pink:#E07A93;--pink-d:#C85A75;--pink-l:#FBEAEF;--pink-t:#9D3550;
+  --rose:#E07A93;--rose-d:#C85A75;--rose-l:#FBEAEF;
+  --gold:#D8A657;--gold-l:#F8EFDD;
   --teal:#14B8C4;--teal-l:#D7F6F8;--teal-t:#0B5E66;
-  --bg:#EAF6F0;--surface:#FFFFFF;--border:#E4F0EA;--border2:#D3E5DD;
-  --text:#1E3A33;--text2:#5E7A72;--text3:#9FB7AE;
-  --r:18px;--rl:24px;--font:'Noto Sans Thai',-apple-system,system-ui,sans-serif;--disp:'Itim',cursive;
-  --shadow:0 4px 14px rgba(43,160,130,.08),0 1px 3px rgba(43,160,130,.05);
-  --shadow-md:0 10px 28px rgba(43,160,130,.13),0 4px 12px rgba(43,160,130,.08);
-  --grad-green:linear-gradient(135deg,#16B981,#0EA472);
-  --grad-blue:linear-gradient(135deg,#3B8EEA,#2D6FD4);
-  --grad-amber:linear-gradient(135deg,#F7A823,#F08C1A);
+  --bg:#FAF6F1;--surface:#FFFFFF;--border:#EFE9E1;--border2:#E3DACE;
+  --text:#3A332C;--text2:#857B6E;--text3:#B3A99B;--ink:#2A2520;
+  --r:18px;--rl:22px;--font:'IBM Plex Sans Thai','Noto Sans Thai',-apple-system,system-ui,sans-serif;--disp:'Noto Serif Thai',serif;
+  --shadow:0 2px 8px rgba(80,60,40,.04),0 8px 22px rgba(80,60,40,.06);
+  --shadow-md:0 8px 22px rgba(80,60,40,.08),0 20px 46px rgba(80,60,40,.10);
+  --grad-green:linear-gradient(140deg,#23B895,#127C62);
+  --grad-blue:linear-gradient(135deg,#5B91D6,#3A6CB0);
+  --grad-amber:linear-gradient(135deg,#E0B36A,#D8A657);
   --grad-purple:linear-gradient(135deg,#8B7FF0,#6F5FE6);
-  --grad-pink:linear-gradient(135deg,#EC4899,#DB2777);
+  --grad-pink:linear-gradient(140deg,#E89AAD,#C85A75);
+  --grad-rose:linear-gradient(140deg,#E89AAD,#C85A75);
 }
 body.dark{
   --green:#2FE0A4;--green-d:#22C88F;--green-dd:#7FEDC9;
   --bg:#0E1413;--surface:#151D1B;--border:#222D29;--border2:#2F3B37;
-  --text:#E7EEEA;--text2:#9CABA5;--text3:#6A7872;
+  --text:#E7EEEA;--text2:#9CABA5;--text3:#6A7872;--ink:#F2F7F4;
   --green-l:#123127;--green-ll:#0D241D;
-  --blue-l:#0F2A47;--blue-t:#9CC4F5;--amber-l:#3A2C0A;--amber-t:#F0C679;--purple-l:#251F4A;--purple-t:#BBB2F5;--red-l:#3A1616;--red-t:#F2A6A4;--pink-l:#3A1126;--pink-t:#F3A8CE;--teal-l:#0A3033;--teal-t:#7FD9DF;
+  --rose:#E89AAD;--rose-d:#E07A93;--rose-l:#3A1F27;--gold:#E0B36A;--gold-l:#332811;
+  --blue-l:#0F2A47;--blue-t:#9CC4F5;--amber-l:#332811;--amber-t:#E0B36A;--purple-l:#251F4A;--purple-t:#BBB2F5;--red-l:#3A1616;--red-t:#F2A6A4;--pink-l:#3A1F27;--pink-t:#E89AAD;--teal-l:#0A3033;--teal-t:#7FD9DF;
   --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.4);
   --shadow-md:0 4px 14px rgba(0,0,0,.4),0 16px 38px rgba(0,0,0,.5);
   --grad-green:linear-gradient(135deg,#2FE0A4,#19B98A);
+  --grad-rose:linear-gradient(140deg,#E89AAD,#C85A75);
 }
 body.dark .topbar-desktop{background:var(--surface);border-color:var(--border)}
 body.dark .tbd-search{background:var(--bg);border-color:var(--border2)}
 body.dark input,body.dark select,body.dark textarea{background:var(--bg);color:var(--text);border-color:var(--border2)}
 body.dark ::placeholder{color:var(--text3)}
-.drag-row{display:flex;align-items:center;gap:10px;padding:9px 10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border);touch-action:none}
+.drag-row{display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border);touch-action:none}
 body.dark .drag-row{background:var(--bg)}
 .drag-row.dragging{box-shadow:var(--shadow-md);background:var(--green-l);z-index:50;position:relative}
 .drag-handle{cursor:grab;color:var(--text3);font-size:18px;padding:4px;flex-shrink:0;touch-action:none}
@@ -60,7 +65,7 @@ body.dark .drag-row{background:var(--bg)}
 .fl-lang-btn{opacity:.55}
 .fl-lang-btn.active{opacity:1;background:var(--green);color:#fff;border-color:var(--green)}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(180deg,#1E9E79,#136B53);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.08)}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(180deg,#0E5544,#0A3D31);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.08)}
 .sb-brand{padding:1.5rem 1.25rem 1.25rem;padding-top:calc(1.5rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.07)}
 .sb-icon{width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.75rem}
 .sb-brand h1{font-size:16px;font-weight:700;color:#fff}
@@ -69,7 +74,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sb-sec{font-size:10px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:.1em;text-transform:uppercase;padding:.75rem .75rem .35rem;margin-top:.25rem}
 .sb-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;transition:.12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
 .sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
-.sb-item.active{background:#fff;color:#0C6B51;font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,.14)}
+.sb-item.active{background:#fff;color:#0C5544;font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,.18)}
 .sb-item.hidden{display:none}
 .sb-item svg{width:17px;height:17px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
 .sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.07)}
@@ -326,10 +331,10 @@ textarea{resize:vertical;min-height:64px}
 .pr-net-box .lbl{font-size:13px;opacity:.85}
 .pr-net-box .val{font-size:30px;font-weight:700}
 .pr-extra-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-/* ===== Cute theme overrides ===== */
-.page-title{font-family:var(--disp);font-weight:400;letter-spacing:0}
-.sb-brand h1,.tbd-brand-name{font-family:var(--disp);font-weight:400}
-.mcard-val{font-family:var(--disp);font-weight:400;letter-spacing:0}
+/* ===== Elegant theme (Serif headings) ===== */
+.page-title{font-family:var(--disp);font-weight:600;letter-spacing:0}
+.sb-brand h1,.tbd-brand-name{font-family:var(--disp);font-weight:600}
+.mcard-val{font-family:var(--disp);font-weight:700;letter-spacing:-.5px}
 .btn{border-radius:13px}.btn-sm{border-radius:11px}
 .tbd-icon{background:var(--green-l)}
 body.dark .sidebar{background:linear-gradient(180deg,#10302A,#0A1E1A)}
@@ -347,9 +352,9 @@ input,select,textarea{border-radius:14px}
 .cmdk-row{border-radius:13px}
 .toast{border-radius:14px}
 .badge{border-radius:16px}
-.card-title{font-family:var(--disp);font-weight:400;font-size:16px}
-.week-lbl{font-family:var(--disp);font-weight:400}
-.btn-primary{box-shadow:0 4px 14px rgba(43,199,154,.3)}
+.card-title{font-family:var(--disp);font-weight:600;font-size:16px}
+.week-lbl{font-family:var(--disp);font-weight:600}
+.btn-primary{box-shadow:0 6px 16px rgba(31,174,139,.28)}
 .mcard:hover{transform:translateY(-3px)}
 </style>
 <!-- QZ Tray: silent label printing library -->
@@ -1309,9 +1314,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.3.0';
+const APP_VERSION='2.4.0';
 const CHANGELOG=[
-  {v:'2.3.0',date:'2026-06-24',changes:['ปรับดีไซน์ใหม่ทั้งระบบ: ธีมน่ารักโทนพาสเทลมินต์ + ฟอนต์หัวข้อ Itim','หน้าหลัก: การ์ดยอดขายไล่สี + มาสคอตน้องแคปซูล + ไอคอนเมนูพาสเทล','จัดเมนูหน้าหลักใหม่เป็นหมวด งานของฉัน/ขาย/บริหาร/เพิ่มเติม','การ์ด/ปุ่ม/ปฏิทิน/อินพุต มุมโค้งกลมขึ้น เงานุ่มโทนมินต์','Dark mode ปรับเป็นโทน Midnight Mint']},
+  {v:'2.4.0',date:'2026-06-24',changes:['ดีไซน์ใหม่: พาเลตครีม-มินต์-โรส ดูแพงขึ้น','หัวข้อใช้ฟอนต์ Serif ไทย (Noto Serif Thai) แทน Itim','Sidebar เขียวเข้มหรู โหมดผู้ดูแลระบบ','ปรับไอคอน/การ์ดให้ประณีตขึ้น','Dark mode = Midnight Mint']},
   {v:'2.2.10',date:'2026-06-24',changes:['งานวันนี้ใช้สาขาจาก branchIn (เช็คอินจริง) แทนตารางเวร — ถ้ายังไม่เช็คอินจะแสดง "กรุณาเช็คอินก่อน" + ปุ่มพาไปหน้าเช็คอิน, notification บนหน้าแรกก็ใช้ branchIn เช่นกัน — ถ้ายังไม่เช็คอินจะไม่แสดง notification งาน']},
   {v:'2.2.9',date:'2026-06-24',changes:['แก้ To Do notification ขึ้น 2 อัน — อีกแชทเพิ่ม block แจ้งเตือนซ้อนทับของเดิมโดยไม่ลบออก ลบ block ซ้ำออกแล้ว เหลือแค่อันเดียวที่ดีกว่า (มี loadTodoTemplates check)']},
   {v:'2.2.8',date:'2026-06-24',changes:['แก้ resetTesterCheckin: เปลี่ยนจาก deleteDoc เป็น setDoc เขียนทับด้วยข้อมูลว่าง (ไม่มี checkIn/checkOut) — ใช้ rule update ปกติได้เลย ไม่ต้อง rule พิเศษ, ลบ definition ซ้ำ 3 อัน (bug จากอีกแชท) เหลือแค่อันเดียว, คืน Firestore rules checkins delete กลับเป็น isAdmin() เท่านั้น']},
@@ -5012,7 +5017,7 @@ function renderHome(){
   let html=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
     <div>
       <div style="font-size:13px;color:var(--text3)">${greet}</div>
-      <div style="font-size:24px;font-weight:400;font-family:var(--disp);color:var(--text)">${myName}</div>
+      <div style="font-size:25px;font-weight:600;font-family:var(--disp);color:var(--text)">${myName}</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
     </div>
     <button onclick="openAssistant()" style="background:none;border:none;cursor:pointer;padding:0" aria-label="ผู้ช่วยส่วนตัว">
@@ -5026,9 +5031,9 @@ function renderHome(){
   // ===== Stat cards: 2 การ์ดข้อมูลสำคัญ =====
   const todaySales=window._todaySalesTotal||0;
   html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-    <div style="background:linear-gradient(140deg,#3FD6AB,#1E9E79);border-radius:22px;padding:16px;color:#fff;box-shadow:0 10px 24px rgba(30,158,121,.28)">
+    <div style="background:var(--grad-green);border-radius:22px;padding:16px;color:#fff;box-shadow:0 10px 24px rgba(18,124,98,.28)">
       <div style="font-size:11px;opacity:.9;margin-bottom:4px">ยอดขายวันนี้</div>
-      <div style="font-size:26px;font-weight:400;font-family:var(--disp)">${todaySales>0?'฿'+todaySales.toLocaleString():'—'}</div>
+      <div style="font-size:27px;font-weight:700;font-family:var(--disp);letter-spacing:-.5px">${todaySales>0?'฿'+todaySales.toLocaleString():'—'}</div>
       <div style="font-size:10px;opacity:.8;margin-top:3px">3 สาขา</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:16px;display:flex;gap:10px;align-items:flex-start">
@@ -5045,7 +5050,7 @@ function renderHome(){
     html+=`<div onclick="goto('checkin')" style="cursor:pointer;background:linear-gradient(135deg,${dc.dark},${dc.main});border-radius:20px;padding:14px 16px;color:#fff;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
       <div>
         <div style="font-size:11px;opacity:.8">เวรของคุณวันนี้</div>
-        <div style="font-size:21px;font-weight:400;font-family:var(--disp);margin-top:2px">${todayShift.start} – ${todayShift.end}</div>
+        <div style="font-size:21px;font-weight:600;font-family:var(--disp);margin-top:2px">${todayShift.start} – ${todayShift.end}</div>
         <div style="font-size:11px;opacity:.8;margin-top:2px">📍 ${BRANCHES[todayShift.branch]}</div>
       </div>
       <div style="background:rgba(255,255,255,.2);padding:8px 14px;border-radius:12px;font-size:12px;font-weight:600">เช็คอิน →</div>
