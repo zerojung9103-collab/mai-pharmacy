@@ -1351,8 +1351,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.7.2';
+const APP_VERSION='2.7.3';
 const CHANGELOG=[
+  {v:'2.7.3',date:'2026-06-24',changes:['มือถือ: การ์ดเวรวันนี้แบบ hero + chip (สถานะ/เวรเดือนนี้/สาขา) + เมนู 2 คอลัมน์ — ตามดีไซน์']},
   {v:'2.7.2',date:'2026-06-24',changes:['มือถือ: แสดงเมนูการ์ดในหน้าแรก (ใช้ง่าย) + ซ่อน dashboard หนักๆ — คอมยังเป็น dashboard เต็ม','แก้หน้ามือถือโล่งสำหรับพนักงาน']},
   {v:'2.7.1',date:'2026-06-24',changes:['เอาเมนูจัดหมวดออกจากหน้าแรก (ซ้ำกับ sidebar) — หน้าแรกเน้นการ์ดสถิติ + กราฟ + ตารางพนักงาน']},
   {v:'2.7.0',date:'2026-06-24',changes:['หน้าแรก: การ์ดสถิติ 4 ใบ (ยอดขายวันนี้/เดือนนี้/เวรวันนี้/เข้างาน) + ตารางสถานะพนักงานวันนี้ — แบบ dashboard','ถอด“น้องแคปซูล”ออกทั้งหมด (มาสคอต/ปุ่มลอย/การ์ดทักทาย/ข้อความกวนๆ)']},
@@ -5176,13 +5177,24 @@ function renderHome(){
 
   // ===== เวรวันนี้ (ถ้ามี) =====
   if(todayShift){
-    html+=`<div onclick="goto('checkin')" style="cursor:pointer;background:linear-gradient(135deg,${dc.dark},${dc.main});border-radius:20px;padding:14px 16px;color:#fff;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between">
-      <div>
-        <div style="font-size:11px;opacity:.8">เวรของคุณวันนี้</div>
-        <div style="font-size:21px;font-weight:600;font-family:var(--disp);margin-top:2px">${todayShift.start} – ${todayShift.end}</div>
-        <div style="font-size:11px;opacity:.8;margin-top:2px">📍 ${BRANCHES[todayShift.branch]}</div>
+    const _now=new Date();const[_sh,_sm]=(todayShift.start||'0:0').split(':').map(Number);
+    const _mins=(_sh*60+_sm)-(_now.getHours()*60+_now.getMinutes());
+    const _startChip=_mins>0?`เริ่มใน ${_mins>=60?Math.floor(_mins/60)+' ชม.':_mins+' นาที'}`:'ถึงเวลาเข้ากะแล้ว';
+    const _moShifts=shifts.filter(s=>s.staffId===currentUser.uid&&(s.date||'').startsWith(today.slice(0,7))).length;
+    const _chip=(t)=>`<div style="background:rgba(255,255,255,.16);border-radius:12px;padding:7px 11px;flex:1"><div style="font-size:10px;opacity:.85">${t.k}</div><div style="font-family:var(--disp);font-weight:600;font-size:14px;margin-top:1px">${t.v}</div></div>`;
+    html+=`<div style="background:linear-gradient(140deg,${dc.dark},${dc.main});border-radius:22px;padding:18px;color:#fff;margin-bottom:1.25rem;box-shadow:0 12px 28px rgba(18,124,98,.28)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+        <div>
+          <div style="font-size:11.5px;opacity:.85">เวรของคุณวันนี้ · ${BRANCHES[todayShift.branch]}</div>
+          <div style="font-size:30px;font-weight:700;font-family:var(--disp);letter-spacing:-.5px;margin-top:3px">${todayShift.start} – ${todayShift.end}</div>
+        </div>
+        <button onclick="goto('checkin')" style="background:rgba(255,255,255,.22);border:none;color:#fff;padding:10px 16px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);flex-shrink:0">เช็คอิน →</button>
       </div>
-      <div style="background:rgba(255,255,255,.2);padding:8px 14px;border-radius:12px;font-size:12px;font-weight:600">เช็คอิน →</div>
+      <div style="display:flex;gap:9px;margin-top:14px">
+        ${_chip({k:'สถานะ',v:_startChip})}
+        ${_chip({k:'เวรเดือนนี้',v:_moShifts+' วัน'})}
+        ${_chip({k:'สาขา',v:BRANCHES[todayShift.branch]})}
+      </div>
     </div>`;
   }
 
@@ -5228,7 +5240,7 @@ function renderHome(){
     if(!feats.length)return;
     const cs=catStyle[cat.id]||catStyle.mywork;
     menuHtml+=`<div style="font-family:var(--disp);font-weight:600;font-size:17px;color:var(--text);margin:1.5rem 2px .8rem;display:flex;align-items:center;gap:9px"><span style="font-size:16px">${cat.icon}</span>${cat.label}</div>`;
-    menuHtml+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+    menuHtml+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px">
       ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:15px;display:flex;align-items:center;gap:13px;cursor:pointer;font-family:var(--font);text-align:left;width:100%;box-shadow:var(--shadow)">
         <span style="width:46px;height:46px;border-radius:14px;background:${cs.chip};color:${cs.ic};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${f.icon}</span>
         <span style="font-size:14px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
