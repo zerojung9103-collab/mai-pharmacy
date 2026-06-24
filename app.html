@@ -66,8 +66,9 @@ body.dark .drag-row{background:var(--bg)}
 .fl-lang-btn.active{opacity:1;background:var(--green);color:#fff;border-color:var(--green)}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
 .sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(180deg,#0E5544,#0A3D31);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.08)}
-.sb-brand{padding:1.5rem 1.25rem 1.25rem;padding-top:calc(1.5rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.07)}
-.sb-icon{width:42px;height:42px;background:var(--green);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:.75rem}
+.sb-brand{padding:1.4rem 1.1rem;padding-top:calc(1.4rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:11px}
+.sb-brand h1{font-family:var(--disp)}
+.sb-icon{width:40px;height:40px;background:var(--grad-green);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:0 4px 14px rgba(31,174,139,.35)}
 .sb-brand h1{font-size:16px;font-weight:700;color:#fff}
 .sb-brand p{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
 .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
@@ -238,7 +239,10 @@ textarea{resize:vertical;min-height:64px}
 @media(min-width:769px){
   .mobile-topbar{display:none!important}
   .sidebar-backdrop{display:none!important}
-  .topbar-desktop{display:flex!important}
+  .topbar-desktop{display:flex!important;margin-left:240px}
+  .sidebar{display:flex!important}
+  .main{margin-left:240px}
+  .tbd-brand{display:none!important}
 }
 /* === Mobile: top bar + bottom nav === */
 @media(max-width:768px){
@@ -250,6 +254,7 @@ textarea{resize:vertical;min-height:64px}
   .schedule-grid{grid-template-columns:90px repeat(7,1fr)}
   .bottom-nav{display:flex!important}
   .topbar-desktop{display:none!important}
+  .sidebar{display:none!important}
 }
 .topbar-desktop{display:none;position:sticky;top:0;align-items:center;gap:20px;padding:0 1.75rem;height:60px;background:var(--surface);border-bottom:1px solid var(--border);z-index:90}
 .tbd-brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0}
@@ -280,9 +285,9 @@ textarea{resize:vertical;min-height:64px}
 @keyframes skel{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skel-card{height:90px;margin-bottom:12px}
 .skel-line{height:14px;margin-bottom:8px}
-.bday-badge{display:inline-flex;align-items:center;gap:3px;background:#FFF0F5;color:#C2185B;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:600;border:1px solid #F8BBD0;margin-bottom:2px;width:100%}
+.bday-badge{display:inline-flex;align-items:center;gap:3px;background:var(--rose-l);color:var(--rose-d);border-radius:5px;padding:2px 6px;font-size:10px;font-weight:600;border:1px solid var(--rose);margin-bottom:2px;width:100%}
 .cal-leave{font-size:9px;font-weight:700;background:#FFF4E0;color:#B26A00;border:1px solid #F5D9A8;border-radius:5px;padding:2px 5px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
-.cal-checkin{font-size:9px;font-weight:700;background:#DCFAEF;color:#066046;border:1px solid #A7E8CE;border-radius:5px;padding:2px 5px;margin-bottom:2px;line-height:1.3;overflow:hidden}
+.cal-checkin{font-size:9px;font-weight:700;background:var(--green-l);color:var(--green-dd);border:1px solid var(--green);border-radius:5px;padding:2px 5px;margin-bottom:2px;line-height:1.3;overflow:hidden}
 .perm-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
 .perm-toggle:last-child{border-bottom:none}
 .toggle-sw{position:relative;width:40px;height:22px;flex-shrink:0}
@@ -305,7 +310,7 @@ textarea{resize:vertical;min-height:64px}
 .cal-cell:hover{border-color:var(--border2)}
 .cal-date{font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;justify-content:space-between}
 .cal-date.is-today{color:var(--green-d)}
-.cal-bday{font-size:9px;color:#C2185B;font-weight:700;background:#FFF0F5;border-radius:4px;padding:1px 4px;margin-bottom:1px}
+.cal-bday{font-size:9px;color:var(--rose-d);font-weight:700;background:var(--rose-l);border-radius:4px;padding:1px 4px;margin-bottom:1px}
 .cal-shift{border-radius:6px;padding:4px 6px;font-size:9px;font-weight:600;cursor:pointer;line-height:1.3;overflow:hidden;margin-bottom:3px}
 .cal-shift.s-tp{background:var(--green-l);color:var(--green-dd)}
 .cal-shift.s-bp{background:var(--blue-l);color:var(--blue-t)}
@@ -374,6 +379,27 @@ input,select,textarea{border-radius:14px}
 <body>
 <div class="loading" id="loading"><div class="spinner"></div><div style="font-size:13px;color:var(--text2);font-weight:500">กำลังโหลด...</div></div>
 
+<!-- Sidebar ถาวร (จอคอม) -->
+<aside class="sidebar" id="app-sidebar">
+  <div class="sb-brand" onclick="goto('home')" style="cursor:pointer">
+    <div class="sb-icon">💊</div>
+    <div><h1>ใหม่เภสัช</h1><p>PHARMACY OS</p></div>
+  </div>
+  <nav class="sb-nav" id="sidebar-nav"></nav>
+  <div class="sb-footer">
+    <div class="sb-user" onclick="openAccountMenu()" style="cursor:pointer">
+      <div class="sb-avatar" id="sb2-av">?</div>
+      <div style="flex:1;overflow:hidden">
+        <div class="sb-uname" id="sb2-name">...</div>
+        <div class="sb-urole" id="sb2-role"></div>
+      </div>
+      <button class="sb-logout" onclick="event.stopPropagation();doLogout()" title="ออกจากระบบ">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
 <!-- Mobile Top Bar -->
 <div class="mobile-topbar" id="mobile-topbar">
   <div class="mobile-topbar-title">💊 ใหม่เภสัช</div>
@@ -404,11 +430,6 @@ input,select,textarea{border-radius:14px}
   <span id="sb-role" style="display:none"></span>
 </div>
 
-<!-- ปุ่มแคปซูลลอย (ผู้ช่วยส่วนตัว — กดได้ทุกหน้า) -->
-<button id="capsule-fab" onclick="openAssistant()" title="ผู้ช่วยส่วนตัว" aria-label="เปิดผู้ช่วยส่วนตัว">
-  <span class="cf-badge"></span>
-  <span id="capsule-fab-icon"></span>
-</button>
 <!-- ปุ่มรีเฟรชลอย (ทุกหน้า) -->
 <button id="refresh-fab" onclick="refreshCurrentPage()" title="รีเฟรชข้อมูลล่าสุด" aria-label="รีเฟรช">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
@@ -698,7 +719,7 @@ input,select,textarea{border-radius:14px}
   <!-- SETTINGS -->
   <div class="page" id="page-settings">
     <div class="topbar"><div><div class="page-title">ตั้งค่าระบบ</div><div class="page-sub">จัดการพนักงาน ประเภทการชำระ และโปรไฟล์</div></div></div>
-    <div class="card" style="margin-bottom:1rem;background:#EFF6FF;border:1px solid #BFDBFE">
+    <div class="card" style="margin-bottom:1rem;background:var(--blue-l);border:1px solid var(--border)">
       <div style="display:flex;gap:12px;align-items:flex-start">
         <div style="font-size:24px">💡</div>
         <div style="flex:1">
@@ -752,7 +773,7 @@ input,select,textarea{border-radius:14px}
           <div class="field"><label class="fl">ข้อความใต้ชื่อร้าน</label><input type="text" id="ap-tagline" placeholder="ระบบจัดการร้าน 3 สาขา" maxlength="60"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label class="fl">สีหลักของแอป</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="ap-color" value="#16B981" style="width:48px;height:38px;padding:2px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer"><input type="text" id="ap-color-text" placeholder="#16B981" style="flex:1" oninput="document.getElementById('ap-color').value=this.value"></div></div>
+          <div class="field"><label class="fl">สีหลักของแอป</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="ap-color" value="#1FAE8B" style="width:48px;height:38px;padding:2px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer"><input type="text" id="ap-color-text" placeholder="#16B981" style="flex:1" oninput="document.getElementById('ap-color').value=this.value"></div></div>
           <div class="field"><label class="fl">ไอคอนหน้าโลโก้ (พิมพ์อิโมจิ — ถ้าไม่ได้อัปโหลดรูปด้านล่าง)</label><input type="text" id="ap-emoji" placeholder="💊" maxlength="4"></div>
         </div>
         <div class="field">
@@ -962,7 +983,7 @@ input,select,textarea{border-radius:14px}
     <div class="card" style="margin-bottom:1rem">
       <div class="card-title">คำนวณ</div>
       <div class="field"><label class="fl">เลือกยา</label><select id="dose-drug" onchange="onDoseDrugChange()"><option value="">— เลือกสูตรยา —</option></select></div>
-      <div id="dose-formula-info" style="display:none;font-size:12px;color:var(--text3);background:#FAFBFB;border-radius:8px;padding:10px;margin-bottom:1rem"></div>
+      <div id="dose-formula-info" style="display:none;font-size:12px;color:var(--text3);background:var(--green-ll);border-radius:8px;padding:10px;margin-bottom:1rem"></div>
       <div class="field-row">
         <div class="field"><label class="fl">น้ำหนัก (กก.)</label><input type="number" id="dose-weight" min="0" step="0.1" placeholder="เช่น 15" oninput="calcDose()"></div>
         <div class="field"><label class="fl">อายุ (ปี) — ถ้าจำเป็น</label><input type="number" id="dose-age" min="0" step="0.1" placeholder="เช่น 5" oninput="calcDose()"></div>
@@ -1327,8 +1348,14 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='2.5.1';
+const APP_VERSION='2.7.1';
 const CHANGELOG=[
+  {v:'2.7.1',date:'2026-06-24',changes:['เอาเมนูจัดหมวดออกจากหน้าแรก (ซ้ำกับ sidebar) — หน้าแรกเน้นการ์ดสถิติ + กราฟ + ตารางพนักงาน']},
+  {v:'2.7.0',date:'2026-06-24',changes:['หน้าแรก: การ์ดสถิติ 4 ใบ (ยอดขายวันนี้/เดือนนี้/เวรวันนี้/เข้างาน) + ตารางสถานะพนักงานวันนี้ — แบบ dashboard','ถอด“น้องแคปซูล”ออกทั้งหมด (มาสคอต/ปุ่มลอย/การ์ดทักทาย/ข้อความกวนๆ)']},
+  {v:'2.6.1',date:'2026-06-24',changes:['หน้าแรกมีกราฟภาพรวมยอดขาย 7 วัน + ยอดวันนี้แยกสาขา (เฉพาะผู้มีสิทธิ์) — แบบ dashboard']},
+  {v:'2.6.0',date:'2026-06-24',changes:['เพิ่ม Sidebar เขียวเข้มถาวรด้านซ้ายบนจอคอม (แบบ admin console) — เมนูจัดกลุ่ม + ไฮไลต์หน้าปัจจุบัน + โปรไฟล์ผู้ใช้','มือถือยังใช้ top bar + bottom nav เหมือนเดิม']},
+  {v:'2.5.3',date:'2026-06-24',changes:['เก็บรายละเอียดหน้าตั้งค่า/ปฏิทินให้เข้าธีม — กล่องข้อมูลฟ้าเก่า, แบดจ์วันเกิด/เช็คอินใช้โทนโรส/มินต์ของธีม']},
+  {v:'2.5.2',date:'2026-06-24',changes:['เก็บรายละเอียดสีเก่าที่ตกค้างให้เข้าธีมครีม-มินต์ทั้งหมด','ปฏิทินเวร/ประวัติเช็คอิน/จัดการสมาชิก/modal ผู้ช่วย — พื้นหลังมินต์อ่อนแทนเทาเก่า','สลิปเงินเดือน/ปุ่มพิมพ์ใช้โทนมินต์ใหม่']},
   {v:'2.5.1',date:'2026-06-24',changes:['เพิ่มตาราง“สถานะพนักงานวันนี้”ท้ายหน้า Dashboard — ชื่อ/สาขา/เวร/เช็คอิน/สถานะ (ตรงเวลา/สาย/ยังไม่เข้า)']},
   {v:'2.5.0',date:'2026-06-24',changes:['หน้าภาพรวมร้าน: กราฟยอดขาย + พาเนล“ยอดแยกสาขา” วางคู่กันแบบดีไซน์ใหม่','แถบ progress แต่ละสาขา + ยอดรวมทุกสาขา','จัดวางกราฟ/สาขาแบบระบบ admin console']},
   {v:'2.4.2',date:'2026-06-24',changes:['หน้าหลัก: จำกัดความกว้าง + พื้นครีม ไม่เขียวล้นจอ','การ์ดเมนูเป็นแนวนอนกระชับ ไอคอนชิปสีแยกตามหมวด (มินต์/ม่วง/โรส/ฟ้า)']},
@@ -1637,7 +1664,7 @@ function renderNavOrderList(){
   if(!el)return;
   const order=appearanceCfg.navOrder||APPEARANCE_DEFAULT.navOrder;
   const enabled=appearanceCfg.navEnabled||APPEARANCE_DEFAULT.navEnabled;
-  el.innerHTML=order.map((id,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+  el.innerHTML=order.map((id,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
     <label style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer"><input type="checkbox" ${enabled[id]!==false?'checked':''} onchange="toggleNavCat('${id}')"><span style="font-size:13px;font-weight:500">${NAV_CAT_LABELS[id]||id}</span></label>
     <button class="btn btn-sm" ${i===0?'disabled':''} onclick="moveNavCat('${id}',-1)">↑</button>
     <button class="btn btn-sm" ${i===order.length-1?'disabled':''} onclick="moveNavCat('${id}',1)">↓</button>
@@ -1903,22 +1930,7 @@ async function printViaQzTray(htmlContent){
 
 // สร้าง SVG น้องแคปซูล (รับสีครึ่งล่าง)
 function capsuleMascot(size,color){
-  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="น้องเม็ดยา">
-    <ellipse cx="50" cy="92" rx="26" ry="4" fill="rgba(0,0,0,.12)"/>
-    <g transform="rotate(-18 50 50)">
-      <rect x="26" y="20" width="48" height="62" rx="24" fill="#fff"/>
-      <path d="M26 51 h48 v7 a24 24 0 0 1 -24 24 h0 a24 24 0 0 1 -24 -24 z" fill="${color}"/>
-      <rect x="26" y="20" width="48" height="62" rx="24" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2.5"/>
-      <line x1="26" y1="51" x2="74" y2="51" stroke="rgba(0,0,0,.18)" stroke-width="2.5"/>
-    </g>
-    <circle cx="43" cy="46" r="3.5" fill="#1D1D1F"/>
-    <circle cx="59" cy="42" r="3.5" fill="#1D1D1F"/>
-    <circle cx="44.5" cy="45" r="1.2" fill="#fff"/>
-    <circle cx="60.5" cy="41" r="1.2" fill="#fff"/>
-    <path d="M46 52 q5 5 11 1.5" fill="none" stroke="#1D1D1F" stroke-width="2.2" stroke-linecap="round"/>
-    <circle cx="38" cy="51" r="3" fill="#FF9EB1" opacity=".55"/>
-    <circle cx="64" cy="47" r="3" fill="#FF9EB1" opacity=".55"/>
-  </svg>`;
+  return '';
 }
 
 // ===== ข้อความน้องแคปซูล (กวนๆ แข็งๆ ตลกๆ เรียกตัวเอง "ข้า" เรียก user "เจ้า") =====
@@ -2136,10 +2148,32 @@ function buildNav(){
   if(warnBtn)warnBtn.style.display=isAdmin?'':'none';
   // โหลด member bdays สำหรับตารางเวร
   loadMemberBdays();
+  buildSidebar();
   buildBottomNav();
   // กลับไปหน้าที่ค้างอยู่ก่อน refresh — ถ้าไม่มีค่อยไปหน้าแรก
   const savedPage=localStorage.getItem('lastPage')||'home';
   goto(savedPage);
+}
+
+// สร้างเมนู Sidebar (จอคอม) — จัดกลุ่มตามหมวด + สิทธิ์
+function buildSidebar(){
+  const nav=document.getElementById('sidebar-nav');
+  if(!nav)return;
+  let html=`<button class="sb-item" id="nav-home" onclick="goto('home')"><span style="font-size:16px;width:17px;text-align:center">🏠</span>หน้าหลัก</button>`;
+  CATEGORIES.forEach(cat=>{
+    const feats=catFeatures(cat.id);
+    if(!feats.length)return;
+    html+=`<div class="sb-sec">${cat.label}</div>`;
+    feats.forEach(f=>{
+      html+=`<button class="sb-item" id="nav-${f.page}" onclick="goto('${f.page}')"><span style="font-size:15px;width:17px;text-align:center">${f.icon}</span>${f.label}</button>`;
+    });
+  });
+  nav.innerHTML=html;
+  // footer
+  const nm=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():(currentUser?.email||'');
+  const av=document.getElementById('sb2-av'); if(av)av.textContent=(nm.charAt(0)||'?').toUpperCase();
+  const nmEl=document.getElementById('sb2-name'); if(nmEl)nmEl.textContent=nm||'—';
+  const rl=document.getElementById('sb2-role'); if(rl)rl.textContent=isAdmin?'ผู้ดูแลระบบ':(isTester?'ผู้ทดสอบ':'สมาชิก');
 }
 
 // สร้าง Bottom Nav (มือถือ) — เลือกหน้าสำคัญสูงสุด 5 หน้า
@@ -2326,7 +2360,7 @@ window.goto=function(page){
   const backBtn=document.getElementById('home-back-btn');
   const topLevel=page==='home'||page.startsWith('cat-');
   if(backBtn)backBtn.style.display=topLevel?'none':'inline-flex';
-  if(page==='home')renderHome();
+  if(page==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
   if(page.startsWith('cat-'))renderCatPage(page.slice(4));
   if(page==='dashboard'){dbRender();loadSalesFromCloud();}
   if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
@@ -2335,7 +2369,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderCapMsgSettings();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();loadTodoTemplates().then(renderTodoTemplateSettings);}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();loadTodoTemplates().then(renderTodoTemplateSettings);}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -2641,8 +2675,8 @@ function dbRender(){
 }
 
 // ===== ตารางสถานะพนักงานวันนี้ (admin) =====
-async function renderStaffStatus(){
-  const el=document.getElementById('db-staff-status');
+async function renderStaffStatus(targetId='db-staff-status'){
+  const el=document.getElementById(targetId);
   if(!el)return;
   const today=todayStr();
   let dayShifts=shifts.filter(s=>s.date===today);
@@ -3029,7 +3063,7 @@ window.scDayDetail=function(ds){
         const[sh,sm]=s.start.split(':').map(Number);
         const[ch,cm]=ci.checkIn.split(':').map(Number);
         const diff=(ch*60+cm)-(sh*60+sm);
-        if(diff>0)lateTag=`<span style="background:#FCE8D5;color:#C2410C;font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-left:6px">สาย ${diff} นาที</span>`;
+        if(diff>0)lateTag=`<span style="background:var(--gold-l);color:#A6781F;font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-left:6px">สาย ${diff} นาที</span>`;
         else lateTag=`<span style="background:var(--green-l);color:var(--green-dd);font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;margin-left:6px">ตรงเวลา</span>`;
       }
       ciLine=`<div style="font-size:11px;margin-top:3px;color:${sameBranch?'#0F8A63':'#D4690E'};font-weight:600">✓ เช็คอินจริง ${ci.checkIn}${ci.checkOut?' - '+ci.checkOut:' (ยังไม่เช็คเอาท์)'}${brIn?' ที่'+brIn:''}${!sameBranch&&brIn?' ⚠️ คนละสาขากับเวร':''}${ci.checkIn&&ci.checkOut?' • รวม '+calcWorkTime(ci.checkIn,ci.checkOut):''}${lateTag}</div>`;
@@ -3037,7 +3071,7 @@ window.scDayDetail=function(ds){
       ciLine=`<div style="font-size:11px;margin-top:3px;color:var(--text3)">○ ยังไม่เช็คอิน</div>`;
     }
     return `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--green-ll);border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
       <span class="badge ${['badge-green','badge-blue','badge-amber'][s.branch]}">${BRANCHES[s.branch]}</span>
       <div style="flex:1"><div style="font-weight:600;font-size:13px">${shiftFullName(s)}</div><div style="font-size:12px;color:var(--text2)">เวรที่จัด: <b>${s.start} – ${s.end}</b></div>${ciLine}</div>
       ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`:''}
@@ -3188,7 +3222,7 @@ function renderAutoMemberList(){
     const nm=p.name;
     const branchChecks=BRANCHES.map((b,i)=>`<label style="display:inline-flex;align-items:center;gap:3px;font-size:11px;margin-right:8px;cursor:pointer"><input type="checkbox" class="ac-branch" data-uid="${p.key}" value="${i}" ${cfg.branches?.includes(i)?'checked':''} style="width:14px;height:14px;accent-color:${BCOLORS[i]}">${b}</label>`).join('');
     const dowChecks=DOW.map((d,i)=>`<label style="display:inline-flex;align-items:center;gap:2px;font-size:11px;margin-right:6px;cursor:pointer"><input type="checkbox" class="ac-dayoff" data-uid="${p.key}" value="${i}" ${cfg.daysOff?.includes(i)?'checked':''} style="width:13px;height:13px;accent-color:var(--red)">${d}</label>`).join('');
-    return`<div style="padding:12px;background:#FAFBFB;border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
+    return`<div style="padding:12px;background:var(--green-ll);border:1px solid var(--border);border-radius:10px;margin-bottom:10px">
       <div style="font-weight:600;font-size:13px;margin-bottom:8px">${nm}${p.isTemp?'<span style="font-size:10px;background:rgba(0,0,0,.07);padding:1px 6px;border-radius:6px;margin-left:6px;font-weight:400">ชั่วคราว</span>':''}</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:3px">สาขาที่ทำ (เลือกหลายได้ = หมุนเวียน)</div>
       <div style="margin-bottom:8px">${branchChecks}</div>
@@ -3231,7 +3265,7 @@ window.openExceptions=async function(uid){
   const exc=cfg.exceptions||{};
   const nm=m.nickname?`${m.firstName} (${m.nickname})`:`${m.firstName||''} ${m.lastName||''}`.trim();
   const rows=Object.entries(exc).sort().map(([date,e])=>`
-    <div style="display:flex;align-items:center;gap:8px;padding:8px;background:#FAFBFB;border-radius:8px;margin-bottom:6px">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--green-ll);border-radius:8px;margin-bottom:6px">
       <div style="flex:1;font-size:12px"><b>${new Date(date).getDate()}/${new Date(date).getMonth()+1}</b> ${e.type==='off'?'<span style="color:var(--red-t)">หยุด</span>':`<span style="color:var(--green-d)">${e.start}-${e.end}</span>`}</div>
       <button class="btn btn-sm btn-danger" style="padding:2px 8px" onclick="removeException('${uid}','${date}')">×</button>
     </div>`).join('')||'<div style="font-size:12px;color:var(--text3)">ยังไม่มีข้อยกเว้น</div>';
@@ -3897,6 +3931,7 @@ async function loadSalesFromCloud(){
     // รีเฟรชหน้าจอถ้ากำลังดูอยู่
     if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderHistory();
     if(document.getElementById('page-dashboard')?.classList.contains('active'))dbRender();
+    if(document.getElementById('page-home')?.classList.contains('active')&&typeof renderHome==='function')renderHome();
   }catch(e){console.error('loadSales error',e);}
 }
 function salesRenderHistory(){
@@ -4663,7 +4698,7 @@ function slipCSS(){
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Noto Sans Thai',sans-serif;background:#F4F6F5;padding:24px;color:#18211F;font-size:13px;min-height:100vh}
     .slip{background:#fff;max-width:680px;margin:0 auto;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.1)}
-    .slip-header{background:linear-gradient(135deg,#085041,#1D9E75);padding:28px 32px;color:#fff}
+    .slip-header{background:linear-gradient(135deg,#0C5544,#1FAE8B);padding:28px 32px;color:#fff}
     .slip-logo{font-size:24px;margin-bottom:4px}
     .slip-title{font-size:20px;font-weight:700;margin-bottom:2px}
     .slip-sub{font-size:12px;opacity:.7}
@@ -4679,7 +4714,7 @@ function slipCSS(){
     .slip-item.red{background:#FCEBEB}
     .slip-item.red span{color:#A32D2D}
     .divider{height:1px;background:#E8ECEB;margin:20px 0}
-    .slip-total{background:linear-gradient(135deg,#085041,#1D9E75);border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:20px}
+    .slip-total{background:linear-gradient(135deg,#0C5544,#1FAE8B);border-radius:12px;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:20px}
     .slip-total label{font-size:13px;opacity:.8}
     .slip-total span{font-size:28px;font-weight:700}
     .slip-status{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px}
@@ -4882,7 +4917,7 @@ function buildYearSlip(records, memberName, memberRole, year){
     <div class="slip-footer">เอกสารนี้ออกโดยระบบ ใหม่เภสัช • กรุณาเก็บไว้เป็นหลักฐาน</div>
   </div>
   <div style="text-align:center;margin-top:16px">
-    <button onclick="window.print()" style="padding:10px 24px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์เอกสาร</button>
+    <button onclick="window.print()" style="padding:10px 24px;background:#1FAE8B;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์เอกสาร</button>
   </div>
   </body></html>`;
 }
@@ -4927,7 +4962,7 @@ function buildAdminPayrollSlip(rows, month, year){
     <div class="slip-footer">เอกสารนี้ออกโดยระบบ ใหม่เภสัช • เฉพาะผู้มีสิทธิ์เท่านั้น</div>
   </div>
   <div style="text-align:center;margin-top:16px">
-    <button onclick="window.print()" style="padding:10px 24px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์รายงาน</button>
+    <button onclick="window.print()" style="padding:10px 24px;background:#1FAE8B;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์รายงาน</button>
   </div>
   </body></html>`;
 }
@@ -4990,7 +5025,7 @@ window.exportHistoryPDF=function(){
     <div class="slip-footer">เอกสารนี้ออกโดยระบบ ใหม่เภสัช • เฉพาะผู้มีสิทธิ์เท่านั้น</div>
   </div>
   <div style="text-align:center;margin-top:16px">
-    <button onclick="window.print()" style="padding:10px 24px;background:#1D9E75;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์รายงาน</button>
+    <button onclick="window.print()" style="padding:10px 24px;background:#1FAE8B;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit">🖨️ พิมพ์รายงาน</button>
   </div>
   </body></html>`;
   downloadHTML(html,`payroll_history_${year}_${memberUid==='all'?'all':memberName}.html`);
@@ -5107,30 +5142,33 @@ function renderHome(){
       <div style="font-size:25px;font-weight:600;font-family:var(--disp);color:var(--text)">${myName}</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
     </div>
-    <button onclick="openAssistant()" style="background:none;border:none;cursor:pointer;padding:0" aria-label="ผู้ช่วยส่วนตัว">
-      <div style="width:46px;height:46px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;position:relative">
-        ${myName.charAt(0).toUpperCase()}
-        <span style="position:absolute;bottom:0;right:0;width:14px;height:14px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
-      </div>
-    </button>
+    <div style="width:46px;height:46px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;position:relative">
+      ${myName.charAt(0).toUpperCase()}
+      <span style="position:absolute;bottom:0;right:0;width:14px;height:14px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
+    </div>
   </div>`;
 
-  // ===== Stat cards: 2 การ์ดข้อมูลสำคัญ =====
-  const todaySales=window._todaySalesTotal||0;
-  html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-    <div style="background:var(--grad-green);border-radius:22px;padding:16px;color:#fff;box-shadow:0 10px 24px rgba(18,124,98,.28)">
-      <div style="font-size:11px;opacity:.9;margin-bottom:4px">ยอดขายวันนี้</div>
-      <div style="font-size:27px;font-weight:700;font-family:var(--disp);letter-spacing:-.5px">${todaySales>0?'฿'+todaySales.toLocaleString():'—'}</div>
-      <div style="font-size:10px;opacity:.8;margin-top:3px">3 สาขา</div>
-    </div>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:16px;display:flex;gap:10px;align-items:flex-start">
-      ${capsuleMascot(34,'#1FAE8B')}
-      <div style="flex:1">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:3px">น้องแคปซูลบอกว่า</div>
-        <div style="font-size:12px;color:var(--text);line-height:1.5;font-weight:${bubbleSerious?600:400}">${bubble}</div>
-      </div>
-    </div>
-  </div>`;
+  // ===== การ์ดสถิติ 4 ใบ (เฉพาะผู้มีสิทธิ์ดูยอดขาย) =====
+  if(isAdmin||hasPerm('dashboard_admin')){
+    const yst=new Date();yst.setDate(yst.getDate()-1);const ystStr=yst.toISOString().slice(0,10);
+    const todaySales=salesEntries.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
+    const ystSales=salesEntries.filter(e=>e.date===ystStr).reduce((s,e)=>s+(e.total||0),0);
+    const pct=ystSales>0?Math.round((todaySales-ystSales)/ystSales*1000)/10:0;
+    const moStr=today.slice(0,7);
+    const moSales=salesEntries.filter(e=>e.date.startsWith(moStr)).reduce((s,e)=>s+(e.total||0),0);
+    const dayShifts=shifts.filter(s=>s.date===today);
+    const checkedIn=dayShifts.filter(s=>!s.tempName&&(allCheckins||[]).find(c=>c.uid===s.staffId&&c.date===today&&c.checkIn)).length;
+    const card=(chip,ic,lbl,val,sub,subColor)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)"><div style="width:40px;height:40px;border-radius:12px;background:${chip};display:flex;align-items:center;justify-content:center;margin-bottom:13px">${ic}</div><div style="font-size:12px;color:var(--text3);font-weight:500">${lbl}</div><div style="font-family:var(--disp);font-weight:700;font-size:25px;color:var(--text);margin-top:4px;letter-spacing:-.5px">${val}</div><div style="font-size:11px;margin-top:5px;color:${subColor||'var(--text3)'};font-weight:${subColor?600:400}">${sub}</div></div>`;
+    const sv=(p)=>`<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.25rem" class="home-stat-grid">
+      ${card('var(--green-l)','<span style="color:var(--green-d)">'+sv('<path d=\'M3 3v18h18\'/><path d=\'M7 14l4-4 3 3 5-6\'/>')+'</span>','ยอดขายวันนี้ · ทุกสาขา',todaySales>0?'฿'+todaySales.toLocaleString():'—',pct!==0?(pct>0?'▲ '+pct+'% จากเมื่อวาน':'▼ '+Math.abs(pct)+'% จากเมื่อวาน'):'เทียบเมื่อวาน',pct>0?'var(--green-d)':(pct<0?'var(--rose-d)':null))}
+      ${card('var(--blue-l)','<span style="color:var(--blue-t)">'+sv('<rect x=\'4\' y=\'3\' width=\'16\' height=\'18\' rx=\'2\'/><path d=\'M8 8h8M8 12h8M8 16h5\'/>')+'</span>','ยอดรวมเดือนนี้','฿'+moSales.toLocaleString(),MONTHS_TH[new Date().getMonth()])}
+      ${card('var(--amber-l)','<span style="color:var(--amber-t)">'+sv('<rect x=\'3\' y=\'4\' width=\'18\' height=\'17\' rx=\'2\'/><path d=\'M3 9h18M8 2v4M16 2v4\'/>')+'</span>','เวรวันนี้',dayShifts.length+' เวร',new Set(dayShifts.map(s=>s.branch)).size+' สาขา')}
+      ${card('var(--rose-l)','<span style="color:var(--rose-d)">'+sv('<path d=\'M20 6L9 17l-5-5\'/>')+'</span>','เข้างานแล้ว',checkedIn+' / '+dayShifts.length,'เช็คอินแล้ววันนี้')}
+    </div>`;
+  } else {
+    // พนักงานทั่วไป: การ์ดเวรวันนี้อย่างเดียว (ถ้าไม่มีเวรจะไม่แสดงไร — ต่อด้านล่าง)
+  }
 
   // ===== เวรวันนี้ (ถ้ามี) =====
   if(todayShift){
@@ -5144,28 +5182,51 @@ function renderHome(){
     </div>`;
   }
 
-  // ===== เมนูจัดกลุ่มตามหมวด =====
-  const order=currentMenuOrder();
-  const catStyle={
-    mywork:{chip:'var(--green-l)',ic:'var(--green-d)'},
-    sales:{chip:'var(--purple-l)',ic:'var(--purple-t)'},
-    admin:{chip:'var(--rose-l)',ic:'var(--rose-d)'},
-    more:{chip:'var(--blue-l)',ic:'var(--blue-t)'}
-  };
-  CATEGORIES.forEach(cat=>{
-    const feats=order.map(p=>FEATURE_DEFS.find(f=>f.page===p)).filter(f=>f&&f.cat===cat.id&&featureShow(f));
-    if(!feats.length)return;
-    const cs=catStyle[cat.id]||catStyle.mywork;
-    html+=`<div style="font-family:var(--disp);font-weight:600;font-size:17px;color:var(--text);margin:1.6rem 2px .8rem;display:flex;align-items:center;gap:9px"><span style="font-size:16px">${cat.icon}</span>${cat.label}</div>`;
-    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px">
-      ${feats.map(f=>`<button onclick="goto('${f.page}')" style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:14px;display:flex;align-items:center;gap:13px;cursor:pointer;font-family:var(--font);text-align:left;transition:.15s;width:100%;box-shadow:var(--shadow)" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.transform='';this.style.boxShadow='var(--shadow)'">
-        <span style="width:46px;height:46px;border-radius:14px;background:${cs.chip};color:${cs.ic};display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${f.icon}</span>
-        <span style="font-size:13.5px;font-weight:600;color:var(--text);line-height:1.3">${f.label}</span>
-      </button>`).join('')}
+  // ===== กราฟภาพรวมยอดขาย (เฉพาะผู้มีสิทธิ์) =====
+  const canSeeDash=isAdmin||hasPerm('dashboard_admin');
+  let _homeChartData=null;
+  if(canSeeDash){
+    const days=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+    const dayLabels=days.map(ds=>['อา','จ','อ','พ','พฤ','ศ','ส'][new Date(ds).getDay()]);
+    const series=[0,1,2].map(b=>days.map(ds=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===b);return e?(e.total||0):0;}));
+    const todayTotals=[0,1,2].map(b=>{const e=salesEntries.find(x=>x.date===today&&x.branch===b);return e?(e.total||0):0;});
+    const grand=todayTotals.reduce((a,v)=>a+v,0);
+    const bsMax=Math.max(...todayTotals,1);
+    _homeChartData={days:dayLabels,series};
+    html+=`<div style="display:grid;grid-template-columns:1.7fr 1fr;gap:14px;margin-bottom:.5rem" class="home-dash-grid">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;flex-wrap:wrap;gap:8px">
+          <div style="font-family:var(--disp);font-weight:600;font-size:16px">ยอดขายรายสาขา</div>
+          <div style="display:flex;gap:12px;font-size:11px;color:var(--text2)">${BRANCHES.map((b,i)=>`<span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]};margin-right:4px;vertical-align:middle"></span>${b}</span>`).join('')}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:12px">7 วันล่าสุด</div>
+        <div style="position:relative;height:220px"><canvas id="home-chart"></canvas></div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)">
+        <div style="font-family:var(--disp);font-weight:600;font-size:16px;margin-bottom:14px">ยอดวันนี้แยกสาขา</div>
+        ${BRANCHES.map((b,i)=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}</span><span style="font-family:var(--disp);font-weight:600;font-size:14px">฿${(todayTotals[i]||0).toLocaleString()}</span></div><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${Math.round(todayTotals[i]/bsMax*100)}%;height:100%;background:${BCOLORS[i]};border-radius:3px"></div></div></div>`).join('')}
+        <div style="margin-top:16px;padding:12px;border-radius:13px;background:var(--green-ll);color:var(--green-d);font-size:12px;font-weight:600;text-align:center">ยอดรวมทุกสาขา ฿${grand.toLocaleString()}</div>
+      </div>
     </div>`;
-  });
+  }
+
+  // (เมนูจัดหมวดย้ายไป sidebar / bottom nav แล้ว — ไม่ซ้ำในหน้าแรก)
+
+  if(isAdmin||hasPerm('dashboard_admin')){ html+=`<div id="home-staff-status" style="margin-top:1.6rem"></div>`; }
 
   el.innerHTML=html+'</div>';
+  if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderStaffStatus('home-staff-status');}
+  // init กราฟหน้าแรก
+  if(_homeChartData&&window.Chart){
+    const cv=document.getElementById('home-chart');
+    if(cv){
+      if(window._homeChart){try{window._homeChart.destroy();}catch(e){}}
+      const rs=getComputedStyle(document.documentElement);
+      const grid=rs.getPropertyValue('--border').trim()||'#eee';
+      const tick=rs.getPropertyValue('--text3').trim()||'#999';
+      window._homeChart=new Chart(cv,{type:'line',data:{labels:_homeChartData.days,datasets:_homeChartData.series.map((d,i)=>({data:d,borderColor:BCOLORS[i],backgroundColor:BCOLORS[i]+'18',borderWidth:2.5,tension:.4,pointRadius:0,fill:true}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:grid},ticks:{color:tick,font:{size:10},callback:v=>'฿'+(v>=1000?(v/1000)+'k':v)},border:{display:false}},x:{grid:{display:false},ticks:{color:tick,font:{size:11}},border:{color:grid}}}}});
+    }
+  }
 }
 
 // ===== ผู้ช่วยส่วนตัว (แตะการ์ดทักทาย) — ตอบจากข้อมูลจริงในระบบ ไม่ใช่ AI ภายนอก =====
@@ -5209,7 +5270,7 @@ function capsuleConfirm(message,opts={}){
     const danger=opts.danger!==false;
     openModal(`<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:1.25rem">
         ${capsuleMascot(48,dc.main)}
-        <div style="background:#FAFBFB;border-radius:14px;border-bottom-left-radius:4px;padding:10px 14px;flex:1;border:1px solid var(--border)">
+        <div style="background:var(--green-ll);border-radius:14px;border-bottom-left-radius:4px;padding:10px 14px;flex:1;border:1px solid var(--border)">
           <div style="font-size:13.5px;color:var(--text);font-weight:500;line-height:1.6;white-space:pre-line">${message}</div>
         </div>
       </div>
@@ -5295,7 +5356,7 @@ async function assistantShiftMine(){
   if(!mine.length){
     body=`<div style="text-align:center;padding:1.5rem 0;color:var(--text3);font-size:13px">ยังไม่มีเวรในช่วงนี้ครับ</div>`;
   }else{
-    body=mine.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+    body=mine.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
       <div><div style="font-weight:600;font-size:13px">${new Date(s.date).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}</div><div style="font-size:12px;color:var(--text3)">${s.start} - ${s.end}</div></div>
       <span class="pill" style="border-color:${BCOLORS[s.branch]}55;color:${BCOLORS[s.branch]}">${BRANCHES[s.branch]}</span>
     </div>`).join('');
@@ -5314,7 +5375,7 @@ async function assistantShiftTodayAll(){
   if(!todays.length){
     body=`<div style="text-align:center;padding:1.5rem 0;color:var(--text3);font-size:13px">วันนี้ยังไม่มีใครเข้าเวรครับ</div>`;
   }else{
-    body=todays.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+    body=todays.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
       <div><div style="font-weight:600;font-size:13px">${shiftFullName(s)}</div><div style="font-size:12px;color:var(--text3)">${s.start} - ${s.end}</div></div>
       <span class="pill" style="border-color:${BCOLORS[s.branch]}55;color:${BCOLORS[s.branch]}">${BRANCHES[s.branch]}</span>
     </div>`).join('');
@@ -5360,7 +5421,7 @@ async function assistantCashBalance(){
     purseSnap.docs.forEach(d=>{purseBal[d.id]=d.data().balance||0;});
   }catch(e){console.error('assistantCashBalance',e);}
   const body=`<div style="display:flex;flex-direction:column;gap:8px">
-    ${BRANCHES.map((b,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#FAFBFB;border-radius:9px;border:1px solid var(--border)">
+    ${BRANCHES.map((b,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--green-ll);border-radius:9px;border:1px solid var(--border)">
       <span style="font-weight:600;font-size:13px;color:${BCOLORS[i]}">${b}</span>
       <span style="font-size:12px;color:var(--text2)">ตู้เซฟ <b>${fmtB(boxBal[i]||0)}</b> · กระเป๋า <b>${fmtB(purseBal[i]||0)}</b></span>
     </div>`).join('')}
@@ -5410,7 +5471,7 @@ function renderMyShifts(){
   // การ์ดเวรวันนี้ (เด่น)
   let todayHtml;
   if(todayShift){
-    todayHtml=`<div style="background:linear-gradient(135deg,#085041,#1D9E75);border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:${future.length?'1rem':'0'}">
+    todayHtml=`<div style="background:var(--grad-green);border-radius:var(--rl);padding:1.25rem;color:#fff;margin-bottom:${future.length?'1rem':'0'}">
       <div style="font-size:12px;opacity:.85;margin-bottom:4px">📅 เวรของคุณวันนี้</div>
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div style="font-size:24px;font-weight:700">${todayShift.start} - ${todayShift.end}</div>
@@ -5536,7 +5597,7 @@ async function loadMyCheckinHistory(){
     el.innerHTML=sorted.map(r=>{
       const edited=r.editHistory?.length;
       const lateBadge=r.isLate?`<span style="font-size:10px;color:#D4690E;font-weight:700;margin-left:6px">⏰ สาย ${r.lateMinutes} นาที</span>`:'';
-      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
         <div style="flex:1">
           <div style="font-weight:600;font-size:13px">${new Date(r.date).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}${lateBadge}</div>
           <div style="font-size:12px;color:var(--text3)">${r.checkIn||'—'} - ${r.checkOut||'—'}${r.checkIn&&r.checkOut?' • รวม '+calcWorkTime(r.checkIn,r.checkOut):''}</div>
@@ -5947,7 +6008,7 @@ function setGpsStatus(i,msg,type){
   const el=document.getElementById('gps-status-'+i);
   if(!el)return;
   el.style.display='block';
-  const c={load:['#FFF8E6','#7A4E06','⏳'],ok:['var(--green-ll)','var(--green-dd)','✅'],err:['#FDEAEA','#A32D2D','⚠️']}[type]||['#FAFBFB','#5A6B7B',''];
+  const c={load:['#FFF8E6','#7A4E06','⏳'],ok:['var(--green-ll)','var(--green-dd)','✅'],err:['#FDEAEA','#A32D2D','⚠️']}[type]||['var(--green-ll)','#5A6B7B',''];
   el.style.background=c[0];el.style.color=c[1];el.style.borderRadius='8px';el.style.padding='8px 10px';
   el.innerHTML=`${c[2]} ${msg}`;
 }
@@ -6261,6 +6322,8 @@ async function saveCapMessages(){
 }
 window.renderCapMsgSettings=async function(){
   const card=document.getElementById('capmsg-card');
+  if(card)card.style.display='none';
+  return;
   const canEdit=isAdmin||hasPerm('announce');
   if(card)card.style.display=canEdit?'':'none';
   if(!canEdit)return;
@@ -6330,7 +6393,7 @@ function renderDoseList(){
     const freqOpts=getFreqOptions(d);
     const freqTxt=perDay&&freqOpts.length?' • เลือกได้: '+freqOpts.map(f=>f.label).join(' / '):(d.freq?' • '+d.freq:'');
     const ageTxt=d.minAgeMonths?`อายุขั้นต่ำ ${minAgeLabel(d.minAgeMonths)}`:`<span style="color:var(--amber-t)">⚠️ ยังไม่ระบุอายุขั้นต่ำ</span>`;
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
     <div style="flex:1">
       <div style="font-weight:600;font-size:13px">${d.name}</div>
       <div style="font-size:11px;color:var(--text3)">${rangeTxt}${freqTxt}${d.maxDose?' • สูงสุด '+d.maxDose+' '+d.unit+'/ครั้ง':''}${d.maxPerDay?' • สูงสุด '+d.maxPerDay+' '+d.unit+'/วัน':''}</div>
@@ -6372,7 +6435,7 @@ function doseResultCardHtml(d,w,label,sub,r){
     const mlRng=r.mlLow===r.mlHigh?`${r.mlLow.toFixed(1)}`:`${r.mlLow.toFixed(1)} - ${r.mlHigh.toFixed(1)}`;
     mlHtml=`<div style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.2)"><div style="font-size:12px;opacity:.8">ปริมาณยาน้ำ (${d.concMg}mg/${d.concMl}ml)</div><div style="font-size:20px;font-weight:700">${mlRng} ml/ครั้ง</div></div>`;
   }
-  return `<div class="pr-net-box" style="background:linear-gradient(135deg,#085041,#1D9E75);margin-bottom:10px">
+  return `<div class="pr-net-box" style="background:var(--grad-green);margin-bottom:10px">
     <div>
       ${label?`<div style="font-size:13px;font-weight:700;margin-bottom:4px">${label}</div>`:''}
       <div class="lbl">ขนาดยาที่คำนวณได้ (น้ำหนัก ${w} กก.)</div>
@@ -7728,7 +7791,7 @@ window.loadMyLeaves=async function(){
     if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีประวัติการลา</div>';return;}
     el.innerHTML=list.map(l=>{
       const days=leaveDayCount(l.from,l.to);
-      return`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:#FAFBFB;border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
+      return`<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
         <div style="flex:1">
           <div style="font-weight:600;font-size:13px">${fmtLeaveDate(l.from,l.to)} <span style="font-size:11px;color:var(--text3)">(${days} วัน)</span></div>
           <div style="font-size:12px;color:var(--text3)">${l.reason||'ไม่ระบุเหตุผล'}${l.type?` • ${l.type}`:''}</div>

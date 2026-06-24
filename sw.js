@@ -1,6 +1,6 @@
 // Service Worker — ใหม่เภสัช PWA
 // เวอร์ชัน cache (เปลี่ยนเลขนี้ทุกครั้งที่อัปเดตแอพ เพื่อให้ผู้ใช้ได้ของใหม่)
-const CACHE = 'maipharmacy-v87';
+const CACHE = 'maipharmacy-v93';
 const ASSETS = [
   './app.html',
   './index.html',
