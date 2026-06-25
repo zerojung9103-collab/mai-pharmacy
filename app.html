@@ -1421,9 +1421,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.4.7';
+const APP_VERSION='3.4.8';
 const CHANGELOG=[
-  {v:'3.4.7',date:'2026-06-25',changes:['แก้หน้าตั้งค่า QZ Tray ค้างที่ “กำลังโหลดรายชื่อเครื่องพิมพ์...” ไม่หยุด — ใส่ timeout 6 วินาที ถ้า QZ Tray ไม่ได้เปิดจะแจ้งชัดแทนหมุนค้าง']},
+  {v:'3.4.8',date:'2026-06-25',changes:['รื้อระบพิมพ์ฉลากให้ง่ายขึ้น — ตัด QZ Tray / PrintBridge ออก เหลือ“กดพิมพ์ → หน้าต่างพิมพ์ของเบราว์เซอร์” ไม่ต้องติดตั้งโปรแกรมเพิ่ม']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -1910,7 +1910,8 @@ window.resetAppearance=async function(){
 // เก็บใน localStorage (local ต่อเครื่อง ไม่ใช่ Firestore)
 function loadPrintBridgeSettings(){
   const card=document.getElementById('printbridge-card');
-  if(card)card.style.display=isAdmin?'':'none';
+  if(card)card.style.display='none';
+  return;
   if(!isAdmin)return;
   const key=localStorage.getItem('pb_apikey')||'';
   const printer=localStorage.getItem('pb_printer')||'';
@@ -1986,7 +1987,8 @@ async function printViabridge(htmlContent){
 // เก็บค่าใน localStorage (local ต่อเครื่อง)
 function loadQzSettings(){
   const card=document.getElementById('qztray-card');
-  if(card)card.style.display=isAdmin?'':'none';
+  if(card)card.style.display='none';
+  return;
   if(!isAdmin)return;
   const printer=localStorage.getItem('qz_printer')||'';
   const pi=document.getElementById('qz-printer');
@@ -7362,22 +7364,7 @@ body{width:${pw}mm;height:${ph}mm;background:${bgColor};position:relative;overfl
 @media print{html,body{width:${pw}mm;height:${ph}mm}}
 </style></head><body>${flDecoHtml('print')}${blocksHtml}</body></html>`;
 
-  // ลำดับ: QZ Tray → PrintBridge → window.print()
-  showToast('กำลังส่งไปพิมพ์...','');
-
-  // 1. ลอง QZ Tray ก่อน (ถ้าตั้งค่าไว้)
-  if(localStorage.getItem('qz_printer')){
-    const qzOk=await printViaQzTray(html);
-    if(qzOk){showToast('พิมพ์แล้ว ✅ (QZ Tray)');return;}
-  }
-
-  // 2. ลอง PrintBridge
-  if(localStorage.getItem('pb_apikey')&&localStorage.getItem('pb_printer')){
-    const pbOk=await printViabridge(html);
-    if(pbOk){showToast('พิมพ์แล้ว ✅ (PrintBridge)');return;}
-  }
-
-  // 3. Fallback: browser window.print()
+  // พิมพ์ผ่านหน้าต่างพิมพ์ของเบราว์เซอร์ (ง่าย — ไม่ต้องลงโปรแกรมเพิ่ม)
   const w=window.open('','_blank');
   if(!w){showToast('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาต popup ของเว็บนี้แล้วลองใหม่','err');return;}
   w.document.write(html+`<script>window.onload=function(){setTimeout(()=>window.print(),400)}<\/script>`);
