@@ -1421,8 +1421,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.4.2';
+const APP_VERSION='3.4.4';
 const CHANGELOG=[
+  {v:'3.4.4',date:'2026-06-25',changes:['คลิกชื่อพนักงานไปหน้าจัดการสมาชิกได้เพิ่มใน “ประวัติการลงเวลา” และ “รายการขอลา” (เฉพาะแอดมิน/ผู้มีสิทธิ์)']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -2836,7 +2837,7 @@ async function renderStaffStatus(targetId='db-staff-status'){
       statusPill=late?`<span style="font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;background:var(--gold-l);color:#A6781F">สาย</span>`:`<span style="font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;background:var(--green-l);color:var(--green-d)">ตรงเวลา</span>`;
     }else{statusPill=`<span style="font-size:11px;font-weight:600;padding:3px 11px;border-radius:20px;background:var(--bg);color:var(--text2)">ยังไม่เข้า</span>`;}
     return `<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:13px 10px"><span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:${BCOLORS[s.branch]};color:#fff;font-size:11px;font-weight:700;margin-right:9px;vertical-align:middle">${initials}</span><span style="font-weight:600">${nm}</span></td>
+      <td style="padding:13px 10px"><span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:9px;background:${BCOLORS[s.branch]};color:#fff;font-size:11px;font-weight:700;margin-right:9px;vertical-align:middle">${initials}</span>${s.tempName?`<span style="font-weight:600">${nm}</span>`:staffNameLink(nm,s.staffId)}</td>
       <td style="padding:13px 10px;color:var(--text2)">${BRANCHES[s.branch]}</td>
       <td style="padding:13px 10px;color:var(--text2)">${s.start} – ${s.end}</td>
       <td style="padding:13px 10px;color:var(--text2)">${ciTime}</td>
@@ -4123,6 +4124,23 @@ window.filterMembers=function(){
     const sta=m.status==='active'?'<span class="sta-on">ใช้งาน</span>':'<span class="sta-off">ระงับ</span>';
     return`<tr><td><div style="display:flex;align-items:center;gap:10px"><div class="mem-av">${name.charAt(0)}</div><div><div style="font-weight:600">${name}</div><div style="font-size:11px;color:var(--text3)">${m.email}</div></div></div></td><td>${dob}</td><td>${dob}</td><td>${roleBadge}</td><td>${sta}</td><td><div style="display:flex;gap:6px"><button class="btn btn-sm btn-blue" onclick="viewMember('${m.uid}')">จัดการ</button><button class="btn btn-sm ${m.status==='active'?'btn-danger':'btn-primary'}" onclick="toggleMember('${m.uid}','${m.status}')">${m.status==='active'?'ระงับ':'เปิดใช้'}</button></div></td></tr>`;
   }).join('');
+};
+// เปิดหน้าจัดการสมาชิก แล้วเปิด modal ของพนักงานคนนั้นเลย (ใช้จากชื่อที่คลิกได้ทั่วแอป)
+window.gotoManageMember=async function(uid){
+  if(!uid)return;
+  if(!isAdmin&&!hasPerm('members')){showToast('ไม่มีสิทธิ์จัดการสมาชิก','err');return;}
+  goto('members');
+  if(!allMembers.length){await loadMembers();}
+  // เผื่อ allMembers ยังไม่มีคนนี้ (เพิ่งโหลด) — ลองโหลดซ้ำครั้งเดียว
+  if(!allMembers.find(x=>x.uid===uid)){await loadMembers();}
+  if(allMembers.find(x=>x.uid===uid))viewMember(uid);
+  else showToast('ไม่พบข้อมูลพนักงานคนนี้','err');
+};
+// ชื่อพนักงานที่คลิกได้ (เฉพาะ admin/มีสิทธิ์ members) — คืน HTML
+window.staffNameLink=function(name,uid,extraStyle=''){
+  const canManage=uid&&(isAdmin||hasPerm('members'));
+  if(!canManage)return `<span style="font-weight:600;${extraStyle}">${name}</span>`;
+  return `<a role="button" tabindex="0" onclick="gotoManageMember('${uid}')" onkeydown="if(event.key==='Enter')gotoManageMember('${uid}')" style="font-weight:600;color:var(--green-d);cursor:pointer;text-decoration:none;border-bottom:1px dashed rgba(29,158,117,.45);${extraStyle}">${name}</a>`;
 };
 window.viewMember=function(uid){
   const m=allMembers.find(x=>x.uid===uid);if(!m)return;
@@ -5960,7 +5978,7 @@ window.loadCheckinHistory=async function(){
       <div class="mcard c-blue"><div class="mcard-label">ออกงานแล้ว</div><div class="mcard-val">${checkedOut}</div><div class="mcard-sub">คน</div></div>
       <div class="mcard c-amber"><div class="mcard-label">มาสายวันนี้</div><div class="mcard-val">${lateCount}</div><div class="mcard-sub">คน</div></div>`;
     document.getElementById('cih-tbody').innerHTML=recs.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่มีการลงเวลาในวันนี้</td></tr>':recs.map(r=>`<tr>
-      <td style="font-weight:600">${r.name||'—'}</td>
+      <td style="font-weight:600">${r.uid?staffNameLink(r.name||'—',r.uid):(r.name||'—')}</td>
       <td>${r.date}</td>
       <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}${r.isLate?`<div style="font-size:9px;color:#D4690E;font-weight:700">⏰ สาย ${r.lateMinutes} นาที</div>`:''}</td>
       <td style="color:var(--blue-t)">${r.checkOut||'—'}${r.branchOut!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchOut]}</div>`:''}${r.checkOut&&r.checkOutInRadius===false?`<div style="font-size:9px;color:#D4690E;font-weight:700">📍 นอกรัศมี${r.checkOutDistance?' ~'+r.checkOutDistance+'ม.':''}</div>`:r.checkOut&&r.checkOutInRadius===true?`<div style="font-size:9px;color:var(--green-d)">✓ ในรัศมี</div>`:''}</td>
@@ -8202,7 +8220,7 @@ window.loadLeaveAdmin=async function(){
     document.getElementById('la-tbody').innerHTML=list.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีคำขอลา</td></tr>':list.map(l=>{
       const statusBadge=l.status==='approved'?'<span class="badge badge-green">อนุมัติแล้ว</span>':l.status==='rejected'?'<span class="badge badge-red">ปฏิเสธ</span>':'<span class="badge badge-amber">รอพิจารณา</span>';
       return `<tr>
-      <td style="font-weight:600">${l.name||'—'}</td>
+      <td style="font-weight:600">${l.uid?staffNameLink(l.name||'—',l.uid):(l.name||'—')}</td>
       <td>${fmtLeaveDate(l.from,l.to)}</td>
       <td>${leaveDayCount(l.from,l.to)} วัน</td>
       <td style="font-size:12px">${l.reason||'—'}</td>
