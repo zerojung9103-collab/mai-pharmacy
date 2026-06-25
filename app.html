@@ -1421,9 +1421,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.4.6';
+const APP_VERSION='3.4.7';
 const CHANGELOG=[
-  {v:'3.4.6',date:'2026-06-25',changes:['แก้ปัญหาตัวหนังสือจางบนเครื่องพิมพ์ความร้อน: เพิ่มน้ำหนักฟอนต์ตอนพิมพ์ (ปกติ 600 / หนา 700) + บังคับสีตัวอักษรให้ดำสนิท — ชัดขึ้น']},
+  {v:'3.4.7',date:'2026-06-25',changes:['แก้หน้าตั้งค่า QZ Tray ค้างที่ “กำลังโหลดรายชื่อเครื่องพิมพ์...” ไม่หยุด — ใส่ timeout 6 วินาที ถ้า QZ Tray ไม่ได้เปิดจะแจ้งชัดแทนหมุนค้าง']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -1998,13 +1998,16 @@ window.saveQzSettings=function(){
   showToast('บันทึกค่า QZ Tray แล้ว');
 };
 async function qzEnsureConnected(){
-  if(typeof qz==='undefined')throw new Error('QZ Tray library not loaded');
+  if(typeof qz==='undefined')throw new Error('ยังโหลดไลบรารี QZ Tray ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วรีเฟรชหน้า');
   if(!qz.websocket.isActive()){
     // ไม่ใช้ certificate (มีป๊อปอัพ permission 1 ครั้งต่อ session) — พอใช้งานได้
     qz.security.setCertificatePromise(()=>Promise.resolve(''));
     qz.security.setSignatureAlgorithm('SHA512');
     qz.security.setSignaturePromise(()=>()=>Promise.resolve(''));
-    await qz.websocket.connect({retries:2,delay:1});
+    // ใส่ timeout กันค้าง: ถ้า QZ Tray ไม่ได้เปิด/ไม่ได้ติดตั้ง จะแจ้งภายใน 6 วินาที
+    const connectP=qz.websocket.connect({retries:1,delay:1});
+    const timeoutP=new Promise((_,rej)=>setTimeout(()=>rej(new Error('เชื่อมต่อ QZ Tray ไม่ได้ใน 6 วินาที — ตรวจว่าติดตั้งแล้วและเปิดโปรแกรมอยู่ (ดูไอคอนถาดล่างขวา)')),6000));
+    await Promise.race([connectP,timeoutP]);
   }
 }
 window.testQzTray=async function(){
