@@ -806,46 +806,13 @@ input,select,textarea{border-radius:14px}
         <div style="flex:1">
           <div style="font-size:14px;font-weight:600;color:#1E40AF;margin-bottom:4px">เคล็ดลับการใช้งาน</div>
           <div style="font-size:13px;color:#1E40AF;line-height:1.7">
-            หากโปรแกรมทำงานผิดปกติ ข้อมูลไม่อัปเดต หรือค้าง ให้ลองกด<b>ปุ่มรีเฟรช</b> <span style="display:inline-flex;width:20px;height:20px;background:var(--green);border-radius:50%;vertical-align:middle;align-items:center;justify-content:center"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span> (ปุ่มสีเขียวมุมขวาล่าง) เพื่อโหลดข้อมูลล่าสุดจากระบบ
+            หากโปรแกรมทำงานผิดปกติ ข้อมูลไม่อัปเดต หรือค้าง — บนมือถือให้ <b>ดึงหน้าจอลงจากด้านบน</b> (pull-to-refresh) · บนคอมพิวเตอร์กด <b>F5</b> — เพื่อโหลดข้อมูลล่าสุดจากระบบ
           </div>
         </div>
       </div>
     </div>
+    <div id="settings-nav" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1rem"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
-      <div class="card" id="announce-card" style="grid-column:1/-1;display:none">
-        <div class="card-title">📢 ประกาศผ่านน้องแคปซูล</div>
-        <div class="card-sub">น้องแคปซูลจะส่งข้อความนี้ถึงสมาชิก (เด้งเตือนเมื่อเปิดแอป) — แสดงเฉพาะช่วงที่กำหนด</div>
-        <div class="field" style="margin-bottom:.75rem">
-          <label class="fl">ส่งถึงใคร</label>
-          <select id="announce-target" onchange="announceTargetChanged()">
-            <option value="all">ทุกคน</option>
-            <option value="some">เลือกเฉพาะบางคน</option>
-          </select>
-        </div>
-        <div id="announce-people" style="display:none;margin-bottom:.75rem;border:1px solid var(--border);border-radius:10px;padding:10px;max-height:180px;overflow-y:auto"></div>
-        <div class="field-row" style="margin-bottom:.5rem">
-          <div class="field" style="margin-bottom:0"><label class="fl">เริ่มวันที่</label><input type="date" id="ann-from-date"></div>
-          <div class="field" style="margin-bottom:0"><label class="fl">เวลาเริ่ม</label><div id="ann-from-time-wrap"></div></div>
-        </div>
-        <div class="field-row" style="margin-bottom:.75rem">
-          <div class="field" style="margin-bottom:0"><label class="fl">ถึงวันที่</label><input type="date" id="ann-to-date"></div>
-          <div class="field" style="margin-bottom:0"><label class="fl">เวลาสิ้นสุด</label><div id="ann-to-time-wrap"></div></div>
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:1rem">
-          <input type="text" id="new-announce" placeholder="พิมพ์ข้อความประกาศ เช่น พรุ่งนี้ร้านปิด 18:00" style="flex:1" maxlength="200">
-          <button class="btn btn-primary btn-sm" onclick="postAnnouncement()">📢 ประกาศ</button>
-        </div>
-        <div id="announce-list"></div>
-      </div>
-      <div class="card" id="capmsg-card" style="grid-column:1/-1;display:none">
-        <div class="card-title">💬 ข้อความน้องแคปซูล (กวนๆ)</div>
-        <div class="card-sub">เพิ่มประโยคของคุณเอง น้องจะสุ่มพูดจากที่ติ๊กเลือกไว้ (ถ้าไม่ติ๊กเลย น้องใช้ประโยคมาตรฐาน)</div>
-        <div style="display:flex;gap:8px;margin-bottom:1rem">
-          <input type="text" id="new-capmsg" placeholder="เช่น เจ้ามาทำงานสายอีกแล้วนะ ข้าจดไว้หมดแล้ว" style="flex:1" maxlength="120">
-          <button class="btn btn-primary btn-sm" onclick="addCapMsg()">+ เพิ่ม</button>
-        </div>
-        <div id="capmsg-list"></div>
-      </div>
       <div class="card" id="appearance-card" style="grid-column:1/-1;display:none">
         <div class="card-title">🎨 ปรับแต่งหน้าตาแอป</div>
         <div class="card-sub">เปลี่ยนแล้วเห็นผลทันทีทุกคนในร้าน (เฉพาะผู้ดูแลระบบแก้ได้)</div>
@@ -1496,9 +1463,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.13.1';
+const APP_VERSION='3.15.0';
 const CHANGELOG=[
-  {v:'3.13.1',date:'2026-06-26',changes:['ลงยอดขาย×ระบบเงินสด: กันลบช่อง “เงินสด” — เป็นช่องที่ระบบนับเงินดึงไปคิด“เงินควรมีตอนปิดร้าน” (EDC/QR ไม่เข้าลิ้นชัก)']},
+  {v:'3.15.0',date:'2026-06-26',changes:['รีดีไซน์หน้าประวัติการขาย: เลือกย้อนดูได้ทุกเดือน + รายการรายวัน (ไล่จากล่าสุด) · แตะดู/แก้รายวัน · สถิติแยกสาขา/ช่องทางอัปเดตตามเดือนที่เลือก']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -2155,8 +2122,7 @@ const PERM_LABELS={
   checkin_all:'ดูประวัติลงเวลาทุกคน',
   leave_admin:'อนุมัติคำขอลา',
   activity_admin:'ดูประวัติการใช้งาน',
-  cash_refill:'เติมเงินเข้าตู้เซฟ',
-  announce:'ประกาศผ่านน้องแคปซูล'
+  cash_refill:'เติมเงินเข้าตู้เซฟ'
 };
 
 // ===== LOCAL DATA =====
@@ -2558,7 +2524,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAnnouncements();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();loadTodoTemplates().then(renderTodoTemplateSettings);}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();setTimeout(buildSettingsNav,80);loadTodoTemplates().then(renderTodoTemplateSettings);}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -4731,16 +4697,18 @@ async function loadSalesFromCloud(){
     if(document.getElementById('page-home')?.classList.contains('active')&&typeof renderHome==='function')renderHome();
   }catch(e){console.error('loadSales error',e);}
 }
+let salesHistY=new Date().getFullYear(), salesHistM=new Date().getMonth();
+window.salesHistMonth=function(d){let m=salesHistM+d,y=salesHistY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}const now=new Date();if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()))return;salesHistM=m;salesHistY=y;salesRenderHistory();};
 function salesRenderHistory(){
-  // ===== หน้าสถิติ (เฉพาะแอดมิน) =====
+  // ===== หน้าประวัติ + สถิติ (เฉพาะแอดมิน) =====
   const stab=document.getElementById('sales-stats-tab');if(stab)stab.style.display=isAdmin?'':'none';
   if(!isAdmin)return;
   const sumEl=document.getElementById('sales-sum'), listEl=document.getElementById('sales-hist-list');
   if(!sumEl||!listEl)return;
   const today=todayStr();
-  const moStr=today.slice(0,7);
-  // เดือนที่แล้ว
-  const lm=new Date();lm.setMonth(lm.getMonth()-1);const lmStr=dateStr(lm).slice(0,7);
+  const moStr=`${salesHistY}-${String(salesHistM+1).padStart(2,'0')}`;
+  // เดือนที่แล้ว (ของเดือนที่เลือก)
+  const lm=new Date(salesHistY,salesHistM-1,1);const lmStr=`${lm.getFullYear()}-${String(lm.getMonth()+1).padStart(2,'0')}`;
   const moEntries=salesEntries.filter(e=>(e.date||'').startsWith(moStr));
   const lmEntries=salesEntries.filter(e=>(e.date||'').startsWith(lmStr));
   const moTotal=moEntries.reduce((a,e)=>a+(e.total||0),0);
@@ -4758,17 +4726,42 @@ function salesRenderHistory(){
   // วันที่ขายดีสุด
   const byDay={};moEntries.forEach(e=>{byDay[e.date]=(byDay[e.date]||0)+(e.total||0);});
   const bestDay=Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0];
+  const isThisMonth=(moStr===today.slice(0,7));
   sumEl.innerHTML=`
-    <div class="mcard c-green"><div class="mcard-label">ยอดขายเดือนนี้</div><div class="mcard-val">฿${fmt(moTotal)}</div><div class="mcard-sub" style="color:${pct>0?'var(--green-d)':(pct<0?'#C2410C':'var(--text3)')}">${pct>0?'▲ '+pct+'% จากเดือนก่อน':(pct<0?'▼ '+Math.abs(pct)+'% จากเดือนก่อน':'เทียบเดือนก่อน')}</div></div>
+    <div class="mcard c-green"><div class="mcard-label">ยอดขาย${isThisMonth?'เดือนนี้':MONTHS_TH[salesHistM]}</div><div class="mcard-val">฿${fmt(moTotal)}</div><div class="mcard-sub" style="color:${pct>0?'var(--green-d)':(pct<0?'#C2410C':'var(--text3)')}">${pct>0?'▲ '+pct+'% จากเดือนก่อน':(pct<0?'▼ '+Math.abs(pct)+'% จากเดือนก่อน':'เทียบเดือนก่อน')}</div></div>
     <div class="mcard c-blue"><div class="mcard-label">จำนวนบิล</div><div class="mcard-val">${fmt(moBills)}</div><div class="mcard-sub">เฉลี่ย ฿${fmt(avgBill)}/บิล</div></div>
     <div class="mcard c-amber"><div class="mcard-label">วันที่บันทึกแล้ว</div><div class="mcard-val">${daysRecorded} วัน</div><div class="mcard-sub">ในเดือนนี้</div></div>
     <div class="mcard c-purple"><div class="mcard-label">ขายดีที่สุด</div><div class="mcard-val" style="font-size:18px">${bestDay?'฿'+fmt(bestDay[1]):'—'}</div><div class="mcard-sub">${bestDay?new Date(bestDay[0]).toLocaleDateString('th-TH',{day:'numeric',month:'short'}):'ยังไม่มีข้อมูล'}</div></div>`;
   const branchBars=BRANCHES.map((b,i)=>`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span style="font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}</span><span style="font-family:var(--disp);font-weight:700">฿${fmt(perBranch[i])}</span></div><div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:${Math.round(perBranch[i]/maxBranch*100)}%;height:100%;background:${BCOLORS[i]};border-radius:4px"></div></div></div>`).join('');
   const payBars=payTypes.map(p=>{const v=payTotals[p];const w=Math.round(v/payGrand*100);return `<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>${p}</span><span style="font-weight:600">฿${fmt(v)} · ${w}%</span></div><div style="height:7px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:${w}%;height:100%;background:var(--green);border-radius:4px"></div></div></div>`;}).join('');
+  // ===== รายการรายวัน (ไล่จากวันล่าสุด) =====
+  const byDayAll={};
+  moEntries.forEach(e=>{(byDayAll[e.date]=byDayAll[e.date]||{})[e.branch]=e;});
+  const dayKeys=Object.keys(byDayAll).sort((a,b)=>b.localeCompare(a));
+  const dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const dayRows=dayKeys.map(dk=>{
+    const dObj=new Date(dk);
+    const dayTotal=BRANCHES.reduce((a,b,i)=>a+(byDayAll[dk][i]?.total||0),0);
+    const chips=BRANCHES.map((b,i)=>{const e=byDayAll[dk][i];return e?`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:${BCOLORS[i]}1a;color:${BCOLORS[i]};font-weight:600">${BRANCHES_SHORT[i]} ฿${fmt(e.total)}</span>`:`<span style="font-size:11px;padding:2px 8px;border-radius:20px;background:var(--bg);color:var(--text3)">${BRANCHES_SHORT[i]} —</span>`;}).join('');
+    return `<div onclick="document.getElementById('sales-date').value='${dk}';salesViewDay()" style="display:flex;align-items:center;gap:13px;padding:12px 4px;border-bottom:1px solid var(--border);cursor:pointer">
+      <div style="width:46px;text-align:center;flex-shrink:0"><div style="font-family:var(--disp);font-size:20px;font-weight:700;line-height:1">${dObj.getDate()}</div><div style="font-size:10px;color:var(--text3)">${dows[dObj.getDay()]}</div></div>
+      <div style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:5px">${chips}</div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-family:var(--disp);font-weight:700;font-size:16px">฿${fmt(dayTotal)}</div><div style="font-size:10.5px;color:var(--green-d)">ดู/แก้ ›</div></div>
+    </div>`;
+  }).join('');
   listEl.innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px" class="sales-stats-grid">
-      <div class="card"><div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:14px">ยอดขายแยกสาขา · ${MONTHS_TH[new Date().getMonth()]}</div>${branchBars}</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin:2px 0 16px">
+      <button class="week-btn" onclick="salesHistMonth(-1)">&#8249;</button>
+      <div class="week-lbl" style="min-width:150px;text-align:center;font-family:var(--disp);font-size:16px">${MONTHS_TH[salesHistM]} ${salesHistY+543}</div>
+      <button class="week-btn" onclick="salesHistMonth(1)" ${isThisMonth?'disabled style="opacity:.4"':''}>&#8250;</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px" class="sales-stats-grid">
+      <div class="card"><div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:14px">ยอดขายแยกสาขา</div>${branchBars}</div>
       <div class="card"><div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:14px">แยกตามช่องทางชำระ</div>${payBars}</div>
+    </div>
+    <div class="card" style="margin-top:14px">
+      <div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:6px">บันทึกรายวัน · ${dayKeys.length} วัน</div>
+      ${dayKeys.length?dayRows:'<div style="text-align:center;color:var(--text3);font-size:13px;padding:2rem 0">ยังไม่มียอดขายในเดือนนี้</div>'}
     </div>
     <style>@media(max-width:768px){.sales-stats-grid{grid-template-columns:1fr!important}}</style>`;
 }
@@ -5958,6 +5951,19 @@ window.downloadMonthSlip=function(idx){
 };
 
 // ===== SETTINGS =====
+// แถบลัดหมวดตั้งค่า — สแกนการ์ดที่แสดงอยู่ แล้วทำชิปกระโดดไปแต่ละหัวข้อ
+window.buildSettingsNav=function(){
+  const nav=document.getElementById('settings-nav');const grid=document.getElementById('settings-grid');
+  if(!nav||!grid)return;
+  const cards=[...grid.children].filter(c=>c.classList.contains('card')&&getComputedStyle(c).display!=='none');
+  if(cards.length<=2){nav.innerHTML='';return;}
+  nav.innerHTML=cards.map((c,i)=>{
+    if(!c.id)c.id='set-card-'+i;
+    c.style.scrollMarginTop='80px';
+    const t=(c.querySelector('.card-title')?.textContent||'หัวข้อ').trim();
+    return `<button class="btn btn-sm" style="font-size:12px;padding:6px 12px" onclick="(function(){var el=document.getElementById('${c.id}');var y=el.getBoundingClientRect().top+window.scrollY-76;window.scrollTo({top:y,behavior:'smooth'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px var(--green)';setTimeout(function(){el.style.boxShadow='';},900);})()">${t}</button>`;
+  }).join('');
+};
 function renderPayTypeSettings(){const card=document.getElementById('paytype-card');if(card)card.style.display=isAdmin?'':'none';if(!isAdmin)return;document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('')+`<button class="btn btn-sm" style="width:100%;margin-top:10px" onclick="resetPayTypesStandard()">↺ ตั้งเป็นชุดมาตรฐาน 4 ช่องทาง (เงินสด · EDC ดำ · EDC ขาว · QR/โครงการรัฐ)</button>`;}
 window.resetPayTypesStandard=async function(){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}if(!await capsuleConfirm('ตั้งช่องทางชำระเป็นชุดมาตรฐาน 4 แบบ?\nเงินสด · EDC สีดำ · EDC สีขาว · QR / โครงการรัฐ\n(ยอดเก่าที่บันทึกด้วยชื่อช่องทางเดิมยังอยู่ครบ)'))return;payTypes=['เงินสด','EDC สีดำ','EDC สีขาว','QR / โครงการรัฐ'];saveLocal();syncPayTypesToCloud();renderPayTypeSettings();if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderForm();showToast('ตั้งช่องทางมาตรฐานแล้ว');};
 window.addPayType=function(){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const inp=document.getElementById('new-pay-name');const name=inp.value.trim();if(!name||payTypes.includes(name)){showToast('ชื่อซ้ำหรือว่างเปล่า','err');return;}payTypes.push(name);inp.value='';saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('เพิ่มประเภทการชำระแล้ว');};
