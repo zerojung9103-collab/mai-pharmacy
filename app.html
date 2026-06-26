@@ -623,7 +623,7 @@ input,select,textarea{border-radius:14px}
         <button class="tab" onclick="salesSetView('overview',this)">ภาพรวมเดือน</button>
         <button class="tab" id="sales-stats-tab" style="display:none" onclick="salesSetView('history',this)">📈 สถิติ</button>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px" id="sales-date-wrap">
         <label class="fl" style="margin:0;white-space:nowrap">วันที่</label>
         <input type="date" id="sales-date" style="width:auto;padding:6px 10px" onchange="salesOnDateChange()">
       </div>
@@ -942,7 +942,7 @@ input,select,textarea{border-radius:14px}
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
         <div><div class="card-title" style="margin:0">⏱️ สรุปชั่วโมงการทำงานของฉัน</div><div class="card-sub" style="margin:0">เฉพาะข้อมูลของคุณเท่านั้น</div></div>
         <div style="display:flex;gap:6px;align-items:center">
-          <input type="month" id="my-hours-month" style="font-size:13px;padding:7px 12px;width:auto">
+          <input type="month" id="my-hours-month" onchange="loadMyCheckinHistory()" style="font-size:13px;padding:7px 12px;width:auto">
           <button class="btn btn-sm btn-primary" onclick="loadMyCheckinHistory()" style="font-size:13px">ดู</button>
         </div>
       </div>
@@ -1490,9 +1490,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.9.0';
+const APP_VERSION='3.9.2';
 const CHANGELOG=[
-  {v:'3.9.0',date:'2026-06-26',changes:['หน้าบันทึกยอดขาย: เพิ่มปุ่ม “👁 ดูยอดวันนี้” (สรุปทั้ง 3 สาขาแบบอ่านอย่างเดียว) · เปลี่ยนวันที่→โหลดยอดของวันนั้นมาให้อัตโนมัติ','เปลี่ยนแท็บ “ประวัติ” → “📈 สถิติ” (เฉพาะแอดมิน) — ยอดเดือน/%เทียบเดือนก่อน/แยกสาขา/ช่องทางชำระ/ขายดีสุด']},
+  {v:'3.9.2',date:'2026-06-26',changes:['สรุปชั่วโมงทำงาน: แก้บั๊กเลือกเดือนแล้วเด้งกลับมิ.ย. — ตอนนี้จำเดือนที่เลือกไว้ · เลือกเดือนแล้วอัปเดตทันที · เลือกอนาคตไม่ได้ · เดือนไม่มีข้อมูลแสดงตามจริง (0 ชม.)']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -4442,7 +4442,7 @@ window.cashClearTestDo=async function(){
 
 // ===== SALES =====
 let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''},salesBillCounts={0:'',1:'',2:''};
-window.salesSetView=function(v,el){document.querySelectorAll('#sales-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('sales-entry').style.display=v==='entry'?'':'none';document.getElementById('sales-history').style.display=v==='history'?'':'none';document.getElementById('sales-overview').style.display=v==='overview'?'':'none';if(v==='history')salesRenderHistory();if(v==='overview')salesRenderOverview();};
+window.salesSetView=function(v,el){document.querySelectorAll('#sales-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('sales-entry').style.display=v==='entry'?'':'none';document.getElementById('sales-history').style.display=v==='history'?'':'none';document.getElementById('sales-overview').style.display=v==='overview'?'':'none';const dw=document.getElementById('sales-date-wrap');if(dw)dw.style.display=v==='entry'?'':'none';if(v==='history')salesRenderHistory();if(v==='overview')salesRenderOverview();};
 let salesOvY=new Date().getFullYear(),salesOvM=new Date().getMonth();
 window.salesOvMonth=function(d){let m=salesOvM+d,y=salesOvY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}salesOvM=m;salesOvY=y;salesRenderOverview();};
 function salesRenderOverview(){
@@ -4487,6 +4487,7 @@ window.salesOvEdit=function(ds,branch){
   document.getElementById('sales-entry').style.display='';
   document.getElementById('sales-history').style.display='none';
   document.getElementById('sales-overview').style.display='none';
+  const _dw=document.getElementById('sales-date-wrap');if(_dw)_dw.style.display='';
   const dt=document.getElementById('sales-date');if(dt)dt.value=ds;
   salesLoadForDate&&salesLoadForDate();
   salesBranch=branch;
@@ -6288,7 +6289,13 @@ async function loadMyCheckinHistory(){
   if(!el)return;
   // ตั้งค่าเดือนเริ่มต้น = เดือนปัจจุบัน
   const monthInput=document.getElementById('my-hours-month');
-  if(monthInput&&!monthInput.value){const d=new Date();monthInput.value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+  const _curMonth=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;})();
+  if(monthInput){
+    monthInput.max=_curMonth; // จำกัด: เลือกอนาคตไม่ได้
+    // ถ้ายังไม่มีค่า ใช้เดือนที่จำไว้ล่าสุด หรือเดือนปัจจุบัน
+    if(!monthInput.value)monthInput.value=window._myHoursMonth||_curMonth;
+    window._myHoursMonth=monthInput.value; // จำไว้กันรีเซ็ตตอนรีเฟรช
+  }
   const selMonth=monthInput?.value||'';
   el.innerHTML='<div style="color:var(--text3);font-size:13px">กำลังโหลด...</div>';
   try{
@@ -6308,7 +6315,7 @@ async function loadMyCheckinHistory(){
       });
       const hh=Math.floor(totalMins/60), mm=totalMins%60;
       sumEl.innerHTML=`
-        <div class="mcard c-green"><div class="mcard-label">ชั่วโมงทำงานรวม</div><div class="mcard-val">${hh}<span style="font-size:14px">ชม.</span> ${mm>0?mm+'<span style="font-size:14px">น.</span>':''}</div><div class="mcard-sub">เดือนนี้</div></div>
+        <div class="mcard c-green"><div class="mcard-label">ชั่วโมงทำงานรวม</div><div class="mcard-val">${hh}<span style="font-size:14px">ชม.</span> ${mm>0?mm+'<span style="font-size:14px">น.</span>':''}</div><div class="mcard-sub">${selMonth?new Date(selMonth+'-01').toLocaleDateString('th-TH',{month:'long',year:'numeric'}):'เดือนนี้'}</div></div>
         <div class="mcard c-blue"><div class="mcard-label">วันที่มาทำงาน</div><div class="mcard-val">${workDays}</div><div class="mcard-sub">วัน</div></div>
         <div class="mcard c-amber"><div class="mcard-label">มาสาย</div><div class="mcard-val">${lateCount}</div><div class="mcard-sub">ครั้ง</div></div>`;
     }
