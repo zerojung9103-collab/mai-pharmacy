@@ -1423,9 +1423,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.5.0';
+const APP_VERSION='3.5.1';
 const CHANGELOG=[
-  {v:'3.5.0',date:'2026-06-26',changes:['ตารางเวร: เพิ่ม “📋 จัดเวรหลายวัน” — เลือกคน+สาขา+เวลา ติ๊กวัน จ-อา ลงทีเดียวทั้งเดือน (ไม่ลบเวรคนอื่น)','ตารางเวร: เพิ่ม “🔁 ก๊อปสัปดาห์” — คัดลอกเวรทั้งสัปดาห์ไปวางสัปดาห์ถัดไปได้ถึง 4 สัปดาห์']},
+  {v:'3.5.1',date:'2026-06-26',changes:['ตารางเวร: คัดลอก/วางเวรรายวันได้ — เปิดวันที่มีเวร กด “📋 คัดลอกเวร” (หรือ Ctrl+C) → เปิดวันอื่น กด “📥 วางเวร” (หรือ Ctrl+V)']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -3185,6 +3185,7 @@ function scRender(){
 // แสดงรายละเอียดเวรในวันนั้น
 window.scDayDetail=function(ds){
   const d=new Date(ds);
+  window.scDetailDay=ds;
   const dateStr=d.toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const dayShifts=shifts.filter(s=>s.date===ds);
   const bdays=getBdayOnDate(ds);
@@ -3236,8 +3237,50 @@ window.scDayDetail=function(ds){
         </div>`;
       }).join('');
     })()}
-    ${isAdmin?`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="scAddShift('','${ds}')">+ เพิ่มเวร</button></div>`:`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`}`);
+    ${isAdmin?`<div class="modal-footer" style="flex-wrap:wrap;gap:8px">${dayShifts.length?`<button class="btn btn-sm" onclick="scCopyDay('${ds}')">📋 คัดลอกเวร (Ctrl+C)</button>`:''}${(window.scClip&&window.scClip.length)?`<button class="btn btn-sm btn-blue" onclick="scPasteDay('${ds}')">📥 วางเวร ${window.scClip.length} (Ctrl+V)</button>`:''}<button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="scAddShift('','${ds}')">+ เพิ่มเวร</button></div>`:`<div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`}`);
 };
+
+// ===== คัดลอก/วางเวรรายวัน (Ctrl+C / Ctrl+V) =====
+window.scClip=window.scClip||[];
+window.scCopyDay=function(ds){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const arr=shifts.filter(s=>s.date===ds).map(s=>({branch:s.branch,start:s.start,end:s.end,staffId:s.staffId||null,tempName:s.tempName||null}));
+  if(!arr.length){showToast('วันนี้ไม่มีเวรให้คัดลอก','err');return;}
+  window.scClip=arr;
+  showToast(`คัดลอกเวร ${arr.length} เวรแล้ว — เปิดวันอื่นแล้วกด“วางเวร”`);
+  if(window.scDetailDay)scDayDetail(window.scDetailDay);
+};
+window.scPasteDay=function(ds){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  if(!window.scClip||!window.scClip.length){showToast('ยังไม่ได้คัดลอกเวร','err');return;}
+  let count=0;
+  window.scClip.forEach(c=>{
+    if(shifts.some(s=>s.date===ds&&s.staffId===c.staffId&&s.tempName===c.tempName&&s.start===c.start&&s.branch===c.branch))return;
+    const sh={id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'_'+count,branch:c.branch,date:ds,start:c.start,end:c.end};
+    if(c.tempName){sh.tempName=c.tempName;sh.staffId=null;}else sh.staffId=c.staffId;
+    shifts.push(sh);count++;
+  });
+  saveLocal();syncShiftsToCloud();
+  showToast(count?`วางเวร ${count} เวรแล้ว`:'เวรซ้ำทั้งหมด ไม่ได้วางเพิ่ม');
+  scRender();scDayDetail(ds);
+  if(count&&typeof logActivity==='function')logActivity('schedule_paste',`วางเวร ${count} เวร`);
+};
+// คีย์ลัด Ctrl+C / Ctrl+V เมื่อเปิดป๊อปอัพรายละเอียดวัน
+if(!window._scKeyBound){
+  window._scKeyBound=true;
+  document.addEventListener('keydown',function(e){
+    if(!isAdmin||!window.scDetailDay)return;
+    const t=document.querySelector('.modal-title');
+    if(!t||!/📅/.test(t.textContent||''))return; // เฉพาะตอนป๊อปอัพรายละเอียดวันเปิดอยู่
+    const k=e.key.toLowerCase();
+    if((e.ctrlKey||e.metaKey)&&k==='c'){
+      if((window.getSelection&&window.getSelection().toString())||'')return; // อย่าขัดการคัดลอกข้อความปกติ
+      scCopyDay(window.scDetailDay);
+    }else if((e.ctrlKey||e.metaKey)&&k==='v'){
+      e.preventDefault();scPasteDay(window.scDetailDay);
+    }
+  });
+}
 
 // Birthday Panel toggle
 window.toggleBdayPanel=async function(){
