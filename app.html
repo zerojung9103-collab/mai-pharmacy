@@ -1490,9 +1490,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.9.2';
+const APP_VERSION='3.9.3';
 const CHANGELOG=[
-  {v:'3.9.2',date:'2026-06-26',changes:['สรุปชั่วโมงทำงาน: แก้บั๊กเลือกเดือนแล้วเด้งกลับมิ.ย. — ตอนนี้จำเดือนที่เลือกไว้ · เลือกเดือนแล้วอัปเดตทันที · เลือกอนาคตไม่ได้ · เดือนไม่มีข้อมูลแสดงตามจริง (0 ชม.)']},
+  {v:'3.9.3',date:'2026-06-26',changes:['แก้บั๊ก: สรุปชั่วโมงทำงาน — เปลี่ยนเดือนแล้วกด “ดู” ไม่อัปเดต (ปุ่มไม่ทำงาน) — ตอนนี้เปลี่ยนเดือนแสดงข้อมูลตามจริงทันที']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -6287,7 +6287,6 @@ function workMinutes(inT,outT){
 async function loadMyCheckinHistory(){
   const el=document.getElementById('my-checkin-history');
   if(!el)return;
-  // ตั้งค่าเดือนเริ่มต้น = เดือนปัจจุบัน
   const monthInput=document.getElementById('my-hours-month');
   const _curMonth=(()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;})();
   if(monthInput){
@@ -6336,6 +6335,8 @@ async function loadMyCheckinHistory(){
     }).join('');
   }catch(e){el.innerHTML=`<div style="color:var(--red-t);font-size:13px">${e.message}</div>`;}
 }
+// เปิดให้เรียกจาก inline handler (onchange/onclick ปุ่ม "ดู") ได้ — เดิมอยู่ใน module scope เรียกไม่เจอ
+window.loadMyCheckinHistory=loadMyCheckinHistory;
 
 window.showMyEditHistory=async function(id){
   try{
