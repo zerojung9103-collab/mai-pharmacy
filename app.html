@@ -1496,9 +1496,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.12.2';
+const APP_VERSION='3.13.1';
 const CHANGELOG=[
-  {v:'3.12.2',date:'2026-06-26',changes:['เก็บกวาดสีให้เข้าธีม: จุดสถานะ/ชิปชื่อในตารางเวรเปลี่ยนตามสีธีมแล้ว · ตารางประวัติ/ลงเวลาอ่านง่ายขึ้นบนมือถือ (ตัวอักษรอ่านชัด + เลื่อนดูได้ลื่นขึ้น)']},
+  {v:'3.13.1',date:'2026-06-26',changes:['ลงยอดขาย×ระบบเงินสด: กันลบช่อง “เงินสด” — เป็นช่องที่ระบบนับเงินดึงไปคิด“เงินควรมีตอนปิดร้าน” (EDC/QR ไม่เข้าลิ้นชัก)']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -2160,7 +2160,7 @@ const PERM_LABELS={
 };
 
 // ===== LOCAL DATA =====
-let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","โอนธนาคาร","บัตรเครดิต","QR Code"]');
+let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","EDC สีดำ","EDC สีขาว","QR / โครงการรัฐ"]');
 let shifts=JSON.parse(localStorage.getItem('nm_shifts')||'[]');
 let salesEntries=JSON.parse(localStorage.getItem('nm_sales')||'[]');
 let nextShiftId=Math.max(0,...shifts.map(s=>s.id),100)+1;
@@ -4654,7 +4654,20 @@ window.salesSetBranch=function(i,el){salesNotes[salesBranch]=document.getElement
 function salesRenderForm(){
   const amounts=salesAmounts[salesBranch];
   const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
-  const rows=payTypes.map(p=>`<div class="pay-row"><span class="pay-label">${p}</span><input class="pay-input" type="number" min="0" placeholder="0" value="${amounts[p]||''}" oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)"><span class="pay-unit">บาท</span></div>`).join('');
+  const payMeta=(p)=>{
+    if(p==='เงินสด')return{ic:'💵',c:'var(--green-d)',bg:'var(--green-l)'};
+    if(/ดำ/.test(p))return{ic:'💳',c:'#1F2937',bg:'#E5E7EB'};
+    if(/ขาว/.test(p))return{ic:'💳',c:'#64748B',bg:'#F1F5F9'};
+    if(/QR|\u0e23\u0e31\u0e10|\u0e42\u0e04\u0e23\u0e07\u0e01\u0e32\u0e23/.test(p))return{ic:'📱',c:'var(--blue-t)',bg:'var(--blue-l)'};
+    return{ic:'💠',c:'var(--text2)',bg:'var(--bg)'};
+  };
+  const rows=payTypes.map(p=>{const mt=payMeta(p);const val=amounts[p];const has=val&&parseFloat(val)>0;
+    return `<div class="pay-row" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px solid ${has?mt.c:'var(--border)'};border-radius:13px;margin-bottom:9px;background:var(--surface);transition:.12s">
+      <span style="width:38px;height:38px;border-radius:11px;background:${mt.bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${mt.ic}</span>
+      <span class="pay-label" style="flex:1;font-size:13.5px;font-weight:600;color:var(--text)">${p}</span>
+      <input class="pay-input" type="number" min="0" inputmode="decimal" placeholder="0" value="${val||''}" oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)" style="width:108px;text-align:right;font-size:16px;font-weight:600;font-family:var(--mono)">
+      <span class="pay-unit" style="font-size:12px;color:var(--text3)">บาท</span>
+    </div>`;}).join('');
   document.getElementById('sales-form').innerHTML=`<div style="font-size:14px;font-weight:700;margin-bottom:1rem;color:${BCOLORS[salesBranch]}">สาขา${BRANCHES[salesBranch]}</div>${rows}<div class="total-row"><span class="total-lbl">ยอดรวมสาขานี้</span><span class="total-val" id="sales-total">฿${fmt(total)}</span></div>
   <div class="field-row" style="margin-top:1rem;gap:1rem">
     <div class="field" style="flex:1"><label class="fl">จำนวนบิล</label><input type="number" id="sales-billcount" min="0" placeholder="0" value="${salesBillCounts[salesBranch]||''}" style="text-align:center"><span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">บิล ${salesBillCounts[salesBranch]&&total?'· เฉลี่ย ฿'+fmt(Math.round(total/(parseInt(salesBillCounts[salesBranch])||1)))+'/บิล':''}</span></div>
@@ -5945,9 +5958,10 @@ window.downloadMonthSlip=function(idx){
 };
 
 // ===== SETTINGS =====
-function renderPayTypeSettings(){const card=document.getElementById('paytype-card');if(card)card.style.display=isAdmin?'':'none';if(!isAdmin)return;document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('');}
+function renderPayTypeSettings(){const card=document.getElementById('paytype-card');if(card)card.style.display=isAdmin?'':'none';if(!isAdmin)return;document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('')+`<button class="btn btn-sm" style="width:100%;margin-top:10px" onclick="resetPayTypesStandard()">↺ ตั้งเป็นชุดมาตรฐาน 4 ช่องทาง (เงินสด · EDC ดำ · EDC ขาว · QR/โครงการรัฐ)</button>`;}
+window.resetPayTypesStandard=async function(){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}if(!await capsuleConfirm('ตั้งช่องทางชำระเป็นชุดมาตรฐาน 4 แบบ?\nเงินสด · EDC สีดำ · EDC สีขาว · QR / โครงการรัฐ\n(ยอดเก่าที่บันทึกด้วยชื่อช่องทางเดิมยังอยู่ครบ)'))return;payTypes=['เงินสด','EDC สีดำ','EDC สีขาว','QR / โครงการรัฐ'];saveLocal();syncPayTypesToCloud();renderPayTypeSettings();if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderForm();showToast('ตั้งช่องทางมาตรฐานแล้ว');};
 window.addPayType=function(){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const inp=document.getElementById('new-pay-name');const name=inp.value.trim();if(!name||payTypes.includes(name)){showToast('ชื่อซ้ำหรือว่างเปล่า','err');return;}payTypes.push(name);inp.value='';saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('เพิ่มประเภทการชำระแล้ว');};
-window.removePayType=function(i){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}payTypes.splice(i,1);saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('ลบแล้ว');};
+window.removePayType=function(i){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}if(payTypes[i]==='เงินสด'){showToast('ลบ "เงินสด" ไม่ได้ — เป็นช่องที่เชื่อมกับระบบนับเงินสด','err');return;}payTypes.splice(i,1);saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('ลบแล้ว');};
 
 // sync ประเภทการชำระขึ้น Firestore (ใช้ร่วมทุกเครื่อง)
 async function syncPayTypesToCloud(){
