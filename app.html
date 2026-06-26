@@ -527,6 +527,8 @@ input,select,textarea{border-radius:14px}
         </select>
         <button class="btn btn-sm" id="sc-bday-btn" onclick="toggleBdayPanel()">🎂 วันเกิด</button>
         <button class="btn btn-sm" id="sc-temp-btn" style="display:none" onclick="manageTempStaff()">👤 พนักงานชั่วคราว</button>
+        <button class="btn btn-sm" id="sc-bulk-btn" style="display:none" onclick="scBulkAssign()">📋 จัดเวรหลายวัน</button>
+        <button class="btn btn-sm" id="sc-copyweek-btn" style="display:none" onclick="scCopyWeek()">🔁 ก๊อปสัปดาห์</button>
         <button class="btn btn-sm btn-primary" id="sc-auto-btn" style="display:none" onclick="toggleAutoPanel()">⚙️ สร้างตารางอัตโนมัติ</button>
       </div>
     </div>
@@ -1421,9 +1423,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.4.8';
+const APP_VERSION='3.5.0';
 const CHANGELOG=[
-  {v:'3.4.8',date:'2026-06-25',changes:['รื้อระบพิมพ์ฉลากให้ง่ายขึ้น — ตัด QZ Tray / PrintBridge ออก เหลือ“กดพิมพ์ → หน้าต่างพิมพ์ของเบราว์เซอร์” ไม่ต้องติดตั้งโปรแกรมเพิ่ม']},
+  {v:'3.5.0',date:'2026-06-26',changes:['ตารางเวร: เพิ่ม “📋 จัดเวรหลายวัน” — เลือกคน+สาขา+เวลา ติ๊กวัน จ-อา ลงทีเดียวทั้งเดือน (ไม่ลบเวรคนอื่น)','ตารางเวร: เพิ่ม “🔁 ก๊อปสัปดาห์” — คัดลอกเวรทั้งสัปดาห์ไปวางสัปดาห์ถัดไปได้ถึง 4 สัปดาห์']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -3091,6 +3093,10 @@ function scRender(){
   if(bdayBtn)bdayBtn.style.display=isAdmin?'':'none';
   const tempBtn=document.getElementById('sc-temp-btn');
   if(tempBtn)tempBtn.style.display=isAdmin?'':'none';
+  const bulkBtn=document.getElementById('sc-bulk-btn');
+  if(bulkBtn)bulkBtn.style.display=isAdmin?'':'none';
+  const cwBtn=document.getElementById('sc-copyweek-btn');
+  if(cwBtn)cwBtn.style.display=isAdmin?'':'none';
   // ถ้าไม่ใช่ admin ปิด panel วันเกิดไว้เสมอ
   if(!isAdmin){const bp=document.getElementById('sc-bday-panel');if(bp)bp.style.display='none';}
 
@@ -3563,6 +3569,118 @@ window.scEditShift=function(sid){
 };
 window.scSaveEdit=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');if(s.tempName!==undefined){const tn=document.getElementById('m-tempname')?.value.trim();if(tn)s.tempName=tn;}saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
 window.scDel=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
+
+// ===== จัดเวรหลายวัน (bulk) + ก๊อปสัปดาห์ — ไม่ลบเวรทั้งเดือน =====
+function scMondayOf(d){const x=new Date(d);x.setHours(0,0,0,0);const dow=(x.getDay()+6)%7;x.setDate(x.getDate()-dow);return x;}
+function scAddDaysStr(ds,n){const d=new Date(ds);d.setDate(d.getDate()+n);return dateStr(d);}
+function scStaffOptionsHtml(){
+  const active=allMembers.filter(m=>m.status==='active');
+  let h=active.map(e=>`<option value="${e.uid}">${e.firstName||''} ${e.lastName||''}${e.nickname?' ('+e.nickname+')':''}</option>`).join('');
+  if(tempStaff.length)h+=`<optgroup label="พนักงานชั่วคราว">${tempStaff.map(n=>`<option value="temp:${n.replace(/"/g,'&quot;')}">${n} (ชั่วคราว)</option>`).join('')}</optgroup>`;
+  return h;
+}
+window.scBulkAssign=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  if(!allMembers.filter(m=>m.status==='active').length){showToast('ยังไม่มีสมาชิก','err');return;}
+  const monthName=`${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth]} ${scYear}`;
+  const days=['จ','อ','พ','พฤ','ศ','ส','อา'];
+  openModal(`<div class="modal-title">📋 จัดเวรหลายวัน</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px">เลือกคน + สาขา + เวลา แล้วติ๊กวัน — ลงเวรทีเดียวทั้งเดือน <b>${monthName}</b> (ไม่ลบเวรคนอื่น)</div>
+    <div class="field"><label class="fl">สมาชิก</label><select id="ba-staff">${scStaffOptionsHtml()}</select></div>
+    <div class="field"><label class="fl">สาขา</label><select id="ba-branch">${BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('')}</select></div>
+    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('ba-start','09:00')}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('ba-end','17:00')}</div></div>
+    <div class="field"><label class="fl">ทำวันไหนบ้าง</label>
+      <div id="ba-days" style="display:flex;gap:6px;flex-wrap:wrap">
+        ${days.map((d,i)=>`<label style="display:inline-flex;align-items:center;gap:5px;padding:8px 12px;border:1px solid var(--border2);border-radius:11px;cursor:pointer;font-size:13px;user-select:none"><input type="checkbox" class="ba-dow" value="${i}"${i<5?' checked':''}>${d}</label>`).join('')}
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" type="button" onclick="scBaQuick('weekday')">จ–ศ</button>
+        <button class="btn btn-sm" type="button" onclick="scBaQuick('all')">ทุกวัน</button>
+        <button class="btn btn-sm" type="button" onclick="scBaQuick('weekend')">ส–อา</button>
+        <button class="btn btn-sm" type="button" onclick="scBaQuick('none')">ล้าง</button>
+      </div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:10px;cursor:pointer"><input type="checkbox" id="ba-replace" checked> แทนที่เวรเดิมของคนนี้ในวันที่เลือก (กันซ้ำ)</label>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scBulkApply()">ลงเวร</button></div>`);
+};
+window.scBaQuick=function(mode){
+  document.querySelectorAll('.ba-dow').forEach(c=>{
+    const i=parseInt(c.value);
+    if(mode==='all')c.checked=true;
+    else if(mode==='none')c.checked=false;
+    else if(mode==='weekday')c.checked=i<5;
+    else if(mode==='weekend')c.checked=i>=5;
+  });
+};
+window.scBulkApply=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const uid=document.getElementById('ba-staff').value;
+  const branch=parseInt(document.getElementById('ba-branch').value);
+  const start=readTime24('ba-start'),end=readTime24('ba-end');
+  const dows=[...document.querySelectorAll('.ba-dow:checked')].map(c=>parseInt(c.value));
+  if(!dows.length){showToast('เลือกวันอย่างน้อย 1 วัน','err');return;}
+  const replace=document.getElementById('ba-replace').checked;
+  let staffId=null,tempName=null;
+  if(uid.startsWith('temp:'))tempName=uid.slice(5);else staffId=uid;
+  const same=(s)=>s.date && ((staffId&&s.staffId===staffId)||(tempName&&s.tempName===tempName));
+  const monthStr=`${scYear}-${String(scMonth+1).padStart(2,'0')}`;
+  const daysInMonth=new Date(scYear,scMonth+1,0).getDate();
+  let count=0;
+  for(let day=1;day<=daysInMonth;day++){
+    const dateObj=new Date(scYear,scMonth,day);
+    const dow=(dateObj.getDay()+6)%7;
+    if(!dows.includes(dow))continue;
+    const ds=`${monthStr}-${String(day).padStart(2,'0')}`;
+    if(replace)shifts=shifts.filter(s=>!(s.date===ds&&same(s)));
+    else if(shifts.some(s=>s.date===ds&&same(s)))continue;
+    const sh={id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),branch,date:ds,start,end};
+    if(tempName)sh.tempName=tempName,sh.staffId=null;else sh.staffId=staffId;
+    shifts.push(sh);count++;
+  }
+  saveLocal();syncShiftsToCloud();closeMD();scRender();
+  showToast(`ลงเวรแล้ว ${count} วัน`);
+  if(typeof logActivity==='function')logActivity('schedule_bulk',`จัดเวรหลายวัน ${count} วัน`);
+};
+window.scCopyWeek=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  openModal(`<div class="modal-title">🔁 ก๊อปเวรข้ามสัปดาห์</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:14px">คัดลอกเวรทั้งสัปดาห์ (จ–อา) ไปวางสัปดาห์ถัดไป — ทุกคนทุกสาขาในสัปดาห์นั้น</div>
+    <div class="field"><label class="fl">ก๊อปจากสัปดาห์ที่มีวันที่นี้</label><input type="date" id="cw-src" value="${todayStr()}"></div>
+    <div class="field"><label class="fl">วางต่อไปอีกกี่สัปดาห์</label><select id="cw-count">
+      <option value="1">1 สัปดาห์ถัดไป</option>
+      <option value="2">2 สัปดาห์ถัดไป</option>
+      <option value="3">3 สัปดาห์ถัดไป</option>
+      <option value="4">4 สัปดาห์ถัดไป</option>
+    </select></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-top:4px;cursor:pointer"><input type="checkbox" id="cw-replace" checked> ลบเวรเดิมในสัปดาห์ปลายทางก่อนวาง (กันซ้ำ)</label>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scCopyWeekApply()">ก๊อปเวร</button></div>`);
+};
+window.scCopyWeekApply=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const srcVal=document.getElementById('cw-src').value;
+  if(!srcVal){showToast('เลือกวันที่ต้นทางก่อน','err');return;}
+  const mon=scMondayOf(new Date(srcVal));
+  const weekDates=[];for(let i=0;i<7;i++)weekDates.push(dateStr(new Date(mon.getFullYear(),mon.getMonth(),mon.getDate()+i)));
+  const srcShifts=shifts.filter(s=>weekDates.includes(s.date));
+  if(!srcShifts.length){showToast('สัปดาห์ต้นทางยังไม่มีเวร','err');return;}
+  const n=parseInt(document.getElementById('cw-count').value);
+  const replace=document.getElementById('cw-replace').checked;
+  let count=0;
+  for(let w=1;w<=n;w++){
+    const targetDates=weekDates.map(ds=>scAddDaysStr(ds,7*w));
+    if(replace)shifts=shifts.filter(s=>!targetDates.includes(s.date));
+    srcShifts.forEach(s=>{
+      const idx=weekDates.indexOf(s.date);
+      const newDs=targetDates[idx];
+      if(!replace&&shifts.some(x=>x.date===newDs&&x.staffId===s.staffId&&x.tempName===s.tempName&&x.start===s.start))return;
+      const ns={...s,id:'s_'+Date.now()+'_'+Math.random().toString(36).slice(2,7)+'_'+w+'_'+idx,date:newDs};
+      shifts.push(ns);count++;
+    });
+  }
+  saveLocal();syncShiftsToCloud();closeMD();scRender();
+  showToast(`ก๊อปเวรแล้ว ${count} เวร`);
+  if(typeof logActivity==='function')logActivity('schedule_copyweek',`ก๊อปเวร ${n} สัปดาห์ (${count} เวร)`);
+};
 
 // ===== CASH & SAFE (เงินสด & ตู้เซฟเงินทอน) =====
 // cashbox: doc id = branch index (0/1/2) → {balance, updatedAt}  (ตู้เซฟเงินทอน)
