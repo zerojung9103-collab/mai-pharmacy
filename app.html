@@ -621,11 +621,11 @@ input,select,textarea{border-radius:14px}
       <div class="tabs" id="sales-tabs">
         <button class="tab active" onclick="salesSetView('entry',this)">บันทึกยอด</button>
         <button class="tab" onclick="salesSetView('overview',this)">ภาพรวมเดือน</button>
-        <button class="tab" onclick="salesSetView('history',this)">ประวัติ</button>
+        <button class="tab" id="sales-stats-tab" style="display:none" onclick="salesSetView('history',this)">📈 สถิติ</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <label class="fl" style="margin:0;white-space:nowrap">วันที่</label>
-        <input type="date" id="sales-date" style="width:auto;padding:6px 10px" onchange="salesLoadForDate();salesRenderForm()">
+        <input type="date" id="sales-date" style="width:auto;padding:6px 10px" onchange="salesOnDateChange()">
       </div>
     </div>
     <div id="sales-entry">
@@ -638,6 +638,9 @@ input,select,textarea{border-radius:14px}
       <div class="btn-group" style="margin-top:1rem">
         <button class="btn btn-primary" onclick="salesSave()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>บันทึกยอด
+        </button>
+        <button class="btn" onclick="salesViewDay()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>ดูยอดวันนี้
         </button>
       </div>
     </div>
@@ -1487,9 +1490,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.8.0';
+const APP_VERSION='3.9.0';
 const CHANGELOG=[
-  {v:'3.8.0',date:'2026-06-26',changes:['บันทึกยอดขาย: เพิ่มแท็บ “ภาพรวมเดือน” — เห็นทุกวันว่าลงยอดแล้วหรือยัง · แยกรายสาขา · กดช่องเพื่อลง/แก้ได้ทันที (โหลดยอดเดิมมาให้อัตโนมัติ)','ธีมสี: พื้นหลัง/การ์ดเปลี่ยนโทนตามสีที่เลือกด้วย']},
+  {v:'3.9.0',date:'2026-06-26',changes:['หน้าบันทึกยอดขาย: เพิ่มปุ่ม “👁 ดูยอดวันนี้” (สรุปทั้ง 3 สาขาแบบอ่านอย่างเดียว) · เปลี่ยนวันที่→โหลดยอดของวันนั้นมาให้อัตโนมัติ','เปลี่ยนแท็บ “ประวัติ” → “📈 สถิติ” (เฉพาะแอดมิน) — ยอดเดือน/%เทียบเดือนก่อน/แยกสาขา/ช่องทางชำระ/ขายดีสุด']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -4514,6 +4517,11 @@ window.salesLoadForDate=function(){
     salesBillCounts[b]=e?(e.billCount||''):'';
   }
 };
+// เปลี่ยนวันที่ → โหลดค่าของวันนั้นมาแสดงทันที (auto refresh)
+window.salesOnDateChange=function(){
+  salesLoadForDate();
+  salesRenderForm();
+};
 window.salesSave=function(){
   salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';
   salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';
@@ -4555,13 +4563,69 @@ async function loadSalesFromCloud(){
   }catch(e){console.error('loadSales error',e);}
 }
 function salesRenderHistory(){
-  const date=document.getElementById('sales-date')?.value||todayStr();
-  const todayEs=salesEntries.filter(e=>e.date===date);
-  const grand=todayEs.reduce((a,e)=>a+e.total,0);
-  document.getElementById('sales-sum').innerHTML=`<div class="mcard c-green"><div class="mcard-label">ยอดรวมทุกสาขา</div><div class="mcard-val">฿${fmt(grand)}</div><div class="mcard-sub">วันที่เลือก</div></div>${BRANCHES.map((b,i)=>{const e=todayEs.find(x=>x.branch===i);return`<div class="mcard ${['c-green','c-blue','c-amber'][i]}"><div class="mcard-label">${b}</div><div class="mcard-val">฿${fmt(e?e.total:0)}</div><div class="mcard-sub">${e?'บันทึกแล้ว':'ยังไม่บันทึก'}</div></div>`;}).join('')}`;
-  const sorted=[...salesEntries].sort((a,b)=>b.date.localeCompare(a.date)||a.branch-b.branch);
-  document.getElementById('sales-hist-list').innerHTML=sorted.length===0?`<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีข้อมูล</div>`:sorted.map(e=>{const pills=payTypes.filter(p=>parseFloat(e.amounts[p])>0).map(p=>`<span class="pill">${p}: ฿${fmt(e.amounts[p])}</span>`).join('');const enteredBy=e.updatedBy?(memberName(e.updatedBy)||'—'):'';const enteredAt=e.updatedAt?new Date(e.updatedAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';const byLine=(enteredBy||enteredAt)?`<div style="font-size:11px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px">${enteredBy?`<span>👤 บันทึกโดย: <b style="color:var(--text2)">${enteredBy}</b></span>`:'<span></span>'}${enteredAt?`<span>🕐 ${enteredAt}</span>`:''}</div>`:'';return`<div class="hist-item"><div class="hi-head"><div><span style="font-weight:700;color:${BCOLORS[e.branch]}">สาขา${BRANCHES[e.branch]}</span> <span style="font-size:12px;color:var(--text3)">${e.date}</span></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:16px;font-weight:700;color:${BCOLORS[e.branch]}">฿${fmt(e.total)}</span>${isAdmin?`<button class="btn btn-sm btn-danger" style="padding:3px 9px" onclick="salesDelete('${e.date}',${e.branch})">ลบ</button>`:''}</div></div><div style="display:flex;flex-wrap:wrap;gap:5px">${pills}</div>${e.note?`<div style="font-size:12px;color:var(--text3);margin-top:6px">📝 ${e.note}</div>`:''}${byLine}</div>`;}).join('');
+  // ===== หน้าสถิติ (เฉพาะแอดมิน) =====
+  const stab=document.getElementById('sales-stats-tab');if(stab)stab.style.display=isAdmin?'':'none';
+  if(!isAdmin)return;
+  const sumEl=document.getElementById('sales-sum'), listEl=document.getElementById('sales-hist-list');
+  if(!sumEl||!listEl)return;
+  const today=todayStr();
+  const moStr=today.slice(0,7);
+  // เดือนที่แล้ว
+  const lm=new Date();lm.setMonth(lm.getMonth()-1);const lmStr=dateStr(lm).slice(0,7);
+  const moEntries=salesEntries.filter(e=>(e.date||'').startsWith(moStr));
+  const lmEntries=salesEntries.filter(e=>(e.date||'').startsWith(lmStr));
+  const moTotal=moEntries.reduce((a,e)=>a+(e.total||0),0);
+  const lmTotal=lmEntries.reduce((a,e)=>a+(e.total||0),0);
+  const pct=lmTotal>0?Math.round((moTotal-lmTotal)/lmTotal*1000)/10:0;
+  const moBills=moEntries.reduce((a,e)=>a+(e.billCount||0),0);
+  const avgBill=moBills>0?Math.round(moTotal/moBills):0;
+  const daysRecorded=new Set(moEntries.map(e=>e.date)).size;
+  // แยกสาขา (เดือนนี้)
+  const perBranch=BRANCHES.map((b,i)=>moEntries.filter(e=>e.branch===i).reduce((a,e)=>a+(e.total||0),0));
+  const maxBranch=Math.max(...perBranch,1);
+  // แยกช่องทางชำระ
+  const payTotals={};payTypes.forEach(p=>{payTotals[p]=moEntries.reduce((a,e)=>a+(parseFloat(e.amounts?.[p])||0),0);});
+  const payGrand=Object.values(payTotals).reduce((a,v)=>a+v,0)||1;
+  // วันที่ขายดีสุด
+  const byDay={};moEntries.forEach(e=>{byDay[e.date]=(byDay[e.date]||0)+(e.total||0);});
+  const bestDay=Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0];
+  sumEl.innerHTML=`
+    <div class="mcard c-green"><div class="mcard-label">ยอดขายเดือนนี้</div><div class="mcard-val">฿${fmt(moTotal)}</div><div class="mcard-sub" style="color:${pct>0?'var(--green-d)':(pct<0?'#C2410C':'var(--text3)')}">${pct>0?'▲ '+pct+'% จากเดือนก่อน':(pct<0?'▼ '+Math.abs(pct)+'% จากเดือนก่อน':'เทียบเดือนก่อน')}</div></div>
+    <div class="mcard c-blue"><div class="mcard-label">จำนวนบิล</div><div class="mcard-val">${fmt(moBills)}</div><div class="mcard-sub">เฉลี่ย ฿${fmt(avgBill)}/บิล</div></div>
+    <div class="mcard c-amber"><div class="mcard-label">วันที่บันทึกแล้ว</div><div class="mcard-val">${daysRecorded} วัน</div><div class="mcard-sub">ในเดือนนี้</div></div>
+    <div class="mcard c-purple"><div class="mcard-label">ขายดีที่สุด</div><div class="mcard-val" style="font-size:18px">${bestDay?'฿'+fmt(bestDay[1]):'—'}</div><div class="mcard-sub">${bestDay?new Date(bestDay[0]).toLocaleDateString('th-TH',{day:'numeric',month:'short'}):'ยังไม่มีข้อมูล'}</div></div>`;
+  const branchBars=BRANCHES.map((b,i)=>`<div style="margin-bottom:13px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span style="font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:10px;height:10px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}</span><span style="font-family:var(--disp);font-weight:700">฿${fmt(perBranch[i])}</span></div><div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:${Math.round(perBranch[i]/maxBranch*100)}%;height:100%;background:${BCOLORS[i]};border-radius:4px"></div></div></div>`).join('');
+  const payBars=payTypes.map(p=>{const v=payTotals[p];const w=Math.round(v/payGrand*100);return `<div style="margin-bottom:11px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px"><span>${p}</span><span style="font-weight:600">฿${fmt(v)} · ${w}%</span></div><div style="height:7px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="width:${w}%;height:100%;background:var(--green);border-radius:4px"></div></div></div>`;}).join('');
+  listEl.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px" class="sales-stats-grid">
+      <div class="card"><div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:14px">ยอดขายแยกสาขา · ${MONTHS_TH[new Date().getMonth()]}</div>${branchBars}</div>
+      <div class="card"><div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:14px">แยกตามช่องทางชำระ</div>${payBars}</div>
+    </div>
+    <style>@media(max-width:768px){.sales-stats-grid{grid-template-columns:1fr!important}}</style>`;
 }
+// ดูยอดวันที่เลือก (อ่านอย่างเดียว ทั้ง 3 สาขา)
+window.salesViewDay=function(){
+  const date=document.getElementById('sales-date')?.value||todayStr();
+  const es=BRANCHES.map((b,i)=>salesEntries.find(x=>x.date===date&&x.branch===i));
+  const grand=es.reduce((a,e)=>a+(e?.total||0),0);
+  const dlabel=new Date(date).toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const branchCards=BRANCHES.map((b,i)=>{
+    const e=es[i];
+    if(!e){return `<div style="border:1px dashed var(--border2);border-radius:13px;padding:13px;margin-bottom:9px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;color:${BCOLORS[i]}">${b}</span><span style="font-size:12px;color:var(--text3)">ยังไม่บันทึก</span></div></div>`;}
+    const pills=payTypes.filter(p=>parseFloat(e.amounts?.[p])>0).map(p=>`<span class="pill">${p}: ฿${fmt(e.amounts[p])}</span>`).join('');
+    return `<div style="border:1px solid var(--border);border-radius:13px;padding:13px;margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-weight:700;color:${BCOLORS[i]}">${b}</span><span style="font-family:var(--disp);font-weight:700;font-size:17px;color:${BCOLORS[i]}">฿${fmt(e.total)}</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">${pills||'<span style="font-size:12px;color:var(--text3)">ไม่มียอดแยกช่องทาง</span>'}</div>
+      ${e.billCount?`<div style="font-size:11.5px;color:var(--text3);margin-top:7px">🧾 ${e.billCount} บิล · เฉลี่ย ฿${fmt(Math.round(e.total/e.billCount))}/บิล</div>`:''}
+      ${e.note?`<div style="font-size:12px;color:var(--text3);margin-top:5px">📝 ${e.note}</div>`:''}
+    </div>`;
+  }).join('');
+  openModal(`<div class="modal-title">👁 ยอดขายวันที่เลือก</div>
+    <div style="font-size:12.5px;color:var(--text3);margin-bottom:6px">${dlabel}</div>
+    <div style="background:var(--grad-green);color:#fff;border-radius:13px;padding:14px 16px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:13px;opacity:.9">ยอดรวมทุกสาขา</span><span style="font-family:var(--disp);font-weight:700;font-size:24px">฿${fmt(grand)}</span></div>
+    ${branchCards}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button>${isAdmin?`<button class="btn btn-primary" onclick="closeMD();salesOvEdit('${date}',0)">แก้ไข</button>`:''}</div>`);
+};
 
 // ลบยอดขาย (ทั้ง Firestore + ในเครื่อง)
 window.salesDelete=async function(date,branch){
