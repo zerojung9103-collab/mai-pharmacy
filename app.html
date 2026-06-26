@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="ใหม่เภสัช">
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1075,6 +1076,7 @@ input,select,textarea{border-radius:14px}
       <div><div class="page-title">ฉลากยาต่างชาติ</div><div class="page-sub">ออกแบบและพิมพ์ฉลากยาเป็นภาษาต่างประเทศ</div></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-sm" id="fl-template-btn" onclick="openTemplateManager()">📋 รูปแบบ</button>
+        <button class="btn btn-sm" id="fl-excel-btn" style="display:none" onclick="flExcelMenu()">📊 Excel ฐานข้อมูล</button>
         <button class="btn btn-primary btn-sm" onclick="printForeignLabel()">🖨️ พิมพ์</button>
       </div>
     </div>
@@ -1460,9 +1462,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.6.7';
+const APP_VERSION='3.7.0';
 const CHANGELOG=[
-  {v:'3.6.7',date:'2026-06-26',changes:['แก้บั๊กนับเงิน: ถ้าไม่กรอก“เงินที่ควรมี” จะไม่ขึ้น“ตรงพอดี”อีกต่อไป (แสดง“นับได้ ฿...”แทน) · หน้านับเงินเติมยอดตู้เซฟให้อัตโนมัติ เทียบง่าย']},
+  {v:'3.7.0',date:'2026-06-26',changes:['ฐานข้อมูลยา (ฉลากต่างชาติ): ส่งออก/นำเข้าผ่าน Excel — ปุ่ม “📊 Excel ฐานข้อมูล” (แอดมิน) — 4 ชีต: ยา/วิธีใช้/สรรพคุณ/คำเตือน · นำเข้าแบบแทนทั้งชีต']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -7212,11 +7214,63 @@ async function loadForeignLabelData(){
   }catch(e){flTemplates=[];}
   flPopulateSelects();
   flRenderBlockList();
+  const _exBtn=document.getElementById('fl-excel-btn');if(_exBtn)_exBtn.style.display=isAdmin?'':'none';
   flRenderCustomBlockInputs();
   flRenderPreview();
 }
+window.flExcelMenu=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  openModal(`<div class="modal-title">📊 ฐานข้อมูลยา (Excel)</div>
+    <div style="font-size:12.5px;color:var(--text3);margin-bottom:14px">ส่งออกข้อมูลทั้งหมดเป็นไฟล์ Excel (4 ชีต: ยา · วิธีใช้ · สรรพคุณ · คำเตือน) แก้ไขในโปรแกรม Excel แล้วนำเข้ากลับ</div>
+    <button class="btn btn-primary" style="width:100%;margin-bottom:6px" onclick="flExportExcel()">⬇️ ส่งออกเป็น Excel (.xlsx)</button>
+    <div style="border-top:1px solid var(--border);margin:14px 0"></div>
+    <div style="background:#FFF4E0;border:1px solid #F5D78E;border-radius:9px;padding:9px 12px;font-size:11.5px;color:#7A5C00;margin-bottom:10px">⚠️ การนำเข้าจะ <b>ลบข้อมูลเดิมแล้วแทนที่</b> ด้วยไฟล์ Excel (เฉพาะชีตที่มีในไฟล์) — ควรส่งออกเก็บไว้ก่อน</div>
+    <label class="btn btn-blue" style="width:100%;text-align:center;cursor:pointer;display:block">⬆️ นำเข้าจาก Excel<input type="file" accept=".xlsx,.xls" style="display:none" onchange="flImportExcel(this.files[0])"></label>
+    <div style="font-size:11px;color:var(--text3);margin-top:10px;line-height:1.6">คอลัมน์ — <b>ยา:</b> id, ชื่อยา, กลุ่ม, EN, ความแรง · <b>วิธีใช้/สรรพคุณ/คำเตือน:</b> id, ไทย, EN, จีน_ZH, พม่า_MY · (id เว้นว่างได้ ระบบจะสร้างให้)</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+};
+window.flExportExcel=function(){
+  if(typeof XLSX==='undefined'){showToast('กำลังโหลดไลบรารี Excel ลองใหม่อีกครั้ง','err');return;}
+  const wb=XLSX.utils.book_new();
+  const drugRows=(flDB.drugs||[]).map(d=>({id:d.id||'','ชื่อยา':d.name||'','กลุ่ม':d.group||'',EN:d.en||'','ความแรง':d.strength||''}));
+  const mk=(arr)=>{const r=(arr||[]).map(x=>({id:x.id||'','ไทย':x.th||'',EN:x.en||'','จีน_ZH':x.zh||'','พม่า_MY':x.my||''}));return r.length?r:[{id:'','ไทย':'',EN:'','จีน_ZH':'','พม่า_MY':''}];};
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(drugRows.length?drugRows:[{id:'','ชื่อยา':'','กลุ่ม':'',EN:'','ความแรง':''}]),'ยา');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mk(flDB.directions)),'วิธีใช้');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mk(flDB.indications)),'สรรพคุณ');
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(mk(flDB.warnings)),'คำเตือน');
+  XLSX.writeFile(wb,`ฐานข้อมูลยา_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('ส่งออก Excel แล้ว');
+};
+window.flImportExcel=async function(file){
+  if(!file)return;
+  if(typeof XLSX==='undefined'){showToast('ไลบรารี Excel ยังไม่พร้อม','err');return;}
+  if(!await capsuleConfirm('นำเข้าจะลบข้อมูลยาเดิม (เฉพาะชีตที่มีในไฟล์) แล้วแทนที่ด้วยไฟล์นี้\nยืนยันหรือไม่?')){return;}
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const getSheet=(names)=>{for(const n of names){if(wb.Sheets[n])return XLSX.utils.sheet_to_json(wb.Sheets[n],{defval:''});}return null;};
+    const genId=(p)=>p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const S=(v)=>String(v==null?'':v).trim();
+    const drugsR=getSheet(['ยา','drugs','Drugs','ยา ']);
+    const dirR=getSheet(['วิธีใช้','directions']);
+    const indR=getSheet(['สรรพคุณ','indications']);
+    const warnR=getSheet(['คำเตือน','warnings']);
+    const mapLang=(r,p)=>({id:S(r.id||r.ID)||genId(p),th:S(r['ไทย']||r.th),en:S(r.EN||r.en),zh:S(r['จีน_ZH']||r.zh||r['จีน']),my:S(r['พม่า_MY']||r.my||r['พม่า'])});
+    const tasks=[];
+    if(drugsR){flDB.drugs=drugsR.map(r=>({id:S(r.id||r.ID)||genId('d'),name:S(r['ชื่อยา']||r.name),group:S(r['กลุ่ม']||r.group),en:S(r.EN||r.en),strength:S(r['ความแรง']||r.strength)})).filter(d=>d.name);tasks.push(setDoc(doc(db,'labelMaster','drugs'),{items:flDB.drugs}));}
+    if(dirR){flDB.directions=dirR.map(r=>mapLang(r,'r')).filter(x=>x.th||x.en||x.zh||x.my);tasks.push(setDoc(doc(db,'labelMaster','directions'),{items:flDB.directions}));}
+    if(indR){flDB.indications=indR.map(r=>mapLang(r,'i')).filter(x=>x.th||x.en||x.zh||x.my);tasks.push(setDoc(doc(db,'labelMaster','indications'),{items:flDB.indications}));}
+    if(warnR){flDB.warnings=warnR.map(r=>mapLang(r,'w')).filter(x=>x.th||x.en||x.zh||x.my);tasks.push(setDoc(doc(db,'labelMaster','warnings'),{items:flDB.warnings}));}
+    if(!tasks.length){showToast('ไม่พบชีตที่ตรงรูปแบบ (ยา/วิธีใช้/สรรพคุณ/คำเตือน)','err');return;}
+    await Promise.all(tasks);
+    closeMD();
+    if(typeof flPopulateSelects==='function')flPopulateSelects();
+    if(typeof flRenderPreview==='function')flRenderPreview();
+    showToast(`นำเข้าสำเร็จ · ยา ${flDB.drugs.length} · วิธีใช้ ${flDB.directions.length} · สรรพคุณ ${flDB.indications.length} · คำเตือน ${flDB.warnings.length}`);
+    if(typeof logActivity==='function')logActivity('label_import','นำเข้าฐานข้อมูลยาจาก Excel');
+  }catch(e){console.error('flImportExcel',e);showToast('นำเข้าไม่สำเร็จ: '+e.message,'err');}
+};
 function flPopulateSelects(){
-  // ตอนนี้เป็น search bar แทน select — ไม่ต้อง populate อะไร
   // แค่ปิด dropdown ทั้งหมดตอน click นอก
   document.addEventListener('click', e=>{
     if(!e.target.closest('.fl-sb-wrap')){
