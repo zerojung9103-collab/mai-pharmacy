@@ -330,10 +330,13 @@ textarea{resize:vertical;min-height:64px}
 .cal-date.is-today{color:var(--green-d)}
 .cal-bday{font-size:9px;color:var(--rose-d);font-weight:700;background:var(--rose-l);border-radius:4px;padding:1px 4px;margin-bottom:1px}
 .cal-shift{border-radius:6px;padding:4px 6px;font-size:9px;font-weight:600;cursor:pointer;line-height:1.3;overflow:hidden;margin-bottom:3px}
-.cal-brlabel{font-size:8px;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:4px;margin:2px 0 2px;display:inline-block}
-.cal-brlabel.br-0{background:var(--green-l);color:var(--green-dd)}
-.cal-brlabel.br-1{background:var(--blue-l);color:var(--blue-t)}
-.cal-brlabel.br-2{background:var(--amber-l);color:var(--amber-t)}
+.cal-brgroup{border-radius:10px;padding:4px;margin-bottom:5px;border:1.5px solid var(--c,#ccc)}
+.cal-brgroup.br-0{--c:var(--green-d);background:var(--green-ll)}
+.cal-brgroup.br-1{--c:var(--blue-t);background:var(--blue-l)}
+.cal-brgroup.br-2{--c:var(--amber-t);background:var(--amber-l)}
+.cal-brgroup .cal-shift{background:rgba(255,255,255,.62);margin-bottom:3px}
+.cal-brgroup .cal-shift:last-child{margin-bottom:0}
+.cal-brlabel{font-size:8.5px;font-weight:800;letter-spacing:.02em;padding:1px 4px 3px;display:block;color:var(--c)}
 .cal-shift[draggable="true"]{cursor:grab}
 .cal-shift[draggable="true"]:active{cursor:grabbing}
 .sc-pal-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:600;cursor:grab;background:var(--surface);color:var(--text);border:1.5px solid var(--c,#16B981);user-select:none;transition:transform .1s}
@@ -1449,9 +1452,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.6.4';
+const APP_VERSION='3.6.5';
 const CHANGELOG=[
-  {v:'3.6.4',date:'2026-06-26',changes:['ตารางเวร: มีป้ายสาขาคั่นกลุ่มเวรในแต่ละวัน — ดูง่ายว่าใครอยู่สาขาไหน']},
+  {v:'3.6.5',date:'2026-06-26',changes:['ตารางเวร: จับเวรของแต่ละสาขาไว้ในกรอบเดียวกัน มีป้ายสาขาสีเข้ม — แยกสาขาได้ชัดขึ้น']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -3182,12 +3185,15 @@ function scRender(){
         statusDot=`<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${late?'#E8920E':'#16B981'};margin-left:auto;flex-shrink:0"></span>`;
       }
       const tempTag=isTemp?`<span style="font-size:7px;background:rgba(0,0,0,.08);padding:0 3px;border-radius:4px;flex-shrink:0">ชั่วคราว</span>`:'';
-      const _brLbl=(si===0||arr[si-1].branch!==s.branch)?`<div class="cal-brlabel br-${s.branch}">${BRANCHES[s.branch]}</div>`:'';
-      return `${_brLbl}<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" data-sid="${s.id}" draggable="${canEdit?'true':'false'}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}${isTemp?' • พนักงานชั่วคราว':ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}">
+      const _isFirst=si===0||arr[si-1].branch!==s.branch;
+      const _isLast=si===arr.length-1||arr[si+1].branch!==s.branch;
+      const _open=_isFirst?`<div class="cal-brgroup br-${s.branch}"><div class="cal-brlabel br-${s.branch}">${BRANCHES[s.branch]}</div>`:'';
+      const _close=_isLast?'</div>':'';
+      return `${_open}<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" data-sid="${s.id}" draggable="${canEdit?'true':'false'}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}${isTemp?' • พนักงานชั่วคราว':ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}">
         <div style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span>${tempTag}${statusDot}</div>
         <div style="font-weight:500;opacity:.85;font-size:8.5px;white-space:nowrap">${s.start}-${s.end}</div>
         <div style="font-weight:400;opacity:.65;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍${br}</div>
-      </div>`;
+      </div>${_close}`;
     }).join('');
     const moreCount=dayShifts.length-maxShow;
     const moreHtml=moreCount>0?`<div class="cal-more" onclick="event.stopPropagation();scDayDetail('${ds}')">+${moreCount} เพิ่มเติม</div>`:'';
