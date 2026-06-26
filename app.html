@@ -297,6 +297,7 @@ textarea{resize:vertical;min-height:64px}
 .bn-fab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;background:none;border:none;cursor:pointer;color:var(--green-d);font-family:var(--font);font-size:10px;font-weight:700;position:relative;max-width:84px;padding:0}
 .bn-fab i{width:54px;height:54px;margin-top:-24px;border-radius:18px;background:var(--grad-green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:27px;box-shadow:0 8px 18px rgba(18,124,98,.42);transition:.15s}
 .bn-fab:active i{transform:scale(.93)}
+.bn-todo-badge{position:absolute;top:4px;left:calc(50% + 6px);min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--amber,#E0A53F);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;box-shadow:0 1px 3px rgba(0,0,0,.25)}
 .bn-fab.active i{box-shadow:0 8px 22px rgba(18,124,98,.55)}
 @media(min-width:769px){.bottom-nav{display:none!important}}
 /* Skeleton loading */
@@ -1490,9 +1491,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.9.3';
+const APP_VERSION='3.10.0';
 const CHANGELOG=[
-  {v:'3.9.3',date:'2026-06-26',changes:['แก้บั๊ก: สรุปชั่วโมงทำงาน — เปลี่ยนเดือนแล้วกด “ดู” ไม่อัปเดต (ปุ่มไม่ทำงาน) — ตอนนี้เปลี่ยนเดือนแสดงข้อมูลตามจริงทันที']},
+  {v:'3.10.0',date:'2026-06-26',changes:['ระบบแจ้งเตือน“งานวันนี้”ใหม่: แยกการ์ดต่างหาก·แสดงตลอดวันไม่ต้องเช็คอินก่อ·ตัวเลขตรง·อัปเดตทันทีเมื่อติ๊กงาน','การ์ดงานวันนี้บนหน้าแรก + ตัวเลขแจ้งบนเมนู “งานฉัน” · พนักงานเห็นสาขาตัวเอง · admin เห็นทุกสาขา · ไม่ปนกับแจ้งเตือนอื่นอีกต่อไป']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -5841,6 +5842,7 @@ function renderHome(){
       <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
     </div>
   </div>`;
+  html+=`<div id="home-todo-card"></div>`;
 
   // ===== การ์ดสถิติ 4 ใบ (เฉพาะผู้มีสิทธิ์ดูยอดขาย) =====
   if(isAdmin||hasPerm('dashboard_admin')){
@@ -5931,6 +5933,7 @@ function renderHome(){
 
   el.innerHTML=html+'</div>';
   if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderStaffStatus('home-staff-status');}
+  if(typeof refreshTodoStatus==='function')refreshTodoStatus();
   // init กราฟหน้าแรก
   if(_homeChartData&&window.Chart){
     const cv=document.getElementById('home-chart');
@@ -6888,30 +6891,8 @@ async function checkNotifications(){
       }catch(e){}
     }
 
-    // ===== แจ้งเตือน To Do List ค้าง =====
-    try{
-      if(!todoTemplates.length) await loadTodoTemplates();
-      const todayDate=todayStr();
-      // ใช้ branchIn จาก checkin จริง — ถ้ายังไม่ได้เช็คอินไม่แสดง notification งาน
-      const ciRec=window._myCheckinToday;
-      if(ciRec?.checkIn){
-        const branch=ciRec.branchIn??0;
-        let pendingCount=0;
-        try{
-          const todoSnap=await getDoc(doc(db,'todos',`${todayDate}_${branch}`));
-          if(todoSnap.exists()){
-            pendingCount=(todoSnap.data().tasks||[]).filter(t=>!t.done).length;
-          }else{
-            pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
-          }
-        }catch(e2){
-          pendingCount=todoTemplates.filter(t=>t.recurring&&(t.allBranches||t.linkedBranch===branch)).length;
-        }
-        if(pendingCount>0){
-          alerts.push({color:'blue',icon:'📋',text:`มีงานวันนี้ยังไม่เสร็จ ${pendingCount} รายการ (สาขา${BRANCHES[branch]})`,action:`<button class="btn btn-sm btn-blue" onclick="goto('todo')" style="margin-left:auto">ดูงาน</button>`});
-        }
-      }
-    }catch(e){}
+    // ===== งานวันนี้ (To Do) — ย้ายไปการ์ดแยกบนหน้าแรก + badge (ไม่ปนในแบนเนอร์รวม) =====
+    if(typeof refreshTodoStatus==='function')refreshTodoStatus();
   }catch(e){console.error('checkNotifications',e);}
 
   window._currentAlerts=alerts;
@@ -6929,6 +6910,82 @@ async function checkNotifications(){
 window.markScheduleSeen=function(){localStorage.setItem('nm_seen_schedule_'+currentUser.uid,new Date().toISOString());checkNotifications();};
 window.markLeaveSeen=function(){localStorage.setItem('nm_seen_leave_'+currentUser.uid,new Date().toISOString());checkNotifications();};
 window.markAnnSeen=function(){localStorage.setItem('nm_seen_ann_'+currentUser.uid,new Date().toISOString());checkNotifications();};
+
+// ===== ระบบงานวันนี้ (To Do) — แจ้งเตือนแยกชัดเจน (การ์ดหน้าแรก + badge bottom nav) =====
+function todoBranchesForUser(){
+  if(isAdmin||hasPerm('dashboard_admin'))return [0,1,2];
+  const today=todayStr();
+  const sh=(shifts||[]).find(s=>s.staffId===currentUser?.uid&&s.date===today);
+  if(sh&&sh.branch!=null)return [sh.branch];
+  if(window._myCheckinToday&&window._myCheckinToday.branchIn!=null)return [window._myCheckinToday.branchIn];
+  if(profile&&profile.branch!=null)return [profile.branch];
+  return [0];
+}
+let _todoRefreshing=false;
+window.refreshTodoStatus=async function(){
+  if(!currentUser||_todoRefreshing)return;
+  _todoRefreshing=true;
+  try{
+    if(!todoTemplates.length)await loadTodoTemplates();
+    const branches=todoBranchesForUser();
+    const per=[];
+    for(const b of branches){
+      let data=null;
+      try{data=await ensureTodayTasks(b);}catch(e){}
+      const tasks=(data&&data.tasks)||[];
+      per.push({branch:b,total:tasks.length,done:tasks.filter(t=>t.done).length,pending:tasks.filter(t=>!t.done).length});
+    }
+    window._todoStatus=per;
+    renderTodoHomeCard(per);
+    updateTodoNavBadge(per);
+  }catch(e){console.error('refreshTodoStatus',e);}
+  _todoRefreshing=false;
+};
+function updateTodoNavBadge(per){
+  const totalPending=per.reduce((a,p)=>a+p.pending,0);
+  document.querySelectorAll('#bottom-nav [data-page="todo"]').forEach(btn=>{
+    let dot=btn.querySelector('.bn-todo-badge');
+    if(totalPending>0){
+      if(!dot){dot=document.createElement('span');dot.className='bn-todo-badge';btn.appendChild(dot);}
+      dot.textContent=totalPending>9?'9+':String(totalPending);
+    }else if(dot){dot.remove();}
+  });
+}
+function renderTodoHomeCard(per){
+  const el=document.getElementById('home-todo-card');
+  if(!el)return;
+  if(!per.some(p=>p.total>0)){el.innerHTML='';return;}
+  if(per.length===1){
+    const p=per[0], allDone=p.pending===0, pctv=p.total?Math.round(p.done/p.total*100):0;
+    el.innerHTML=`<div onclick="goto('todo')" style="cursor:pointer;background:var(--surface);border:1px solid ${allDone?'var(--green)':'var(--amber)'};border-left:5px solid ${allDone?'var(--green)':'var(--amber)'};border-radius:16px;padding:15px 17px;margin-bottom:1.25rem;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:12px;background:${allDone?'var(--green-l)':'var(--amber-l)'};display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${allDone?'✅':'📋'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;color:var(--text)">${allDone?'งานวันนี้เสร็จครบแล้ว 🎉':'งานวันนี้ เหลืออีก '+p.pending+' รายการ'}</div>
+          <div style="font-size:11.5px;color:var(--text3);margin-top:1px">${BRANCHES[p.branch]} · ทำแล้ว ${p.done}/${p.total} งาน</div>
+        </div>
+        ${allDone?'':'<span style="background:var(--amber);color:#fff;font-size:13px;font-weight:700;border-radius:9px;padding:4px 12px;flex-shrink:0">ดูงาน</span>'}
+      </div>
+      <div style="height:7px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:11px"><div style="height:100%;width:${pctv}%;background:${allDone?'var(--green)':'var(--amber)'};border-radius:4px;transition:.4s"></div></div>
+    </div>`;
+  }else{
+    const totalPending=per.reduce((a,p)=>a+p.pending,0);
+    const rows=per.map(p=>{
+      const allDone=p.pending===0&&p.total>0, pctv=p.total?Math.round(p.done/p.total*100):0;
+      return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+        <span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[p.branch]};flex-shrink:0"></span>
+        <span style="font-size:13px;font-weight:600;flex:1;min-width:0">${BRANCHES[p.branch]}</span>
+        <div style="width:70px;height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;width:${pctv}%;background:${p.total?(allDone?'var(--green)':'var(--amber)'):'var(--border2)'};border-radius:3px"></div></div>
+        <span style="font-size:12px;font-weight:700;font-family:var(--mono);width:52px;text-align:right;color:${p.total===0?'var(--text3)':(allDone?'var(--green-d)':'var(--amber-t)')}">${p.total?p.done+'/'+p.total:'—'}</span>
+      </div>`;
+    }).join('');
+    el.innerHTML=`<div onclick="goto('todo')" style="cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 17px;margin-bottom:1.25rem;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div style="font-family:var(--disp);font-weight:600;font-size:15px">📋 งานวันนี้ทุกสาขา</div>
+        <span style="font-size:12px;color:${totalPending?'var(--amber-t)':'var(--green-d)'};font-weight:600">${totalPending?'ค้าง '+totalPending+' งาน':'เสร็จครบ ✓'}</span>
+      </div>${rows}</div>`;
+  }
+}
 
 // ===== ประกาศจากร้าน (admin) =====
 window.renderAnnouncements=async function(){
@@ -8560,6 +8617,7 @@ window.toggleTodoTask=async function(date,branch,idx){
     task.isAuto=false;
     await setDoc(doc(db,'todos',docId),data);
     renderTodoPageContent(data,branch);
+    if(window.refreshTodoStatus)refreshTodoStatus();
   }catch(e){showToast(e.message,'err');}
 };
 window.deleteTodoTask=async function(date,branch,idx){
@@ -8572,6 +8630,7 @@ window.deleteTodoTask=async function(date,branch,idx){
     data.tasks.splice(idx,1);
     await setDoc(doc(db,'todos',docId),data);
     renderTodoPageContent(data,branch);
+    if(window.refreshTodoStatus)refreshTodoStatus();
   }catch(e){showToast(e.message,'err');}
 };
 window.openAddTodoTask=async function(){
@@ -8607,6 +8666,7 @@ window.saveAddTodoTask=async function(branch){
     await setDoc(doc(db,'todos',docId),data);
     closeMD();
     renderTodoPageContent(data,branch);
+    if(window.refreshTodoStatus)refreshTodoStatus();
     showToast('เพิ่มงานแล้ว');
   }catch(e){showToast(e.message,'err');}
 };
