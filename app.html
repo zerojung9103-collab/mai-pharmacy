@@ -66,7 +66,7 @@ body.dark .drag-row{background:var(--bg)}
 .fl-lang-btn{opacity:.55}
 .fl-lang-btn.active{opacity:1;background:var(--green);color:#fff;border-color:var(--green)}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:linear-gradient(180deg,#0E5544,#0A3D31);display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.08)}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--sidebar-grad,linear-gradient(180deg,#0E5544,#0A3D31));display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.08)}
 .sb-brand{padding:1.4rem 1.1rem;padding-top:calc(1.4rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:11px}
 .sb-brand h1{font-family:var(--disp)}
 .sb-icon{width:40px;height:40px;background:var(--grad-green);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:0 4px 14px rgba(31,174,139,.35)}
@@ -620,11 +620,12 @@ input,select,textarea{border-radius:14px}
     <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
       <div class="tabs" id="sales-tabs">
         <button class="tab active" onclick="salesSetView('entry',this)">บันทึกยอด</button>
+        <button class="tab" onclick="salesSetView('overview',this)">ภาพรวมเดือน</button>
         <button class="tab" onclick="salesSetView('history',this)">ประวัติ</button>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <label class="fl" style="margin:0;white-space:nowrap">วันที่</label>
-        <input type="date" id="sales-date" style="width:auto;padding:6px 10px">
+        <input type="date" id="sales-date" style="width:auto;padding:6px 10px" onchange="salesLoadForDate();salesRenderForm()">
       </div>
     </div>
     <div id="sales-entry">
@@ -643,6 +644,15 @@ input,select,textarea{border-radius:14px}
     <div id="sales-history" style="display:none">
       <div class="metric-grid" id="sales-sum"></div>
       <div id="sales-hist-list"></div>
+    </div>
+    <div id="sales-overview" style="display:none">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+        <button class="week-btn" onclick="salesOvMonth(-1)">&#8249;</button>
+        <div class="week-lbl" id="sales-ov-lbl" style="min-width:150px;text-align:center"></div>
+        <button class="week-btn" onclick="salesOvMonth(1)">&#8250;</button>
+        <div id="sales-ov-progress" style="font-size:12.5px;color:var(--text3);margin-left:auto"></div>
+      </div>
+      <div id="sales-ov-list"></div>
     </div>
   </div>
 
@@ -1439,6 +1449,18 @@ function applyUserThemeCfg(cfg){
   root.setProperty('--green-l',shadeColor(accent,72));
   root.setProperty('--green-ll',shadeColor(accent,88));
   root.setProperty('--grad-green',`linear-gradient(135deg,${accent},${shadeColor(accent,-12)})`);
+  // ===== พื้นหลังตามธีม: โทนสีอ่อนมากของ accent (เฉพาะโหมดสว่าง) =====
+  if(isDark){root.removeProperty('--bg');root.removeProperty('--surface');}
+  else{
+    root.setProperty('--bg',shadeColor(accent,93));      // พื้นหลังนวลโทนสีจาง
+    root.setProperty('--surface',shadeColor(accent,98));  // การ์ด/พื้นขาวอมสีนิดๆ
+  }
+  // ===== ตกแต่งตามธีม: แถบข้าง/หัวมือถือ/พื้นหลังนวล ใช้สีจาก accent =====
+  root.setProperty('--sidebar-grad',`linear-gradient(180deg,${shadeColor(accent,-42)},${shadeColor(accent,-60)})`);
+  root.setProperty('--accent-tint',shadeColor(accent,90));   // พื้นนวลโทนสีอ่อนมาก
+  root.setProperty('--accent-soft',shadeColor(accent,80));   // ขอบ/แถบบางๆ
+  // อัปเดตสี theme-color ของเบราว์เซอร์ (แถบ status มือถือ)
+  const tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.setAttribute('content',accent);
   // size
   const mainEl=document.querySelector('.main');
   const sizeMap={compact:'.9',normal:'1',large:'1.12'};
@@ -1465,9 +1487,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.7.1';
+const APP_VERSION='3.8.0';
 const CHANGELOG=[
-  {v:'3.7.1',date:'2026-06-26',changes:['ตารางเวร: เพิ่มตัวกรอง“รายบุคคล” — เลือกพนักงาน 1 คน ดูเฉพาะเวรของคนนั้นทั้งเดือน (ใช้คู่กับกรองสาขาได้)']},
+  {v:'3.8.0',date:'2026-06-26',changes:['บันทึกยอดขาย: เพิ่มแท็บ “ภาพรวมเดือน” — เห็นทุกวันว่าลงยอดแล้วหรือยัง · แยกรายสาขา · กดช่องเพื่อลง/แก้ได้ทันที (โหลดยอดเดิมมาให้อัตโนมัติ)','ธีมสี: พื้นหลัง/การ์ดเปลี่ยนโทนตามสีที่เลือกด้วย']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -2182,6 +2204,21 @@ async function loadShiftsFromCloud(){
     localStorage.setItem('nm_shifts',JSON.stringify(shifts));
   }catch(e){console.error('loadShifts error',e);}
 }
+// ===== ฟังเวรแบบเรียลไทม์ — auto refresh เมื่อข้อมูลเปลี่ยน (ทุกเครื่อง/ทุก action) =====
+let _scLiveUnsub=null;
+function startScheduleLive(){
+  if(_scLiveUnsub)return;
+  try{
+    _scLiveUnsub=onSnapshot(collection(db,'schedules'),(snap)=>{
+      if(shiftsSyncing)return; // กำลังเขียนของตัวเองอยู่ ข้ามไปกัน flicker
+      const all=[];
+      snap.docs.forEach(d=>{const data=d.data();if(data&&Array.isArray(data.shifts))all.push(...data.shifts);});
+      shifts=all;
+      localStorage.setItem('nm_shifts',JSON.stringify(shifts));
+      if(document.getElementById('page-schedule')?.classList.contains('active')&&typeof scRender==='function')scRender();
+    });
+  }catch(e){console.error('schedule live error',e);}
+}
 
 // ===== STATE =====
 let currentUser=null, profile=null, isAdmin=false, isTester=false;
@@ -2506,7 +2543,7 @@ window.goto=function(page){
   if(page==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
   if(page.startsWith('cat-'))renderCatPage(page.slice(4));
   if(page==='dashboard'){dbRender();loadSalesFromCloud();}
-  if(page==='schedule'){Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
+  if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   if(page==='cash')loadCashPage();
   if(page==='members')loadMembers();
@@ -4402,7 +4439,58 @@ window.cashClearTestDo=async function(){
 
 // ===== SALES =====
 let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''},salesBillCounts={0:'',1:'',2:''};
-window.salesSetView=function(v,el){document.querySelectorAll('#sales-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('sales-entry').style.display=v==='entry'?'':'none';document.getElementById('sales-history').style.display=v==='history'?'':'none';if(v==='history')salesRenderHistory();};
+window.salesSetView=function(v,el){document.querySelectorAll('#sales-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('sales-entry').style.display=v==='entry'?'':'none';document.getElementById('sales-history').style.display=v==='history'?'':'none';document.getElementById('sales-overview').style.display=v==='overview'?'':'none';if(v==='history')salesRenderHistory();if(v==='overview')salesRenderOverview();};
+let salesOvY=new Date().getFullYear(),salesOvM=new Date().getMonth();
+window.salesOvMonth=function(d){let m=salesOvM+d,y=salesOvY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}salesOvM=m;salesOvY=y;salesRenderOverview();};
+function salesRenderOverview(){
+  const lbl=document.getElementById('sales-ov-lbl');if(!lbl)return;
+  lbl.textContent=`${MONTHS_TH[salesOvM]} ${salesOvY+543}`;
+  const mPrefix=`${salesOvY}-${String(salesOvM+1).padStart(2,'0')}`;
+  const daysInMonth=new Date(salesOvY,salesOvM+1,0).getDate();
+  const today=todayStr();
+  const dows=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  let rows='',doneCells=0,totalCells=0;
+  for(let day=daysInMonth;day>=1;day--){
+    const ds=`${mPrefix}-${String(day).padStart(2,'0')}`;
+    if(ds>today)continue; // ยังไม่ถึงวัน ไม่ต้องโชว์
+    const dObj=new Date(salesOvY,salesOvM,day);
+    const isToday=ds===today;
+    const cells=BRANCHES.map((b,i)=>{
+      totalCells++;
+      const e=salesEntries.find(x=>x.date===ds&&x.branch===i);
+      const done=!!e&&(e.total||0)>0;
+      if(done)doneCells++;
+      const col=BCOLORS[i];
+      return `<button onclick="salesOvEdit('${ds}',${i})" style="flex:1;min-width:0;border:1px solid ${done?col:'var(--border)'};background:${done?col+'14':'var(--bg)'};border-radius:11px;padding:8px 9px;cursor:pointer;font-family:var(--font);text-align:left">
+        <div style="font-size:10px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b}</div>
+        <div style="font-size:13px;font-weight:700;color:${done?col:'var(--text3)'};margin-top:2px">${done?'฿'+fmt(e.total):'— ยังไม่ลง'}</div>
+      </button>`;
+    }).join('');
+    rows+=`<div style="display:flex;align-items:stretch;gap:9px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <div style="width:46px;flex-shrink:0;text-align:center;align-self:center">
+        <div style="font-family:var(--disp);font-size:19px;font-weight:700;color:${isToday?'var(--green-d)':'var(--text)'}">${day}</div>
+        <div style="font-size:10px;color:var(--text3)">${dows[dObj.getDay()]}${isToday?' · วันนี้':''}</div>
+      </div>
+      <div style="flex:1;display:flex;gap:7px;min-width:0">${cells}</div>
+    </div>`;
+  }
+  const pct=totalCells?Math.round(doneCells/totalCells*100):0;
+  document.getElementById('sales-ov-progress').innerHTML=`ลงแล้ว <b style="color:var(--green-d)">${doneCells}/${totalCells}</b> ช่อง (${pct}%)`;
+  document.getElementById('sales-ov-list').innerHTML=rows||`<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่ถึงวันในเดือนนี้</div>`;
+}
+// กดช่องในภาพรวม → เปิดฟอร์มบันทึก/แก้ไขของวัน+สาขานั้น
+window.salesOvEdit=function(ds,branch){
+  document.querySelectorAll('#sales-tabs .tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.getElementById('sales-entry').style.display='';
+  document.getElementById('sales-history').style.display='none';
+  document.getElementById('sales-overview').style.display='none';
+  const dt=document.getElementById('sales-date');if(dt)dt.value=ds;
+  salesLoadForDate&&salesLoadForDate();
+  salesBranch=branch;
+  document.querySelectorAll('#sales-btabs .branch-tab').forEach((b,i)=>b.classList.toggle('active',i===branch));
+  salesRenderForm();
+  showToast(`บันทึกยอด ${BRANCHES[branch]} · ${ds}`);
+};
 window.salesSetBranch=function(i,el){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesBranch=i;document.querySelectorAll('.branch-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');salesRenderForm();};
 function salesRenderForm(){
   const amounts=salesAmounts[salesBranch];
@@ -4416,6 +4504,16 @@ function salesRenderForm(){
   if(!document.getElementById('sales-date').value)document.getElementById('sales-date').value=todayStr();
 }
 window.salesUpdateAmt=function(p,v){salesAmounts[salesBranch][p]=v;const total=payTypes.reduce((a,pt)=>a+(parseFloat(salesAmounts[salesBranch][pt])||0),0);const el=document.getElementById('sales-total');if(el)el.textContent='฿'+fmt(total);};
+// เติมค่าฟอร์มจากข้อมูลที่มีอยู่ของวันที่เลือก (ทั้ง 3 สาขา) — ใช้ตอนแก้จากภาพรวม/เปลี่ยนวัน
+window.salesLoadForDate=function(){
+  const date=document.getElementById('sales-date')?.value;if(!date)return;
+  for(let b=0;b<3;b++){
+    const e=salesEntries.find(x=>x.date===date&&x.branch===b);
+    salesAmounts[b]={};payTypes.forEach(p=>{salesAmounts[b][p]=e?(e.amounts?.[p]||''):'';});
+    salesNotes[b]=e?(e.note||''):'';
+    salesBillCounts[b]=e?(e.billCount||''):'';
+  }
+};
 window.salesSave=function(){
   salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';
   salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';
@@ -5708,13 +5806,13 @@ function renderHome(){
     const _startChip=_mins>0?`เริ่มใน ${_mins>=60?Math.floor(_mins/60)+' ชม.':_mins+' นาที'}`:'ถึงเวลาเข้ากะแล้ว';
     const _moShifts=shifts.filter(s=>s.staffId===currentUser.uid&&(s.date||'').startsWith(today.slice(0,7))).length;
     const _chip=(t)=>`<div style="background:rgba(255,255,255,.16);border-radius:12px;padding:7px 11px;flex:1"><div style="font-size:10px;opacity:.85">${t.k}</div><div style="font-family:var(--disp);font-weight:600;font-size:14px;margin-top:1px">${t.v}</div></div>`;
-    html+=`<div style="background:linear-gradient(140deg,${dc.dark},${dc.main});border-radius:22px;padding:18px;color:#fff;margin-bottom:1.25rem;box-shadow:0 12px 28px rgba(18,124,98,.28)">
+    html+=`<div onclick="goto('schedule')" style="background:linear-gradient(140deg,${dc.dark},${dc.main});border-radius:22px;padding:18px;color:#fff;margin-bottom:1.25rem;box-shadow:0 12px 28px rgba(18,124,98,.28);cursor:pointer">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
         <div>
           <div style="font-size:11.5px;opacity:.85">เวรของคุณวันนี้ · ${BRANCHES[todayShift.branch]}</div>
           <div style="font-size:30px;font-weight:700;font-family:var(--disp);letter-spacing:-.5px;margin-top:3px">${todayShift.start} – ${todayShift.end}</div>
         </div>
-        <button onclick="goto('checkin')" style="background:rgba(255,255,255,.22);border:none;color:#fff;padding:10px 16px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);flex-shrink:0">เช็คอิน →</button>
+        <button onclick="event.stopPropagation();goto('checkin')" style="background:rgba(255,255,255,.22);border:none;color:#fff;padding:10px 16px;border-radius:14px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);flex-shrink:0">เช็คอิน →</button>
       </div>
       <div style="display:flex;gap:9px;margin-top:14px">
         ${_chip({k:'สถานะ',v:_startChip})}
