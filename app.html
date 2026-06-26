@@ -360,7 +360,15 @@ textarea{resize:vertical;min-height:64px}
 @media(max-width:768px){
   .cal-cell{min-height:88px;padding:3px;border-radius:7px}
   .cal-grid{gap:3px}
-  .cal-shift{font-size:8px;padding:1px 3px}
+  .cal-shift{font-size:9px;padding:2px 5px;margin-bottom:2px}
+  /* มือถือ: แสดงชื่อล้วน ซ่อนเวลา/สาขาย่อย (แตะดูรายละเอียด) — อ่านง่ายขึ้น */
+  .cal-sh-time,.cal-sh-loc{display:none}
+  .cal-sh-name span{font-size:9.5px;font-weight:600}
+  .cal-brgroup{border:none!important;background:none!important;padding:0!important;margin:0 0 4px!important}
+  .cal-brlabel{font-size:8.5px;padding:0 3px 1px;font-weight:800}
+  .cal-shift.s-tp{border-left:3px solid var(--green-d)}
+  .cal-shift.s-bp{border-left:3px solid var(--blue-t)}
+  .cal-shift.s-id{border-left:3px solid var(--amber-t)}
   .cal-date{font-size:11px}
   .cal-dow{font-size:10px;padding:5px 0;letter-spacing:0}
   .dow-full{display:none}
@@ -1452,9 +1460,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.6.5';
+const APP_VERSION='3.6.7';
 const CHANGELOG=[
-  {v:'3.6.5',date:'2026-06-26',changes:['ตารางเวร: จับเวรของแต่ละสาขาไว้ในกรอบเดียวกัน มีป้ายสาขาสีเข้ม — แยกสาขาได้ชัดขึ้น']},
+  {v:'3.6.7',date:'2026-06-26',changes:['แก้บั๊กนับเงิน: ถ้าไม่กรอก“เงินที่ควรมี” จะไม่ขึ้น“ตรงพอดี”อีกต่อไป (แสดง“นับได้ ฿...”แทน) · หน้านับเงินเติมยอดตู้เซฟให้อัตโนมัติ เทียบง่าย']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -3190,9 +3198,9 @@ function scRender(){
       const _open=_isFirst?`<div class="cal-brgroup br-${s.branch}"><div class="cal-brlabel br-${s.branch}">${BRANCHES[s.branch]}</div>`:'';
       const _close=_isLast?'</div>':'';
       return `${_open}<div class="cal-shift ${['s-tp','s-bp','s-id'][s.branch]}" data-sid="${s.id}" draggable="${canEdit?'true':'false'}" ${canEdit?`onclick="event.stopPropagation();scEditShift('${s.id}')"`:''} title="${nm} ${s.start}-${s.end} ${BRANCHES[s.branch]}${isTemp?' • พนักงานชั่วคราว':ci?' • เช็คอินจริง '+ci.checkIn+(ci.checkOut?'-'+ci.checkOut:''):' • ยังไม่เช็คอิน'}">
-        <div style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span>${tempTag}${statusDot}</div>
-        <div style="font-weight:500;opacity:.85;font-size:8.5px;white-space:nowrap">${s.start}-${s.end}</div>
-        <div style="font-weight:400;opacity:.65;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍${br}</div>
+        <div class="cal-sh-name" style="display:flex;align-items:center;gap:3px"><span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</span>${tempTag}${statusDot}</div>
+        <div class="cal-sh-time" style="font-weight:500;opacity:.85;font-size:8.5px;white-space:nowrap">${s.start}-${s.end}</div>
+        <div class="cal-sh-loc" style="font-weight:400;opacity:.65;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">📍${br}</div>
       </div>${_close}`;
     }).join('');
     const moreCount=dayShifts.length-maxShow;
@@ -3998,8 +4006,9 @@ function renderCashPage(){
     branchCounts.forEach(c=>{
       const d=new Date(c.at);
       const dStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-      const diffColor=c.diff===0?'var(--text3)':(c.diff>0?'#0F8A63':'#C2410C');
-      const diffTxt=c.diff===0?'ตรงพอดี':(c.diff>0?`เกิน ฿${Math.abs(c.diff).toLocaleString()}`:`ขาด ฿${Math.abs(c.diff).toLocaleString()}`);
+      const noExp=(c.expected===null||c.expected===undefined);
+      const diffColor=noExp?'var(--text3)':(c.diff===0?'#0F8A63':(c.diff>0?'#0F8A63':'#C2410C'));
+      const diffTxt=noExp?`นับได้ ฿${(c.counted||0).toLocaleString()}`:(c.diff===0?'✓ ตรงพอดี':(c.diff>0?`เกิน ฿${Math.abs(c.diff).toLocaleString()}`:`ขาด ฿${Math.abs(c.diff).toLocaleString()}`));
       html+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;font-size:12.5px">
         <span><span style="font-weight:600">${c.mode==='open'?'ต้นวัน':'ปลายวัน'}</span> · ${c.by} · ${dStr}</span>
         <span style="color:${diffColor};font-weight:600">${diffTxt}</span>
@@ -4176,7 +4185,8 @@ window.cashDoWithdraw=async function(branch){
 window.cashCountPrompt=function(branch,mode){
   openModal(`<div class="modal-title">นับเงินสด${mode==='open'?'ต้นวัน':'ปลายวัน'} — ${BRANCHES[branch]}</div>
     <div class="field"><label class="fl">เงินที่นับได้จริง (บาท)</label><input type="number" id="cash-counted" inputmode="decimal" placeholder="0.00" style="font-size:20px;font-weight:600"></div>
-    <div class="field"><label class="fl">เงินที่ควรมี (บาท) — ถ้าทราบ</label><input type="number" id="cash-expected" inputmode="decimal" placeholder="ปล่อยว่างได้"></div>
+    <div class="field"><label class="fl">เงินที่ควรมี (บาท) — ถ้าทราบ</label><input type="number" id="cash-expected" inputmode="decimal" placeholder="ปล่อยว่าง = ไม่เทียบ" value="${mode==='open'&&(cashboxes[branch]||0)>0?cashboxes[branch]:''}"></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:-4px">${mode==='open'?'ต้นวัน: เงินที่ควรมี = ยอดตู้เซฟเงินทอน (฿'+(cashboxes[branch]||0).toLocaleString()+') · ถ้าไม่อยากเทียบให้ลบออก':'ปล่อยว่างได้ถ้ายังไม่รู้ยอดที่ควรมี'}</div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoCount(${branch},'${mode}')">บันทึก</button></div>`);
   setTimeout(()=>document.getElementById('cash-counted')?.focus(),100);
 };
