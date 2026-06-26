@@ -554,6 +554,9 @@ input,select,textarea{border-radius:14px}
           <option value="1">บางปู</option>
           <option value="2">อินดี้</option>
         </select>
+        <select id="sc-person-filter" onchange="scRender()" style="width:auto;padding:7px 12px;font-size:13px;margin-left:4px">
+          <option value="all">ทุกคน</option>
+        </select>
         <button class="btn btn-sm" id="sc-bday-btn" onclick="toggleBdayPanel()">🎂 วันเกิด</button>
         <button class="btn btn-sm" id="sc-temp-btn" style="display:none" onclick="manageTempStaff()">👤 พนักงานชั่วคราว</button>
         <button class="btn btn-sm" id="sc-bulk-btn" style="display:none" onclick="scBulkAssign()">📋 จัดเวรหลายวัน</button>
@@ -1462,9 +1465,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.7.0';
+const APP_VERSION='3.7.1';
 const CHANGELOG=[
-  {v:'3.7.0',date:'2026-06-26',changes:['ฐานข้อมูลยา (ฉลากต่างชาติ): ส่งออก/นำเข้าผ่าน Excel — ปุ่ม “📊 Excel ฐานข้อมูล” (แอดมิน) — 4 ชีต: ยา/วิธีใช้/สรรพคุณ/คำเตือน · นำเข้าแบบแทนทั้งชีต']},
+  {v:'3.7.1',date:'2026-06-26',changes:['ตารางเวร: เพิ่มตัวกรอง“รายบุคคล” — เลือกพนักงาน 1 คน ดูเฉพาะเวรของคนนั้นทั้งเดือน (ใช้คู่กับกรองสาขาได้)']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -3144,6 +3147,19 @@ function scRender(){
   document.getElementById('sc-month-lbl').textContent=`${['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'][scMonth]} ${scYear}`;
 
   const branchFilter=document.getElementById('sc-branch-filter')?.value||'all';
+  const personFilter=document.getElementById('sc-person-filter')?.value||'all';
+  // เติมรายชื่อในตัวกรองรายบุคคล (ครั้งเดียว/อัปเดตตามสมาชิก)
+  (function(){
+    const sel=document.getElementById('sc-person-filter');
+    if(!sel)return;
+    const tempNames=[...new Set(shifts.filter(s=>s.tempName).map(s=>s.tempName))];
+    const want=(allMembers||[]).map(m=>'u:'+m.uid+'|'+((m.nickname||m.firstName||'')||m.uid)).concat(tempNames.map(n=>'t:'+n+'|'+n+' (ชั่วคราว)'));
+    if(sel.dataset.sig===want.join(',')) return;
+    sel.dataset.sig=want.join(',');
+    const cur=sel.value;
+    sel.innerHTML='<option value="all">ทุกคน</option>'+want.map(w=>{const[v,lbl]=w.split('|');return `<option value="${v}">${lbl}</option>`;}).join('');
+    if([...sel.options].some(o=>o.value===cur))sel.value=cur;
+  })();
 
   // โหลดสมาชิกถ้ายังไม่มี
   if(allMembers.length===0){
@@ -3172,6 +3188,7 @@ function scRender(){
     const isToday=ds===todayStr2;
     let dayShifts=shifts.filter(s=>s.date===ds);
     if(branchFilter!=='all')dayShifts=dayShifts.filter(s=>String(s.branch)===branchFilter);
+    if(personFilter!=='all')dayShifts=dayShifts.filter(s=>personFilter.startsWith('u:')?(s.staffId===personFilter.slice(2)&&!s.tempName):(s.tempName===personFilter.slice(2)));
     dayShifts=dayShifts.slice().sort((a,b)=>(a.branch-b.branch)||((a.start||'').localeCompare(b.start||'')));
     const bdays=getBdayOnDate(ds);
     const bdayHtml=bdays.map(b=>`<div class="cal-bday">🎂 ${b.firstName}</div>`).join('');
