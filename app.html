@@ -1535,9 +1535,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.27.1';
+const APP_VERSION='3.28.0';
 const CHANGELOG=[
-  {v:'3.27.1',date:'2026-06-27',changes:['เงินสด: สิทธิ์ยกเลิกรายการ — พนักงานแก้ของตัวเองได้ภาย๑๓5 นาที · เกินนั้นต้องแจ้งแอดมินให้ยกเลิกให้ (แอดมินยกเลิกได้ตลอด)']},
+  {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -4175,8 +4175,8 @@ function cashTodayClose(b){return cashEvents.find(ev=>ev.branch===b&&ev.date===t
 async function cashSaveState(branch,patch){
   const cur=cashState[String(branch)]||{};
   const next={reserve:0,drawer:0,safe:0,...cur,...patch,updatedAt:new Date().toISOString()};
-  cashState[String(branch)]=next;
   await setDoc(doc(db,'cashState',String(branch)),next);
+  cashState[String(branch)]=next;
 }
 async function cashAddEvent(ev){
   const ts=Date.now();const id=`ev_${ts}_${Math.random().toString(36).slice(2,7)}`;
@@ -4259,6 +4259,7 @@ window.cashVoidEvent=async function(evId){
 };
 
 function renderCashPage(){
+  try{
   const el=document.getElementById('cash-content');
   if(!el)return;
   const branch=parseInt(document.getElementById('cash-branch')?.value||'0');
@@ -4351,8 +4352,10 @@ function renderCashPage(){
       <div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:8px">🛡️ ตรวจเงินวันนี้ (ผู้ดูแล)</div>${rows}
       <button class="btn btn-danger" style="width:100%;margin-top:12px;padding:9px;font-size:12px" onclick="cashResetAllPrompt()">🧹 ล้างข้อมูลเงินสดทั้งหมด (เริ่มใหม่)</button>
     </div>`;
+    html+=`<button class="btn" style="width:100%;margin-top:10px" onclick="cashHistoryPrompt(${branch})">📜 ดูประวัติเงินสดย้อนหลัง</button>`;
   }
   el.innerHTML=html;
+  }catch(e){console.error('renderCashPage',e);}
 }
 
 // ===== Actions =====
@@ -4488,6 +4491,42 @@ window.cashDoSafeOut=async function(branch){
     logActivity('cash_safeout',`นำออกตู้เซฟ ${BRANCHES[branch]} ฿${fmt(amt)}`);
   }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
 };
+window.cashHistoryPrompt=function(branch){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  const now=new Date();
+  window._cashHistB=branch; window._cashHistY=now.getFullYear(); window._cashHistM=now.getMonth();
+  cashHistRender();
+};
+window.cashHistMonth=function(d){let m=window._cashHistM+d,y=window._cashHistY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}const n=new Date();if(y>n.getFullYear()||(y===n.getFullYear()&&m>n.getMonth()))return;window._cashHistM=m;window._cashHistY=y;cashHistRender();};
+window.cashHistB=function(b){window._cashHistB=b;cashHistRender();};
+function cashHistRender(){
+  const b=window._cashHistB, y=window._cashHistY, m=window._cashHistM;
+  const moStr=`${y}-${String(m+1).padStart(2,'0')}`;
+  const evs=cashEvents.filter(e=>e.branch===b&&(e.date||'').startsWith(moStr)).sort((a,b2)=>(b2.ts||0)-(a.ts||0));
+  // จัดกลุ่มตามวัน
+  const byDay={};evs.forEach(e=>{(byDay[e.date]=byDay[e.date]||[]).push(e);});
+  const days=Object.keys(byDay).sort((a,c)=>c.localeCompare(a));
+  const segB=BRANCHES.map((nm,i)=>`<button onclick="cashHistB(${i})" style="padding:5px 11px;border-radius:9px;border:1.5px solid ${i===b?BCOLORS[i]:'var(--border2)'};background:${i===b?BCOLORS[i]:'var(--surface)'};color:${i===b?'#fff':'var(--text2)'};font-family:var(--font);font-size:12px;font-weight:${i===b?'700':'500'};cursor:pointer">${nm}</button>`).join('');
+  let body='';
+  if(!days.length)body=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:2.5rem 0">ไม่มีรายการในเดือนนี้</div>`;
+  else days.forEach(d=>{
+    const dObj=new Date(d);
+    const dLbl=dObj.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+    const closeEv=byDay[d].find(e=>e.type==='close');
+    let dayTag='';
+    if(closeEv){const df=closeEv.diff||0;dayTag=df===0?`<span style="color:#0F8A63;font-weight:700;font-size:11.5px">✓ ตรง</span>`:(df>0?`<span style="color:#1E3A8A;font-weight:700;font-size:11.5px">เกิน ฿${fmt(Math.abs(df))}</span>`:`<span style="color:#C2410C;font-weight:700;font-size:11.5px">ขาด ฿${fmt(Math.abs(df))}</span>`);}
+    body+=`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)"><span style="font-family:var(--disp);font-weight:600;font-size:14px">${dLbl}</span>${dayTag}</div>${byDay[d].sort((a,c)=>(a.ts||0)-(c.ts||0)).map(ev=>cashEventRow(ev,false)).join('')}</div>`;
+  });
+  openModal(`<div class="modal-title">📜 ประวัติเงินสด</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${segB}</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px">
+      <button class="btn btn-sm" onclick="cashHistMonth(-1)">‹</button>
+      <div style="font-family:var(--disp);font-size:15px;min-width:130px;text-align:center">${MONTHS_TH[m]} ${y+543}</div>
+      <button class="btn btn-sm" onclick="cashHistMonth(1)">›</button>
+    </div>
+    <div style="max-height:60vh;overflow:auto">${body}</div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+}
 window.cashMarkReviewed=async function(evId){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
   const ev=cashEvents.find(e=>e.id===evId);if(!ev)return;
