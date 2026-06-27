@@ -1535,9 +1535,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.29.0';
+const APP_VERSION='3.30.0';
 const CHANGELOG=[
-  {v:'3.29.0',date:'2026-06-27',changes:['เงินสด: แอดมินบันทึกย้อนหลังได้ (ปุ่ม 🕓) — เลือกวันย้อนหลัง+ประเภท+ยอด · ลงประวัติเฉยๆ ไม่กระทบยอดปัจจุบัน · ติดป้าย “ย้อนหลัง” + บันทึกว่าใครลงเมื่อไหร่']},
+  {v:'3.30.0',date:'2026-06-27',changes:['งานวันนี้: พนักงานเห็นงานทันทีไม่ต้องรอเช็คอิน · แอดมินเห็นภาพรวมทุกสาขาว่าใครทำแล้ว/ยัง + ใครเป็นคนทำ']},
   {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
@@ -8942,37 +8942,60 @@ async function loadTodoPage(){
   const today=todayStr();
   const el=document.getElementById('todo-page-content');
   const sub=document.getElementById('todo-page-sub');
+  await loadTodoTemplates();
+  const addBtn=document.getElementById('todo-add-btn');
 
-  // โหลด checkin วันนี้ก่อน
-  let rec=window._myCheckinToday;
-  if(!rec){
-    try{const d=await getDoc(doc(db,'checkins',todayCheckinId()));if(d.exists())rec=d.data();}catch(e){}
-    window._myCheckinToday=rec||null;
-  }
-
-  // ถ้ายังไม่ได้เช็คอิน → แสดงข้อความให้ไปเช็คอินก่อน
-  if(!rec?.checkIn){
-    if(sub)sub.textContent=today+' · ยังไม่ได้เช็คอิน';
-    const addBtn=document.getElementById('todo-add-btn');
-    if(addBtn)addBtn.style.display='none';
-    if(el)el.innerHTML=`<div style="text-align:center;padding:3rem">
-      <div style="font-size:52px;margin-bottom:1rem">📍</div>
-      <div style="font-size:16px;font-weight:700;color:var(--text2);margin-bottom:8px">กรุณาเช็คอินก่อน</div>
-      <div style="font-size:13px;color:var(--text3);margin-bottom:1.25rem">รายการงานจะแสดงตามสาขาที่คุณเช็คอิน</div>
-      <button class="btn btn-primary" onclick="goto('checkin')">📍 ไปหน้าเช็คอิน</button>
-    </div>`;
+  // ===== แอดมิน/ผู้มีสิทธิ์ภาพรวม → ดูทุกสาขาว่าใครทำแล้ว/ยัง (ไม่ต้องเช็คอิน) =====
+  if(isAdmin||hasPerm('dashboard_admin')){
+    if(addBtn)addBtn.style.display='inline-flex';
+    if(sub)sub.textContent=`${today} · ภาพรวมทุกสาขา`;
+    const datas=[];
+    for(let b=0;b<BRANCHES.length;b++){let d=null;try{d=await ensureTodayTasks(b);}catch(e){}datas.push({branch:b,data:d});}
+    renderTodoAdminView(datas);
     return;
   }
 
-  // ได้ branchIn จาก checkin จริง
-  const branch=rec.branchIn??0;
+  // ===== พนักงาน → งานของสาขาตัวเอง แสดงทันที ไม่ต้องรอเช็คอิน =====
+  const branch=todoBranchesForUser()[0]??0;
   if(sub)sub.textContent=`${today} · สาขา${BRANCHES[branch]}`;
-  const addBtn=document.getElementById('todo-add-btn');
-  if(addBtn)addBtn.style.display=isAdmin?'inline-flex':'none';
+  if(addBtn)addBtn.style.display='none';
   window._todoBranch=branch;
-  await loadTodoTemplates();
   const data=await ensureTodayTasks(branch);
   renderTodoPageContent(data,branch);
+}
+// มุมมองแอดมิน: ทุกสาขา + ใครทำแล้ว/ยัง
+function renderTodoAdminView(datas){
+  const el=document.getElementById('todo-page-content');
+  if(!el)return;
+  let totalAll=0,doneAll=0;
+  datas.forEach(({data})=>{const t=data?.tasks||[];totalAll+=t.length;doneAll+=t.filter(x=>x.done).length;});
+  const pctAll=totalAll?Math.round(doneAll/totalAll*100):0;
+  let html=`<div style="margin-bottom:1.25rem">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:13px;font-weight:600;color:var(--text2)">งานวันนี้ทุกสาขา</span>
+      <span style="font-size:13px;font-weight:700;color:${pctAll===100?'var(--green-d)':'var(--text2)'}">${doneAll}/${totalAll} งาน (${pctAll}%)</span>
+    </div>
+    <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden"><div style="height:100%;background:var(--green);border-radius:4px;width:${pctAll}%;transition:.4s"></div></div>
+  </div>`;
+  datas.forEach(({branch,data})=>{
+    const tasks=data?.tasks||[];
+    const done=tasks.filter(t=>t.done).length;
+    html+=`<div class="card" style="margin-bottom:12px;border-left:4px solid ${BCOLORS[branch]}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${tasks.length?'10px':'0'}">
+        <div style="font-family:var(--disp);font-weight:600;font-size:15px">${BRANCHES[branch]}</div>
+        <span style="font-size:12px;font-weight:700;color:${tasks.length&&done===tasks.length?'var(--green-d)':'var(--amber-t)'}">${tasks.length?done+'/'+tasks.length+' งาน':'ยังไม่มีงาน'}</span>
+      </div>
+      ${tasks.map((t,i)=>`<div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--border)">
+        <button onclick="toggleTodoTask('${data.date}',${branch},${i})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${t.done?'var(--green)':'var(--border2)'};background:${t.done?'var(--green)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" aria-label="${t.done?'ยกเลิก':'เสร็จ'}">${t.done?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</button>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;color:var(--text);text-decoration:${t.done?'line-through':'none'};${t.done?'opacity:.7':''}">${t.title}</div>
+          <div style="font-size:11px;color:${t.done?'var(--text3)':'var(--amber-t)'};margin-top:1px">${t.done?(t.isAuto?'✨ ระบบตรวจอัตโนมัติ':'✅ '+memberName(t.doneBy))+(t.doneAt?' · '+new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''):'⏳ ยังไม่ทำ'}</div>
+        </div>
+        <button onclick="deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:13px" title="ลบ">✕</button>
+      </div>`).join('')}
+    </div>`;
+  });
+  el.innerHTML=html;
 }
 function renderTodoPageContent(data,branch){
   const el=document.getElementById('todo-page-content');
