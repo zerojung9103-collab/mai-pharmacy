@@ -1559,9 +1559,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.41.0';
+const APP_VERSION='3.43.0';
 const CHANGELOG=[
-  {v:'3.41.0',date:'2026-06-27',changes:['กระดิ่งแจ้งเตือนบนแถบบน (คอม+มือถือ) — รวมงานค้าง/เวร/ลา/ประกาศไว้ที่เดียว · มีตัวเลขจำนวนแจ้งเตือน']},
+  {v:'3.43.0',date:'2026-06-27',changes:['เป้ายอดขาย: ตั้งแยกรายสาขาได้ + ระบบรวมเป้ารวมให้อัตโนมัติ · การ์ดเป้าสลับ รวม/รายสาขา แสดง % แต่ละสาขา']},
   {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
@@ -6474,19 +6474,23 @@ function renderHome(){
     document.querySelectorAll('.home-type-btn').forEach(b=>{const on=b.dataset.t===type;b.style.background=on?'var(--green-l)':'transparent';b.style.color=on?'var(--green-d)':'var(--text3)';b.style.fontWeight=on?'700':'500';});
     const lbl=document.getElementById('home-range-label');if(lbl)lbl.textContent=labelText;
   };
-  window.homeSetRange=function(n){window._homeRange=n;window._homeFrom=null;window._homeTo=null;drawHomeChart();};
+  window.homeSetRange=function(n){window._homeRange=n;window._homeFrom=null;window._homeTo=null;drawHomeChart();if(typeof homeBranchView==='function')homeBranchView('today');};
   window.homeSetType=function(t){window._homeChartType=t;drawHomeChart();};
-  window.homeApplyDateRange=function(){const f=document.getElementById('home-from')?.value,t=document.getElementById('home-to')?.value;if(!f||!t){showToast('เลือกวันที่เริ่มและสิ้นสุด','err');return;}window._homeFrom=f;window._homeTo=t;drawHomeChart();};
+  window.homeApplyDateRange=function(){const f=document.getElementById('home-from')?.value,t=document.getElementById('home-to')?.value;if(!f||!t){showToast('เลือกวันที่เริ่มและสิ้นสุด','err');return;}window._homeFrom=f;window._homeTo=t;drawHomeChart();if(typeof homeBranchView==='function')homeBranchView('range');};
   window.homeBranchView=function(mode){
-    mode=mode==='month'?'month':'today';
+    mode=['month','range'].includes(mode)?mode:'today';
     const el=document.getElementById('home-branch-rows'); if(!el)return;
     const tday=todayStr(), mo=tday.slice(0,7);
-    const totals=[0,1,2].map(b=>salesEntries.filter(e=>e.branch===b&&(mode==='month'?(e.date||'').startsWith(mo):e.date===tday)).reduce((s,e)=>s+(e.total||0),0));
+    let inRange;
+    if(mode==='range'&&window._homeFrom&&window._homeTo){let f=window._homeFrom,t=window._homeTo;if(f>t){const x=f;f=t;t=x;}inRange=d=>d>=f&&d<=t;}
+    else if(mode==='month'){inRange=d=>(d||'').startsWith(mo);}
+    else{mode='today';inRange=d=>d===tday;}
+    const totals=[0,1,2].map(b=>salesEntries.filter(e=>e.branch===b&&inRange(e.date)).reduce((s,e)=>s+(e.total||0),0));
     const grand=totals.reduce((a,v)=>a+v,0), mx=Math.max(...totals,1), top=totals.indexOf(Math.max(...totals));
     el.innerHTML=BRANCHES.map((b,i)=>{
       const share=grand?Math.round(totals[i]/grand*100):0;
       return `<div onclick="goto('sales')" style="margin-bottom:14px;cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}${grand&&i===top?' <span style="font-size:9px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:8px;font-weight:700">สูงสุด</span>':''}</span><span style="white-space:nowrap"><span style="font-family:var(--disp);font-weight:600;font-size:14px">฿${totals[i].toLocaleString()}</span> <span style="font-size:10.5px;color:var(--text3)">${share}%</span></span></div><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${Math.round(totals[i]/mx*100)}%;height:100%;background:${BCOLORS[i]};border-radius:3px;transition:width .4s"></div></div></div>`;
-    }).join('')+`<div style="margin-top:16px;padding:12px;border-radius:13px;background:var(--green-ll);color:var(--green-d);font-size:12px;font-weight:600;text-align:center">ยอดรวม${mode==='month'?'เดือนนี้':'วันนี้'}ทุกสาขา ฿${grand.toLocaleString()}</div>`;
+    }).join('')+`<div style="margin-top:16px;padding:12px;border-radius:13px;background:var(--green-ll);color:var(--green-d);font-size:12px;font-weight:600;text-align:center">ยอดรวม${mode==='range'?'ช่วงที่เลือก':(mode==='month'?'เดือนนี้':'วันนี้')}ทุกสาขา ฿${grand.toLocaleString()}</div>`;
     document.querySelectorAll('.home-bview-btn').forEach(x=>{const on=x.dataset.m===mode;x.style.background=on?'var(--green-l)':'transparent';x.style.color=on?'var(--green-d)':'var(--text3)';x.style.fontWeight=on?'700':'500';});
   };
   window.renderHomeInsights=function(period){
@@ -6527,43 +6531,54 @@ function renderHome(){
       ${tips.length?`<div style="display:flex;flex-direction:column;gap:7px">${tips.map(t=>`<div style="display:flex;align-items:center;gap:9px;font-size:13px"><span style="font-size:15px">${t.ic}</span><b style="color:${t.c};font-weight:600">${t.t}</b></div>`).join('')}</div>`:'<div style="font-size:12.5px;color:var(--text3)">ยังไม่มีข้อมูลพอสรุป</div>'}
     </div>`;
   };
-  window.homeTargetCard=function(){
+  window.homeTargetCard=function(view){
     const el=document.getElementById('home-target'); if(!el)return;
-    const target=+((appearanceCfg&&appearanceCfg.monthlyTarget))||0;
+    const bt=(appearanceCfg&&appearanceCfg.branchTargets)||null;
+    const legacy=+((appearanceCfg&&appearanceCfg.monthlyTarget))||0;
+    const hasBranch=bt&&bt.length===3;
+    const targets=hasBranch?bt.map(x=>+x||0):[0,0,0];
+    const totalTarget=hasBranch?targets.reduce((a,v)=>a+v,0):legacy;
     const tday=todayStr(), mo=tday.slice(0,7);
-    const moSales=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+(e.total||0),0);
-    if(!target){el.innerHTML=isAdmin?`<div style="background:var(--surface);border:1px dashed var(--border2);border-radius:16px;padding:13px 16px;margin-bottom:1.25rem;text-align:center"><button class="btn btn-sm" onclick="setSalesTarget()">🎯 ตั้งเป้ายอดขายรายเดือน</button></div>`:'';return;}
-    const pct=Math.min(Math.round(moSales/target*100),100);
+    const moByB=[0,1,2].map(b=>salesEntries.filter(e=>e.branch===b&&(e.date||'').startsWith(mo)).reduce((a,e)=>a+(e.total||0),0));
+    const moSales=moByB.reduce((a,v)=>a+v,0);
+    if(!totalTarget){el.innerHTML=isAdmin?`<div style="background:var(--surface);border:1px dashed var(--border2);border-radius:16px;padding:13px 16px;margin-bottom:1.25rem;text-align:center"><button class="btn btn-sm" onclick="setSalesTarget()">🎯 ตั้งเป้ายอดขายรายเดือน</button></div>`:'';return;}
+    if(view==='total'||view==='branch')window._targetView=view;
+    const mode=(window._targetView==='branch'&&hasBranch)?'branch':'total';
     const now=new Date(), dayN=now.getDate(), dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-    const proj=Math.round(moSales/dayN*dim), projPct=Math.round(proj/target*100);
-    const col=pct>=100?'var(--green)':(projPct>=100?'var(--green-d)':'var(--amber)');
+    const bar=(sales,tgt)=>{const pct=tgt?Math.min(Math.round(sales/tgt*100),100):0;const proj=Math.round(sales/dayN*dim);const projPct=tgt?Math.round(proj/tgt*100):0;const col=pct>=100?'var(--green)':(projPct>=100?'var(--green-d)':'var(--amber)');return {pct,proj,projPct,col};};
+    const seg=`<div style="display:inline-flex;background:var(--bg);border-radius:8px;padding:2px;gap:2px"><button onclick="homeTargetCard('total')" style="border:none;cursor:pointer;font-family:var(--font);font-size:10.5px;padding:3px 9px;border-radius:7px;background:${mode==='total'?'var(--green-l)':'transparent'};color:${mode==='total'?'var(--green-d)':'var(--text3)'};font-weight:${mode==='total'?700:500}">รวม</button><button onclick="homeTargetCard('branch')" style="border:none;cursor:pointer;font-family:var(--font);font-size:10.5px;padding:3px 9px;border-radius:7px;background:${mode==='branch'?'var(--green-l)':'transparent'};color:${mode==='branch'?'var(--green-d)':'var(--text3)'};font-weight:${mode==='branch'?700:500}">รายสาขา</button></div>`;
+    let inner;
+    if(mode==='branch'){
+      inner=BRANCHES.map((b,i)=>{const r=bar(moByB[i],targets[i]);if(!targets[i])return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span style="font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}</span><span style="color:var(--text3);font-size:11px">ไม่ได้ตั้งเป้า</span></div></div>`;return `<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px"><span style="font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}</span><span>฿${moByB[i].toLocaleString()} / ${targets[i].toLocaleString()} · <b style="color:${r.col}">${r.pct}%</b></span></div><div style="height:8px;background:var(--bg);border-radius:4px;overflow:hidden"><div style="height:100%;width:${r.pct}%;background:${r.col};border-radius:4px"></div></div></div>`;}).join('')+`<div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">รวม ฿${moSales.toLocaleString()} / เป้า ฿${totalTarget.toLocaleString()}</div>`;
+    } else {
+      const r=bar(moSales,totalTarget);
+      inner=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span style="font-family:var(--disp);font-weight:700;font-size:22px">฿${moSales.toLocaleString()}</span><span style="font-size:12px;color:var(--text3)">เป้า ฿${totalTarget.toLocaleString()} · <b style="color:${r.col}">${r.pct}%</b></span></div><div style="height:10px;background:var(--bg);border-radius:5px;overflow:hidden"><div style="height:100%;width:${r.pct}%;background:${r.col};border-radius:5px;transition:width .5s"></div></div><div style="font-size:11.5px;color:var(--text3);margin-top:8px">📊 คาดว่าสิ้นเดือนจะได้ ฿${r.proj.toLocaleString()} (${r.projPct}% ของเป้า)${r.projPct>=100?' ✅':''}</div>`;
+    }
     el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 17px;margin-bottom:1.25rem;box-shadow:var(--shadow)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;gap:8px;flex-wrap:wrap">
         <div style="font-size:13px;font-weight:700;color:var(--text2)">🎯 เป้ายอดขายเดือนนี้</div>
-        ${isAdmin?`<button onclick="setSalesTarget()" style="background:none;border:none;color:var(--green-d);font-size:11.5px;cursor:pointer;font-weight:600">แก้เป้า</button>`:''}
+        <div style="display:flex;gap:8px;align-items:center">${hasBranch?seg:''}${isAdmin?`<button onclick="setSalesTarget()" style="background:none;border:none;color:var(--green-d);font-size:11.5px;cursor:pointer;font-weight:600">แก้เป้า</button>`:''}</div>
       </div>
-      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
-        <span style="font-family:var(--disp);font-weight:700;font-size:22px">฿${moSales.toLocaleString()}</span>
-        <span style="font-size:12px;color:var(--text3)">เป้า ฿${target.toLocaleString()} · <b style="color:${col}">${pct}%</b></span>
-      </div>
-      <div style="height:10px;background:var(--bg);border-radius:5px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:5px;transition:width .5s"></div></div>
-      <div style="font-size:11.5px;color:var(--text3);margin-top:8px">📊 คาดว่าสิ้นเดือนจะได้ ฿${proj.toLocaleString()} (${projPct}% ของเป้า)${projPct>=100?' ✅':''}</div>
+      ${inner}
     </div>`;
   };
   window.setSalesTarget=function(){
     if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
-    const cur=+((appearanceCfg&&appearanceCfg.monthlyTarget))||0;
-    openModal(`<div class="modal-title">🎯 ตั้งเป้ายอดขายรายเดือน</div>
-      <div style="font-size:12.5px;color:var(--text3);margin-bottom:12px">ยอดขายรวมทุกสาขาที่ตั้งเป้าต่อเดือน (ใส่ 0 = ปิดเป้า)</div>
-      <div class="field"><label class="fl">เป้า (บาท/เดือน)</label><input type="number" id="tg-amt" inputmode="decimal" value="${cur||''}" placeholder="เช่น 1500000" style="font-size:20px;font-weight:600"></div>
+    const bt=(appearanceCfg&&appearanceCfg.branchTargets)||[];
+    const legacy=+((appearanceCfg&&appearanceCfg.monthlyTarget))||0;
+    const v=i=>(bt&&bt.length===3)?(bt[i]||''):(i===0?(legacy||''):'');
+    openModal(`<div class="modal-title">🎯 ตั้งเป้ายอดขายรายเดือน (แยกสาขา)</div>
+      <div style="font-size:12.5px;color:var(--text3);margin-bottom:12px">ตั้งเป้าต่อเดือนของแต่ละสาขา ระบบรวมเป็นเป้ารวมให้อัตโนมัติ (ใส่ 0 = ปิดเป้าสาขานั้น)</div>
+      ${BRANCHES.map((b,i)=>`<div class="field"><label class="fl"><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]};margin-right:6px"></span>${b}</label><input type="number" id="tg-${i}" inputmode="decimal" value="${v(i)}" placeholder="เช่น 500000" style="font-size:17px;font-weight:600"></div>`).join('')}
       <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveSalesTarget()">บันทึก</button></div>`);
-    setTimeout(()=>document.getElementById('tg-amt')?.focus(),100);
+    setTimeout(()=>document.getElementById('tg-0')?.focus(),100);
   };
   window.saveSalesTarget=async function(){
     if(!isAdmin)return;
-    const amt=parseFloat(document.getElementById('tg-amt').value)||0;
-    if(appearanceCfg)appearanceCfg.monthlyTarget=amt;
-    try{await setDoc(doc(db,'config','appearance'),appearanceCfg);closeMD();homeTargetCard();showToast(amt?'บันทึกเป้าแล้ว':'ปิดเป้าแล้ว');logActivity('sales_target','ตั้งเป้ายอดขาย ฿'+amt.toLocaleString());}catch(e){showToast('บันทึกไม่สำเร็จ','err');}
+    const arr=[0,1,2].map(i=>parseFloat(document.getElementById('tg-'+i)?.value)||0);
+    const total=arr.reduce((a,v)=>a+v,0);
+    if(appearanceCfg){appearanceCfg.branchTargets=arr;appearanceCfg.monthlyTarget=total;}
+    try{await setDoc(doc(db,'config','appearance'),appearanceCfg);closeMD();homeTargetCard();showToast(total?'บันทึกเป้าแล้ว':'ปิดเป้าแล้ว');logActivity('sales_target','ตั้งเป้ารายสาขา รวม ฿'+total.toLocaleString());}catch(e){showToast('บันทึกไม่สำเร็จ','err');}
   };
   if(_homeChartData&&window.Chart){drawHomeChart();}
   if(_homeChartData&&typeof homeBranchView==='function')homeBranchView('today');
