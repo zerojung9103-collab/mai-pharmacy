@@ -1551,9 +1551,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.33.0';
+const APP_VERSION='3.35.0';
 const CHANGELOG=[
-  {v:'3.33.0',date:'2026-06-27',changes:['หน้าหลัก (แอดมิน): ปุ่มลัดด้านบน (เงินสด/บันทึกยอด/เช็คอิน/จัดเวร) · กดการ์ดสถิติไปหน้าที่เกี่ยว · เพิ่มการ์ด “พนักงานทั้งหมด / ยังไม่เข้างาน”']},
+  {v:'3.35.0',date:'2026-06-27',changes:['กราฟหน้าหลัก: สลับชนิดกราฟ เส้น/แท่ง · เลือกช่วงวันเอง (จากวันที่…ถึงวันที่) นอกเหนือจาก 7/30 วัน']},
   {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
@@ -6374,7 +6374,27 @@ function renderHome(){
           <div style="font-family:var(--disp);font-weight:600;font-size:16px">ยอดขายรายสาขา</div>
           <div style="display:flex;gap:12px;font-size:11px;color:var(--text2)">${BRANCHES.map((b,i)=>`<span><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]};margin-right:4px;vertical-align:middle"></span>${b}</span>`).join('')}</div>
         </div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:12px">7 วันล่าสุด</div>
+        <div style="margin-bottom:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+            <span id="home-range-label" style="font-size:11px;color:var(--text3)">7 วันล่าสุด</span>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px">
+                <button class="home-type-btn" data-t="line" onclick="homeSetType('line')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:var(--green-l);color:var(--green-d);font-weight:700">📈 เส้น</button>
+                <button class="home-type-btn" data-t="bar" onclick="homeSetType('bar')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:transparent;color:var(--text3);font-weight:500">📊 แท่ง</button>
+              </div>
+              <div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px">
+                <button class="home-range-btn" data-r="7" onclick="homeSetRange(7)" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:var(--green-l);color:var(--green-d);font-weight:700">7 วัน</button>
+                <button class="home-range-btn" data-r="30" onclick="homeSetRange(30)" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:transparent;color:var(--text3);font-weight:500">30 วัน</button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:9px;flex-wrap:wrap">
+            <input type="date" id="home-from" style="padding:5px 9px;font-size:11.5px;width:auto">
+            <span style="font-size:11px;color:var(--text3)">ถึง</span>
+            <input type="date" id="home-to" style="padding:5px 9px;font-size:11.5px;width:auto">
+            <button class="btn btn-sm" onclick="homeApplyDateRange()" style="padding:5px 12px;font-size:11.5px">ดูช่วงนี้</button>
+          </div>
+        </div>
         <div style="position:relative;height:220px"><canvas id="home-chart"></canvas></div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)">
@@ -6403,17 +6423,41 @@ function renderHome(){
   if(typeof animateHomeStats==='function')animateHomeStats();
   if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderStaffStatus('home-staff-status');}
   if(typeof refreshTodoStatus==='function')refreshTodoStatus();
-  // init กราฟหน้าแรก
-  if(_homeChartData&&window.Chart){
+  // init กราฟหน้าแรก (สลับชนิด/ช่วงเวลา/ช่วงวันที่กำหนดเองได้)
+  window.drawHomeChart=function(){
     const cv=document.getElementById('home-chart');
-    if(cv){
-      if(window._homeChart){try{window._homeChart.destroy();}catch(e){}}
-      const rs=getComputedStyle(document.documentElement);
-      const grid=rs.getPropertyValue('--border').trim()||'#eee';
-      const tick=rs.getPropertyValue('--text3').trim()||'#999';
-      window._homeChart=new Chart(cv,{type:'line',data:{labels:_homeChartData.days,datasets:_homeChartData.series.map((d,i)=>({data:d,borderColor:BCOLORS[i],backgroundColor:BCOLORS[i]+'18',borderWidth:2.5,tension:.4,pointRadius:0,fill:true}))},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:grid},ticks:{color:tick,font:{size:10},callback:v=>'฿'+(v>=1000?(v/1000)+'k':v)},border:{display:false}},x:{grid:{display:false},ticks:{color:tick,font:{size:11}},border:{color:grid}}}}});
+    if(!cv||!window.Chart)return;
+    const type=window._homeChartType==='bar'?'bar':'line';
+    let days=[], labelText;
+    if(window._homeFrom&&window._homeTo){
+      let d=new Date(window._homeFrom), end=new Date(window._homeTo);
+      if(d>end){const t=new Date(d);d=new Date(end);end=t;}
+      let g=0;while(d<=end&&g<370){days.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1);g++;}
+      labelText=days.length+' วัน ('+window._homeFrom+' → '+window._homeTo+')';
+    } else {
+      const range=window._homeRange||7;
+      for(let i=range-1;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);days.push(x.toISOString().slice(0,10));}
+      labelText=range+' วันล่าสุด';
     }
-  }
+    const short=days.length<=7;
+    const lab=days.map(ds=>{const d=new Date(ds);return short?['อา','จ','อ','พ','พฤ','ศ','ส'][d.getDay()]:(d.getDate()+'/'+(d.getMonth()+1));});
+    const series=[0,1,2].map(b=>days.map(ds=>{const e=salesEntries.find(x=>x.date===ds&&x.branch===b);return e?(e.total||0):0;}));
+    if(window._homeChart){try{window._homeChart.destroy();}catch(e){}}
+    const rs=getComputedStyle(document.documentElement);
+    const grid=rs.getPropertyValue('--border').trim()||'#eee';
+    const tick=rs.getPropertyValue('--text3').trim()||'#999';
+    const datasets=series.map((d,i)=>type==='bar'
+      ?{label:BRANCHES[i],data:d,backgroundColor:BCOLORS[i],borderRadius:4,maxBarThickness:18}
+      :{label:BRANCHES[i],data:d,borderColor:BCOLORS[i],backgroundColor:BCOLORS[i]+'18',borderWidth:2.5,tension:.4,pointRadius:0,fill:true});
+    window._homeChart=new Chart(cv,{type,data:{labels:lab,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:grid},ticks:{color:tick,font:{size:10},callback:v=>'฿'+(v>=1000?(v/1000)+'k':v)},border:{display:false}},x:{grid:{display:false},ticks:{color:tick,font:{size:11},maxTicksLimit:short?7:10},border:{color:grid}}}}});
+    document.querySelectorAll('.home-range-btn').forEach(b=>{const on=!window._homeFrom&&+b.dataset.r===(window._homeRange||7);b.style.background=on?'var(--green-l)':'transparent';b.style.color=on?'var(--green-d)':'var(--text3)';b.style.fontWeight=on?'700':'500';});
+    document.querySelectorAll('.home-type-btn').forEach(b=>{const on=b.dataset.t===type;b.style.background=on?'var(--green-l)':'transparent';b.style.color=on?'var(--green-d)':'var(--text3)';b.style.fontWeight=on?'700':'500';});
+    const lbl=document.getElementById('home-range-label');if(lbl)lbl.textContent=labelText;
+  };
+  window.homeSetRange=function(n){window._homeRange=n;window._homeFrom=null;window._homeTo=null;drawHomeChart();};
+  window.homeSetType=function(t){window._homeChartType=t;drawHomeChart();};
+  window.homeApplyDateRange=function(){const f=document.getElementById('home-from')?.value,t=document.getElementById('home-to')?.value;if(!f||!t){showToast('เลือกวันที่เริ่มและสิ้นสุด','err');return;}window._homeFrom=f;window._homeTo=t;drawHomeChart();};
+  if(_homeChartData&&window.Chart){drawHomeChart();}
 }
 
 // ===== ผู้ช่วยส่วนตัว (แตะการ์ดทักทาย) — ตอบจากข้อมูลจริงในระบบ ไม่ใช่ AI ภายนอก =====
