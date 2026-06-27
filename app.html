@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -699,7 +699,8 @@ input,select,textarea{border-radius:14px}
   <div class="page" id="page-cash">
     <div class="topbar">
       <div><div class="page-title">เงินสด &amp; ตู้เซฟ</div><div class="page-sub">นับเงินสด เบิก-เติมเงินทอน แยกตามสาขา</div></div>
-      <select id="cash-branch" onchange="cashBranchChanged()" oninput="cashBranchChanged()" style="padding:8px 12px;border-radius:10px;border:1px solid var(--border2);font-family:var(--font);font-size:13px;background:var(--surface)"></select>
+      <input type="hidden" id="cash-branch" value="0">
+      <div id="cash-branch-seg" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     </div>
     <div id="cash-content"></div>
   </div>
@@ -843,6 +844,9 @@ input,select,textarea{border-radius:14px}
         <div id="ap-navorder-list" style="margin-bottom:1rem"></div>
         <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1rem 0 .5rem">ลำดับเมนูในหน้าแรก (ลากที่ไอคอน ⠿ เพื่อจัดเรียง)</div>
         <div id="ap-menuorder-list" style="margin-bottom:1rem;user-select:none"></div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1.25rem 0 .5rem;padding-top:1rem;border-top:1px dashed var(--border2)">✏️ เปลี่ยนชื่อเมนู</div>
+        <div style="font-size:11.5px;color:var(--text3);margin-bottom:.6rem">ตั้งชื่อเมนูเองได้ (เว้นว่าง = ใช้ชื่อเดิม)</div>
+        <div id="ap-menulabels-list" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:1rem"></div>
         <button class="btn btn-primary" onclick="saveAppearance()">บันทึกการปรับแต่ง</button>
         <button class="btn" style="margin-left:8px" onclick="resetAppearance()">↺ คืนค่าเริ่มต้น</button>
       </div>
@@ -1229,6 +1233,25 @@ input,select,textarea{border-radius:14px}
       <div><div class="page-title">ธีมของฉัน</div><div class="page-sub">ปรับแต่งการแสดงผลเฉพาะบัญชีของคุณ — ไม่กระทบคนอื่น</div></div>
     </div>
     <div style="max-width:560px">
+      <!-- Preset themes -->
+      <div class="card" style="margin-bottom:1rem">
+        <div style="font-weight:600;font-size:14px;margin-bottom:.4rem">✨ ธีมสำเร็จรูป</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">แตะเลือกชุดแต่งสำเร็จ แล้วปรับเพิ่มเองด้านล่างได้</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px" id="theme-preset-grid">
+          <button class="theme-preset-btn" onclick="applyThemePreset('mint')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
+            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#1FAE8B,#0E7E5C);flex-shrink:0"></span><span><b style="font-size:13px">มินต์หรู</b><br><span style="font-size:10.5px;color:var(--text3)">สว่าง · มีหัว · มน</span></span>
+          </button>
+          <button class="theme-preset-btn" onclick="applyThemePreset('cute')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
+            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#D06A86,#C96F4A);flex-shrink:0"></span><span><b style="font-size:13px">พีชน่ารัก</b><br><span style="font-size:10.5px;color:var(--text3)">สว่าง · กลม · มนมาก</span></span>
+          </button>
+          <button class="theme-preset-btn" onclick="applyThemePreset('modern')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
+            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#3A6EA5,#5A5BB8);flex-shrink:0"></span><span><b style="font-size:13px">ฟ้าโมเดิร์น</b><br><span style="font-size:10.5px;color:var(--text3)">สว่าง · เรียบ · เหลี่ยม</span></span>
+          </button>
+          <button class="theme-preset-btn" onclick="applyThemePreset('dark')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
+            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#2FE0A4,#10302A);flex-shrink:0"></span><span><b style="font-size:13px">ดาร์กมินต์</b><br><span style="font-size:10.5px;color:var(--text3)">มืด · เรียบ · ปกติ</span></span>
+          </button>
+        </div>
+      </div>
       <!-- Mode -->
       <div class="card" style="margin-bottom:1rem">
         <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">🌓 โหมดแสดงผล</div>
@@ -1297,7 +1320,32 @@ input,select,textarea{border-radius:14px}
           </div>
         </div>
       </div>
-      <button class="btn btn-primary" style="width:100%" onclick="saveUserTheme()">บันทึกธีม</button>
+      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">⬜ ความมนของมุม</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-radius-grid">
+        <div class="theme-mode-btn" data-radius="sharp" onclick="selectThemeRadius('sharp')"><div style="width:22px;height:22px;border-radius:4px;background:var(--green);margin:0 auto"></div><div style="font-size:12px;margin-top:6px">เหลี่ยม</div></div>
+        <div class="theme-mode-btn active" data-radius="normal" onclick="selectThemeRadius('normal')"><div style="width:22px;height:22px;border-radius:8px;background:var(--green);margin:0 auto"></div><div style="font-size:12px;margin-top:6px">ปกติ</div></div>
+        <div class="theme-mode-btn" data-radius="round" onclick="selectThemeRadius('round')"><div style="width:22px;height:22px;border-radius:11px;background:var(--green);margin:0 auto"></div><div style="font-size:12px;margin-top:6px">มนมาก</div></div>
+      </div>
+      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">🔤 ฟอนต์หัวข้อ</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-font-grid">
+        <div class="theme-mode-btn active" data-font="serif" onclick="selectThemeFont('serif')"><div style="font-family:'Noto Serif Thai',serif;font-size:18px">กก</div><div style="font-size:11px;margin-top:4px">มีหัว (หรู)</div></div>
+        <div class="theme-mode-btn" data-font="rounded" onclick="selectThemeFont('rounded')"><div style="font-family:'Itim',cursive;font-size:18px">กก</div><div style="font-size:11px;margin-top:4px">กลม (น่ารัก)</div></div>
+        <div class="theme-mode-btn" data-font="sans" onclick="selectThemeFont('sans')"><div style="font-family:'IBM Plex Sans Thai',sans-serif;font-weight:700;font-size:18px">กก</div><div style="font-size:11px;margin-top:4px">เรียบ (โมเดิร์น)</div></div>
+      </div>
+      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">🎨 โทนพื้นหลัง</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="theme-bg-grid">
+        <div class="theme-mode-btn active" data-bg="auto" onclick="selectThemeBg('auto')"><div style="width:22px;height:22px;border-radius:6px;background:var(--green-l);margin:0 auto"></div><div style="font-size:11px;margin-top:5px">ตามสี</div></div>
+        <div class="theme-mode-btn" data-bg="cream" onclick="selectThemeBg('cream')"><div style="width:22px;height:22px;border-radius:6px;background:#FAF6F1;border:1px solid #E3DACE;margin:0 auto"></div><div style="font-size:11px;margin-top:5px">ครีม</div></div>
+        <div class="theme-mode-btn" data-bg="white" onclick="selectThemeBg('white')"><div style="width:22px;height:22px;border-radius:6px;background:#fff;border:1px solid #ddd;margin:0 auto"></div><div style="font-size:11px;margin-top:5px">ขาว</div></div>
+        <div class="theme-mode-btn" data-bg="gray" onclick="selectThemeBg('gray')"><div style="width:22px;height:22px;border-radius:6px;background:#EEF0F2;border:1px solid #d8dbe0;margin:0 auto"></div><div style="font-size:11px;margin-top:5px">เทา</div></div>
+      </div>
+      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">📝 ฟอนต์เนื้อหา</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-bodyfont-grid">
+        <div class="theme-mode-btn active" data-bodyfont="plex" onclick="selectThemeBodyFont('plex')"><div style="font-family:'IBM Plex Sans Thai',sans-serif;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">มาตรฐาน</div></div>
+        <div class="theme-mode-btn" data-bodyfont="noto" onclick="selectThemeBodyFont('noto')"><div style="font-family:'Noto Sans Thai',sans-serif;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">โน้ต</div></div>
+        <div class="theme-mode-btn" data-bodyfont="rounded" onclick="selectThemeBodyFont('rounded')"><div style="font-family:'Itim',cursive;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">กลม</div></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:1.25rem" onclick="saveUserTheme()">บันทึกธีม</button>
       <button class="btn" style="width:100%;margin-top:8px" onclick="resetUserTheme()">↺ คืนค่าเริ่มต้น</button>
     </div>
   </div>
@@ -1431,8 +1479,11 @@ function applyUserThemeCfg(cfg){
   // ===== พื้นหลังตามธีม: โทนสีอ่อนมากของ accent (เฉพาะโหมดสว่าง) =====
   if(isDark){root.removeProperty('--bg');root.removeProperty('--surface');}
   else{
-    root.setProperty('--bg',shadeColor(accent,93));      // พื้นหลังนวลโทนสีจาง
-    root.setProperty('--surface',shadeColor(accent,98));  // การ์ด/พื้นขาวอมสีนิดๆ
+    const tone=cfg.bgTone||'auto';
+    if(tone==='white'){root.setProperty('--bg','#F4F5F6');root.setProperty('--surface','#FFFFFF');}
+    else if(tone==='cream'){root.setProperty('--bg','#FAF6F1');root.setProperty('--surface','#FFFDFA');}
+    else if(tone==='gray'){root.setProperty('--bg','#EEF0F2');root.setProperty('--surface','#FBFBFC');}
+    else{root.setProperty('--bg',shadeColor(accent,93));root.setProperty('--surface',shadeColor(accent,98));}
   }
   // ===== ตกแต่งตามธีม: แถบข้าง/หัวมือถือ/พื้นหลังนวล ใช้สีจาก accent =====
   root.setProperty('--sidebar-grad',`linear-gradient(180deg,${shadeColor(accent,-42)},${shadeColor(accent,-60)})`);
@@ -1444,6 +1495,24 @@ function applyUserThemeCfg(cfg){
   const mainEl=document.querySelector('.main');
   const sizeMap={compact:'.9',normal:'1',large:'1.12'};
   if(mainEl)mainEl.style.zoom=sizeMap[cfg.size||'normal']||'1';
+  // ===== ความมนของมุม (radius) =====
+  const radMap={sharp:['8px','11px'],normal:['18px','22px'],round:['26px','32px']};
+  const rad=radMap[cfg.radius||'normal']||radMap.normal;
+  root.setProperty('--r',rad[0]); root.setProperty('--rl',rad[1]);
+  // ===== ฟอนต์หัวข้อ (heading) =====
+  const fontMap={
+    serif:"'Noto Serif Thai',serif",
+    rounded:"'Itim','IBM Plex Sans Thai',cursive",
+    sans:"'IBM Plex Sans Thai','Noto Sans Thai',sans-serif"
+  };
+  root.setProperty('--disp',fontMap[cfg.headFont||'serif']||fontMap.serif);
+  // ===== ฟอนต์เนื้อหา (body) =====
+  const bodyMap={
+    plex:"'IBM Plex Sans Thai','Noto Sans Thai',sans-serif",
+    noto:"'Noto Sans Thai',sans-serif",
+    rounded:"'Itim','IBM Plex Sans Thai',sans-serif"
+  };
+  root.setProperty('--font',bodyMap[cfg.bodyFont||'plex']||bodyMap.plex);
 }
 // listen for system dark mode change
 _systemDarkMQ.addEventListener('change',()=>{
@@ -1466,9 +1535,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.18.0';
+const APP_VERSION='3.27.1';
 const CHANGELOG=[
-  {v:'3.18.0',date:'2026-06-26',changes:['เพิ่มผังองค์กร (Organization Chart) — ปุ่ม “🏢 ผังองค์กร” ในหน้าจัดการสมาชิก — วาดสายบังคับบัญชาจาก “รายงานต่อ” · มีรูป/ตำแหน่ง/สาขา · แตะการ์ดไปแก้ข้อมูลคนนั้น']},
+  {v:'3.27.1',date:'2026-06-27',changes:['เงินสด: สิทธิ์ยกเลิกรายการ — พนักงานแก้ของตัวเองได้ภาย๑๓5 นาที · เกินนั้นต้องแจ้งแอดมินให้ยกเลิกให้ (แอดมินยกเลิกได้ตลอด)']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
   {v:'3.4.0',date:'2026-06-25',changes:['ฉลากยาต่างชาติ — เลิกใช้ปุ่ม “⚡ Live” ที่สับสน: พรีวิวอัปเดตสดทุกครั้งที่พิมพ์ (ไม่เด้งจัดตำแหน่งเองระหว่างพิมพ์อีกแล้ว) · กด “✨ จัดให้พอดี” เมื่ออยากจัดขนาด/ตำแหน่งอัตโนมัติ · ระยะห่างสม่ำเสมอขึ้น']},
@@ -1774,6 +1843,12 @@ function applyAppearanceConfig(cfg){
     if(mTitle)mTitle.textContent=`${cfg.logoEmoji||APPEARANCE_DEFAULT.logoEmoji} ${cfg.shopName||APPEARANCE_DEFAULT.shopName}`;
   }
   document.title=`${cfg.shopName||APPEARANCE_DEFAULT.shopName} — ระบบหลัก`;
+  // ===== ชื่อเมนูที่ admin ตั้งเอง =====
+  const ml=cfg.menuLabels||{};
+  FEATURE_DEFS.forEach(f=>{
+    if(f._defLabel===undefined)f._defLabel=f.label;
+    f.label=(ml[f.page]&&ml[f.page].trim())?ml[f.page].trim():f._defLabel;
+  });
 }
 async function loadAppearanceConfig(){
   try{
@@ -1795,6 +1870,12 @@ function renderAppearanceSettings(){
   document.getElementById('ap-emoji').value=appearanceCfg.logoEmoji||'';
   
   document.getElementById('ap-size').value=appearanceCfg.size||'normal';
+  // ช่องเปลี่ยนชื่อเมนู
+  const mlEl=document.getElementById('ap-menulabels-list');
+  if(mlEl){
+    const ml=appearanceCfg.menuLabels||{};
+    mlEl.innerHTML=FEATURE_DEFS.map(f=>`<div style="display:flex;align-items:center;gap:6px"><span style="font-size:15px;flex-shrink:0">${f.icon}</span><input type="text" data-page="${f.page}" value="${(ml[f.page]||'').replace(/"/g,'&quot;')}" placeholder="${f._defLabel||f.label}" style="flex:1;min-width:0;font-size:12px;padding:5px 8px"></div>`).join('');
+  }
   renderLogoPreview();
   renderNavOrderList();
   renderMenuOrderList(currentMenuOrder());
@@ -1931,10 +2012,16 @@ window.saveAppearance=async function(){
     
     size:document.getElementById('ap-size').value,
   };
+  // เก็บชื่อเมนูที่ตั้งเอง
+  const ml={};
+  document.querySelectorAll('#ap-menulabels-list input[data-page]').forEach(inp=>{const v=inp.value.trim();if(v)ml[inp.dataset.page]=v;});
+  appearanceCfg.menuLabels=ml;
   try{
     await setDoc(doc(db,'config','appearance'),appearanceCfg);
     applyAppearanceConfig(appearanceCfg);
+    if(typeof buildNav==='function')buildNav();
     buildBottomNav();
+    if(document.getElementById('page-home')?.classList.contains('active')&&typeof renderHome==='function')renderHome();
     showToast('บันทึกการปรับแต่งแล้ว — ทุกคนจะเห็นเมื่อรีเฟรช');
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
 };
@@ -2196,6 +2283,24 @@ function startScheduleLive(){
       if(document.getElementById('page-schedule')?.classList.contains('active')&&typeof scRender==='function')scRender();
     });
   }catch(e){console.error('schedule live error',e);}
+}
+// ===== ฟังเงินสดแบบเรียลไทม์ — auto refresh ทุก action / ทุกเครื่อง =====
+let _cashLiveUnsub=[];
+function startCashLive(){
+  if(_cashLiveUnsub.length)return;
+  const reload=async()=>{
+    try{
+      const stSnap=await getDocs(collection(db,'cashState'));
+      cashState={};stSnap.docs.forEach(d=>{cashState[d.id]=d.data();});
+      const evSnap=await getDocs(query(collection(db,'cashEvents'),orderBy('ts','desc')));
+      cashEvents=evSnap.docs.map(d=>({id:d.id,...d.data()}));
+      if(document.getElementById('page-cash')?.classList.contains('active')&&typeof renderCashPage==='function')renderCashPage();
+    }catch(e){}
+  };
+  try{
+    _cashLiveUnsub.push(onSnapshot(collection(db,'cashState'),()=>reload()));
+    _cashLiveUnsub.push(onSnapshot(collection(db,'cashEvents'),()=>reload()));
+  }catch(e){console.error('cash live error',e);}
 }
 
 // ===== STATE =====
@@ -2487,6 +2592,32 @@ function canAccessPage(page){
 }
 
 // ===== NAV =====
+// ===== Realtime ทั้งระบบ — ฟังทุก collection หลัก แล้วรีเฟรชหน้าที่เปิดอยู่อัตโนมัติ =====
+let _rtAll=[], _rtBusy=null;
+function refreshActivePage(){
+  const p=currentPage;
+  if(p==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
+  else if(p==='dashboard'){dbRender();loadSalesFromCloud();}
+  else if(p==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
+  else if(p==='members')loadMembers();
+  else if(p==='payroll')loadPayroll();
+  else if(p==='my-payroll')loadMyPayroll();
+  else if(p==='checkin-history')loadCheckinHistory();
+  else if(p==='leave')loadMyLeaves();
+  else if(p==='leave-admin')loadLeaveAdmin();
+  else if(p==='activity')loadActivityLog();
+  else if(p==='checkin')renderCheckinPage();
+  else if(p==='todo')loadTodoPage();
+  else if(p==='articles')loadArticles();
+  else if(p==='drugwarn')loadDrugWarnings();
+}
+function startRealtimeAll(){
+  if(_rtAll.length||!currentUser)return;
+  const ping=()=>{clearTimeout(_rtBusy);_rtBusy=setTimeout(()=>{try{refreshActivePage();}catch(e){}},250);};
+  ['sales','members','checkins','leaves','payroll','activity','todos','drugWarnings','articles','config'].forEach(c=>{
+    try{_rtAll.push(onSnapshot(collection(db,c),()=>ping()));}catch(e){}
+  });
+}
 window.goto=function(page){
   if(!canAccessPage(page)){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -2523,7 +2654,8 @@ window.goto=function(page){
   if(page==='dashboard'){dbRender();loadSalesFromCloud();}
   if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
-  if(page==='cash')loadCashPage();
+  if(page==='cash'){startCashLive();loadCashPage();}
+  startRealtimeAll();
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
@@ -2549,7 +2681,44 @@ function renderThemePage(){
   selectThemeMode(userThemeCfg.mode||'light');
   selectAccentUI(userThemeCfg.accent||'#16B981');
   selectThemeSize(userThemeCfg.size||'normal');
+  selectThemeRadius(userThemeCfg.radius||'normal');
+  selectThemeFont(userThemeCfg.headFont||'serif');
+  selectThemeBg(userThemeCfg.bgTone||'auto');
+  selectThemeBodyFont(userThemeCfg.bodyFont||'plex');
 }
+window.selectThemeBodyFont=function(f){
+  userThemeCfg.bodyFont=f;
+  document.querySelectorAll('#theme-bodyfont-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.bodyfont===f));
+  applyUserThemeCfg(userThemeCfg);
+};
+window.selectThemeBg=function(bg){
+  userThemeCfg.bgTone=bg;
+  document.querySelectorAll('#theme-bg-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.bg===bg));
+  applyUserThemeCfg(userThemeCfg);
+};
+window.selectThemeRadius=function(radius){
+  userThemeCfg.radius=radius;
+  document.querySelectorAll('#theme-radius-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.radius===radius));
+  applyUserThemeCfg(userThemeCfg);
+};
+window.selectThemeFont=function(font){
+  userThemeCfg.headFont=font;
+  document.querySelectorAll('#theme-font-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.font===font));
+  applyUserThemeCfg(userThemeCfg);
+};
+window.applyThemePreset=function(name){
+  const presets={
+    mint:{mode:'light',accent:'#1FAE8B',size:'normal',radius:'round',headFont:'serif',bgTone:'auto'},
+    cute:{mode:'light',accent:'#D06A86',size:'normal',radius:'round',headFont:'rounded',bgTone:'cream'},
+    modern:{mode:'light',accent:'#3A6EA5',size:'normal',radius:'sharp',headFont:'sans',bgTone:'white'},
+    dark:{mode:'dark',accent:'#2FE0A4',size:'normal',radius:'normal',headFont:'sans',bgTone:'auto'}
+  };
+  const p=presets[name];if(!p)return;
+  userThemeCfg={...userThemeCfg,...p};
+  renderThemePage();
+  applyUserThemeCfg(userThemeCfg);
+  showToast('ใช้ธีมสำเร็จรูปแล้ว · กด “บันทึกธีม” เพื่อจำไว้');
+};
 window.selectThemeMode=function(mode){
   userThemeCfg.mode=mode;
   document.querySelectorAll('#theme-mode-grid .theme-mode-btn').forEach(b=>
@@ -3967,11 +4136,27 @@ let cashState={};   // {branch:{reserve,drawer,safe,openDrawer,openDate,openBy}}
 let cashEvents=[];  // ใหม่สุดก่อน
 
 async function loadCashPage(){
-  const sel=document.getElementById('cash-branch');
-  if(sel&&!sel.options.length){sel.innerHTML=BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('');}
+  renderCashBranchSeg();
   await loadCashData();
   renderCashPage();
 }
+function renderCashBranchSeg(){
+  const seg=document.getElementById('cash-branch-seg');
+  if(!seg)return;
+  const cur=parseInt(document.getElementById('cash-branch')?.value||'0');
+  seg.innerHTML=BRANCHES.map((b,i)=>{
+    const on=i===cur;
+    return `<button onclick="cashSetBranch(${i})" style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:11px;border:1.5px solid ${on?BCOLORS[i]:'var(--border2)'};background:${on?BCOLORS[i]:'var(--surface)'};color:${on?'#fff':'var(--text2)'};font-family:var(--font);font-size:13px;font-weight:${on?'700':'500'};cursor:pointer;transition:.12s;box-shadow:${on?'0 4px 12px '+BCOLORS[i]+'55':'none'}">
+      <span style="width:9px;height:9px;border-radius:50%;background:${on?'#fff':BCOLORS[i]}"></span>${b}
+    </button>`;
+  }).join('');
+}
+window.cashSetBranch=function(i){
+  const inp=document.getElementById('cash-branch');
+  if(inp)inp.value=String(i);
+  renderCashBranchSeg();
+  cashBranchChanged();
+};
 async function loadCashData(){
   try{
     const stSnap=await getDocs(collection(db,'cashState'));
@@ -3985,7 +4170,7 @@ function cashGet(b){const s=cashState[String(b)]||{};return{reserve:+s.reserve||
 function cashSalesToday(b){const e=salesEntries.find(x=>x.date===todayStr()&&x.branch===b);return e?(parseFloat(e.amounts&&e.amounts['เงินสด'])||0):0;}
 function cashSumToday(b,type){return cashEvents.filter(ev=>ev.branch===b&&ev.date===todayStr()&&ev.type===type).reduce((a,ev)=>a+(ev.amount||0),0);}
 function cashOpenedToday(b){return cashGet(b).openDate===todayStr();}
-function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===todayStr()?(st.openDrawer||0):0;return open+cashSumToday(b,'r2d')+cashSalesToday(b);}
+function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===todayStr()?(st.openDrawer||0):0;return open+cashSumToday(b,'r2d')+cashSalesToday(b)-cashSumToday(b,'deposit');}
 function cashTodayClose(b){return cashEvents.find(ev=>ev.branch===b&&ev.date===todayStr()&&ev.type==='close');}
 async function cashSaveState(branch,patch){
   const cur=cashState[String(branch)]||{};
@@ -4022,7 +4207,7 @@ const CASH_TYPES={
   deposit:{t:'ดึงเข้าตู้เซฟ',i:'🔒',c:'#1E3A8A'},
   safeout:{t:'นำออกจากตู้เซฟ',i:'🏦',c:'#C2410C'},
 };
-function cashEventRow(ev){
+function cashEventRow(ev,voidable){
   const meta=CASH_TYPES[ev.type]||{t:ev.type,i:'•',c:'var(--text2)'};
   const d=new Date(ev.ts||Date.now());
   const dStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
@@ -4034,14 +4219,44 @@ function cashEventRow(ev){
     right=`<span style="color:${dc};font-weight:700">${dt}</span>`;
   }
   const review=(ev.type==='close')?(ev.reviewed?`<div style="font-size:10.5px;color:#0F8A63;margin-top:2px">✔ ตรวจแล้ว · ${ev.reviewedBy||''}</div>`:(isAdmin?`<button class="btn btn-sm" style="padding:2px 9px;font-size:11px;margin-top:4px" onclick="cashMarkReviewed('${ev.id}')">✔ ตรวจแล้ว</button>`:'')):'';
+  const _mins=(Date.now()-(ev.ts||0))/60000;
+  const _selfWindow=(ev.byUid===currentUser?.uid)&&_mins<5;
+  const _canUndo=voidable&&(isAdmin||_selfWindow);
+  const _needAdmin=voidable&&!isAdmin&&!_selfWindow&&ev.byUid===currentUser?.uid;
+  const undo=_canUndo?`<button class="btn btn-sm" style="padding:2px 9px;font-size:11px;margin-top:4px;color:var(--rose-d);border-color:var(--rose-l)" onclick="cashVoidEvent('${ev.id}')">↩ ยกเลิกรายการนี้${(!isAdmin&&_selfWindow)?` (ภายใน ${Math.max(1,Math.ceil(5-_mins))} นาที)`:''}</button>`:(_needAdmin?`<div style="font-size:10.5px;color:var(--amber-t);margin-top:3px">⚠️ เกิน 5 นาทีแล้ว — แจ้งแอดมินให้ยกเลิกให้</div>`:'');
   return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
     <div style="display:flex;align-items:flex-start;gap:10px;min-width:0">
       <span style="width:30px;height:30px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${meta.i}</span>
-      <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:${meta.c}">${meta.t}</div><div style="font-size:11px;color:var(--text3)">${ev.by} · ${dStr}</div>${review}</div>
+      <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:${meta.c}">${meta.t}</div><div style="font-size:11px;color:var(--text3)">${ev.by} · ${dStr}</div>${review}${undo}</div>
     </div>
     <div style="text-align:right;white-space:nowrap;font-size:13.5px;font-weight:600;font-family:var(--mono)">${right}</div>
   </div>`;
 }
+// ยกเลิกรายการเงินสด (admin) — ย้อนผลกระทบต่อยอดแล้วลบรายการ (เฉพาะรายการล่าสุดของสาขา/วัน)
+window.cashVoidEvent=async function(evId){
+  const ev=cashEvents.find(e=>e.id===evId);if(!ev)return;
+  const _mins=(Date.now()-(ev.ts||0))/60000;
+  const _selfWindow=(ev.byUid===currentUser?.uid)&&_mins<5;
+  if(!isAdmin&&!_selfWindow){showToast('เกิน 5 นาที — แจ้งแอดมินให้ยกเลิกรายการนี้','err');return;}
+  const b=ev.branch, st=cashGet(b), amt=ev.amount||0;
+  const names={open:'เปิดร้าน',r2d:'เบิกสำรอง→ลิ้นชัก',topup:'เติมสำรอง',close:'ปิดร้าน',deposit:'ดึงเข้าตู้เซฟ',safeout:'นำออกตู้เซฟ'};
+  if(!await capsuleConfirm(`ยกเลิกรายการ “${names[ev.type]||ev.type}” ฿${fmt(amt)}?\nระบบจะย้อนยอดเงินกลับ และลบรายการนี้`))return;
+  let patch={};
+  if(ev.type==='r2d')patch={reserve:st.reserve+amt,drawer:st.drawer-amt};
+  else if(ev.type==='topup')patch={reserve:st.reserve-amt};
+  else if(ev.type==='deposit')patch={drawer:st.drawer+amt,safe:st.safe-amt};
+  else if(ev.type==='safeout')patch={safe:st.safe+amt};
+  else if(ev.type==='open')patch={drawer:0,openDrawer:null,openDate:null,openBy:''};
+  else if(ev.type==='close')patch={}; // close แค่บันทึกผล — ลบ event ให้ปิดใหม่ได้ ไม่แตะยอด
+  try{
+    if(Object.keys(patch).length)await cashSaveState(b,patch);
+    await deleteDoc(doc(db,'cashEvents',evId));
+    cashEvents=cashEvents.filter(e=>e.id!==evId);
+    renderCashPage();
+    showToast('ยกเลิกรายการแล้ว · ย้อนยอดเรียบร้อย');
+    logActivity('cash_void',`ยกเลิก ${names[ev.type]||ev.type} ${BRANCHES[b]} ฿${fmt(amt)}`);
+  }catch(e){showToast('ยกเลิกไม่สำเร็จ','err');console.error(e);}
+};
 
 function renderCashPage(){
   const el=document.getElementById('cash-content');
@@ -4053,6 +4268,9 @@ function renderCashPage(){
   const cashSales=cashSalesToday(branch);
   const r2dT=cashSumToday(branch,'r2d');
   const depT=cashSumToday(branch,'deposit');
+  // ยอดดึงเข้าตู้เซฟ "ก่อนปิดร้าน" — ใช้คิดยอดควรมี (ถ้าปิดแล้ว นับเฉพาะที่เกิดก่อน event ปิด)
+  const _closeEv0=cashTodayClose(branch);
+  const depBeforeClose=cashEvents.filter(ev=>ev.branch===branch&&ev.date===todayStr()&&ev.type==='deposit'&&(!_closeEv0||ev.ts<_closeEv0.ts)).reduce((a,ev)=>a+(ev.amount||0),0);
   const expClose=cashExpectedClose(branch);
 
   // 3 กล่องยอด
@@ -4084,7 +4302,8 @@ function renderCashPage(){
     ${cashRow('เงินต้นลิ้นชัก (เปิดร้าน)',opened?`฿${fmt(st.openDrawer||0)}`:'— ยังไม่เปิด')}
     ${cashRow('+ เบิกจากสำรอง',`฿${fmt(r2dT)}`)}
     ${cashRow('+ ยอดขายเงินสดวันนี้',`฿${fmt(cashSales)}`,'จากระบบยอดขาย')}
-    ${cashRow('= ควรมีตอนปิดร้าน',`฿${fmt(expClose)}`,'',true)}`;
+    ${depT>0?cashRow('− ดึงเข้าตู้เซฟ (ก่อนปิด)',`฿${fmt(depBeforeClose)}`):''}
+    ${cashRow('= ควรมีตอนปิดร้าน',`฿${fmt(closeEv?(closeEv.expected||0):expClose)}`,'',true)}`;
   if(closeEv){
     const diff=closeEv.diff||0;
     const dc=diff===0?'#0F8A63':(diff>0?'#1E3A8A':'#C2410C');
@@ -4109,7 +4328,7 @@ function renderCashPage(){
   const evs=cashEvents.filter(e=>e.branch===branch).slice(0,14);
   html+=`<div class="card" style="margin-bottom:1.1rem"><div style="font-family:var(--disp);font-weight:600;font-size:15px;margin-bottom:8px">📜 ประวัติล่าสุด</div>`;
   if(!evs.length)html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem 0">ยังไม่มีรายการ</div>`;
-  else evs.forEach(ev=>{html+=cashEventRow(ev);});
+  else evs.forEach((ev,i)=>{html+=cashEventRow(ev,i===0);});
   html+=`</div>`;
 
   // ตรวจเงิน (ผู้ดูแล) — ทุกสาขา
@@ -4812,39 +5031,68 @@ window.removeMemberPhoto=async function(uid){
     viewMember(uid);showToast('ลบรูปแล้ว');
   }catch(e){showToast('ลบไม่สำเร็จ','err');}
 };
-// ===== ผังองค์กร (Organization Chart) จาก reportsTo =====
+// ===== ผังองค์กร (Organization Chart) จาก reportsTo + ปรับแต่งสไตล์ได้ =====
+let orgStyle=JSON.parse(localStorage.getItem('nm_orgStyle')||'{"accent":"theme","layout":"vertical","density":"normal","photo":true,"branch":true}');
+function orgAccent(m){
+  if(orgStyle.accent==='role')return m.role==='admin'?'var(--purple-t)':(m.branch!=null?BCOLORS[m.branch]:'var(--text3)');
+  if(orgStyle.accent==='branch')return m.branch!=null?BCOLORS[m.branch]:'var(--text3)';
+  if(orgStyle.accent==='mono')return 'var(--border2)';
+  return 'var(--green)'; // theme
+}
 function orgNodeHtml(m){
   const name=`${m.firstName||''} ${m.lastName||''}`.trim()||m.email||'?';
-  const av=m.photoUrl?`background:#eee url('${m.photoUrl}') center/cover`:`background:var(--green-l);color:var(--green-dd)`;
-  const roleColor=m.role==='admin'?'var(--purple-t)':(m.branch!=null?BCOLORS[m.branch]:'var(--text3)');
-  return `<div onclick="closeMD();setTimeout(()=>viewMember('${m.uid}'),50)" style="display:inline-flex;flex-direction:column;align-items:center;gap:6px;background:var(--surface);border:1.5px solid ${roleColor};border-radius:14px;padding:12px 16px;cursor:pointer;min-width:110px;box-shadow:var(--shadow)">
-    <div style="width:46px;height:46px;border-radius:50%;${av};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;overflow:hidden">${m.photoUrl?'':name.charAt(0)}</div>
-    <div style="font-size:12.5px;font-weight:600;text-align:center;line-height:1.2;white-space:nowrap">${name}</div>
-    <div style="font-size:10.5px;color:var(--text3);text-align:center">${m.position||(m.role==='admin'?'ผู้ดูแล':'พนักงาน')}</div>
-    ${m.branch!=null?`<span style="font-size:9.5px;padding:1px 7px;border-radius:10px;background:${BCOLORS[m.branch]}1a;color:${BCOLORS[m.branch]};font-weight:600">${BRANCHES[m.branch]}</span>`:''}
+  const compact=orgStyle.density==='compact';
+  const showPhoto=orgStyle.photo, showBranch=orgStyle.branch;
+  const av=(m.photoUrl&&showPhoto)?`background:#eee url('${m.photoUrl}') center/cover`:`background:var(--green-l);color:var(--green-dd)`;
+  const ac=orgAccent(m);
+  const avSz=compact?34:46;
+  return `<div onclick="closeMD();setTimeout(()=>viewMember('${m.uid}'),50)" style="display:inline-flex;flex-direction:column;align-items:center;gap:${compact?4:6}px;background:var(--surface);border:1.5px solid ${ac};border-radius:14px;padding:${compact?'8px 12px':'12px 16px'};cursor:pointer;min-width:${compact?90:110}px;box-shadow:var(--shadow)">
+    ${showPhoto?`<div style="width:${avSz}px;height:${avSz}px;border-radius:50%;${av};display:flex;align-items:center;justify-content:center;font-size:${compact?14:18}px;font-weight:700;overflow:hidden">${m.photoUrl?'':name.charAt(0)}</div>`:''}
+    <div style="font-size:${compact?11.5:12.5}px;font-weight:600;text-align:center;line-height:1.2;white-space:nowrap">${name}</div>
+    <div style="font-size:${compact?9.5:10.5}px;color:var(--text3);text-align:center">${m.position||(m.role==='admin'?'ผู้ดูแล':'พนักงาน')}</div>
+    ${(showBranch&&m.branch!=null)?`<span style="font-size:9.5px;padding:1px 7px;border-radius:10px;background:${BCOLORS[m.branch]}1a;color:${BCOLORS[m.branch]};font-weight:600">${BRANCHES[m.branch]}</span>`:''}
   </div>`;
 }
 function orgSubtree(parentUid,all,depth){
   if(depth>6)return '';
   const kids=all.filter(m=>(m.reportsTo||'')===parentUid);
   if(!kids.length)return '';
+  const horiz=orgStyle.layout==='horizontal';
+  if(horiz){
+    return `<div style="display:flex;flex-direction:column;gap:10px;padding-left:24px;border-left:2px solid var(--border);margin-left:10px;margin-top:8px">
+      ${kids.map(k=>`<div>${orgNodeHtml(k)}${orgSubtree(k.uid,all,depth+1)}</div>`).join('')}
+    </div>`;
+  }
   return `<div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;position:relative;padding-top:14px">
     ${kids.map(k=>`<div style="display:flex;flex-direction:column;align-items:center">${orgNodeHtml(k)}${orgSubtree(k.uid,all,depth+1)}</div>`).join('')}
   </div>`;
 }
+window.setOrgStyle=function(key,val){orgStyle[key]=val;localStorage.setItem('nm_orgStyle',JSON.stringify(orgStyle));showOrgChart();};
 window.showOrgChart=function(){
   if(!isAdmin&&!hasPerm('members')){showToast('เฉพาะผู้ดูแล','err');return;}
   const all=allMembers.filter(m=>m.status==='active');
   if(!all.length){showToast('ยังไม่มีสมาชิก','err');return;}
-  // ราก = คนที่ไม่มีหัวหน้า (reportsTo ว่าง) หรือหัวหน้าไม่อยู่ในระบบ
   const ids=new Set(all.map(m=>m.uid));
   const roots=all.filter(m=>!m.reportsTo||!ids.has(m.reportsTo));
-  const tree=roots.map(r=>`<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px">${orgNodeHtml(r)}${orgSubtree(r.uid,all,0)}</div>`).join('');
+  const horiz=orgStyle.layout==='horizontal';
+  const tree=roots.map(r=>horiz
+    ?`<div style="margin-bottom:14px">${orgNodeHtml(r)}${orgSubtree(r.uid,all,0)}</div>`
+    :`<div style="display:flex;flex-direction:column;align-items:center;margin-bottom:10px">${orgNodeHtml(r)}${orgSubtree(r.uid,all,0)}</div>`).join('');
   const noBoss=roots.length===all.length;
+  const seg=(key,opts)=>`<div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px">${opts.map(([v,lbl])=>`<button onclick="setOrgStyle('${key}','${v}')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:${orgStyle[key]===v?'var(--surface)':'transparent'};color:${orgStyle[key]===v?'var(--green-d)':'var(--text3)'};font-weight:${orgStyle[key]===v?'700':'500'};box-shadow:${orgStyle[key]===v?'0 1px 3px rgba(0,0,0,.08)':'none'}">${lbl}</button>`).join('')}</div>`;
+  const tog=(key,lbl)=>`<button onclick="setOrgStyle('${key}',${!orgStyle[key]})" style="border:1px solid ${orgStyle[key]?'var(--green)':'var(--border2)'};cursor:pointer;font-family:var(--font);font-size:11px;padding:5px 11px;border-radius:8px;background:${orgStyle[key]?'var(--green-l)':'var(--surface)'};color:${orgStyle[key]?'var(--green-d)':'var(--text3)'};font-weight:600">${orgStyle[key]?'✓ ':''}${lbl}</button>`;
   openModal(`<div class="modal-title">🏢 ผังองค์กร</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:14px">แตะการ์ดเพื่อดู/แก้ข้อมูลพนักงาน · กำหนดสายงานได้ที่ “รายงานต่อ” ในแท็บบทบาท&สิทธิ์${noBoss?' <br>⚠️ ยังไม่มีใครตั้ง “รายงานต่อ” — ทุกคนจึงอยู่ระดับเดียวกัน':''}</div>
-    <div style="overflow:auto;max-height:65vh;padding:8px"><div style="display:flex;gap:30px;justify-content:center;flex-wrap:wrap;min-width:min-content">${tree}</div></div>
-    <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`,'modal-lg');
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border)">
+      <span style="font-size:11px;color:var(--text3);font-weight:600">รูปแบบ:</span>
+      ${seg('layout',[['vertical','แนวตั้ง'],['horizontal','แนวนอน']])}
+      ${seg('density',[['normal','ปกติ'],['compact','กระชับ']])}
+      ${seg('accent',[['theme','สีธีม'],['branch','สีสาขา'],['role','ตามบทบาท'],['mono','ขาวดำ']])}
+      ${tog('photo','รูป')}
+      ${tog('branch','ป้ายสาขา')}
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">แตะการ์ดเพื่อดู/แก้ข้อมูลพนักงาน${noBoss?' · <span style="color:var(--amber-t)">⚠️ ยังไม่มีใครตั้ง “รายงานต่อ”</span>':''}</div>
+    <div style="overflow:auto;max-height:60vh;padding:8px"><div style="display:flex;gap:30px;${horiz?'flex-direction:column':'justify-content:center;flex-wrap:wrap'};min-width:min-content">${tree}</div></div>
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
 };
 window.toggleSalaryFields=function(){
   const t=document.getElementById('m-salary-type').value;
