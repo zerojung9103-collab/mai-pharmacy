@@ -433,8 +433,6 @@ input,select,textarea{border-radius:14px}
 .home-stat-grid>div:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
 .stat-val{font-variant-numeric:tabular-nums}
 </style>
-<!-- QZ Tray: silent label printing library -->
-<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
 <!-- Tabler Icons -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
 </head>
@@ -658,10 +656,12 @@ input,select,textarea{border-radius:14px}
         <button class="branch-tab" onclick="salesSetBranch(2,this)">อินดี้</button>
       </div>
       <div class="card" id="sales-form"></div>
+      <div id="sales-lock-note" style="display:none;background:var(--amber-l);border:1px solid var(--amber);color:var(--amber-t);border-radius:12px;padding:11px 14px;margin-top:1rem;font-size:12.5px;line-height:1.5"></div>
       <div class="btn-group" style="margin-top:1rem">
-        <button class="btn btn-primary" onclick="salesSave()">
+        <button class="btn btn-primary" id="sales-save-btn" onclick="salesSave()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>บันทึกยอด
         </button>
+        <button class="btn btn-danger" id="sales-req-btn" style="display:none" onclick="salesRequestEdit()">🔒 ขอแอดมินแก้</button>
         <button class="btn" onclick="salesViewDay()">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>ดูยอดวันนี้
         </button>
@@ -695,7 +695,7 @@ input,select,textarea{border-radius:14px}
     </div>
     <div class="card">
       <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
-        <input type="text" id="mem-search" placeholder="ค้นหาชื่อ หรืออีเมล..." oninput="filterMembers()" style="flex:1;min-width:200px">
+        <input type="text" id="mem-search" placeholder="ค้นหาชื่อ หรืออีเมล..." oninput="filterMembersDebounced()" style="flex:1;min-width:200px">
         <select id="mem-filter" onchange="filterMembers()" style="width:auto;padding:7px 12px">
           <option value="all">ทุกสถานะ</option>
           <option value="active">ใช้งานอยู่</option>
@@ -873,35 +873,14 @@ input,select,textarea{border-radius:14px}
         <div id="todo-template-list" style="margin-bottom:1rem"></div>
         <button class="btn btn-primary" onclick="openAddTodoTemplate()">+ เพิ่ม template งาน</button>
       </div>
-      <div class="card" id="printbridge-card" style="grid-column:1/-1;display:none">
-        <div class="card-title">🖨️ ตั้งค่า PrintBridge (เครื่องพิมพ์ฉลาก)</div>
-        <div class="card-sub">สำหรับพิมพ์ฉลากยาต่างชาติแบบ silent (ไม่มีป๊อปอัพ) ผ่าน XP-420 / Vozy UR — ต้องติดตั้ง PrintBridge บน Windows ก่อน (<a href="https://www.printbridge.app" target="_blank" style="color:var(--green)">printbridge.app</a> · ทดลองใช้ฟรี 7 วัน)</div>
-        <div class="field-row" style="margin-top:.75rem">
-          <div class="field"><label class="fl">API Key</label><input type="password" id="pb-apikey" placeholder="pb_live_xxxxxxxxxxxxx"></div>
-          <div class="field"><label class="fl">ชื่อเครื่องพิมพ์ (ตรงกับ Windows)</label><input type="text" id="pb-printer" placeholder="เช่น Xprinter XP-420B"></div>
+      <div class="card" id="alert-settings-card" style="grid-column:1/-1;display:none">
+        <div class="card-title">🔔 เกณฑ์แจ้งเตือนผู้ดูแล</div>
+        <div class="card-sub">ระบบจะเตือนอัตโนมัติบนหน้าแรกเมื่อถึงเกณฑ์ที่ตั้งไว้ (ใส่ 0 = ปิดการเตือนข้อนั้น)</div>
+        <div class="field-row">
+          <div class="field"><label class="fl">เตือนเมื่อเงินในตู้เซฟเกิน (บาท)</label><input type="number" id="as-safe" min="0" placeholder="20000"></div>
+          <div class="field"><label class="fl">เตือนเมื่อพนักงานสายเกิน (ครั้ง/เดือน)</label><input type="number" id="as-late" min="0" placeholder="3"></div>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.5rem">
-          <button class="btn btn-primary" onclick="savePrintBridgeSettings()">บันทึก</button>
-          <button class="btn" onclick="testPrintBridge()">🔌 ทดสอบการเชื่อมต่อ</button>
-          <button class="btn" onclick="getPrintBridgePrinters()">📋 ดูรายชื่อเครื่องพิมพ์</button>
-        </div>
-        <div id="pb-status" style="margin-top:.75rem;font-size:12.5px;color:var(--text3)"></div>
-        <div id="pb-printer-list" style="margin-top:.5rem"></div>
-      </div>
-      <div class="card" id="qztray-card" style="grid-column:1/-1;display:none">
-        <div class="card-title">🖨️ ตั้งค่า QZ Tray (เครื่องพิมพ์ฉลาก)</div>
-        <div class="card-sub">พิมพ์ฉลากยาต่างชาติแบบ silent ผ่าน XP-420 / Vozy UR — ฟรี แต่ต้องติดตั้ง <a href="https://qz.io/download" target="_blank" style="color:var(--green)">QZ Tray</a> + Java 11 บน Windows ก่อน</div>
-        <div class="field" style="margin-top:.75rem">
-          <label class="fl">ชื่อเครื่องพิมพ์ (ตรงกับชื่อใน Windows Devices)</label>
-          <input type="text" id="qz-printer" placeholder="เช่น Xprinter XP-420B">
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="saveQzSettings()">บันทึก</button>
-          <button class="btn" onclick="testQzTray()">🔌 ทดสอบการเชื่อมต่อ</button>
-          <button class="btn" onclick="getQzPrinters()">📋 ดูรายชื่อเครื่องพิมพ์</button>
-        </div>
-        <div id="qz-status" style="margin-top:.75rem;font-size:12.5px;color:var(--text3)"></div>
-        <div id="qz-printer-list" style="margin-top:.5rem"></div>
+        <button class="btn btn-primary" onclick="saveAlertSettings()">บันทึกเกณฑ์</button>
       </div>
       <div class="card" id="paytype-card">
         <div class="card-title">ประเภทการชำระ</div>
@@ -1031,7 +1010,7 @@ input,select,textarea{border-radius:14px}
           <option value="checkin_edit">แก้เวลาลงเวลา</option>
           <option value="schedule_generate">สร้างตารางอัตโนมัติ</option>
         </select>
-        <input type="text" id="act-filter-name" placeholder="🔍 ค้นชื่อคน" oninput="renderActivityLog()" style="width:160px;padding:7px 12px;font-size:13px">
+        <input type="text" id="act-filter-name" placeholder="🔍 ค้นชื่อคน" oninput="renderActivityLogDebounced()" style="width:160px;padding:7px 12px;font-size:13px">
       </div>
     </div>
     <div id="activity-list"><div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
@@ -1087,7 +1066,7 @@ input,select,textarea{border-radius:14px}
       ⚠️ ข้อมูลนี้เป็นเพียงตัวช่วยเตือนที่เภสัชกรบันทึกเอง <b>ต้องตรวจสอบกับตำราอ้างอิง (MIMS, คู่มือยา) อีกครั้งเสมอ</b> ก่อนตัดสินใจจ่ายยา
     </div>
     <div class="card" style="margin-bottom:1rem">
-      <input type="text" id="warn-search" placeholder="🔍 ค้นชื่อยา เช่น Ibuprofen, Amoxicillin..." oninput="renderWarnList()" style="width:100%">
+      <input type="text" id="warn-search" placeholder="🔍 ค้นชื่อยา เช่น Ibuprofen, Amoxicillin..." oninput="renderWarnListDebounced()" style="width:100%">
     </div>
     <div id="warn-list"><div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">กำลังโหลด...</div></div>
   </div>
@@ -1142,7 +1121,7 @@ input,select,textarea{border-radius:14px}
             <div class="field" style="flex:2">
               <label class="fl">ชื่อยา (เลือกจากฐานข้อมูล)</label>
               <div class="fl-sb-wrap" id="fl-generic-wrap">
-                <input type="text" class="fl-sb-input" id="fl-generic-input" placeholder="ค้นหาชื่อยา เช่น Amoxicillin..." autocomplete="off" oninput="flSearch('generic',this.value)" onfocus="flSearch('generic',this.value)">
+                <input type="text" class="fl-sb-input" id="fl-generic-input" placeholder="ค้นหาชื่อยา เช่น Amoxicillin..." autocomplete="off" oninput="flSearchDebounced('generic',this.value)" onfocus="flSearch('generic',this.value)">
                 <div class="fl-sb-dropdown" id="fl-generic-drop"></div>
                 <button class="fl-sb-clear" id="fl-generic-clear" onclick="flClearSingle('generic')" style="display:none">✕</button>
               </div>
@@ -1151,21 +1130,21 @@ input,select,textarea{border-radius:14px}
           </div>
           <div class="field"><label class="fl">วิธีใช้</label>
             <div class="fl-sb-wrap" id="fl-dir-wrap">
-              <input type="text" class="fl-sb-input" id="fl-dir-input" placeholder="ค้นหาวิธีใช้ เช่น ทานครั้งละ 1 เม็ด..." autocomplete="off" oninput="flSearch('direction',this.value)" onfocus="flSearch('direction',this.value)">
+              <input type="text" class="fl-sb-input" id="fl-dir-input" placeholder="ค้นหาวิธีใช้ เช่น ทานครั้งละ 1 เม็ด..." autocomplete="off" oninput="flSearchDebounced('direction',this.value)" onfocus="flSearch('direction',this.value)">
               <div class="fl-sb-dropdown" id="fl-dir-drop"></div>
               <button class="fl-sb-clear" id="fl-dir-clear" onclick="flClearSingle('direction')" style="display:none">✕</button>
             </div>
           </div>
           <div class="field"><label class="fl">สรรพคุณ <span style="font-size:11px;color:var(--text3)">(เลือกได้หลายข้อ)</span></label>
             <div class="fl-sb-wrap" id="fl-ind-wrap">
-              <input type="text" class="fl-sb-input" id="fl-ind-input" placeholder="ค้นหาสรรพคุณ เช่น ลดไข้..." autocomplete="off" oninput="flSearch('indication',this.value)" onfocus="flSearch('indication',this.value)">
+              <input type="text" class="fl-sb-input" id="fl-ind-input" placeholder="ค้นหาสรรพคุณ เช่น ลดไข้..." autocomplete="off" oninput="flSearchDebounced('indication',this.value)" onfocus="flSearch('indication',this.value)">
               <div class="fl-sb-dropdown" id="fl-ind-drop"></div>
             </div>
             <div id="fl-ind-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
           </div>
           <div class="field"><label class="fl">คำเตือน <span style="font-size:11px;color:var(--text3)">(เลือกได้หลายข้อ)</span></label>
             <div class="fl-sb-wrap" id="fl-warn-wrap">
-              <input type="text" class="fl-sb-input" id="fl-warn-input" placeholder="ค้นหาคำเตือน เช่น อาจทำให้ง่วง..." autocomplete="off" oninput="flSearch('warning',this.value)" onfocus="flSearch('warning',this.value)">
+              <input type="text" class="fl-sb-input" id="fl-warn-input" placeholder="ค้นหาคำเตือน เช่น อาจทำให้ง่วง..." autocomplete="off" oninput="flSearchDebounced('warning',this.value)" onfocus="flSearch('warning',this.value)">
               <div class="fl-sb-dropdown" id="fl-warn-drop"></div>
             </div>
             <div id="fl-warn-tags" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px"></div>
@@ -1463,7 +1442,7 @@ window.installApp=async function(){
 };
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, orderBy, where, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, orderBy, where, limit, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const app = initializeApp({
@@ -1559,8 +1538,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.44.0';
+const APP_VERSION='3.47.0';
 const CHANGELOG=[
+  {v:'3.47.0',date:'2026-06-27',changes:['ยอดขาย: พนักงานแก้ยอดที่ตัวเองลงได้เองภายใน 5 นาที เกินนั้นยอดจะล็อก ต้องกด “ขอแอดมินแก้” (กรอกยอดที่ถูก+เหตุผล) ส่งคำขอให้ผู้ดูแล · แอดมินมีหน้าจัดการคำขอ — ใช้ค่าที่ขอ/เปิดไปแก้เอง/ปฏิเสธได้ · เพิ่มแจ้งเตือนอัตโนมัติบนหน้าแรกสำหรับแอดมิน: มีคำขอแก้ไขค้าง · เงินปิดร้านไม่ตรง · ตู้เซฟเกินเกณฑ์ · พนักงานสายบ่อย (ตั้งเกณฑ์ได้ในหน้าตั้งค่า) · ⚠️ ต้องเพิ่ม Firestore Rule “editRequests” ใน Firebase Console']},
+  {v:'3.46.0',date:'2026-06-27',changes:['เงินเดือน: พนักงานเงินเดือนประจำ (fixed) ที่มาสายจนถูกหักชั่วโมง จะถูก“หักเป็นเงินจริง”แล้ว — เพิ่มช่อง “ค่าหักสายต่อชั่วโมง (บาท)” ต่อพนักงานในหน้าจัดการสมาชิก (ดีฟอลต์ 0 = ไม่หัก) · หน้าคำนวณเงินเดือนแสดงยอดหักสายชัดเจน ปรับเรทรายเดือนได้ · สลิปเงินเดือนเพิ่มบรรทัด “หักมาสาย” ให้ยอดสุทธิตรวจสอบได้ · พนักงานรายชั่วโมง/ผสมยังหักผ่านชั่วโมงเหมือนเดิม (ไม่หักซ้ำ)']},
+  {v:'3.45.0',date:'2026-06-27',changes:['เก็บกวาดโค้ด (ภายใน): ลบระบบพิมพ์ฉลากเก่า PrintBridge/QZ Tray ที่ปิดใช้แล้ว + ไลบรารี qz-tray.js ที่โหลดทิ้งไว้ → เปิดแอปเบาขึ้น · ลบระบบข้อความ“น้องแคปซูล”ที่ถอดไปแล้วออกหมด · ช่องค้นหา (สมาชิก/ประวัติใช้งาน/คำเตือนยา/ฉลากต่างชาติ) ใส่ debounce ลื่นขึ้นไม่กระตุก · หน้าประวัติการใช้งานดึงแค่ 500 รายการล่าสุดจากเซิร์ฟเวอร์ เร็วขึ้นเมื่อข้อมูลเยอะ · กันแอปค้างตอนกดปุ่ม“รับทราบ/ดู”หลังเซสชันหมดอายุ']},
   {v:'3.44.0',date:'2026-06-27',changes:['เก็บกวาดโค้ด: แก้“ผู้ช่วย-เงินสด”ที่อ่านระบบเก่าที่ลบไปแล้ว → ใช้ระบบเงินใหม่ (ลิ้นชัก/ตู้เซฟ/สำรอง) · ตัดการโหลดข้อความ“น้องแคปซูล”ที่ไม่ใช้แล้วออก — เปิดแอปเร็วขึ้น']},
   {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
@@ -2063,170 +2045,18 @@ window.resetAppearance=async function(){
   }catch(e){showToast('ทำไม่สำเร็จ: '+e.message,'err');}
 };
 
-// ===== PrintBridge Integration =====
-// เก็บใน localStorage (local ต่อเครื่อง ไม่ใช่ Firestore)
-function loadPrintBridgeSettings(){
-  const card=document.getElementById('printbridge-card');
-  if(card)card.style.display='none';
-  return;
-  if(!isAdmin)return;
-  const key=localStorage.getItem('pb_apikey')||'';
-  const printer=localStorage.getItem('pb_printer')||'';
-  const ki=document.getElementById('pb-apikey');
-  const pi=document.getElementById('pb-printer');
-  if(ki)ki.value=key;
-  if(pi)pi.value=printer;
-}
-window.savePrintBridgeSettings=function(){
-  const key=document.getElementById('pb-apikey')?.value.trim()||'';
-  const printer=document.getElementById('pb-printer')?.value.trim()||'';
-  localStorage.setItem('pb_apikey',key);
-  localStorage.setItem('pb_printer',printer);
-  showToast('บันทึกค่า PrintBridge แล้ว');
-};
-async function pbFetch(path,opts={}){
-  const key=localStorage.getItem('pb_apikey')||'';
-  return fetch('http://127.0.0.1:1337'+path,{
-    ...opts,
-    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,...(opts.headers||{})},
-  });
-}
-window.testPrintBridge=async function(){
-  const st=document.getElementById('pb-status');
-  if(st)st.textContent='กำลังเชื่อมต่อ...';
-  try{
-    const r=await pbFetch('/status');
-    const d=await r.json();
-    if(st)st.innerHTML=`<span style="color:var(--green)">✅ เชื่อมต่อสำเร็จ — PrintBridge v${d.version||'?'} online</span>`;
-  }catch(e){
-    if(st)st.innerHTML='<span style="color:#C2410C">❌ ไม่สามารถเชื่อมต่อได้ — ตรวจสอบว่า PrintBridge รันอยู่ใน system tray</span>';
-  }
-};
-window.getPrintBridgePrinters=async function(){
-  const st=document.getElementById('pb-status');
-  const pl=document.getElementById('pb-printer-list');
-  if(st)st.textContent='กำลังโหลดรายชื่อเครื่องพิมพ์...';
-  try{
-    const r=await pbFetch('/printers');
-    const d=await r.json();
-    const printers=d.printers||d||[];
-    if(st)st.textContent='';
-    if(pl){
-      if(!printers.length){pl.innerHTML='<div style="font-size:12px;color:var(--text3)">ไม่พบเครื่องพิมพ์</div>';return;}
-      pl.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:4px">คลิกเพื่อเลือก:</div>'+
-        printers.map(p=>{
-          const name=p.name||p;
-          return `<button class="btn btn-sm" style="margin:2px;font-size:11px" onclick="document.getElementById('pb-printer').value='${name.replace(/'/g,"\\'")}';showToast('เลือก: ${name.replace(/'/g,"\\'")}')">
-            ${name}${p.isDefault?' ⭐':''}${p.status?' ('+p.status+')':''}
-          </button>`;
-        }).join('');
-    }
-  }catch(e){
-    if(st)st.innerHTML='<span style="color:#C2410C">❌ PrintBridge ไม่พร้อมใช้งาน — ลองกด "ทดสอบการเชื่อมต่อ" ก่อน</span>';
-  }
-};
-// ฟังก์ชันหลักสำหรับพิมพ์ผ่าน PrintBridge (ส่ง HTML) หรือ fallback window.print()
-async function printViabridge(htmlContent){
-  const key=localStorage.getItem('pb_apikey')||'';
-  const printer=localStorage.getItem('pb_printer')||'';
-  if(!key||!printer){return false;}
-  try{
-    const r=await pbFetch('/print',{
-      method:'POST',
-      body:JSON.stringify({printer,format:'html',content:htmlContent}),
-    });
-    if(!r.ok)return false;
-    return true;
-  }catch(e){return false;}
-}
-
-// ===== QZ Tray Integration =====
-// เก็บค่าใน localStorage (local ต่อเครื่อง)
-function loadQzSettings(){
-  const card=document.getElementById('qztray-card');
-  if(card)card.style.display='none';
-  return;
-  if(!isAdmin)return;
-  const printer=localStorage.getItem('qz_printer')||'';
-  const pi=document.getElementById('qz-printer');
-  if(pi)pi.value=printer;
-}
-window.saveQzSettings=function(){
-  const printer=document.getElementById('qz-printer')?.value.trim()||'';
-  localStorage.setItem('qz_printer',printer);
-  showToast('บันทึกค่า QZ Tray แล้ว');
-};
-async function qzEnsureConnected(){
-  if(typeof qz==='undefined')throw new Error('ยังโหลดไลบรารี QZ Tray ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วรีเฟรชหน้า');
-  if(!qz.websocket.isActive()){
-    // ไม่ใช้ certificate (มีป๊อปอัพ permission 1 ครั้งต่อ session) — พอใช้งานได้
-    qz.security.setCertificatePromise(()=>Promise.resolve(''));
-    qz.security.setSignatureAlgorithm('SHA512');
-    qz.security.setSignaturePromise(()=>()=>Promise.resolve(''));
-    // ใส่ timeout กันค้าง: ถ้า QZ Tray ไม่ได้เปิด/ไม่ได้ติดตั้ง จะแจ้งภายใน 6 วินาที
-    const connectP=qz.websocket.connect({retries:1,delay:1});
-    const timeoutP=new Promise((_,rej)=>setTimeout(()=>rej(new Error('เชื่อมต่อ QZ Tray ไม่ได้ใน 6 วินาที — ตรวจว่าติดตั้งแล้วและเปิดโปรแกรมอยู่ (ดูไอคอนถาดล่างขวา)')),6000));
-    await Promise.race([connectP,timeoutP]);
-  }
-}
-window.testQzTray=async function(){
-  const st=document.getElementById('qz-status');
-  if(st)st.textContent='กำลังเชื่อมต่อ...';
-  try{
-    await qzEnsureConnected();
-    if(st)st.innerHTML='<span style="color:var(--green)">✅ เชื่อมต่อ QZ Tray สำเร็จ — พร้อมใช้งาน</span>';
-  }catch(e){
-    if(st)st.innerHTML=`<span style="color:#C2410C">❌ เชื่อมต่อไม่ได้ — ตรวจสอบว่า QZ Tray รันอยู่ใน system tray<br><small style="color:var(--text3)">${e.message}</small></span>`;
-  }
-};
-window.getQzPrinters=async function(){
-  const st=document.getElementById('qz-status');
-  const pl=document.getElementById('qz-printer-list');
-  if(st)st.textContent='กำลังโหลดรายชื่อเครื่องพิมพ์...';
-  try{
-    await qzEnsureConnected();
-    const printers=await qz.printers.find();
-    const list=Array.isArray(printers)?printers:[printers];
-    if(st)st.textContent='';
-    if(pl){
-      if(!list.length){pl.innerHTML='<div style="font-size:12px;color:var(--text3)">ไม่พบเครื่องพิมพ์</div>';return;}
-      pl.innerHTML='<div style="font-size:12px;color:var(--text2);margin-bottom:4px">คลิกเพื่อเลือก:</div>'+
-        list.map(name=>`<button class="btn btn-sm" style="margin:2px;font-size:11px" onclick="document.getElementById('qz-printer').value='${name.replace(/'/g,"\\'")}';showToast('เลือก: ${name.replace(/'/g,"\\'")}')">${name}</button>`).join('');
-    }
-  }catch(e){
-    if(st)st.innerHTML=`<span style="color:#C2410C">❌ ${e.message}</span>`;
-  }
-};
-// ฟังก์ชันพิมพ์ผ่าน QZ Tray (HTML → render เป็น pixel แล้วส่งเครื่องพิมพ์)
-async function printViaQzTray(htmlContent){
-  const printerName=localStorage.getItem('qz_printer')||'';
-  if(!printerName||typeof qz==='undefined')return false;
-  try{
-    await qzEnsureConnected();
-    const [pw,ph]=flSize.split('x').map(Number);
-    const config=qz.configs.create(printerName,{
-      size:{width:pw,height:ph},
-      units:'mm',
-      colorType:'grayscale',
-      density:203, // XP-420 = 203 DPI
-    });
-    const data=[{type:'html',format:'plain',data:htmlContent}];
-    await qz.print(config,data);
-    return true;
-  }catch(e){
-    console.error('QZ Tray print error:',e);
-    return false;
-  }
-}
-
-// สร้าง SVG น้องแคปซูล (รับสีครึ่งล่าง)
+// น้องแคปซูล mascot ถูกถอดออกแล้ว — คงไว้เป็น stub เพราะยังมีตัวเรียกที่ใส่ค่าว่าง
 function capsuleMascot(size,color){
   return '';
 }
 
-// ===== ข้อความน้องแคปซูล (กวนๆ แข็งๆ ตลกๆ เรียกตัวเอง "ข้า" เรียก user "เจ้า") =====
-let capMessages=[]; // ข้อความที่เจ้าของกำหนดเอง (โหลดจาก config/capsuleMessages)
-function capsuleSays(){ return ''; }
+// ===== Debounce — กันช่องค้นหา re-render ตารางทุกตัวอักษร (เรียกตรงๆ ที่อื่นยังทำงานทันที) =====
+function debounce(fn,ms=180){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};}
+window.filterMembersDebounced=debounce(()=>filterMembers(),180);
+window.renderActivityLogDebounced=debounce(()=>renderActivityLog(),180);
+window.renderWarnListDebounced=debounce(()=>renderWarnList(),180);
+window.flSearchDebounced=debounce((type,val)=>flSearch(type,val),160);
+
 const PERM_LABELS={
   schedule:'ดู/แก้ไขตารางเวร',
   sales:'บันทึกยอดขาย',
@@ -2543,6 +2373,7 @@ onAuthStateChanged(auth,async user=>{
   else document.body.classList.remove('tester-mode');
   buildNav();
   if(isAdmin||canAccessPage('sales'))loadSalesFromCloud();
+  if(isAdmin){loadAlertSettings();loadEditRequests();loadCashData();}
   loadBranchLocations();
   loadPayTypesFromCloud();
   loadTempStaffFromCloud();
@@ -2683,7 +2514,7 @@ window.goto=function(page){
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAppearanceSettings();loadPrintBridgeSettings();loadQzSettings();setTimeout(buildSettingsNav,80);loadTodoTemplates().then(renderTodoTemplateSettings);}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAppearanceSettings();renderAlertSettings();setTimeout(buildSettingsNav,80);loadTodoTemplates().then(renderTodoTemplateSettings);}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history')loadCheckinHistory();
   if(page==='leave')loadMyLeaves();
@@ -4158,6 +3989,27 @@ window.scCopyWeekApply=function(){
 //         close(ปิดร้าน นับเงิน) | deposit(ลิ้นชัก→ตู้เซฟ) | safeout(นำออกตู้เซฟ)
 let cashState={};   // {branch:{reserve,drawer,safe,openDrawer,openDate,openBy}}
 let cashEvents=[];  // ใหม่สุดก่อน
+let editRequests=[];                                   // คำขอแก้ไขจากพนักงาน (sales ฯลฯ) ที่ยัง pending
+let alertSettings={safeThreshold:20000,lateThreshold:3}; // เกณฑ์แจ้งเตือนผู้ดูแล (โหลดทับจาก config/alertSettings)
+async function loadAlertSettings(){
+  try{const d=await getDoc(doc(db,'config','alertSettings'));if(d.exists())alertSettings={...alertSettings,...d.data()};}catch(e){}
+}
+async function loadEditRequests(){
+  try{const snap=await getDocs(query(collection(db,'editRequests'),where('status','==','pending')));editRequests=snap.docs.map(d=>({id:d.id,...d.data()}));}catch(e){editRequests=[];}
+}
+window.renderAlertSettings=function(){
+  const card=document.getElementById('alert-settings-card');if(!card)return;
+  card.style.display=isAdmin?'':'none';
+  const s1=document.getElementById('as-safe');if(s1)s1.value=alertSettings.safeThreshold||0;
+  const s2=document.getElementById('as-late');if(s2)s2.value=alertSettings.lateThreshold||0;
+};
+window.saveAlertSettings=async function(){
+  const safeThreshold=parseFloat(document.getElementById('as-safe')?.value)||0;
+  const lateThreshold=parseInt(document.getElementById('as-late')?.value)||0;
+  alertSettings={...alertSettings,safeThreshold,lateThreshold};
+  try{await setDoc(doc(db,'config','alertSettings'),alertSettings);showToast('บันทึกเกณฑ์แจ้งเตือนแล้ว');checkNotifications();}
+  catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+};
 
 async function loadCashPage(){
   renderCashBranchSeg();
@@ -4697,9 +4549,32 @@ window.salesOvEdit=function(ds,branch){
   showToast(`บันทึกยอด ${BRANCHES[branch]} · ${ds}`);
 };
 window.salesSetBranch=function(i,el){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesBranch=i;document.querySelectorAll('.branch-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');salesRenderForm();};
+// กรอบเวลาแก้ยอด: พนักงานแก้ยอดที่ตัวเองลงได้ภายใน 5 นาที เกินนั้นล็อก ต้องขอแอดมิน (แอดมินแก้ได้เสมอ)
+function salesLockState(){
+  const date=document.getElementById('sales-date')?.value||todayStr();
+  const e=salesEntries.find(x=>x.date===date&&x.branch===salesBranch);
+  if(isAdmin)return{locked:false,e};
+  if(!e)return{locked:false,e:null};                 // ยังไม่เคยบันทึก → กรอกได้อิสระ
+  const mine=e.updatedBy===currentUser?.uid;
+  const mins=e.updatedAt?(Date.now()-Date.parse(e.updatedAt))/60000:999;
+  if(mine&&mins<5)return{locked:false,e,mins};
+  return{locked:true,e,mins,mine};
+}
+function salesApplyLockUI(lock){
+  const note=document.getElementById('sales-lock-note'),saveBtn=document.getElementById('sales-save-btn'),reqBtn=document.getElementById('sales-req-btn');
+  if(!note||!saveBtn||!reqBtn)return;
+  if(lock.locked){
+    note.style.display='block';
+    note.innerHTML=`🔒 ยอดนี้บันทึกไว้แล้ว — แก้เองได้เฉพาะภายใน 5 นาทีหลังบันทึกเท่านั้น ตอนนี้เกินเวลาแล้ว ถ้าลงผิดให้กด “ขอแอดมินแก้” เพื่อส่งคำขอให้ผู้ดูแล`;
+    saveBtn.style.display='none';reqBtn.style.display='';
+  }else{
+    note.style.display='none';saveBtn.style.display='';reqBtn.style.display='none';
+  }
+}
 function salesRenderForm(){
   const amounts=salesAmounts[salesBranch];
   const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
+  const _lock=salesLockState();const _dis=_lock.locked?'disabled':'';
   const payMeta=(p)=>{
     if(p==='เงินสด')return{ic:'💵',c:'var(--green-d)',bg:'var(--green-l)'};
     if(/ดำ/.test(p))return{ic:'💳',c:'#1F2937',bg:'#E5E7EB'};
@@ -4711,15 +4586,16 @@ function salesRenderForm(){
     return `<div class="pay-row" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px solid ${has?mt.c:'var(--border)'};border-radius:13px;margin-bottom:9px;background:var(--surface);transition:.12s">
       <span style="width:38px;height:38px;border-radius:11px;background:${mt.bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${mt.ic}</span>
       <span class="pay-label" style="flex:1;font-size:13.5px;font-weight:600;color:var(--text)">${p}</span>
-      <input class="pay-input" type="number" min="0" inputmode="decimal" placeholder="0" value="${val||''}" oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)" style="width:108px;text-align:right;font-size:16px;font-weight:600;font-family:var(--mono)">
+      <input class="pay-input" type="number" min="0" inputmode="decimal" placeholder="0" value="${val||''}" ${_dis} oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)" style="width:108px;text-align:right;font-size:16px;font-weight:600;font-family:var(--mono)">
       <span class="pay-unit" style="font-size:12px;color:var(--text3)">บาท</span>
     </div>`;}).join('');
   document.getElementById('sales-form').innerHTML=`<div style="font-size:14px;font-weight:700;margin-bottom:1rem;color:${BCOLORS[salesBranch]}">สาขา${BRANCHES[salesBranch]}</div>${rows}<div class="total-row"><span class="total-lbl">ยอดรวมสาขานี้</span><span class="total-val" id="sales-total">฿${fmt(total)}</span></div>
   <div class="field-row" style="margin-top:1rem;gap:1rem">
-    <div class="field" style="flex:1"><label class="fl">จำนวนบิล</label><input type="number" id="sales-billcount" min="0" placeholder="0" value="${salesBillCounts[salesBranch]||''}" style="text-align:center"><span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">บิล ${salesBillCounts[salesBranch]&&total?'· เฉลี่ย ฿'+fmt(Math.round(total/(parseInt(salesBillCounts[salesBranch])||1)))+'/บิล':''}</span></div>
-    <div class="field" style="flex:2"><label class="fl">หมายเหตุ</label><textarea id="sales-note" placeholder="เช่น มีคืนยา / เครื่องรูดบัตรขัดข้อง...">${salesNotes[salesBranch]||''}</textarea></div>
+    <div class="field" style="flex:1"><label class="fl">จำนวนบิล</label><input type="number" id="sales-billcount" min="0" placeholder="0" value="${salesBillCounts[salesBranch]||''}" ${_dis} style="text-align:center"><span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">บิล ${salesBillCounts[salesBranch]&&total?'· เฉลี่ย ฿'+fmt(Math.round(total/(parseInt(salesBillCounts[salesBranch])||1)))+'/บิล':''}</span></div>
+    <div class="field" style="flex:2"><label class="fl">หมายเหตุ</label><textarea id="sales-note" placeholder="เช่น มีคืนยา / เครื่องรูดบัตรขัดข้อง..." ${_dis}>${salesNotes[salesBranch]||''}</textarea></div>
   </div>`;
   if(!document.getElementById('sales-date').value)document.getElementById('sales-date').value=todayStr();
+  salesApplyLockUI(_lock);
 }
 window.salesUpdateAmt=function(p,v){salesAmounts[salesBranch][p]=v;const total=payTypes.reduce((a,pt)=>a+(parseFloat(salesAmounts[salesBranch][pt])||0),0);const el=document.getElementById('sales-total');if(el)el.textContent='฿'+fmt(total);};
 // เติมค่าฟอร์มจากข้อมูลที่มีอยู่ของวันที่เลือก (ทั้ง 3 สาขา) — ใช้ตอนแก้จากภาพรวม/เปลี่ยนวัน
@@ -4747,15 +4623,113 @@ window.salesSave=function(){
   const total=payTypes.reduce((a,p)=>a+amounts[p],0);
   const billCount=parseInt(salesBillCounts[salesBranch])||0;
   const idx=salesEntries.findIndex(e=>e.date===date&&e.branch===salesBranch);
-  const rec={date,branch:salesBranch,amounts,total,billCount,note:salesNotes[salesBranch]};
+  const rec={date,branch:salesBranch,amounts,total,billCount,note:salesNotes[salesBranch],updatedBy:currentUser?.uid||'',updatedAt:new Date().toISOString()};
   if(idx>=0)salesEntries[idx]=rec;else salesEntries.push(rec);
   saveLocal();
+  salesRenderForm(); // อัปเดตสถานะกรอบเวลา 5 นาที (เริ่มนับจากตอนนี้)
   const docId=`${date}_${salesBranch}`;
-  setDoc(doc(db,'sales',docId),{...rec,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''})
+  setDoc(doc(db,'sales',docId),{...rec})
     .then(()=>{showToast('บันทึกยอดสาขา'+BRANCHES[salesBranch]+' เรียบร้อย');logActivity('sales_save',`ยอดขายสาขา${BRANCHES[salesBranch]} วันที่ ${date} = ฿${total.toLocaleString()} (${billCount} บิล)`);})
     .catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+e.message,'err'));
 };
+// พนักงานขอให้แอดมินแก้ยอด (เมื่อเกิน 5 นาที) — กรอกยอดที่ถูก + เหตุผล → สร้างคำขอ
+window.salesRequestEdit=function(){
+  const date=document.getElementById('sales-date')?.value||todayStr();
+  const e=salesEntries.find(x=>x.date===date&&x.branch===salesBranch);
+  const rows=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <span style="flex:1;font-size:12.5px;color:var(--text2)">${p}</span>
+      <input type="number" min="0" id="req-amt-${i}" value="${e?(e.amounts?.[p]||0):0}" style="width:120px;text-align:right">
+    </div>`).join('');
+  openModal(`<div class="modal-title">🔒 ขอให้แอดมินแก้ยอดขาย</div>
+    <div style="font-size:12.5px;color:var(--text3);margin-bottom:1rem">สาขา${BRANCHES[salesBranch]} · ${date} · ยอดที่บันทึกไว้ <b>฿${fmt(e?e.total:0)}</b></div>
+    <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">ยอดที่ถูกต้อง (แก้เฉพาะช่องที่ผิด)</div>
+    ${rows}
+    <div class="field" style="margin-top:6px"><label class="fl">จำนวนบิล</label><input type="number" min="0" id="req-bill" value="${e?(e.billCount||0):0}"></div>
+    <div class="field"><label class="fl">เหตุผล / สิ่งที่ลงผิด *</label><textarea id="req-reason" placeholder="เช่น กรอกเงินสดเกินไป 500 / สลับช่อง QR กับบัตร"></textarea></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="submitSalesEditRequest('${date}',${salesBranch})">ส่งคำขอให้แอดมิน</button></div>`);
+};
+window.submitSalesEditRequest=async function(date,branch){
+  const reason=document.getElementById('req-reason')?.value.trim()||'';
+  if(!reason){showToast('กรุณากรอกเหตุผล','err');return;}
+  const amounts={};payTypes.forEach((p,i)=>{amounts[p]=parseFloat(document.getElementById('req-amt-'+i)?.value)||0;});
+  const total=payTypes.reduce((a,p)=>a+amounts[p],0);
+  const billCount=parseInt(document.getElementById('req-bill')?.value)||0;
+  const id='req_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  try{
+    await setDoc(doc(db,'editRequests',id),{type:'sales',date,branch,by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,ts:Date.now(),at:new Date().toISOString(),status:'pending',reason,proposed:{amounts,total,billCount}});
+    closeMD();showToast('ส่งคำขอให้แอดมินแล้ว — รอผู้ดูแลแก้ให้');
+    logActivity('edit_request',`ขอแก้ยอดขาย ${BRANCHES[branch]} ${date} (ใหม่ ฿${fmt(total)})`);
+  }catch(e){showToast('ส่งคำขอไม่สำเร็จ: '+e.message,'err');}
+};
 
+// ===== แอดมิน: จัดการคำขอแก้ไขจากพนักงาน =====
+window.openEditRequests=async function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  await loadEditRequests();
+  const reqs=editRequests.filter(r=>r.status==='pending').sort((a,b)=>(b.ts||0)-(a.ts||0));
+  let body;
+  if(!reqs.length){body=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1.5rem">ไม่มีคำขอแก้ไขค้างอยู่</div>`;}
+  else body=reqs.map(r=>{
+    const when=new Date(r.ts||Date.now()).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+    const cur=salesEntries.find(e=>e.date===r.date&&e.branch===r.branch);
+    return `<div style="border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-weight:700;font-size:13.5px">💰 ยอดขาย ${BRANCHES[r.branch]||''}</span>
+        <span style="font-size:11px;color:var(--text3)">${r.by} · ${when}</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:4px">วันที่ ${r.date}</div>
+      <div style="font-size:12.5px;background:var(--bg);border-radius:10px;padding:8px 10px;margin:6px 0">
+        ปัจจุบัน <b>฿${fmt(cur?cur.total:0)}</b> → ขอแก้เป็น <b style="color:var(--green-dd)">฿${fmt(r.proposed?.total||0)}</b> (${r.proposed?.billCount||0} บิล)
+      </div>
+      <div style="font-size:12.5px;color:var(--text);margin-bottom:10px">📝 ${r.reason||'—'}</div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" onclick="applyEditRequest('${r.id}')">✓ ใช้ค่าที่ขอ</button>
+        <button class="btn btn-sm" onclick="openRequestTarget('${r.date}',${r.branch})">✏️ เปิดไปแก้เอง</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectEditRequest('${r.id}')">✕ ปฏิเสธ</button>
+      </div>
+    </div>`;
+  }).join('');
+  openModal(`<div class="modal-title">✏️ คำขอแก้ไขจากพนักงาน</div>
+    <div style="max-height:60vh;overflow-y:auto;margin-top:.5rem">${body}</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+};
+window.applyEditRequest=async function(id){
+  const r=editRequests.find(x=>x.id===id);if(!r)return;
+  try{
+    if(r.type==='sales'){
+      const ex=salesEntries.find(e=>e.date===r.date&&e.branch===r.branch);
+      const rec={date:r.date,branch:r.branch,amounts:r.proposed.amounts,total:r.proposed.total,billCount:r.proposed.billCount,note:ex?.note||'',updatedBy:currentUser.uid,updatedAt:new Date().toISOString()};
+      await setDoc(doc(db,'sales',`${r.date}_${r.branch}`),rec);
+      const idx=salesEntries.findIndex(e=>e.date===r.date&&e.branch===r.branch);
+      if(idx>=0)salesEntries[idx]={...rec};else salesEntries.push({...rec});
+    }
+    await updateDoc(doc(db,'editRequests',id),{status:'resolved',resolvedBy:currentUser.uid,resolvedAt:new Date().toISOString()});
+    await loadEditRequests();
+    showToast('แก้ยอดตามคำขอแล้ว');
+    logActivity('edit_request_apply',`อนุมัติคำขอแก้ ${BRANCHES[r.branch]} ${r.date} → ฿${fmt(r.proposed?.total||0)}`);
+    openEditRequests();checkNotifications();
+    if(currentPage==='sales')salesRenderForm();
+  }catch(e){showToast('ทำไม่สำเร็จ: '+e.message,'err');}
+};
+window.rejectEditRequest=async function(id){
+  const r=editRequests.find(x=>x.id===id);
+  if(!await capsuleConfirm('ปฏิเสธคำขอนี้?'))return;
+  try{
+    await updateDoc(doc(db,'editRequests',id),{status:'rejected',resolvedBy:currentUser.uid,resolvedAt:new Date().toISOString()});
+    await loadEditRequests();showToast('ปฏิเสธคำขอแล้ว');
+    if(r)logActivity('edit_request_reject',`ปฏิเสธคำขอแก้ ${BRANCHES[r.branch]} ${r.date}`);
+    openEditRequests();checkNotifications();
+  }catch(e){showToast('ทำไม่สำเร็จ: '+e.message,'err');}
+};
+window.openRequestTarget=function(date,branch){
+  closeMD();goto('sales');
+  setTimeout(()=>{
+    const d=document.getElementById('sales-date');if(d)d.value=date;
+    salesLoadForDate();salesBranch=branch;
+    document.querySelectorAll('#sales-btabs .branch-tab').forEach((b,i)=>b.classList.toggle('active',i===branch));
+    salesRenderForm();
+  },250);
+};
 // โหลดยอดขายจาก Firestore (sync ทุกเครื่อง — cloud คือแหล่งข้อมูลหลัก)
 async function loadSalesFromCloud(){
   try{
@@ -5070,6 +5044,13 @@ window.viewMember=function(uid){
         <input type="number" id="m-hourly" value="${m.salary?.hourlyRate||0}" min="0">
       </div>
     </div>
+    <div class="field-row" id="f-laterate-row" style="${salaryType==='fixed'?'':'display:none'}">
+      <div class="field">
+        <label class="fl">ค่าหักสายต่อชั่วโมง (บาท/ชม.)</label>
+        <input type="number" id="m-laterate" value="${m.salary?.lateRate||0}" min="0">
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">ใช้กับพนักงานเงินเดือนประจำ — เมื่อมาสายจนถูกหักเป็นชั่วโมง จะคูณเรทนี้เป็นเงินที่หักจากเงินเดือน (0 = ไม่หักเงิน)</div>
+      </div>
+    </div>
     </div><div id="m-panel-history" style="display:none"><div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">กำลังโหลด…</div></div>
     <div class="modal-footer">
       <button class="btn" onclick="closeMD()">ยกเลิก</button>
@@ -5211,6 +5192,7 @@ window.toggleSalaryFields=function(){
   const t=document.getElementById('m-salary-type').value;
   document.getElementById('f-base').style.display=t==='hourly'?'none':'';
   document.getElementById('f-hourly').style.display=t==='fixed'?'none':'';
+  document.getElementById('f-laterate-row').style.display=t==='fixed'?'':'none';
 };
 window.saveMemberSettings=async function(uid){
   const role=document.getElementById('m-role').value;
@@ -5220,7 +5202,7 @@ window.saveMemberSettings=async function(uid){
   const perms={};
   Object.keys(PERM_LABELS).forEach(k=>{perms[k]=document.getElementById('perm-'+k)?.checked||false;});
   const salaryType=document.getElementById('m-salary-type').value;
-  const salary={type:salaryType,base:parseFloat(document.getElementById('m-base')?.value||0),hourlyRate:parseFloat(document.getElementById('m-hourly')?.value||0)};
+  const salary={type:salaryType,base:parseFloat(document.getElementById('m-base')?.value||0),hourlyRate:parseFloat(document.getElementById('m-hourly')?.value||0),lateRate:parseFloat(document.getElementById('m-laterate')?.value||0)};
   // ข้อมูลพนักงานเพิ่มเติม
   const empId=document.getElementById('m-empid')?.value.trim()||'';
   const position=document.getElementById('m-position')?.value.trim()||'';
@@ -5386,6 +5368,7 @@ window.selectPRPerson=async function(uid){
     salaryType:salary.type||'fixed',
     base:salary.base||0,
     hourlyRate:salary.hourlyRate||0,
+    lateRate:saved?.lateRate!=null?saved.lateRate:(salary.lateRate||0),
     hours:saved?.hoursOverride!=null?saved.hoursOverride:hours,
     autoHours:hours,
     rawHours:Math.round(rawHours*10)/10,
@@ -5409,10 +5392,12 @@ function renderPRCalc(){
   const baseAmt=d.salaryType==='hourly'?0:d.base;
   const hourlyAmt=d.salaryType==='fixed'?0:Math.round(d.hours*d.hourlyRate);
   const otAmt=Math.round((d.otHours||0)*(d.otRate||0));
+  // หักมาสายเป็นเงิน — เฉพาะ fixed (hourly/both หักผ่านชั่วโมงที่คิดเงินอยู่แล้ว จึงไม่หักซ้ำ)
+  const lateDeductAmt=d.salaryType==='fixed'?Math.round((d.lateDeduction||0)*(d.lateRate||0)):0;
   const extraAdd=prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0);
   const extraDed=prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0);
-  const net=baseAmt+hourlyAmt+otAmt+extraAdd-extraDed;
-  d.computedNet=net;d.baseAmt=baseAmt;d.hourlyAmt=hourlyAmt;d.otAmt=otAmt;
+  const net=baseAmt+hourlyAmt+otAmt+extraAdd-extraDed-lateDeductAmt;
+  d.computedNet=net;d.baseAmt=baseAmt;d.hourlyAmt=hourlyAmt;d.otAmt=otAmt;d.lateDeductAmt=lateDeductAmt;
 
   const extraRows=prExtraItems.map((item,i)=>`
     <div class="pr-line">
@@ -5460,6 +5445,16 @@ function renderPRCalc(){
     <div class="pr-line">
       <span class="pr-line-label">💰 เงินเดือนฐาน</span>
       <input type="number" class="pr-line-input" value="${d.base}" min="0" onchange="updatePRField('base',this.value)">
+    </div>`:''}
+
+    ${d.salaryType==='fixed'&&d.lateDeduction>0?`
+    <div class="pr-line">
+      <span class="pr-line-label">⏰ ค่าหักสาย (฿/ชม.)</span>
+      <input type="number" class="pr-line-input" value="${d.lateRate||0}" min="0" onchange="updatePRField('lateRate',this.value)" placeholder="0">
+    </div>
+    <div class="pr-line">
+      <span class="pr-line-label" style="color:var(--text3)">= หักมาสาย ${d.lateDeduction} ชม.</span>
+      <span style="font-weight:600;color:var(--red-t)">−฿${fmt(lateDeductAmt)}</span>
     </div>`:''}
 
     ${d.salaryType!=='fixed'?`
@@ -5515,7 +5510,7 @@ function renderPRCalc(){
     <div class="pr-net-box">
       <div>
         <div class="lbl">เงินเดือนสุทธิ</div>
-        <div style="font-size:11px;opacity:.6;margin-top:2px">ฐาน ฿${fmt(baseAmt)} ${hourlyAmt?`+ ชม. ฿${fmt(hourlyAmt)}`:''} ${otAmt?`+ OT ฿${fmt(otAmt)}`:''} ${extraAdd?`+ พิเศษ ฿${fmt(extraAdd)}`:''} ${extraDed?`− หัก ฿${fmt(extraDed)}`:''}</div>
+        <div style="font-size:11px;opacity:.6;margin-top:2px">ฐาน ฿${fmt(baseAmt)} ${hourlyAmt?`+ ชม. ฿${fmt(hourlyAmt)}`:''} ${otAmt?`+ OT ฿${fmt(otAmt)}`:''} ${extraAdd?`+ พิเศษ ฿${fmt(extraAdd)}`:''} ${lateDeductAmt?`− สาย ฿${fmt(lateDeductAmt)}`:''} ${extraDed?`− หัก ฿${fmt(extraDed)}`:''}</div>
       </div>
       <div class="val">฿${fmt(net)}</div>
     </div>
@@ -5560,6 +5555,7 @@ window.savePRPerson=async function(){
       uid:prCurrentPerson,name:d.name,month:prMonth,year:prYear,monthStr,
       salaryType:d.salaryType,baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,
       hours:d.hours,hoursOverride:d.hours,autoHours:d.autoHours,
+      lateRate:d.lateRate||0,lateDeduction:d.lateDeduction||0,lateDeductAmt:d.lateDeductAmt||0,
       otHours:d.otHours||0,otRate:d.otRate||0,otAmt:d.otAmt||0,
       bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
       deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
@@ -5581,6 +5577,7 @@ window.exportPersonSlip=function(){
   const rec={
     month:prMonth,year:prYear,salaryType:d.salaryType,
     baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,hours:d.hours,
+    lateDeduction:d.lateDeduction||0,lateDeductAmt:d.lateDeductAmt||0,
     otHours:d.otHours||0,otRate:d.otRate||0,otAmt:d.otAmt||0,
     bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
     deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
@@ -5888,6 +5885,8 @@ function buildMonthSlip(r, memberName, memberRole, uid){
     if(r.bonus)addItems.push({name:'รายรับเพิ่มเติม',amount:r.bonus});
     if(r.deduction)dedItems.push({name:'รายการหัก',amount:r.deduction});
   }
+  // หักมาสาย (เฉพาะเงินเดือนประจำ) — แสดงเป็นรายการหักเพื่อให้ยอดสุทธิตรวจสอบได้
+  if(r.salaryType==='fixed'&&(r.lateDeductAmt||0)>0)dedItems.push({name:`หักมาสาย (${r.lateDeduction||0} ชม.)`,amount:r.lateDeductAmt});
 
   const otAmt=r.otAmt||0;
   const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+otAmt+addItems.reduce((a,x)=>a+x.amount,0);
@@ -7549,6 +7548,37 @@ async function checkNotifications(){
           alerts.push({color:'amber',icon:'📅',text:`มีคำขอลาเร็วๆ นี้: ${names}${upcoming.length>3?' และอื่นๆ':''}`,action:`<button class="btn btn-sm" onclick="goto('leave-admin')" style="margin-left:auto">ดู</button>`});
         }
       }catch(e){}
+
+      // (1) คำขอแก้ไขจากพนักงานค้างอยู่
+      try{await loadEditRequests();}catch(e){}
+      const _pend=editRequests.filter(r=>r.status==='pending');
+      if(_pend.length){
+        alerts.push({color:'purple',icon:'✏️',text:`มีคำขอแก้ไขจากพนักงาน ${_pend.length} รายการ รอจัดการ`,action:`<button class="btn btn-sm" onclick="openEditRequests()" style="margin-left:auto">จัดการ</button>`});
+      }
+      // โหลดข้อมูลเงินสดให้พร้อมสำหรับ (2)(3)
+      try{if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData();}catch(e){}
+      // (2) เงินขาด/เกินวันนี้ ที่ยังไม่ตรวจ
+      const _ci=BRANCHES.map((b,i)=>({b,ce:cashTodayClose(i)})).filter(x=>x.ce&&(x.ce.diff||0)!==0&&!x.ce.reviewed);
+      if(_ci.length){
+        const txt=_ci.map(x=>`${x.b} ${x.ce.diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(x.ce.diff))}`).join(', ');
+        alerts.push({color:'red',icon:'💸',text:`วันนี้เงินปิดร้านไม่ตรง: ${txt}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('cash')" style="margin-left:auto">ตรวจ</button>`});
+      }
+      // (3) เงินในตู้เซฟเกินเกณฑ์ → ควรนำฝากธนาคาร
+      const _sf=BRANCHES.map((b,i)=>({b,safe:cashGet(i).safe})).filter(x=>x.safe>(alertSettings.safeThreshold||0));
+      if(_sf.length&&(alertSettings.safeThreshold||0)>0){
+        alerts.push({color:'amber',icon:'🏦',text:`ตู้เซฟเกิน ฿${fmt(alertSettings.safeThreshold)}: ${_sf.map(x=>x.b+' ฿'+fmt(x.safe)).join(', ')} — ควรนำฝากธนาคาร`,action:`<button class="btn btn-sm" onclick="goto('cash')" style="margin-left:auto">ดู</button>`});
+      }
+      // (4) พนักงานสายบ่อยเดือนนี้
+      try{
+        const _ms=today.slice(0,8)+'01';
+        const _cs=await getDocs(query(collection(db,'checkins'),where('date','>=',_ms),where('date','<=',today)));
+        const _lb={};_cs.docs.forEach(d=>{const x=d.data();if(x.isLate)_lb[x.uid]=(_lb[x.uid]||0)+1;});
+        const _fr=Object.entries(_lb).filter(([u,n])=>n>=(alertSettings.lateThreshold||3));
+        if(_fr.length){
+          const nm=_fr.map(([u,n])=>`${memberName(u)||'—'} (${n} ครั้ง)`).slice(0,3).join(', ');
+          alerts.push({color:'amber',icon:'🐢',text:`สายบ่อยเดือนนี้: ${nm}`,action:`<button class="btn btn-sm" onclick="goto('checkin-history')" style="margin-left:auto">ดู</button>`});
+        }
+      }catch(e){}
     }
 
     // ===== งานวันนี้ (To Do) — ย้ายไปการ์ดแยกบนหน้าแรก + badge (ไม่ปนในแบนเนอร์รวม) =====
@@ -7568,9 +7598,9 @@ async function checkNotifications(){
   }).join('');
 }
 // บันทึกว่าผู้ใช้ได้เห็นแจ้งเตือนแล้ว (จะได้ไม่เด้งซ้ำ)
-window.markScheduleSeen=function(){localStorage.setItem('nm_seen_schedule_'+currentUser.uid,new Date().toISOString());checkNotifications();};
-window.markLeaveSeen=function(){localStorage.setItem('nm_seen_leave_'+currentUser.uid,new Date().toISOString());checkNotifications();};
-window.markAnnSeen=function(){localStorage.setItem('nm_seen_ann_'+currentUser.uid,new Date().toISOString());checkNotifications();};
+window.markScheduleSeen=function(){if(!currentUser)return;localStorage.setItem('nm_seen_schedule_'+currentUser.uid,new Date().toISOString());checkNotifications();};
+window.markLeaveSeen=function(){if(!currentUser)return;localStorage.setItem('nm_seen_leave_'+currentUser.uid,new Date().toISOString());checkNotifications();};
+window.markAnnSeen=function(){if(!currentUser)return;localStorage.setItem('nm_seen_ann_'+currentUser.uid,new Date().toISOString());checkNotifications();};
 
 // ===== ระบบงานวันนี้ (To Do) — แจ้งเตือนแยกชัดเจน (การ์ดหน้าแรก + badge bottom nav) =====
 function todoBranchesForUser(){
@@ -7754,54 +7784,6 @@ window.deleteAnnouncement=async function(id){
   if(!await capsuleConfirm('ลบประกาศนี้?'))return;
   try{await deleteDoc(doc(db,'announcements',id));showToast('ลบประกาศแล้ว');renderAnnouncements();}
   catch(e){showToast(e.message,'err');}
-};
-
-// ===== ข้อความน้องแคปซูล (กำหนดเอง) =====
-// เก็บใน config/capsuleMessages = {messages:[{text, enabled}]}
-async function loadCapMessages(){
-  try{
-    const d=await getDoc(doc(db,'config','capsuleMessages'));
-    capMessages=d.exists()?(d.data().messages||[]):[];
-  }catch(e){capMessages=[];}
-}
-async function saveCapMessages(){
-  try{await setDoc(doc(db,'config','capsuleMessages'),{messages:capMessages,updatedAt:new Date().toISOString()});}
-  catch(e){showToast('บันทึกไม่สำเร็จ','err');}
-}
-window.renderCapMsgSettings=async function(){
-  const card=document.getElementById('capmsg-card');
-  if(card)card.style.display='none';
-  return;
-  const canEdit=isAdmin||hasPerm('announce');
-  if(card)card.style.display=canEdit?'':'none';
-  if(!canEdit)return;
-  await loadCapMessages();
-  const el=document.getElementById('capmsg-list');
-  if(!el)return;
-  if(!capMessages.length){el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:1rem">ยังไม่มีข้อความที่กำหนดเอง น้องจะใช้ประโยคมาตรฐาน</div>';return;}
-  el.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">ข้อความของคุณ (ติ๊กเพื่อเปิดใช้)</div>'+capMessages.map((m,i)=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:9px 10px;background:${m.enabled?'var(--green-ll)':'var(--bg)'};border:1px solid ${m.enabled?'var(--green-l)':'var(--border)'};border-radius:10px;margin-bottom:6px">
-      <input type="checkbox" ${m.enabled?'checked':''} onchange="toggleCapMsg(${i})" style="width:18px;height:18px;flex-shrink:0;accent-color:var(--green)">
-      <span style="flex:1;font-size:13px;color:var(--text)">${m.text}</span>
-      <button class="btn btn-sm btn-danger" style="padding:3px 8px" onclick="deleteCapMsg(${i})">ลบ</button>
-    </div>`).join('');
-};
-window.addCapMsg=async function(){
-  const inp=document.getElementById('new-capmsg');
-  const text=inp.value.trim();
-  if(!text){showToast('กรุณาพิมพ์ข้อความ','err');return;}
-  capMessages.push({text,enabled:true});
-  await saveCapMessages();
-  inp.value='';
-  renderCapMsgSettings();
-  showToast('เพิ่มข้อความแล้ว');
-};
-window.toggleCapMsg=async function(i){
-  if(capMessages[i]){capMessages[i].enabled=!capMessages[i].enabled;await saveCapMessages();renderCapMsgSettings();}
-};
-window.deleteCapMsg=async function(i){
-  if(!await capsuleConfirm('ลบข้อความนี้?'))return;
-  capMessages.splice(i,1);await saveCapMessages();renderCapMsgSettings();showToast('ลบแล้ว');
 };
 
 // ===== DOSE CALCULATOR =====
@@ -8656,7 +8638,7 @@ function flStartDrag(e,bi){
     document.onpointerup=null;
   };
 }
-// ======= Print — ลอง PrintBridge ก่อน fallback เป็น window.print() =======
+// ======= Print — พิมพ์ผ่านหน้าต่างพิมพ์ของเบราว์เซอร์ (window.print) =======
 window.printForeignLabel=async function(){
   if(!flSelections.generic){showToast('เลือกชื่อยาก่อน','err');return;}
   const [pw,ph]=flSize.split('x').map(Number);
@@ -9626,8 +9608,8 @@ window.loadActivityLog=async function(){
   if(!isAdmin&&!hasPerm('activity_admin')){document.getElementById('activity-list').innerHTML=accessDenied();return;}
   document.getElementById('activity-list').innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">กำลังโหลด...</div>';
   try{
-    const snap=await getDocs(collection(db,'activityLogs'));
-    allActivityLogs=snap.docs.map(d=>d.data()).sort((a,b)=>(b.at||'').localeCompare(a.at||'')).slice(0,500);
+    const snap=await getDocs(query(collection(db,'activityLogs'),orderBy('at','desc'),limit(500)));
+    allActivityLogs=snap.docs.map(d=>d.data());
     renderActivityLog();
   }catch(e){document.getElementById('activity-list').innerHTML=`<div style="text-align:center;color:var(--red-t);font-size:13px">${e.message}</div>`;}
 };
