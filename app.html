@@ -423,6 +423,15 @@ input,select,textarea{border-radius:14px}
 .week-lbl{font-family:var(--disp);font-weight:600}
 .btn-primary{box-shadow:0 6px 16px rgba(31,174,139,.28)}
 .mcard:hover{transform:translateY(-3px)}
+@keyframes homeRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.home-stat-grid>div,#home-todo-card>div{animation:homeRise .5s cubic-bezier(.22,.7,.3,1) both}
+.home-stat-grid>div:nth-child(1){animation-delay:.04s}
+.home-stat-grid>div:nth-child(2){animation-delay:.1s}
+.home-stat-grid>div:nth-child(3){animation-delay:.16s}
+.home-stat-grid>div:nth-child(4){animation-delay:.22s}
+.home-stat-grid>div{transition:transform .18s ease,box-shadow .18s ease}
+.home-stat-grid>div:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.stat-val{font-variant-numeric:tabular-nums}
 </style>
 <!-- QZ Tray: silent label printing library -->
 <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.4/qz-tray.js"></script>
@@ -939,9 +948,11 @@ input,select,textarea{border-radius:14px}
   <div class="page" id="page-checkin-history">
     <div class="topbar">
       <div><div class="page-title">ประวัติการลงเวลา</div><div class="page-sub">บันทึกเข้า-ออกงานของพนักงานทุกคน</div></div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <input type="date" id="cih-date" style="width:auto;padding:7px 12px" onchange="loadCheckinHistory()">
-        <button class="btn btn-primary" onclick="loadCheckinHistory()">ดู</button>
+        <input type="text" id="cih-search" placeholder="🔍 ค้นชื่อ" oninput="cihApplyFilter()" style="width:130px;padding:7px 12px">
+        <select id="cih-branch" onchange="cihApplyFilter()" style="width:auto;padding:7px 12px"><option value="">ทุกสาขา</option></select>
+        <label style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="cih-late" onchange="cihApplyFilter()">เฉพาะมาสาย</label>
       </div>
     </div>
     <div class="metric-grid" id="cih-metrics"></div>
@@ -975,7 +986,12 @@ input,select,textarea{border-radius:14px}
 
   <!-- LEAVE ADMIN -->
   <div class="page" id="page-leave-admin">
-    <div class="topbar"><div><div class="page-title">รายการขอลา</div><div class="page-sub">คำขอลาของพนักงานทั้งหมด</div></div></div>
+    <div class="topbar"><div><div class="page-title">รายการขอลา</div><div class="page-sub">คำขอลาของพนักงานทั้งหมด</div></div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">
+        <select id="la-status" onchange="laApplyFilter()" style="width:auto;padding:7px 12px"><option value="">ทุกสถานะ</option><option value="pending">รอพิจารณา</option><option value="approved">อนุมัติแล้ว</option><option value="rejected">ปฏิเสธ</option></select>
+        <input type="text" id="la-search" placeholder="🔍 ค้นชื่อ" oninput="laApplyFilter()" style="width:130px;padding:7px 12px">
+      </div>
+    </div>
     <div class="metric-grid" id="la-metrics"></div>
     <div class="card">
       <div style="overflow-x:auto">
@@ -1535,9 +1551,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.30.0';
+const APP_VERSION='3.33.0';
 const CHANGELOG=[
-  {v:'3.30.0',date:'2026-06-27',changes:['งานวันนี้: พนักงานเห็นงานทันทีไม่ต้องรอเช็คอิน · แอดมินเห็นภาพรวมทุกสาขาว่าใครทำแล้ว/ยัง + ใครเป็นคนทำ']},
+  {v:'3.33.0',date:'2026-06-27',changes:['หน้าหลัก (แอดมิน): ปุ่มลัดด้านบน (เงินสด/บันทึกยอด/เช็คอิน/จัดเวร) · กดการ์ดสถิติไปหน้าที่เกี่ยว · เพิ่มการ์ด “พนักงานทั้งหมด / ยังไม่เข้างาน”']},
   {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
@@ -6239,6 +6255,24 @@ function todayCheckinId(){return `${currentUser?.uid}_${todayStr()}`;}
 
 // แสดงเวรของฉัน (วันนี้ + 7 วันข้างหน้า) บนหน้าแรกที่เปิดมา
 // ===== หน้าแรก (เมนูรวม Hub) =====
+function animateHomeStats(){
+  document.querySelectorAll('.home-stat-grid .stat-val').forEach(el=>{
+    const txt=el.textContent;
+    const m=txt.match(/[\d,]+(\.\d+)?/);
+    if(!m)return;
+    const target=parseFloat(m[0].replace(/,/g,''));
+    if(!isFinite(target)||target<=0)return;
+    const prefix=txt.slice(0,m.index), suffix=txt.slice(m.index+m[0].length);
+    const dur=750, start=performance.now();
+    function step(now){
+      const p=Math.min((now-start)/dur,1);
+      const e=1-Math.pow(1-p,3);
+      el.textContent=prefix+Math.round(target*e).toLocaleString()+suffix;
+      if(p<1)requestAnimationFrame(step); else el.textContent=txt;
+    }
+    requestAnimationFrame(step);
+  });
+}
 function renderHome(){
   const el=document.getElementById('home-content');
   if(!el||!currentUser)return;
@@ -6263,7 +6297,18 @@ function renderHome(){
   </div>`;
   html+=`<div id="home-todo-card"></div>`;
 
-  // ===== การ์ดสถิติ 4 ใบ (เฉพาะผู้มีสิทธิ์ดูยอดขาย) =====
+  // ===== ปุ่มลัด (เฉพาะแอดมิน) =====
+  if(isAdmin){
+    const qa=(pg,ic,lbl,col)=>`<button onclick="goto('${pg}')" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px 8px;cursor:pointer;font-family:var(--font);box-shadow:var(--shadow);transition:transform .15s ease"><span style="width:38px;height:38px;border-radius:12px;background:${col[0]};color:${col[1]};display:flex;align-items:center;justify-content:center;font-size:19px">${ic}</span><span style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap">${lbl}</span></button>`;
+    html+=`<div class="home-quick" style="display:flex;gap:10px;margin-bottom:1.25rem">
+      ${qa('cash','💰','เงินสด',['var(--amber-l)','var(--amber-t)'])}
+      ${qa('sales','📊','บันทึกยอด',['var(--green-l)','var(--green-d)'])}
+      ${qa('checkin','📍','เช็คอิน',['var(--rose-l)','var(--rose-d)'])}
+      ${qa('schedule','📅','จัดเวร',['var(--blue-l)','var(--blue-t)'])}
+    </div>`;
+  }
+
+  // ===== การ์ดสถิติ (เฉพาะผู้มีสิทธิ์ดูยอดขาย) =====
   if(isAdmin||hasPerm('dashboard_admin')){
     const yst=new Date();yst.setDate(yst.getDate()-1);const ystStr=yst.toISOString().slice(0,10);
     const todaySales=salesEntries.filter(e=>e.date===today).reduce((s,e)=>s+(e.total||0),0);
@@ -6273,13 +6318,17 @@ function renderHome(){
     const moSales=salesEntries.filter(e=>e.date.startsWith(moStr)).reduce((s,e)=>s+(e.total||0),0);
     const dayShifts=shifts.filter(s=>s.date===today);
     const checkedIn=dayShifts.filter(s=>!s.tempName&&(allCheckins||[]).find(c=>c.uid===s.staffId&&c.date===today&&c.checkIn)).length;
-    const card=(chip,ic,lbl,val,sub,subColor)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)"><div style="width:40px;height:40px;border-radius:12px;background:${chip};display:flex;align-items:center;justify-content:center;margin-bottom:13px">${ic}</div><div style="font-size:12px;color:var(--text3);font-weight:500;min-height:18px">${lbl}</div><div style="font-family:var(--disp);font-weight:700;font-size:25px;color:var(--text);margin-top:4px;letter-spacing:-.5px">${val}</div><div style="font-size:11px;margin-top:5px;color:${subColor||'var(--text3)'};font-weight:${subColor?600:400}">${sub}</div></div>`;
+    const activeMembers=(allMembers||[]).filter(m=>m.status==='active').length;
+    const notIn=Math.max(dayShifts.length-checkedIn,0);
+    const card=(chip,ic,lbl,val,sub,subColor,go)=>`<div ${go?`onclick="goto('${go}')"`:''} style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)${go?';cursor:pointer':''}"><div style="width:40px;height:40px;border-radius:12px;background:${chip};display:flex;align-items:center;justify-content:center;margin-bottom:13px">${ic}</div><div style="font-size:12px;color:var(--text3);font-weight:500;min-height:18px">${lbl}</div><div class="stat-val" style="font-family:var(--disp);font-weight:700;font-size:25px;color:var(--text);margin-top:4px;letter-spacing:-.5px">${val}</div><div style="font-size:11px;margin-top:5px;color:${subColor||'var(--text3)'};font-weight:${subColor?600:400}">${sub}</div></div>`;
     const sv=(p)=>`<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-    html+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.25rem" class="home-stat-grid">
-      ${card('var(--green-l)','<span style="color:var(--green-d)">'+sv('<path d=\'M3 3v18h18\'/><path d=\'M7 14l4-4 3 3 5-6\'/>')+'</span>','ยอดขายวันนี้',todaySales>0?'฿'+todaySales.toLocaleString():'—',pct!==0?(pct>0?'▲ '+pct+'% จากเมื่อวาน':'▼ '+Math.abs(pct)+'% จากเมื่อวาน'):'เทียบเมื่อวาน',pct>0?'var(--green-d)':(pct<0?'var(--rose-d)':null))}
-      ${card('var(--blue-l)','<span style="color:var(--blue-t)">'+sv('<rect x=\'4\' y=\'3\' width=\'16\' height=\'18\' rx=\'2\'/><path d=\'M8 8h8M8 12h8M8 16h5\'/>')+'</span>','ยอดรวมเดือนนี้','฿'+moSales.toLocaleString(),MONTHS_TH[new Date().getMonth()])}
-      ${card('var(--amber-l)','<span style="color:var(--amber-t)">'+sv('<rect x=\'3\' y=\'4\' width=\'18\' height=\'17\' rx=\'2\'/><path d=\'M3 9h18M8 2v4M16 2v4\'/>')+'</span>','เวรวันนี้',dayShifts.length+' เวร',new Set(dayShifts.map(s=>s.branch)).size+' สาขา')}
-      ${card('var(--rose-l)','<span style="color:var(--rose-d)">'+sv('<path d=\'M20 6L9 17l-5-5\'/>')+'</span>','เข้างานแล้ว',checkedIn+' / '+dayShifts.length,'เช็คอินแล้ววันนี้')}
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:1.25rem" class="home-stat-grid">
+      ${card('var(--green-l)','<span style="color:var(--green-d)">'+sv('<path d=\'M3 3v18h18\'/><path d=\'M7 14l4-4 3 3 5-6\'/>')+'</span>','ยอดขายวันนี้',todaySales>0?'฿'+todaySales.toLocaleString():'—',pct!==0?(pct>0?'▲ '+pct+'% จากเมื่อวาน':'▼ '+Math.abs(pct)+'% จากเมื่อวาน'):'เทียบเมื่อวาน',pct>0?'var(--green-d)':(pct<0?'var(--rose-d)':null),'sales')}
+      ${card('var(--blue-l)','<span style="color:var(--blue-t)">'+sv('<rect x=\'4\' y=\'3\' width=\'16\' height=\'18\' rx=\'2\'/><path d=\'M8 8h8M8 12h8M8 16h5\'/>')+'</span>','ยอดรวมเดือนนี้','฿'+moSales.toLocaleString(),MONTHS_TH[new Date().getMonth()],null,'sales')}
+      ${card('var(--amber-l)','<span style="color:var(--amber-t)">'+sv('<rect x=\'3\' y=\'4\' width=\'18\' height=\'17\' rx=\'2\'/><path d=\'M3 9h18M8 2v4M16 2v4\'/>')+'</span>','เวรวันนี้',dayShifts.length+' เวร',new Set(dayShifts.map(s=>s.branch)).size+' สาขา',null,'schedule')}
+      ${card('var(--rose-l)','<span style="color:var(--rose-d)">'+sv('<path d=\'M20 6L9 17l-5-5\'/>')+'</span>','เข้างานแล้ว',checkedIn+' / '+dayShifts.length,'เช็คอินแล้ววันนี้',null,'checkin-history')}
+      ${card('var(--purple-l)','<span style="color:var(--purple-t)">'+sv('<path d=\'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\'/><circle cx=\'9\' cy=\'7\' r=\'4\'/>')+'</span>','พนักงานทั้งหมด',activeMembers+' คน','กำลังทำงาน',null,'members')}
+      ${card('var(--amber-l)','<span style="color:var(--amber-t)">'+sv('<circle cx=\'12\' cy=\'12\' r=\'9\'/><path d=\'M12 7v5l3 2\'/>')+'</span>','ยังไม่เข้างาน',notIn+' คน',notIn>0?'รอเช็คอิน':'เข้าครบแล้ว',notIn>0?'var(--amber-t)':'var(--green-d)','checkin-history')}
     </div>`;
   } else {
     // พนักงานทั่วไป: การ์ดเวรวันนี้อย่างเดียว (ถ้าไม่มีเวรจะไม่แสดงไร — ต่อด้านล่าง)
@@ -6351,6 +6400,7 @@ function renderHome(){
   if(isAdmin||hasPerm('dashboard_admin')){ html+=`<div id="home-staff-status" style="margin-top:1.6rem"></div>`; }
 
   el.innerHTML=html+'</div>';
+  if(typeof animateHomeStats==='function')animateHomeStats();
   if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderStaffStatus('home-staff-status');}
   if(typeof refreshTodoStatus==='function')refreshTodoStatus();
   // init กราฟหน้าแรก
@@ -6955,7 +7005,24 @@ window.loadCheckinHistory=async function(){
       <div class="mcard c-green"><div class="mcard-label">เข้างานแล้ว</div><div class="mcard-val">${checkedIn}</div><div class="mcard-sub">คน</div></div>
       <div class="mcard c-blue"><div class="mcard-label">ออกงานแล้ว</div><div class="mcard-val">${checkedOut}</div><div class="mcard-sub">คน</div></div>
       <div class="mcard c-amber"><div class="mcard-label">มาสายวันนี้</div><div class="mcard-val">${lateCount}</div><div class="mcard-sub">คน</div></div>`;
-    document.getElementById('cih-tbody').innerHTML=recs.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่มีการลงเวลาในวันนี้</td></tr>':recs.map(r=>`<tr>
+    // เติม dropdown สาขา (ครั้งเดียว)
+    const bsel=document.getElementById('cih-branch');
+    if(bsel&&bsel.options.length<=1)bsel.innerHTML='<option value="">ทุกสาขา</option>'+BRANCHES.map((b,i)=>`<option value="${i}">${b}</option>`).join('');
+    window._cihRecs=recs;
+    cihApplyFilter();
+  }catch(e){document.getElementById('cih-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+};
+window.cihApplyFilter=function(){
+  try{
+  const recs=window._cihRecs||[];
+  const q=(document.getElementById('cih-search')?.value||'').trim().toLowerCase();
+  const br=document.getElementById('cih-branch')?.value||'';
+  const lateOnly=document.getElementById('cih-late')?.checked;
+  let shown=recs;
+  if(q)shown=shown.filter(r=>(r.name||'').toLowerCase().includes(q));
+  if(br!=='')shown=shown.filter(r=>String(r.branchIn)===br);
+  if(lateOnly)shown=shown.filter(r=>r.isLate);
+  document.getElementById('cih-tbody').innerHTML=shown.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่พบรายการตามตัวกรอง</td></tr>':shown.map(r=>`<tr>
       <td style="font-weight:600">${r.uid?staffNameLink(r.name||'—',r.uid):(r.name||'—')}</td>
       <td>${r.date}</td>
       <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}${r.isLate?`<div style="font-size:9px;color:#D4690E;font-weight:700">⏰ สาย ${r.lateMinutes} นาที</div>`:''}</td>
@@ -9308,7 +9375,19 @@ window.loadLeaveAdmin=async function(){
       <div class="mcard c-amber"><div class="mcard-label">คำขอลาเดือนนี้</div><div class="mcard-val">${thisMonthLeaves.length}</div><div class="mcard-sub">รายการ</div></div>
       <div class="mcard c-blue"><div class="mcard-label">รวมวันลาเดือนนี้</div><div class="mcard-val">${totalDays}</div><div class="mcard-sub">วัน</div></div>
       <div class="mcard c-green"><div class="mcard-label">คำขอทั้งหมด</div><div class="mcard-val">${list.length}</div><div class="mcard-sub">รายการ</div></div>`;
-    document.getElementById('la-tbody').innerHTML=list.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีคำขอลา</td></tr>':list.map(l=>{
+    window._laList=list;
+    laApplyFilter();
+  }catch(e){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+};
+window.laApplyFilter=function(){
+  try{
+    const list=window._laList||[];
+    const st=document.getElementById('la-status')?.value||'';
+    const q=(document.getElementById('la-search')?.value||'').trim().toLowerCase();
+    let shown=list;
+    if(st)shown=shown.filter(l=>(l.status||'pending')===st);
+    if(q)shown=shown.filter(l=>(l.name||'').toLowerCase().includes(q));
+    document.getElementById('la-tbody').innerHTML=shown.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่พบรายการตามตัวกรอง</td></tr>':shown.map(l=>{
       const statusBadge=l.status==='approved'?'<span class="badge badge-green">อนุมัติแล้ว</span>':l.status==='rejected'?'<span class="badge badge-red">ปฏิเสธ</span>':'<span class="badge badge-amber">รอพิจารณา</span>';
       return `<tr>
       <td style="font-weight:600">${l.uid?staffNameLink(l.name||'—',l.uid):(l.name||'—')}</td>
