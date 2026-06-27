@@ -1559,9 +1559,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.43.0';
+const APP_VERSION='3.44.0';
 const CHANGELOG=[
-  {v:'3.43.0',date:'2026-06-27',changes:['เป้ายอดขาย: ตั้งแยกรายสาขาได้ + ระบบรวมเป้ารวมให้อัตโนมัติ · การ์ดเป้าสลับ รวม/รายสาขา แสดง % แต่ละสาขา']},
+  {v:'3.44.0',date:'2026-06-27',changes:['เก็บกวาดโค้ด: แก้“ผู้ช่วย-เงินสด”ที่อ่านระบบเก่าที่ลบไปแล้ว → ใช้ระบบเงินใหม่ (ลิ้นชัก/ตู้เซฟ/สำรอง) · ตัดการโหลดข้อความ“น้องแคปซูล”ที่ไม่ใช้แล้วออก — เปิดแอปเร็วขึ้น']},
   {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
@@ -2546,7 +2546,6 @@ onAuthStateChanged(auth,async user=>{
   loadBranchLocations();
   loadPayTypesFromCloud();
   loadTempStaffFromCloud();
-  loadCapMessages();
   loadTodoTemplates();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
   loadLeavesForSchedule();
@@ -6769,22 +6768,17 @@ async function assistantSales(mode){
 
 // ----- ตู้เซฟ & กระเป๋าเก็บเงิน ทุกสาขา (เปิดให้ทุกคนดูอยู่แล้วในแอป) -----
 async function assistantCashBalance(){
-  assistantLoading('💰 ตู้เซฟ & กระเป๋าเก็บเงิน');
-  let boxBal={},purseBal={};
-  try{
-    const boxSnap=await getDocs(collection(db,'cashbox'));
-    boxSnap.docs.forEach(d=>{boxBal[d.id]=d.data().balance||0;});
-    const purseSnap=await getDocs(collection(db,'purse'));
-    purseSnap.docs.forEach(d=>{purseBal[d.id]=d.data().balance||0;});
-  }catch(e){console.error('assistantCashBalance',e);}
+  assistantLoading('💰 เงินสดแต่ละสาขา');
+  try{ if(typeof loadCashData==='function')await loadCashData(); }catch(e){console.error('assistantCash',e);}
+  const g=(b)=>typeof cashGet==='function'?cashGet(b):{reserve:0,drawer:0,safe:0};
   const body=`<div style="display:flex;flex-direction:column;gap:8px">
-    ${BRANCHES.map((b,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--green-ll);border-radius:9px;border:1px solid var(--border)">
+    ${BRANCHES.map((b,i)=>{const s=g(i);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--green-ll);border-radius:9px;border:1px solid var(--border)">
       <span style="font-weight:600;font-size:13px;color:${BCOLORS[i]}">${b}</span>
-      <span style="font-size:12px;color:var(--text2)">ตู้เซฟ <b>${fmtB(boxBal[i]||0)}</b> · กระเป๋า <b>${fmtB(purseBal[i]||0)}</b></span>
-    </div>`).join('')}
+      <span style="font-size:12px;color:var(--text2)">ลิ้นชัก <b>${fmtB(s.drawer)}</b> · ตู้เซฟ <b>${fmtB(s.safe)}</b> · สำรอง <b>${fmtB(s.reserve)}</b></span>
+    </div>`;}).join('')}
   </div>`;
   const box=document.getElementById('modal-box');
-  if(box)box.innerHTML=assistantAnswerWrap('💰 ตู้เซฟ & กระเป๋าเก็บเงิน',body);
+  if(box)box.innerHTML=assistantAnswerWrap('💰 เงินสดแต่ละสาขา',body);
 }
 
 // ----- ฉันเข้างาน/มาสายกี่ครั้งเดือนนี้ (เฉพาะข้อมูลของตัวเอง) -----
