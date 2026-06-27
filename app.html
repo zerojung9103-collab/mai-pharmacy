@@ -465,6 +465,10 @@ input,select,textarea{border-radius:14px}
 <!-- Mobile Top Bar -->
 <div class="mobile-topbar" id="mobile-topbar">
   <div class="mobile-topbar-title">💊 ใหม่เภสัช</div>
+  <button onclick="openNotifications()" aria-label="แจ้งเตือน" style="position:relative;background:none;border:none;color:inherit;cursor:pointer;padding:6px;display:flex;align-items:center;justify-content:center;margin-right:2px">
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
+    <span class="notif-badge" style="display:none;position:absolute;top:1px;right:1px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:#E07A93;color:#fff;font-size:9.5px;font-weight:700;align-items:center;justify-content:center">​</span>
+  </button>
   <button class="hamburger" onclick="openCommandPalette()" aria-label="ค้นหา">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
   </button>
@@ -483,6 +487,10 @@ input,select,textarea{border-radius:14px}
     <kbd>Ctrl K</kbd>
   </div>
   <div class="tbd-spacer"></div>
+  <button id="notif-bell-d" onclick="openNotifications()" aria-label="แจ้งเตือน" style="position:relative;background:none;border:1px solid var(--border);border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer;flex-shrink:0;margin-right:10px">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>
+    <span class="notif-badge" style="display:none;position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--rose,#E07A93);color:#fff;font-size:10px;font-weight:700;align-items:center;justify-content:center"></span>
+  </button>
   <button id="install-app-btn" onclick="installApp()" style="display:none;align-items:center;gap:6px;background:var(--green-l);border:none;border-radius:9px;padding:7px 12px;color:var(--green-dd);font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     ติดตั้งแอป
@@ -1551,9 +1559,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.35.0';
+const APP_VERSION='3.41.0';
 const CHANGELOG=[
-  {v:'3.35.0',date:'2026-06-27',changes:['กราฟหน้าหลัก: สลับชนิดกราฟ เส้น/แท่ง · เลือกช่วงวันเอง (จากวันที่…ถึงวันที่) นอกเหนือจาก 7/30 วัน']},
+  {v:'3.41.0',date:'2026-06-27',changes:['กระดิ่งแจ้งเตือนบนแถบบน (คอม+มือถือ) — รวมงานค้าง/เวร/ลา/ประกาศไว้ที่เดียว · มีตัวเลขจำนวนแจ้งเตือน']},
   {v:'3.28.0',date:'2026-06-27',changes:['เงินสด: แอดมินดู “ประวัติเงินสดย้อนหลัง” — เลือกสาขา+เดือน ดูทุกรายการจัดกลุ่มตามวัน + สรุปปิดร้านรายวัน (ตรง/ขาด/เกิน) + ใครทำรายการเมื่อไหร่']},
   {v:'3.4.2',date:'2026-06-25',changes:['ตรวจลึกทั้งระบบ: (1) ลบโค้ด“น้องแคปซูล”ที่ตายแล้ว (ยังคำนวณข้อความทุกครั้งที่เปิดหน้าแรก แต่ไม่ได้แสดง) (2) วันที่บนฉลากยาต่างชาติตามภาษาฉลาก (EN/ZH/MY) — ไม่บังคับไทย (3) กันชั่วโมงทำงานติดลบในการคำนวณเงินเดือน (กรณีหักสายเกินชั่วโมงทำงาน)']},
   {v:'3.4.1',date:'2026-06-25',changes:['แก้บั๊ก “จัดให้พอดี” (Auto) ในแบบเส้นข้าง — ชื่อร้านทับที่อยู่ และสรรพคุณทับคำเตือน เพราะจัดกลุ่มแถวผิด · ตอนนี้บล็อกเต็มความกว้างจะเรียงลงเป็นบรรทัด ไม่ทับกัน']},
@@ -6296,6 +6304,8 @@ function renderHome(){
     </div>
   </div>`;
   html+=`<div id="home-todo-card"></div>`;
+  html+=`<div id="home-insights"></div>`;
+  html+=`<div id="home-target"></div>`;
 
   // ===== ปุ่มลัด (เฉพาะแอดมิน) =====
   if(isAdmin){
@@ -6378,9 +6388,11 @@ function renderHome(){
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
             <span id="home-range-label" style="font-size:11px;color:var(--text3)">7 วันล่าสุด</span>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px">
-                <button class="home-type-btn" data-t="line" onclick="homeSetType('line')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:var(--green-l);color:var(--green-d);font-weight:700">📈 เส้น</button>
-                <button class="home-type-btn" data-t="bar" onclick="homeSetType('bar')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:transparent;color:var(--text3);font-weight:500">📊 แท่ง</button>
+              <div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px;flex-wrap:wrap">
+                <button class="home-type-btn" data-t="line" onclick="homeSetType('line')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 8px;border-radius:7px;background:var(--green-l);color:var(--green-d);font-weight:700">📈 เส้น</button>
+                <button class="home-type-btn" data-t="area" onclick="homeSetType('area')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 8px;border-radius:7px;background:transparent;color:var(--text3);font-weight:500">🌄 พื้นที่</button>
+                <button class="home-type-btn" data-t="bar" onclick="homeSetType('bar')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 8px;border-radius:7px;background:transparent;color:var(--text3);font-weight:500">📊 แท่ง</button>
+                <button class="home-type-btn" data-t="stacked" onclick="homeSetType('stacked')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 8px;border-radius:7px;background:transparent;color:var(--text3);font-weight:500">🧱 แท่งซ้อน</button>
               </div>
               <div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px">
                 <button class="home-range-btn" data-r="7" onclick="homeSetRange(7)" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 9px;border-radius:7px;background:var(--green-l);color:var(--green-d);font-weight:700">7 วัน</button>
@@ -6398,9 +6410,14 @@ function renderHome(){
         <div style="position:relative;height:220px"><canvas id="home-chart"></canvas></div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:var(--shadow)">
-        <div style="font-family:var(--disp);font-weight:600;font-size:16px;margin-bottom:14px">ยอดวันนี้แยกสาขา</div>
-        ${BRANCHES.map((b,i)=>`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}</span><span style="font-family:var(--disp);font-weight:600;font-size:14px">฿${(todayTotals[i]||0).toLocaleString()}</span></div><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${Math.round(todayTotals[i]/bsMax*100)}%;height:100%;background:${BCOLORS[i]};border-radius:3px"></div></div></div>`).join('')}
-        <div style="margin-top:16px;padding:12px;border-radius:13px;background:var(--green-ll);color:var(--green-d);font-size:12px;font-weight:600;text-align:center">ยอดรวมทุกสาขา ฿${grand.toLocaleString()}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:8px;flex-wrap:wrap">
+          <div style="font-family:var(--disp);font-weight:600;font-size:16px">ยอดแยกสาขา</div>
+          <div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px">
+            <button class="home-bview-btn" data-m="today" onclick="homeBranchView('today')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 10px;border-radius:7px;background:var(--green-l);color:var(--green-d);font-weight:700">วันนี้</button>
+            <button class="home-bview-btn" data-m="month" onclick="homeBranchView('month')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 10px;border-radius:7px;background:transparent;color:var(--text3);font-weight:500">เดือนนี้</button>
+          </div>
+        </div>
+        <div id="home-branch-rows"></div>
       </div>
     </div>`;
   }
@@ -6427,7 +6444,7 @@ function renderHome(){
   window.drawHomeChart=function(){
     const cv=document.getElementById('home-chart');
     if(!cv||!window.Chart)return;
-    const type=window._homeChartType==='bar'?'bar':'line';
+    const type=['bar','area','stacked'].includes(window._homeChartType)?window._homeChartType:'line';
     let days=[], labelText;
     if(window._homeFrom&&window._homeTo){
       let d=new Date(window._homeFrom), end=new Date(window._homeTo);
@@ -6446,10 +6463,13 @@ function renderHome(){
     const rs=getComputedStyle(document.documentElement);
     const grid=rs.getPropertyValue('--border').trim()||'#eee';
     const tick=rs.getPropertyValue('--text3').trim()||'#999';
-    const datasets=series.map((d,i)=>type==='bar'
-      ?{label:BRANCHES[i],data:d,backgroundColor:BCOLORS[i],borderRadius:4,maxBarThickness:18}
-      :{label:BRANCHES[i],data:d,borderColor:BCOLORS[i],backgroundColor:BCOLORS[i]+'18',borderWidth:2.5,tension:.4,pointRadius:0,fill:true});
-    window._homeChart=new Chart(cv,{type,data:{labels:lab,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{grid:{color:grid},ticks:{color:tick,font:{size:10},callback:v=>'฿'+(v>=1000?(v/1000)+'k':v)},border:{display:false}},x:{grid:{display:false},ticks:{color:tick,font:{size:11},maxTicksLimit:short?7:10},border:{color:grid}}}}});
+    const isBar=type==='bar'||type==='stacked';
+    const stacked=type==='stacked'||type==='area';
+    const chartType=isBar?'bar':'line';
+    const datasets=series.map((d,i)=>isBar
+      ?{label:BRANCHES[i],data:d,backgroundColor:BCOLORS[i],borderRadius:4,maxBarThickness:type==='stacked'?26:18}
+      :{label:BRANCHES[i],data:d,borderColor:BCOLORS[i],backgroundColor:BCOLORS[i]+(type==='area'?'55':'18'),borderWidth:2.5,tension:.4,pointRadius:0,fill:true});
+    window._homeChart=new Chart(cv,{type:chartType,data:{labels:lab,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{stacked,grid:{color:grid},ticks:{color:tick,font:{size:10},callback:v=>'฿'+(v>=1000?(v/1000)+'k':v)},border:{display:false}},x:{stacked,grid:{display:false},ticks:{color:tick,font:{size:11},maxTicksLimit:short?7:10},border:{color:grid}}}}});
     document.querySelectorAll('.home-range-btn').forEach(b=>{const on=!window._homeFrom&&+b.dataset.r===(window._homeRange||7);b.style.background=on?'var(--green-l)':'transparent';b.style.color=on?'var(--green-d)':'var(--text3)';b.style.fontWeight=on?'700':'500';});
     document.querySelectorAll('.home-type-btn').forEach(b=>{const on=b.dataset.t===type;b.style.background=on?'var(--green-l)':'transparent';b.style.color=on?'var(--green-d)':'var(--text3)';b.style.fontWeight=on?'700':'500';});
     const lbl=document.getElementById('home-range-label');if(lbl)lbl.textContent=labelText;
@@ -6457,7 +6477,98 @@ function renderHome(){
   window.homeSetRange=function(n){window._homeRange=n;window._homeFrom=null;window._homeTo=null;drawHomeChart();};
   window.homeSetType=function(t){window._homeChartType=t;drawHomeChart();};
   window.homeApplyDateRange=function(){const f=document.getElementById('home-from')?.value,t=document.getElementById('home-to')?.value;if(!f||!t){showToast('เลือกวันที่เริ่มและสิ้นสุด','err');return;}window._homeFrom=f;window._homeTo=t;drawHomeChart();};
+  window.homeBranchView=function(mode){
+    mode=mode==='month'?'month':'today';
+    const el=document.getElementById('home-branch-rows'); if(!el)return;
+    const tday=todayStr(), mo=tday.slice(0,7);
+    const totals=[0,1,2].map(b=>salesEntries.filter(e=>e.branch===b&&(mode==='month'?(e.date||'').startsWith(mo):e.date===tday)).reduce((s,e)=>s+(e.total||0),0));
+    const grand=totals.reduce((a,v)=>a+v,0), mx=Math.max(...totals,1), top=totals.indexOf(Math.max(...totals));
+    el.innerHTML=BRANCHES.map((b,i)=>{
+      const share=grand?Math.round(totals[i]/grand*100):0;
+      return `<div onclick="goto('sales')" style="margin-bottom:14px;cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}${grand&&i===top?' <span style="font-size:9px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:8px;font-weight:700">สูงสุด</span>':''}</span><span style="white-space:nowrap"><span style="font-family:var(--disp);font-weight:600;font-size:14px">฿${totals[i].toLocaleString()}</span> <span style="font-size:10.5px;color:var(--text3)">${share}%</span></span></div><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${Math.round(totals[i]/mx*100)}%;height:100%;background:${BCOLORS[i]};border-radius:3px;transition:width .4s"></div></div></div>`;
+    }).join('')+`<div style="margin-top:16px;padding:12px;border-radius:13px;background:var(--green-ll);color:var(--green-d);font-size:12px;font-weight:600;text-align:center">ยอดรวม${mode==='month'?'เดือนนี้':'วันนี้'}ทุกสาขา ฿${grand.toLocaleString()}</div>`;
+    document.querySelectorAll('.home-bview-btn').forEach(x=>{const on=x.dataset.m===mode;x.style.background=on?'var(--green-l)':'transparent';x.style.color=on?'var(--green-d)':'var(--text3)';x.style.fontWeight=on?'700':'500';});
+  };
+  window.renderHomeInsights=function(period){
+    period=['week','month'].includes(period)?period:'today';
+    const el=document.getElementById('home-insights'); if(!el)return;
+    const tday=todayStr();
+    const sumDay=ds=>salesEntries.filter(e=>e.date===ds).reduce((a,e)=>a+(e.total||0),0);
+    const agoStr=o=>{const d=new Date();d.setDate(d.getDate()-o);return d.toISOString().slice(0,10);};
+    const inPeriod=ds=>{
+      if(period==='week'){for(let i=0;i<=6;i++)if(agoStr(i)===ds)return true;return false;}
+      if(period==='month')return (ds||'').startsWith(tday.slice(0,7));
+      return ds===tday;
+    };
+    let cur=0,prev=0,prevLabel='',perLabel='';
+    if(period==='today'){cur=sumDay(tday);let s=0;for(let i=1;i<=7;i++)s+=sumDay(agoStr(i));prev=Math.round(s/7);prevLabel='ค่าเฉลี่ย 7 วัน';perLabel='วันนี้';}
+    else if(period==='week'){for(let i=0;i<=6;i++)cur+=sumDay(agoStr(i));for(let i=7;i<=13;i++)prev+=sumDay(agoStr(i));prevLabel='7 วันก่อนหน้า';perLabel='7 วันล่าสุด';}
+    else{const mo=tday.slice(0,7);cur=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+(e.total||0),0);const dayN=new Date().getDate();const lm=new Date();lm.setMonth(lm.getMonth()-1);const lmStr=`${lm.getFullYear()}-${String(lm.getMonth()+1).padStart(2,'0')}`;prev=salesEntries.filter(e=>(e.date||'').startsWith(lmStr)&&(+String(e.date).slice(8))<=dayN).reduce((a,e)=>a+(e.total||0),0);prevLabel='เดือนก่อน (ช่วงเดียวกัน)';perLabel='เดือนนี้';}
+    const bt=[0,1,2].map(b=>salesEntries.filter(e=>e.branch===b&&inPeriod(e.date)).reduce((a,e)=>a+(e.total||0),0));
+    const topB=bt.indexOf(Math.max(...bt));
+    const tips=[];
+    if(prev>0&&cur>0){const diff=Math.round((cur-prev)/prev*100);tips.push({ic:diff>=0?'📈':'📉',c:diff>=0?'var(--green-d)':'var(--rose-d)',t:`ยอด${perLabel}${diff>=0?'สูงกว่า':'ต่ำกว่า'}${prevLabel} ${Math.abs(diff)}% (${prevLabel} ฿${prev.toLocaleString()})`});}
+    else if(cur===0)tips.push({ic:'📝',c:'var(--amber-t)',t:`ยังไม่มียอดขาย${perLabel}`});
+    else tips.push({ic:'💰',c:'var(--green-d)',t:`ยอดขาย${perLabel} ฿${cur.toLocaleString()}`});
+    if(Math.max(...bt)>0)tips.push({ic:'🏆',c:'var(--amber-t)',t:`${BRANCHES[topB]} ขายดีสุด${perLabel} ฿${Math.max(...bt).toLocaleString()}`});
+    if(period==='today'){
+      const dayShifts=shifts.filter(s=>s.date===tday);
+      const checkedIn=dayShifts.filter(s=>!s.tempName&&(allCheckins||[]).find(c=>c.uid===s.staffId&&c.date===tday&&c.checkIn)).length;
+      const notIn=Math.max(dayShifts.length-checkedIn,0);
+      if(notIn>0)tips.push({ic:'⏰',c:'var(--amber-t)',t:`มีพนักงาน ${notIn} คนยังไม่เช็คอิน`});
+      if(window._todoStatus){const pend=window._todoStatus.reduce((a,p)=>a+(p.pending||0),0);if(pend>0)tips.push({ic:'📋',c:'var(--blue-t)',t:`งานวันนี้ค้างอีก ${pend} รายการ`});}
+    }
+    const seg=['today','week','month'].map(p=>{const on=p===period;const lbl=p==='today'?'วันนี้':p==='week'?'7 วัน':'เดือน';return `<button onclick="renderHomeInsights('${p}')" style="border:none;cursor:pointer;font-family:var(--font);font-size:10.5px;padding:3px 9px;border-radius:7px;background:${on?'var(--green-l)':'transparent'};color:${on?'var(--green-d)':'var(--text3)'};font-weight:${on?700:500}">${lbl}</button>`;}).join('');
+    el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--green);border-radius:16px;padding:14px 16px;margin-bottom:1.25rem;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:8px;flex-wrap:wrap">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);display:flex;align-items:center;gap:6px">✨ สรุปอัจฉริยะ</div>
+        <div style="display:inline-flex;background:var(--bg);border-radius:8px;padding:2px;gap:2px">${seg}</div>
+      </div>
+      ${tips.length?`<div style="display:flex;flex-direction:column;gap:7px">${tips.map(t=>`<div style="display:flex;align-items:center;gap:9px;font-size:13px"><span style="font-size:15px">${t.ic}</span><b style="color:${t.c};font-weight:600">${t.t}</b></div>`).join('')}</div>`:'<div style="font-size:12.5px;color:var(--text3)">ยังไม่มีข้อมูลพอสรุป</div>'}
+    </div>`;
+  };
+  window.homeTargetCard=function(){
+    const el=document.getElementById('home-target'); if(!el)return;
+    const target=+((appearanceCfg&&appearanceCfg.monthlyTarget))||0;
+    const tday=todayStr(), mo=tday.slice(0,7);
+    const moSales=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+(e.total||0),0);
+    if(!target){el.innerHTML=isAdmin?`<div style="background:var(--surface);border:1px dashed var(--border2);border-radius:16px;padding:13px 16px;margin-bottom:1.25rem;text-align:center"><button class="btn btn-sm" onclick="setSalesTarget()">🎯 ตั้งเป้ายอดขายรายเดือน</button></div>`:'';return;}
+    const pct=Math.min(Math.round(moSales/target*100),100);
+    const now=new Date(), dayN=now.getDate(), dim=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    const proj=Math.round(moSales/dayN*dim), projPct=Math.round(proj/target*100);
+    const col=pct>=100?'var(--green)':(projPct>=100?'var(--green-d)':'var(--amber)');
+    el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 17px;margin-bottom:1.25rem;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:13px;font-weight:700;color:var(--text2)">🎯 เป้ายอดขายเดือนนี้</div>
+        ${isAdmin?`<button onclick="setSalesTarget()" style="background:none;border:none;color:var(--green-d);font-size:11.5px;cursor:pointer;font-weight:600">แก้เป้า</button>`:''}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+        <span style="font-family:var(--disp);font-weight:700;font-size:22px">฿${moSales.toLocaleString()}</span>
+        <span style="font-size:12px;color:var(--text3)">เป้า ฿${target.toLocaleString()} · <b style="color:${col}">${pct}%</b></span>
+      </div>
+      <div style="height:10px;background:var(--bg);border-radius:5px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:5px;transition:width .5s"></div></div>
+      <div style="font-size:11.5px;color:var(--text3);margin-top:8px">📊 คาดว่าสิ้นเดือนจะได้ ฿${proj.toLocaleString()} (${projPct}% ของเป้า)${projPct>=100?' ✅':''}</div>
+    </div>`;
+  };
+  window.setSalesTarget=function(){
+    if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+    const cur=+((appearanceCfg&&appearanceCfg.monthlyTarget))||0;
+    openModal(`<div class="modal-title">🎯 ตั้งเป้ายอดขายรายเดือน</div>
+      <div style="font-size:12.5px;color:var(--text3);margin-bottom:12px">ยอดขายรวมทุกสาขาที่ตั้งเป้าต่อเดือน (ใส่ 0 = ปิดเป้า)</div>
+      <div class="field"><label class="fl">เป้า (บาท/เดือน)</label><input type="number" id="tg-amt" inputmode="decimal" value="${cur||''}" placeholder="เช่น 1500000" style="font-size:20px;font-weight:600"></div>
+      <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveSalesTarget()">บันทึก</button></div>`);
+    setTimeout(()=>document.getElementById('tg-amt')?.focus(),100);
+  };
+  window.saveSalesTarget=async function(){
+    if(!isAdmin)return;
+    const amt=parseFloat(document.getElementById('tg-amt').value)||0;
+    if(appearanceCfg)appearanceCfg.monthlyTarget=amt;
+    try{await setDoc(doc(db,'config','appearance'),appearanceCfg);closeMD();homeTargetCard();showToast(amt?'บันทึกเป้าแล้ว':'ปิดเป้าแล้ว');logActivity('sales_target','ตั้งเป้ายอดขาย ฿'+amt.toLocaleString());}catch(e){showToast('บันทึกไม่สำเร็จ','err');}
+  };
   if(_homeChartData&&window.Chart){drawHomeChart();}
+  if(_homeChartData&&typeof homeBranchView==='function')homeBranchView('today');
+  if(_homeChartData&&typeof renderHomeInsights==='function')renderHomeInsights();
+  if(_homeChartData&&typeof homeTargetCard==='function')homeTargetCard();
 }
 
 // ===== ผู้ช่วยส่วนตัว (แตะการ์ดทักทาย) — ตอบจากข้อมูลจริงในระบบ ไม่ใช่ AI ภายนอก =====
@@ -7330,6 +7441,16 @@ async function loadBranchLocations(){
 }
 
 // ===== IN-APP NOTIFICATIONS =====
+window.openNotifications=function(){
+  const alerts=window._currentAlerts||[];
+  const cmap={amber:['var(--amber-l)','var(--amber-t)'],blue:['var(--blue-l)','var(--blue-t)'],red:['var(--red-l)','var(--red-t)'],green:['var(--green-l)','var(--green-dd)'],purple:['var(--purple-l)','var(--purple-t)']};
+  const body=alerts.length?alerts.map(a=>{const c=cmap[a.color]||['var(--bg)','var(--text2)'];const act=(a.action||'').replace('onclick="','onclick="closeMD();');return `<div style="display:flex;align-items:center;gap:11px;background:${c[0]};border-radius:12px;padding:12px 14px;margin-bottom:9px"><span style="font-size:18px">${a.icon||'🔔'}</span><span style="flex:1;font-size:13px;color:${c[1]};font-weight:500">${a.text}</span>${act}</div>`;}).join(''):'<div style="text-align:center;padding:2.5rem 1rem;color:var(--text3)"><div style="font-size:42px;margin-bottom:.5rem">🔔</div><div style="font-size:14px;font-weight:600;color:var(--text2)">ไม่มีแจ้งเตือนใหม่</div><div style="font-size:12px;margin-top:4px">งานค้าง · เวร · คำขอลา จะแสดงที่นี่</div></div>';
+  openModal(`<div class="modal-title">🔔 แจ้งเตือน</div><div style="max-height:60vh;overflow:auto">${body}</div><div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+};
+window.updateNotifBell=function(){
+  const n=(window._currentAlerts||[]).length;
+  document.querySelectorAll('.notif-badge').forEach(b=>{if(n>0){b.textContent=n>9?'9+':n;b.style.display='flex';}else{b.style.display='none';}});
+};
 async function checkNotifications(){
   const banner=document.getElementById('alert-banner');
   if(!banner)return;
@@ -7427,6 +7548,7 @@ async function checkNotifications(){
 
   window._currentAlerts=alerts;
   updateCapsuleFabBadge();
+  if(window.updateNotifBell)window.updateNotifBell();
   if(!alerts.length){banner.style.display='none';return;}
   banner.style.display='block';
   banner.innerHTML=alerts.map(a=>{
