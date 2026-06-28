@@ -1538,8 +1538,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.47.0';
+const APP_VERSION='3.47.1';
 const CHANGELOG=[
+  {v:'3.47.1',date:'2026-06-28',changes:['แก้ปัญหาหน้าเงินสดบันทึกไม่ได้ (เปิด/ปิดร้าน ฯลฯ): เพิ่ม Firestore Rule สำหรับ cashState/cashEvents (⚠️ ต้อง publish ใน Firebase Console) · ข้อความแจ้งเตือนตอนบันทึกพลาดจะบอกสาเหตุจริงแล้ว']},
   {v:'3.47.0',date:'2026-06-27',changes:['ยอดขาย: พนักงานแก้ยอดที่ตัวเองลงได้เองภายใน 5 นาที เกินนั้นยอดจะล็อก ต้องกด “ขอแอดมินแก้” (กรอกยอดที่ถูก+เหตุผล) ส่งคำขอให้ผู้ดูแล · แอดมินมีหน้าจัดการคำขอ — ใช้ค่าที่ขอ/เปิดไปแก้เอง/ปฏิเสธได้ · เพิ่มแจ้งเตือนอัตโนมัติบนหน้าแรกสำหรับแอดมิน: มีคำขอแก้ไขค้าง · เงินปิดร้านไม่ตรง · ตู้เซฟเกินเกณฑ์ · พนักงานสายบ่อย (ตั้งเกณฑ์ได้ในหน้าตั้งค่า) · ⚠️ ต้องเพิ่ม Firestore Rule “editRequests” ใน Firebase Console']},
   {v:'3.46.0',date:'2026-06-27',changes:['เงินเดือน: พนักงานเงินเดือนประจำ (fixed) ที่มาสายจนถูกหักชั่วโมง จะถูก“หักเป็นเงินจริง”แล้ว — เพิ่มช่อง “ค่าหักสายต่อชั่วโมง (บาท)” ต่อพนักงานในหน้าจัดการสมาชิก (ดีฟอลต์ 0 = ไม่หัก) · หน้าคำนวณเงินเดือนแสดงยอดหักสายชัดเจน ปรับเรทรายเดือนได้ · สลิปเงินเดือนเพิ่มบรรทัด “หักมาสาย” ให้ยอดสุทธิตรวจสอบได้ · พนักงานรายชั่วโมง/ผสมยังหักผ่านชั่วโมงเหมือนเดิม (ไม่หักซ้ำ)']},
   {v:'3.45.0',date:'2026-06-27',changes:['เก็บกวาดโค้ด (ภายใน): ลบระบบพิมพ์ฉลากเก่า PrintBridge/QZ Tray ที่ปิดใช้แล้ว + ไลบรารี qz-tray.js ที่โหลดทิ้งไว้ → เปิดแอปเบาขึ้น · ลบระบบข้อความ“น้องแคปซูล”ที่ถอดไปแล้วออกหมด · ช่องค้นหา (สมาชิก/ประวัติใช้งาน/คำเตือนยา/ฉลากต่างชาติ) ใส่ debounce ลื่นขึ้นไม่กระตุก · หน้าประวัติการใช้งานดึงแค่ 500 รายการล่าสุดจากเซิร์ฟเวอร์ เร็วขึ้นเมื่อข้อมูลเยอะ · กันแอปค้างตอนกดปุ่ม“รับทราบ/ดู”หลังเซสชันหมดอายุ']},
@@ -4257,7 +4258,7 @@ window.cashDoOpen=async function(branch){
     showToast('เปิดร้านแล้ว · ลิ้นชัก ฿'+fmt(amt));
     logActivity('cash_open',`เปิดร้าน ${BRANCHES[branch]} ลิ้นชัก ฿${fmt(amt)}`);
     if(window.refreshTodoStatus)refreshTodoStatus();
-  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
 };
 window.cashR2DPrompt=function(branch){
   const st=cashGet(branch);
@@ -4277,7 +4278,7 @@ window.cashDoR2D=async function(branch){
     await cashAddEvent({branch,type:'r2d',amount:amt});
     closeMD();renderCashPage();showToast('เบิกสำรองมาลิ้นชัก ฿'+fmt(amt));
     logActivity('cash_r2d',`เบิกสำรอง→ลิ้นชัก ${BRANCHES[branch]} ฿${fmt(amt)}`);
-  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
 };
 window.cashTopupPrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
@@ -4297,7 +4298,7 @@ window.cashDoTopup=async function(branch){
     await cashAddEvent({branch,type:'topup',amount:amt});
     closeMD();renderCashPage();showToast('เติมเงินสำรอง ฿'+fmt(amt));
     logActivity('cash_topup',`เติมสำรอง ${BRANCHES[branch]} ฿${fmt(amt)}`);
-  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
 };
 window.cashClosePrompt=function(branch){
   if(!cashOpenedToday(branch)){showToast('ยังไม่ได้เปิดร้านวันนี้','err');return;}
@@ -4325,7 +4326,7 @@ window.cashDoClose=async function(branch){
     showToast(diff===0?'ปิดร้าน · เงินตรงพอดี ✓':(diff>0?`ปิดร้าน · เกิน ฿${fmt(Math.abs(diff))}`:`ปิดร้าน · ขาด ฿${fmt(Math.abs(diff))}`));
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับ ฿${fmt(counted)} (${diff===0?'ตรง':diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))})`);
     if(window.refreshTodoStatus)refreshTodoStatus();
-  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
 };
 window.cashDepositPrompt=function(branch){
   const st=cashGet(branch);
@@ -4346,7 +4347,7 @@ window.cashDoDeposit=async function(branch){
     await cashAddEvent({branch,type:'deposit',amount:amt});
     closeMD();renderCashPage();showToast('ดึงเข้าตู้เซฟ ฿'+fmt(amt));
     logActivity('cash_deposit',`ดึงเข้าตู้เซฟ ${BRANCHES[branch]} ฿${fmt(amt)}`);
-  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
 };
 window.cashSafeOutPrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
@@ -4368,7 +4369,7 @@ window.cashDoSafeOut=async function(branch){
     await cashAddEvent({branch,type:'safeout',amount:amt});
     closeMD();renderCashPage();showToast('นำเงินออกจากตู้เซฟ ฿'+fmt(amt));
     logActivity('cash_safeout',`นำออกตู้เซฟ ${BRANCHES[branch]} ฿${fmt(amt)}`);
-  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
 };
 window.cashBackdatePrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
@@ -4415,7 +4416,7 @@ window.cashDoBackdate=async function(branch){
     closeMD();renderCashPage();
     showToast('บันทึกย้อนหลังแล้ว');
     logActivity('cash_backdate',`บันทึกย้อนหลัง ${CASH_TYPES[type]?.t||type} ${BRANCHES[branch]} วันที่ ${date} ฿${fmt(amount)}`);
-  }catch(e){showToast('บันทึกไม่สำเร็จ','err');console.error(e);}
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
 };
 window.cashHistoryPrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
