@@ -1538,8 +1538,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.47.1';
+const APP_VERSION='3.48.1';
 const CHANGELOG=[
+  {v:'3.48.1',date:'2026-06-28',changes:['เงินสด: แจ้งเตือนเช็คอินผิดสาขา ไม่แสดงกับแอดมินแล้ว (แอดมินลงได้ทุกสาขา)']},
+  {v:'3.48.0',date:'2026-06-28',changes:['เงินสด: เพิ่มแจ้งเตือน (เฉยๆ) ถ้าวันนี้เช็คอินคนละสาขากับที่กำลังลงเงินสด — กันลงผิดสาขา · แก้ระบบอัปเดตสด (realtime): หน้าประวัติการใช้งานเดิมฟัง collection ผิดชื่อ (activity → activityLogs) เลยไม่อัปเดตเอง ตอนนี้สดแล้ว']},
   {v:'3.47.1',date:'2026-06-28',changes:['แก้ปัญหาหน้าเงินสดบันทึกไม่ได้ (เปิด/ปิดร้าน ฯลฯ): เพิ่ม Firestore Rule สำหรับ cashState/cashEvents (⚠️ ต้อง publish ใน Firebase Console) · ข้อความแจ้งเตือนตอนบันทึกพลาดจะบอกสาเหตุจริงแล้ว']},
   {v:'3.47.0',date:'2026-06-27',changes:['ยอดขาย: พนักงานแก้ยอดที่ตัวเองลงได้เองภายใน 5 นาที เกินนั้นยอดจะล็อก ต้องกด “ขอแอดมินแก้” (กรอกยอดที่ถูก+เหตุผล) ส่งคำขอให้ผู้ดูแล · แอดมินมีหน้าจัดการคำขอ — ใช้ค่าที่ขอ/เปิดไปแก้เอง/ปฏิเสธได้ · เพิ่มแจ้งเตือนอัตโนมัติบนหน้าแรกสำหรับแอดมิน: มีคำขอแก้ไขค้าง · เงินปิดร้านไม่ตรง · ตู้เซฟเกินเกณฑ์ · พนักงานสายบ่อย (ตั้งเกณฑ์ได้ในหน้าตั้งค่า) · ⚠️ ต้องเพิ่ม Firestore Rule “editRequests” ใน Firebase Console']},
   {v:'3.46.0',date:'2026-06-27',changes:['เงินเดือน: พนักงานเงินเดือนประจำ (fixed) ที่มาสายจนถูกหักชั่วโมง จะถูก“หักเป็นเงินจริง”แล้ว — เพิ่มช่อง “ค่าหักสายต่อชั่วโมง (บาท)” ต่อพนักงานในหน้าจัดการสมาชิก (ดีฟอลต์ 0 = ไม่หัก) · หน้าคำนวณเงินเดือนแสดงยอดหักสายชัดเจน ปรับเรทรายเดือนได้ · สลิปเงินเดือนเพิ่มบรรทัด “หักมาสาย” ให้ยอดสุทธิตรวจสอบได้ · พนักงานรายชั่วโมง/ผสมยังหักผ่านชั่วโมงเหมือนเดิม (ไม่หักซ้ำ)']},
@@ -2470,7 +2472,7 @@ function refreshActivePage(){
 function startRealtimeAll(){
   if(_rtAll.length||!currentUser)return;
   const ping=()=>{clearTimeout(_rtBusy);_rtBusy=setTimeout(()=>{try{refreshActivePage();}catch(e){}},250);};
-  ['sales','members','checkins','leaves','payroll','activity','todos','drugWarnings','articles','config'].forEach(c=>{
+  ['sales','members','checkins','leaves','payroll','activityLogs','todos','drugWarnings','articles','config'].forEach(c=>{
     try{_rtAll.push(onSnapshot(collection(db,c),()=>ping()));}catch(e){}
   });
 }
@@ -3992,6 +3994,7 @@ let cashState={};   // {branch:{reserve,drawer,safe,openDrawer,openDate,openBy}}
 let cashEvents=[];  // ใหม่สุดก่อน
 let editRequests=[];                                   // คำขอแก้ไขจากพนักงาน (sales ฯลฯ) ที่ยัง pending
 let alertSettings={safeThreshold:20000,lateThreshold:3}; // เกณฑ์แจ้งเตือนผู้ดูแล (โหลดทับจาก config/alertSettings)
+let myCheckinBranchToday=null;                         // สาขาที่ผู้ใช้เช็คอินวันนี้ (ใช้เตือนตอนลงเงินสดผิดสาขา)
 async function loadAlertSettings(){
   try{const d=await getDoc(doc(db,'config','alertSettings'));if(d.exists())alertSettings={...alertSettings,...d.data()};}catch(e){}
 }
@@ -4012,9 +4015,18 @@ window.saveAlertSettings=async function(){
   catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
 };
 
+// อ่านว่าผู้ใช้เช็คอินวันนี้ที่สาขาไหน (เพื่อเตือนถ้ามาลงเงินสดคนละสาขา)
+async function loadMyCheckinBranch(){
+  myCheckinBranchToday=null;
+  if(!currentUser)return;
+  try{
+    const d=await getDoc(doc(db,'checkins',`${currentUser.uid}_${todayStr()}`));
+    if(d.exists()){const x=d.data();if(x.checkIn&&x.branchIn!=null)myCheckinBranchToday=x.branchIn;}
+  }catch(e){}
+}
 async function loadCashPage(){
   renderCashBranchSeg();
-  await loadCashData();
+  await Promise.all([loadCashData(),loadMyCheckinBranch()]);
   renderCashPage();
 }
 function renderCashBranchSeg(){
@@ -4153,8 +4165,16 @@ function renderCashPage(){
   const depBeforeClose=cashEvents.filter(ev=>ev.branch===branch&&ev.date===todayStr()&&ev.type==='deposit'&&(!_closeEv0||ev.ts<_closeEv0.ts)).reduce((a,ev)=>a+(ev.amount||0),0);
   const expClose=cashExpectedClose(branch);
 
+  let html='';
+  // เตือน (เฉยๆ) ถ้าเช็คอินคนละสาขากับที่กำลังลงเงินสด — ข้ามแอดมิน (ลงได้ทุกสาขา ไม่ต้องเตือน)
+  if(!isAdmin&&myCheckinBranchToday!=null&&myCheckinBranchToday!==branch){
+    html+=`<div style="display:flex;align-items:center;gap:10px;background:var(--amber-l);border:1px solid var(--amber);color:var(--amber-t);border-radius:13px;padding:11px 14px;margin-bottom:1.1rem;font-size:12.5px;line-height:1.5">
+      <span style="font-size:18px;flex-shrink:0">⚠️</span>
+      <span>วันนี้คุณเช็คอินที่ <b>${BRANCHES[myCheckinBranchToday]}</b> แต่กำลังดู/ลงเงินสดของสาขา <b>${BRANCHES[branch]}</b> — ตรวจสอบว่าเลือกสาขาถูกต้องไหม</span>
+    </div>`;
+  }
   // 3 กล่องยอด
-  let html=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.1rem">
+  html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.1rem">
     ${cashBalCard('เงินสำรอง','💼',st.reserve,'var(--amber-t)','var(--amber-l)')}
     ${cashBalCard('ลิ้นชัก','🧰',st.drawer,'var(--green-d)','var(--green-l)')}
     ${cashBalCard('ตู้เซฟ','🔒',st.safe,'#1E3A8A','var(--blue-l)')}
