@@ -1533,8 +1533,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.53.2';
+const APP_VERSION='3.54.0';
 const CHANGELOG=[
+  {v:'3.54.0',date:'2026-06-29',changes:['ระบบพาทำงาน: เพิ่มการ์ดไกด์“ขั้นต่อไปของคุณ”บนหน้าแรก (เฉพาะพนักงาน) บอกว่าต้องทำอะไรต่อ + ปุ่มพาไปทำทันที ตามสถานะของวัน (เช็คอิน→เปิดร้าน→ลงยอด/ปิดร้าน→เช็คเอาท์) พร้อมแถบความคืบหน้า · เพิ่ม popup ถาม“ไปขั้นต่อไปไหม”หลังเช็คอิน/เปิดร้าน/ปิดร้านสำเร็จ เพื่อพาไปทำขั้นต่อไปง่ายๆ']},
   {v:'3.53.2',date:'2026-06-29',changes:['ตรวจแก้บั๊กจากการรีวิว: (เงินสด) ยกเลิกการ“ปิดร้าน”แล้วคืนยอดลิ้นชักก่อนปิดให้ถูกต้อง (เดิมไม่คืน ทำให้ลิ้นชักเพี้ยน) · กันยอดขายนับเป็น 0 เพราะชนิดสาขาไม่ตรง (string/number) · (ยอดขาย) หัวการ์ดโชว์วันที่ที่เลือกจริง ไม่ใช่“วันนี้”เสมอ + แก้วันที่ parse แบบ local · (งานวันนี้) การ์ดหน้าแรก/badge นับงานให้ตรงกับหน้างานวันนี้ (ซ่อนปิดร้านที่ยังไม่ถึงเวลาเหมือนกัน)']},
   {v:'3.53.1',date:'2026-06-29',changes:['งานวันนี้: ปุ่ม“ไปทำ”ของงานเงินสด (นับเงินต้นวัน/ปลายวัน) กระโดดไปเปิดหน้าจอนับเงินของสาขานั้นให้ทันที · “นับเงินปลายวัน (ปิดร้าน)” จะซ่อนไว้ก่อน แสดงเฉพาะหลังทำ“นับเงินต้นวัน (เปิดร้าน)”เสร็จแล้ว และจัดให้เปิดร้านมาก่อนเสมอ']},
   {v:'3.53.0',date:'2026-06-29',changes:['รีดีไซน์หน้างานวันนี้ให้เข้าใจง่ายขึ้น: แยกเป็น 2 กลุ่มชัดเจน — “ต้องไปทำในระบบ” (เช่น ลงยอดขาย/เปิด-ปิดร้าน) ระบบติ๊กให้เอง มีปุ่ม“ไปทำ →” พาไปหน้านั้น · กับ “งานทั่วไป” ที่แตะติ๊กเอง · เพิ่มวงแหวนความคืบหน้า + เหลืออีกกี่งาน · มุมแอดมินจัดกลุ่มแบบเดียวกันทุกสาขา']},
@@ -4370,6 +4371,7 @@ window.cashDoOpen=async function(branch){
     showToast('เปิดร้านแล้ว · ลิ้นชัก ฿'+fmt(amt));
     logActivity('cash_open',`เปิดร้าน ${BRANCHES[branch]} ลิ้นชัก ฿${fmt(amt)}`);
     if(window.refreshTodoStatus)refreshTodoStatus();
+    setTimeout(()=>showNextStep('open',branch),280);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
   finally{_cashBusy=false;}
 };
@@ -4448,6 +4450,7 @@ window.cashDoClose=async function(branch){
     showToast(diff===0?'ปิดร้าน · เงินตรงพอดี ✓':(diff>0?`ปิดร้าน · เกิน ฿${fmt(Math.abs(diff))}`:`ปิดร้าน · ขาด ฿${fmt(Math.abs(diff))}`));
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับ ฿${fmt(counted)} (${diff===0?'ตรง':diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))})`);
     if(window.refreshTodoStatus)refreshTodoStatus();
+    setTimeout(()=>showNextStep('close',branch),280);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
   finally{_cashBusy=false;}
 };
@@ -6470,6 +6473,71 @@ function animateHomeStats(){
     requestAnimationFrame(step);
   });
 }
+// ===== การ์ดไกด์ "ขั้นต่อไปของคุณ" บนหน้าแรก (พาพนักงานทำงานทีละสเต็ป) =====
+async function renderHomeGuide(){
+  let box=document.getElementById('home-guide');if(!box)return;
+  if(isAdmin){box.innerHTML='';return;} // แอดมินมี dashboard อยู่แล้ว
+  try{ if(!window._myCheckinToday){const d=await getDoc(doc(db,'checkins',`${currentUser.uid}_${todayStr()}`));window._myCheckinToday=d.exists()?d.data():{};} }catch(e){}
+  try{ if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData(); }catch(e){}
+  box=document.getElementById('home-guide');if(!box)return; // ออกจากหน้าแล้ว
+  const branch=(todoBranchesForUser&&todoBranchesForUser()[0])??(profile?.branch??0);
+  const ci=window._myCheckinToday||{};
+  const checkedIn=!!ci.checkIn, checkedOut=!!ci.checkOut;
+  const opened=cashOpenedToday(branch), closed=!!cashTodayClose(branch);
+  const se=salesEntries.find(e=>e.date===todayStr()&&+e.branch===+branch);
+  const salesLogged=!!(se&&se.total>0);
+  const steps=[{k:'เช็คอิน',done:checkedIn},{k:'เปิดร้าน',done:opened},{k:'ลงยอด',done:salesLogged},{k:'ปิดร้าน',done:closed},{k:'เช็คเอาท์',done:checkedOut}];
+  const nowIdx=steps.findIndex(s=>!s.done);
+  const track=`<div style="display:flex;gap:5px;margin-top:16px">`+steps.map((s,i)=>{
+    const bg=s.done?'#fff':(i===nowIdx?'#fff':'rgba(255,255,255,.3)');
+    return `<div style="flex:1;text-align:center"><div style="height:5px;border-radius:3px;background:${bg};${i===nowIdx&&!s.done?'box-shadow:0 0 0 2px rgba(255,255,255,.4)':''};margin-bottom:5px"></div><div style="font-size:9.5px;font-weight:600;opacity:${s.done||i===nowIdx?'1':'.8'}">${s.k}</div></div>`;
+  }).join('')+`</div>`;
+  const wrap=(inner)=>`<div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:22px;padding:20px;color:#fff;margin-bottom:1.1rem;box-shadow:0 10px 26px rgba(31,174,139,.28)">${inner}</div>`;
+  const cta=(label,act)=>`<button onclick="guideGo('${act}',${branch})" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:15px;background:#fff;color:var(--green-dd);border:none;border-radius:14px;padding:15px;font-family:var(--font);font-weight:800;font-size:15.5px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)">${label}</button>`;
+  const lbl=(t)=>`<div style="font-size:11.5px;font-weight:700;letter-spacing:1px;opacity:.9">${t}</div>`;
+  let inner;
+  if(!checkedIn) inner=lbl('ขั้นต่อไปของคุณ')+`<div style="font-size:38px;margin:6px 0 2px">📍</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">เช็คอินเข้างาน</div><div style="font-size:13px;opacity:.94;margin-top:4px">เริ่มต้นวันด้วยการลงเวลาเข้างาน</div>${cta('เช็คอินเลย →','checkin')}${track}`;
+  else if(!opened) inner=lbl('ขั้นต่อไปของคุณ')+`<div style="font-size:38px;margin:6px 0 2px">☀️</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">เปิดร้าน — นับเงินลิ้นชัก</div><div style="font-size:13px;opacity:.94;margin-top:4px">เช็คอินแล้ว · นับเงินตั้งต้นในลิ้นชัก</div>${cta('เปิดร้านเลย →','open')}${track}`;
+  else if(!closed){
+    const dual=`<div style="display:flex;gap:9px;margin-top:15px">${salesLogged?'':`<button onclick="guideGo('sales',${branch})" style="flex:1;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:13px;padding:13px;font-family:var(--font);font-weight:700;font-size:13.5px;cursor:pointer">💰 ลงยอดขาย</button>`}<button onclick="guideGo('close',${branch})" style="flex:1;background:#fff;color:var(--green-dd);border:none;border-radius:13px;padding:13px;font-family:var(--font);font-weight:800;font-size:13.5px;cursor:pointer">🌙 ปิดร้าน</button></div>`;
+    inner=lbl('เปิดร้านแล้ว · กำลังขายของ 🛒')+`<div style="font-size:38px;margin:6px 0 2px">🧰</div><div style="font-size:20px;font-weight:800;font-family:var(--disp)">${salesLogged?'ตอนเลิกงาน มาปิดร้าน':'ตอนเลิกงาน: ลงยอด แล้วปิดร้าน'}</div><div style="font-size:13px;opacity:.94;margin-top:4px">นับเงินจริงเทียบยอด ระบบเช็คให้ว่าตรงไหม</div>${dual}${track}`;
+  }
+  else if(!checkedOut) inner=lbl('ขั้นสุดท้าย')+`<div style="font-size:38px;margin:6px 0 2px">📍</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">เช็คเอาท์ออกงาน</div><div style="font-size:13px;opacity:.94;margin-top:4px">ปิดร้านแล้ว · ลงเวลาออกงานก่อนกลับบ้าน</div>${cta('เช็คเอาท์เลย →','checkout')}${track}`;
+  else inner=`<div style="text-align:center;padding:6px 0"><div style="font-size:46px">🎉</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">วันนี้เรียบร้อยแล้ว!</div><div style="font-size:13px;opacity:.94;margin-top:4px">ทำครบทุกอย่างแล้ว เก่งมาก ขอบคุณนะ 💚</div></div>`;
+  box.innerHTML=wrap(inner);
+}
+window.guideGo=function(act,branch){
+  if(act==='open'){window._cashPendingAction={branch:+branch,act:'open'};goto('cash');}
+  else if(act==='close'){window._cashPendingAction={branch:+branch,act:'close'};goto('cash');}
+  else if(act==='sales')goto('sales');
+  else if(act==='todo')goto('todo');
+  else goto('checkin'); // checkin / checkout = หน้าเดียวกัน
+};
+window.nextStepGo=function(act,branch){closeMD();guideGo(act,branch);};
+// หลังเช็คอิน: ถ้ายังไม่เปิดร้าน → ชวนไปเปิดร้าน · ถ้าเปิดแล้ว → โชว์งานวันนี้
+async function afterCheckinNext(branch){
+  try{ if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData(); }catch(e){}
+  if(!cashOpenedToday(branch))showNextStep('checkin',branch);
+  else if(typeof showTodoPopupAfterCheckin==='function')showTodoPopupAfterCheckin(branch);
+}
+// popup ถามว่าจะไปขั้นต่อไปไหม (เด้งหลังทำเสร็จ)
+window.showNextStep=function(kind,branch){
+  const M={
+    checkin:{di:'📍',d:'เช็คอินสำเร็จ',ni:'☀️',h:'ต่อไป: เปิดร้าน',ds:'นับเงินตั้งต้นในลิ้นชักก่อนเริ่มขาย — ไปทำเลยไหม?',go:'☀️ ไปเปิดร้าน',act:'open'},
+    open:{di:'☀️',d:'เปิดร้านแล้ว',ni:'✅',h:'ต่อไป: ดูงานวันนี้',ds:'เช็กว่าวันนี้มีงานอะไรต้องทำบ้าง — ไปดูเลยไหม?',go:'✅ ไปดูงานวันนี้',act:'todo'},
+    close:{di:'🌙',d:'ปิดร้านแล้ว',ni:'📍',h:'อย่าลืมเช็คเอาท์',ds:'ลงเวลาออกงานก่อนกลับบ้าน — ไปเช็คเอาท์เลยไหม?',go:'📍 ไปเช็คเอาท์',act:'checkout'},
+  };
+  const m=M[kind];if(!m)return;
+  openModal(`<div style="text-align:center;padding:6px 4px">
+    <div style="width:62px;height:62px;border-radius:50%;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 10px">✅</div>
+    <div style="font-size:12.5px;font-weight:700;color:var(--green-d)">${m.di} ${m.d}</div>
+    <div style="font-size:33px;margin:9px 0 0">${m.ni}</div>
+    <div style="font-size:20px;font-weight:800;font-family:var(--disp)">${m.h}</div>
+    <div style="font-size:13px;color:var(--text2);margin-top:5px;line-height:1.55">${m.ds}</div>
+    <button onclick="nextStepGo('${m.act}',${branch})" style="display:block;width:100%;margin-top:17px;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-weight:800;font-size:15.5px;cursor:pointer">${m.go}</button>
+    <button onclick="closeMD()" style="display:block;width:100%;margin-top:8px;background:none;border:none;color:var(--text3);font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;padding:8px">ไว้ก่อน</button>
+  </div>`);
+};
 function renderHome(){
   const el=document.getElementById('home-content');
   if(!el||!currentUser)return;
@@ -6492,6 +6560,7 @@ function renderHome(){
       <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
     </div>
   </div>`;
+  html+=`<div id="home-guide"></div>`;
   html+=`<div id="home-todo-card"></div>`;
   html+=`<div id="home-insights"></div>`;
   html+=`<div id="home-target"></div>`;
@@ -6629,6 +6698,7 @@ function renderHome(){
   if(typeof animateHomeStats==='function')animateHomeStats();
   if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderStaffStatus('home-staff-status');}
   if(typeof refreshTodoStatus==='function')refreshTodoStatus();
+  if(typeof renderHomeGuide==='function')renderHomeGuide();
   // init กราฟหน้าแรก (สลับชนิด/ช่วงเวลา/ช่วงวันที่กำหนดเองได้)
   window.drawHomeChart=function(){
     const cv=document.getElementById('home-chart');
@@ -7226,7 +7296,7 @@ window.doCheckinTester=async function(type){
     showToast(`🧪 ${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ (ทดสอบ) ${timeStr} สาขา${BRANCHES[branch]}`);
     logActivity(type==='in'?'checkin':'checkout',`[TEST] ${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[branch]}`);
     renderCheckinPage();
-    if(type==='in')setTimeout(()=>showTodoPopupAfterCheckin(branch),500);
+    if(type==='in')setTimeout(()=>afterCheckinNext(branch),500);
   }catch(e){if(msg)msg.innerHTML='<span style="color:var(--red-t)">บันทึกไม่ได้: '+e.message+'</span>';}
 };
 
@@ -7300,8 +7370,8 @@ window.doCheckin=function(type){
       showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}`);
       logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}${type==='in'&&rec.isLate?` (สาย ${rec.lateMinutes} นาที)`:''}`);
       renderCheckinPage();
-      // ===== Todo popup หลังเช็คอิน =====
-      if(type==='in') setTimeout(()=>showTodoPopupAfterCheckin(matchedBranch),500);
+      // ===== หลังเช็คอิน: พาไปขั้นต่อไป (เปิดร้าน) หรือโชว์งานวันนี้ =====
+      if(type==='in') setTimeout(()=>afterCheckinNext(matchedBranch),500);
       // ===== แจ้งเตือนสาย (popup) =====
       if(type==='in'&&lateInfo){
         const hh=Math.floor(lateInfo.lateMin/60), mm=lateInfo.lateMin%60;
