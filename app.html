@@ -1533,8 +1533,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.52.1';
+const APP_VERSION='3.53.0';
 const CHANGELOG=[
+  {v:'3.53.0',date:'2026-06-29',changes:['รีดีไซน์หน้างานวันนี้ให้เข้าใจง่ายขึ้น: แยกเป็น 2 กลุ่มชัดเจน — “ต้องไปทำในระบบ” (เช่น ลงยอดขาย/เปิด-ปิดร้าน) ระบบติ๊กให้เอง มีปุ่ม“ไปทำ →” พาไปหน้านั้น · กับ “งานทั่วไป” ที่แตะติ๊กเอง · เพิ่มวงแหวนความคืบหน้า + เหลืออีกกี่งาน · มุมแอดมินจัดกลุ่มแบบเดียวกันทุกสาขา']},
   {v:'3.52.1',date:'2026-06-28',changes:['แก้บั๊กเงินสด 2 จุด: (1) กันกดบันทึกซ้ำ — ดึงเข้าเซฟ/เบิก/ปิดร้าน ฯลฯ ถ้ากดรัวจะบันทึกครั้งเดียว ไม่เป็น 2 เท่าอีก (2) ถ้าแก้ยอดขายทีหลังจากปิดร้าน ยอด“ควรมี/ผลต่าง”ของวันนี้จะคำนวณใหม่ตามยอดขายล่าสุดให้อัตโนมัติ']},
   {v:'3.52.0',date:'2026-06-28',changes:['รีดีไซน์หน้าบันทึกยอดขายใหม่ให้ใช้ง่ายขึ้น: ยอดรวมเด่นเป็นการ์ดใหญ่ด้านบน (อัปเดตสด) · เลือกสาขาแบบปุ่มสี + เลื่อนวันด้วย ‹ › และปุ่ม“วันนี้” · แต่ละช่องทางชำระโชว์ % สัดส่วน+แถบกราฟ · มีสถานะ“ยังไม่บันทึก/บันทึกแล้วโดยใคร เมื่อไหร่” · ปุ่มบันทึกโชว์ยอดรวม — ตรรกะ/การบันทึก/กฎ 5 นาที เหมือนเดิมทุกอย่าง']},
   {v:'3.51.0',date:'2026-06-28',changes:['เงินสด: เปลี่ยนการนับแยกเหรียญ/แบงค์เป็น “บังคับ” — ทุกปุ่มที่กรอกเงินต้องนับชนิดเงิน ระบบรวมยอดให้ (ช่องยอดเงินกรอกเองไม่ได้แล้ว มาจากการนับเท่านั้น) · เงินสำรอง/ลิ้นชัก/ตู้เซฟ แยกตามสาขาเหมือนเดิม · ข้อมูลเก่าที่ไม่มีการแยกชนิด แสดงปกติ ไม่ต้องแก้']},
@@ -9364,6 +9365,43 @@ async function loadTodoPage(){
   const data=await ensureTodayTasks(branch);
   renderTodoPageContent(data,branch);
 }
+// ===== ดีไซน์งานวันนี้: แยก "งานระบบเช็คให้" (autoCheck) กับ "งานติ๊กเอง" =====
+function todoHero(pct,done,total,rem){
+  return `<div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:20px;padding:18px 20px;color:#fff;margin-bottom:18px;box-shadow:0 8px 22px rgba(31,174,139,.26);display:flex;align-items:center;gap:18px">
+    <div style="width:74px;height:74px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:conic-gradient(#fff ${pct}%,rgba(255,255,255,.28) 0)">
+      <div style="width:58px;height:58px;border-radius:50%;background:#15876B;display:flex;flex-direction:column;align-items:center;justify-content:center">
+        <div style="font-size:18px;font-weight:800;font-family:var(--disp);line-height:1">${pct}%</div>
+        <div style="font-size:9px;opacity:.85">${done}/${total}</div>
+      </div>
+    </div>
+    <div><div style="font-size:19px;font-weight:700">${rem===0?'เสร็จครบทุกงานแล้ว!':'เหลืออีก '+rem+' งาน'}</div>
+      <div style="font-size:12.5px;opacity:.92;margin-top:2px">${rem===0?'เยี่ยมมาก ทำได้ดีมากวันนี้ 🎉':'ทำให้ครบก่อนเลิกงานนะ สู้ๆ 💪'}</div></div>
+  </div>`;
+}
+function todoAutoIcon(t){return ({sales:'💰',cash_open:'☀️',cash_close:'🌙',purse:'🔒',checkin:'📍'})[t.autoCheck]||'📲';}
+function todoLink(t){return t.linkedPage||({sales:'sales',cash_open:'cash',cash_close:'cash',purse:'cash',checkin:'checkin'})[t.autoCheck]||'';}
+function todoAutoRow(t,i,data,branch,opts){
+  const ic=todoAutoIcon(t),link=todoLink(t);
+  const when=t.done?`✓ เรียบร้อย${t.isAuto?' (ระบบตรวจให้)':(t.doneBy?' · '+memberName(t.doneBy):'')}${t.doneAt?' · '+new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''}`:'⏳ ยังไม่ได้ทำ';
+  const right=t.done?'<div style="font-size:20px;color:var(--green);flex-shrink:0">✓</div>'
+    :(opts.showGo&&link?`<button onclick="goto('${link}')" style="background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font)">ไปทำ →</button>`:'');
+  const del=opts.showDelete?`<button onclick="event.stopPropagation();deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:13px" title="ลบ">✕</button>`:'';
+  return `<div style="display:flex;align-items:center;gap:11px;background:${t.done?'var(--green-ll)':'var(--surface)'};border:1px solid ${t.done?'var(--green-l)':'var(--border)'};border-radius:13px;padding:11px 12px;margin-bottom:8px">
+    <div style="width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${t.done?'var(--green)':'var(--amber-l)'}">${ic}</div>
+    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${t.title}</div><div style="font-size:11px;margin-top:1px;color:${t.done?'var(--green-d)':'var(--amber-t)'}">${when}</div></div>
+    ${right}${del}
+  </div>`;
+}
+function todoManualRow(t,i,data,branch,opts){
+  return `<div ${opts.canToggle?`onclick="toggleTodoTask('${data.date}',${branch},${i})"`:''} style="display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid ${t.done?'var(--green-l)':'var(--border)'};border-radius:13px;padding:11px 12px;margin-bottom:8px;${opts.canToggle?'cursor:pointer;':''}${t.done?'opacity:.72':''}">
+    <div style="width:25px;height:25px;border-radius:8px;border:2px solid ${t.done?'var(--green)':'var(--border2)'};background:${t.done?'var(--green)':'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">${t.done?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</div>
+    <div style="flex:1;min-width:0;font-size:13px;font-weight:500;color:${t.done?'var(--text3)':'var(--text)'};text-decoration:${t.done?'line-through':'none'}">${t.title}</div>
+    ${t.done&&t.doneBy?`<div style="font-size:10.5px;color:var(--text3);white-space:nowrap">✅ ${memberName(t.doneBy)}</div>`:''}
+    ${opts.showDelete?`<button onclick="event.stopPropagation();deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:13px" title="ลบ">✕</button>`:''}
+  </div>`;
+}
+function todoSecHead(icon,title,hint,mt){return `<div style="display:flex;align-items:center;gap:8px;margin:${mt} 2px 10px"><span style="font-size:13.5px;font-weight:700">${icon} ${title}</span><span style="font-size:10.5px;color:var(--text3)">· ${hint}</span></div>`;}
+
 // มุมมองแอดมิน: ทุกสาขา + ใครทำแล้ว/ยัง
 function renderTodoAdminView(datas){
   const el=document.getElementById('todo-page-content');
@@ -9371,29 +9409,19 @@ function renderTodoAdminView(datas){
   let totalAll=0,doneAll=0;
   datas.forEach(({data})=>{const t=data?.tasks||[];totalAll+=t.length;doneAll+=t.filter(x=>x.done).length;});
   const pctAll=totalAll?Math.round(doneAll/totalAll*100):0;
-  let html=`<div style="margin-bottom:1.25rem">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <span style="font-size:13px;font-weight:600;color:var(--text2)">งานวันนี้ทุกสาขา</span>
-      <span style="font-size:13px;font-weight:700;color:${pctAll===100?'var(--green-d)':'var(--text2)'}">${doneAll}/${totalAll} งาน (${pctAll}%)</span>
-    </div>
-    <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden"><div style="height:100%;background:var(--green);border-radius:4px;width:${pctAll}%;transition:.4s"></div></div>
-  </div>`;
+  let html=totalAll?todoHero(pctAll,doneAll,totalAll,totalAll-doneAll):'';
   datas.forEach(({branch,data})=>{
     const tasks=data?.tasks||[];
     const done=tasks.filter(t=>t.done).length;
-    html+=`<div class="card" style="margin-bottom:12px;border-left:4px solid ${BCOLORS[branch]}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${tasks.length?'10px':'0'}">
+    const auto=tasks.map((t,i)=>({t,i})).filter(x=>x.t.autoCheck);
+    const manual=tasks.map((t,i)=>({t,i})).filter(x=>!x.t.autoCheck);
+    html+=`<div class="card" style="margin-bottom:14px;border-left:4px solid ${BCOLORS[branch]}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${tasks.length?'11px':'0'}">
         <div style="font-family:var(--disp);font-weight:600;font-size:15px">${BRANCHES[branch]}</div>
         <span style="font-size:12px;font-weight:700;color:${tasks.length&&done===tasks.length?'var(--green-d)':'var(--amber-t)'}">${tasks.length?done+'/'+tasks.length+' งาน':'ยังไม่มีงาน'}</span>
       </div>
-      ${tasks.map((t,i)=>`<div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-top:1px solid var(--border)">
-        <button onclick="toggleTodoTask('${data.date}',${branch},${i})" style="width:24px;height:24px;border-radius:50%;border:2px solid ${t.done?'var(--green)':'var(--border2)'};background:${t.done?'var(--green)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" aria-label="${t.done?'ยกเลิก':'เสร็จ'}">${t.done?'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}</button>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:500;color:var(--text);text-decoration:${t.done?'line-through':'none'};${t.done?'opacity:.7':''}">${t.title}</div>
-          <div style="font-size:11px;color:${t.done?'var(--text3)':'var(--amber-t)'};margin-top:1px">${t.done?(t.isAuto?'✨ ระบบตรวจอัตโนมัติ':'✅ '+memberName(t.doneBy))+(t.doneAt?' · '+new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''):'⏳ ยังไม่ทำ'}</div>
-        </div>
-        <button onclick="deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:13px" title="ลบ">✕</button>
-      </div>`).join('')}
+      ${auto.map(x=>todoAutoRow(x.t,x.i,data,branch,{showGo:false,showDelete:true})).join('')}
+      ${manual.map(x=>todoManualRow(x.t,x.i,data,branch,{canToggle:true,showDelete:true})).join('')}
     </div>`;
   });
   el.innerHTML=html;
@@ -9412,30 +9440,18 @@ function renderTodoPageContent(data,branch){
   }
   const done=tasks.filter(t=>t.done).length;
   const pct=Math.round(done/tasks.length*100);
-  el.innerHTML=`
-    <div style="margin-bottom:1.25rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:13px;font-weight:600;color:var(--text2)">ความคืบหน้า</span>
-        <span style="font-size:13px;font-weight:700;color:${pct===100?'var(--green)':'var(--text2)'}">${done}/${tasks.length} งาน (${pct}%)</span>
-      </div>
-      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden">
-        <div style="height:100%;background:var(--green);border-radius:4px;width:${pct}%;transition:.4s"></div>
-      </div>
-      ${pct===100?'<div style="text-align:center;margin-top:8px;font-size:13px;color:var(--green);font-weight:600">🎉 เสร็จครบทุกงานแล้ว!</div>':''}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${tasks.map((t,i)=>`<div style="background:var(--surface);border:1px solid ${t.done?'var(--green)':'var(--border)'};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:.15s;${t.done?'opacity:.75':''}">
-        <button onclick="toggleTodoTask('${data.date}',${branch},${i})" style="width:26px;height:26px;border-radius:50%;border:2px solid ${t.done?'var(--green)':'var(--border2)'};background:${t.done?'var(--green)':'transparent'};cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s" aria-label="${t.done?'ยกเลิก':'เสร็จแล้ว'}">
-          ${t.done?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':''}
-        </button>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;color:var(--text);text-decoration:${t.done?'line-through':'none'}">${t.title}</div>
-          ${t.done&&t.doneBy?`<div style="font-size:11px;color:var(--text3);margin-top:2px">${t.isAuto?'✨ ระบบตรวจพบอัตโนมัติ':'✅ ทำโดย '+memberName(t.doneBy)} · ${t.doneAt?new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''}</div>`:''}
-        </div>
-        ${t.linkedPage&&!t.done?`<button onclick="closeMD();goto('${t.linkedPage}')" style="background:var(--green-l);color:var(--green-d);border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap">ไปหน้า${t.linkedPage==='sales'?'ยอดขาย':t.linkedPage==='cash'?'เงินสด':t.linkedPage} →</button>`:''}
-        ${isAdmin?`<button onclick="deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:14px" title="ลบงานนี้">✕</button>`:''}
-      </div>`).join('')}
-    </div>`;
+  const auto=tasks.map((t,i)=>({t,i})).filter(x=>x.t.autoCheck);
+  const manual=tasks.map((t,i)=>({t,i})).filter(x=>!x.t.autoCheck);
+  let html=todoHero(pct,done,tasks.length,tasks.length-done);
+  if(auto.length){
+    html+=todoSecHead('📲','ต้องไปทำในระบบ','ระบบติ๊กให้อัตโนมัติเมื่อทำเสร็จ','6px');
+    html+=auto.map(x=>todoAutoRow(x.t,x.i,data,branch,{showGo:true,showDelete:isAdmin})).join('');
+  }
+  if(manual.length){
+    html+=todoSecHead('✅','งานทั่วไป','แตะเพื่อติ๊กเมื่อทำเสร็จ',auto.length?'18px':'6px');
+    html+=manual.map(x=>todoManualRow(x.t,x.i,data,branch,{canToggle:true,showDelete:isAdmin})).join('');
+  }
+  el.innerHTML=html;
 }
 window.toggleTodoTask=async function(date,branch,idx){
   const docId=`${date}_${branch}`;
