@@ -638,33 +638,28 @@ input,select,textarea{border-radius:14px}
   <!-- SALES -->
   <div class="page" id="page-sales">
     <div class="topbar"><div><div class="page-title">บันทึกยอดขายรายวัน</div><div class="page-sub">กรอกยอดขายแยกตามสาขาและประเภทการชำระ</div></div></div>
-    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
-      <div class="tabs" id="sales-tabs">
-        <button class="tab active" onclick="salesSetView('entry',this)">บันทึกยอด</button>
-        <button class="tab" onclick="salesSetView('overview',this)">ภาพรวมเดือน</button>
-        <button class="tab" id="sales-stats-tab" style="display:none" onclick="salesSetView('history',this)">📈 สถิติ</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px" id="sales-date-wrap">
-        <label class="fl" style="margin:0;white-space:nowrap">วันที่</label>
-        <input type="date" id="sales-date" style="width:auto;padding:6px 10px" onchange="salesOnDateChange()">
-      </div>
+    <div class="tabs" id="sales-tabs" style="margin-bottom:1.1rem">
+      <button class="tab active" onclick="salesSetView('entry',this)">บันทึกยอด</button>
+      <button class="tab" onclick="salesSetView('overview',this)">ภาพรวมเดือน</button>
+      <button class="tab" id="sales-stats-tab" style="display:none" onclick="salesSetView('history',this)">📈 สถิติ</button>
     </div>
     <div id="sales-entry">
-      <div class="branch-tabs" id="sales-btabs" style="margin-bottom:1rem">
-        <button class="branch-tab active" onclick="salesSetBranch(0,this)">ทรัพย์พัฒนา</button>
-        <button class="branch-tab" onclick="salesSetBranch(1,this)">บางปู</button>
-        <button class="branch-tab" onclick="salesSetBranch(2,this)">อินดี้</button>
+      <div id="sales-btabs" style="display:flex;gap:6px;margin-bottom:11px"></div>
+      <div id="sales-date-wrap" style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <button onclick="salesDateStep(-1)" style="width:38px;height:38px;flex-shrink:0;border-radius:11px;border:1px solid var(--border2);background:var(--surface);font-size:17px;color:var(--text2);cursor:pointer">‹</button>
+        <div style="flex:1;text-align:center;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:5px 8px">
+          <input type="date" id="sales-date" onchange="salesOnDateChange()" style="border:none;background:transparent;text-align:center;font-weight:600;font-size:13.5px;width:100%;color:var(--text)">
+          <div id="sales-date-chip" style="font-size:10.5px;color:var(--green-d);font-weight:600;margin-top:-2px"></div>
+        </div>
+        <button onclick="salesDateStep(1)" style="width:38px;height:38px;flex-shrink:0;border-radius:11px;border:1px solid var(--border2);background:var(--surface);font-size:17px;color:var(--text2);cursor:pointer">›</button>
+        <button onclick="salesDateToday()" style="flex-shrink:0;border:none;border-radius:11px;background:var(--green-l);color:var(--green-d);font-weight:700;font-size:12px;padding:9px 12px;cursor:pointer">วันนี้</button>
       </div>
-      <div class="card" id="sales-form"></div>
-      <div id="sales-lock-note" style="display:none;background:var(--amber-l);border:1px solid var(--amber);color:var(--amber-t);border-radius:12px;padding:11px 14px;margin-top:1rem;font-size:12.5px;line-height:1.5"></div>
-      <div class="btn-group" style="margin-top:1rem">
-        <button class="btn btn-primary" id="sales-save-btn" onclick="salesSave()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>บันทึกยอด
-        </button>
-        <button class="btn btn-danger" id="sales-req-btn" style="display:none" onclick="salesRequestEdit()">🔒 ขอแอดมินแก้</button>
-        <button class="btn" onclick="salesViewDay()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>ดูยอดวันนี้
-        </button>
+      <div id="sales-form"></div>
+      <div id="sales-lock-note" style="display:none;background:var(--amber-l);border:1px solid var(--amber);color:var(--amber-t);border-radius:12px;padding:11px 14px;margin-top:12px;font-size:12.5px;line-height:1.5"></div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:9px">
+        <button id="sales-save-btn" onclick="salesSave()" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:14px;padding:15px 20px;font-family:var(--font);font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 6px 16px rgba(31,174,139,.3)"><span>💾 บันทึกยอด</span><span id="sales-save-amt" style="font-family:var(--disp);font-size:18px">฿0</span></button>
+        <button id="sales-req-btn" style="display:none;width:100%;background:var(--rose,#D9596B);color:#fff;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-weight:700;font-size:15px;cursor:pointer" onclick="salesRequestEdit()">🔒 ขอแอดมินแก้</button>
+        <button class="btn" onclick="salesViewDay()" style="width:100%">👁️ ดูสรุปยอดวันนี้ (ทุกสาขา)</button>
       </div>
     </div>
     <div id="sales-history" style="display:none">
@@ -1538,8 +1533,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.51.0';
+const APP_VERSION='3.52.1';
 const CHANGELOG=[
+  {v:'3.52.1',date:'2026-06-28',changes:['แก้บั๊กเงินสด 2 จุด: (1) กันกดบันทึกซ้ำ — ดึงเข้าเซฟ/เบิก/ปิดร้าน ฯลฯ ถ้ากดรัวจะบันทึกครั้งเดียว ไม่เป็น 2 เท่าอีก (2) ถ้าแก้ยอดขายทีหลังจากปิดร้าน ยอด“ควรมี/ผลต่าง”ของวันนี้จะคำนวณใหม่ตามยอดขายล่าสุดให้อัตโนมัติ']},
+  {v:'3.52.0',date:'2026-06-28',changes:['รีดีไซน์หน้าบันทึกยอดขายใหม่ให้ใช้ง่ายขึ้น: ยอดรวมเด่นเป็นการ์ดใหญ่ด้านบน (อัปเดตสด) · เลือกสาขาแบบปุ่มสี + เลื่อนวันด้วย ‹ › และปุ่ม“วันนี้” · แต่ละช่องทางชำระโชว์ % สัดส่วน+แถบกราฟ · มีสถานะ“ยังไม่บันทึก/บันทึกแล้วโดยใคร เมื่อไหร่” · ปุ่มบันทึกโชว์ยอดรวม — ตรรกะ/การบันทึก/กฎ 5 นาที เหมือนเดิมทุกอย่าง']},
   {v:'3.51.0',date:'2026-06-28',changes:['เงินสด: เปลี่ยนการนับแยกเหรียญ/แบงค์เป็น “บังคับ” — ทุกปุ่มที่กรอกเงินต้องนับชนิดเงิน ระบบรวมยอดให้ (ช่องยอดเงินกรอกเองไม่ได้แล้ว มาจากการนับเท่านั้น) · เงินสำรอง/ลิ้นชัก/ตู้เซฟ แยกตามสาขาเหมือนเดิม · ข้อมูลเก่าที่ไม่มีการแยกชนิด แสดงปกติ ไม่ต้องแก้']},
   {v:'3.50.0',date:'2026-06-28',changes:['เงินสด: ทุกปุ่มที่กรอกเงิน (เปิด/ปิดร้าน เบิก ดึงเข้าเซฟ เติม นำออก) เพิ่มตัวเลือก “🪙 นับแยกชนิดเงิน” — กรอกจำนวนเหรียญ 1/2/5/10 และแบงค์ 20/50/100/500/1000 แล้วระบบรวมยอดให้อัตโนมัติ · เก็บการแยกชนิดไว้ในประวัติทุกรายการ · สรุปวันนี้โชว์ชนิดเงินตอนเปิดร้าน']},
   {v:'3.49.0',date:'2026-06-28',changes:['เงินสด: ต้องเลือกสาขาก่อนถึงจะดู/กรอกข้อมูลได้ (เข้าหน้ามาจะให้เลือกสาขาก่อนเสมอ กันลงผิดสาขา) · เพิ่มแจ้งเตือนบนหน้าว่าวันนี้สาขานี้ “ใครเปิด/ปิดร้านไปแล้ว” พร้อมเวลา กันบันทึกซ้ำ']},
@@ -3998,6 +3995,7 @@ let cashEvents=[];  // ใหม่สุดก่อน
 let editRequests=[];                                   // คำขอแก้ไขจากพนักงาน (sales ฯลฯ) ที่ยัง pending
 let alertSettings={safeThreshold:20000,lateThreshold:3}; // เกณฑ์แจ้งเตือนผู้ดูแล (โหลดทับจาก config/alertSettings)
 let myCheckinBranchToday=null;                         // สาขาที่ผู้ใช้เช็คอินวันนี้ (ใช้เตือนตอนลงเงินสดผิดสาขา)
+let _cashBusy=false;                                   // กันกดบันทึกซ้ำ (double-submit) ในรายการเงินสด
 async function loadAlertSettings(){
   try{const d=await getDoc(doc(db,'config','alertSettings'));if(d.exists())alertSettings={...alertSettings,...d.data()};}catch(e){}
 }
@@ -4066,6 +4064,19 @@ function cashSumToday(b,type){return cashEvents.filter(ev=>ev.branch===b&&ev.dat
 function cashOpenedToday(b){return cashGet(b).openDate===todayStr();}
 function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===todayStr()?(st.openDrawer||0):0;return open+cashSumToday(b,'r2d')+cashSalesToday(b)-cashSumToday(b,'deposit');}
 function cashTodayClose(b){return cashEvents.find(ev=>ev.branch===b&&ev.date===todayStr()&&ev.type==='close');}
+// คำนวณ "ควรมี/ผลต่าง" ของรายการปิดร้าน — ถ้าเป็นของวันนี้ คิดสดตามยอดขายล่าสุด (เผื่อแก้ยอดขายทีหลัง),
+// ถ้าเป็นวันก่อน ใช้ค่าที่บันทึกไว้ (ยอดขายอ้างอิงเฉพาะวันนี้)
+function cashCloseCalc(branch,ev){
+  const counted=ev.counted!=null?ev.counted:(ev.amount||0);
+  if(ev.date===todayStr()){
+    const st=cashGet(branch);
+    const open=st.openDate===todayStr()?(st.openDrawer||0):0;
+    const depBefore=cashEvents.filter(x=>x.branch===branch&&x.date===todayStr()&&x.type==='deposit'&&x.ts<ev.ts).reduce((a,x)=>a+(x.amount||0),0);
+    const exp=open+cashSumToday(branch,'r2d')+cashSalesToday(branch)-depBefore;
+    return {counted,expected:exp,diff:Math.round((counted-exp)*100)/100};
+  }
+  return {counted,expected:ev.expected||0,diff:ev.diff||0};
+}
 async function cashSaveState(branch,patch){
   const cur=cashState[String(branch)]||{};
   const next={reserve:0,drawer:0,safe:0,...cur,...patch,updatedAt:new Date().toISOString()};
@@ -4142,7 +4153,7 @@ function cashEventRow(ev,voidable){
   const dStr=d.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
   let right=`฿${fmt(ev.amount||0)}`;
   if(ev.type==='close'){
-    const diff=ev.diff||0;
+    const diff=cashCloseCalc(ev.branch,ev).diff;
     const dc=diff===0?'#0F8A63':(diff>0?'#1E3A8A':'#C2410C');
     const dt=diff===0?'ตรงพอดี':(diff>0?`เกิน ฿${fmt(Math.abs(diff))}`:`ขาด ฿${fmt(Math.abs(diff))}`);
     right=`<span style="color:${dc};font-weight:700">${dt}</span>`;
@@ -4181,7 +4192,9 @@ window.cashVoidEvent=async function(evId){
   else if(ev.type==='safeout')patch={safe:st.safe+amt};
   else if(ev.type==='open')patch={drawer:0,openDrawer:null,openDate:null,openBy:''};
   else if(ev.type==='close')patch={}; // close แค่บันทึกผล — ลบ event ให้ปิดใหม่ได้ ไม่แตะยอด
+  if(_cashBusy)return;_cashBusy=true;
   try{
+    if(!cashEvents.find(e=>e.id===evId)){return;} // กันยกเลิกซ้ำ (รายการถูกลบไปแล้ว)
     if(Object.keys(patch).length)await cashSaveState(b,patch);
     await deleteDoc(doc(db,'cashEvents',evId));
     cashEvents=cashEvents.filter(e=>e.id!==evId);
@@ -4189,6 +4202,7 @@ window.cashVoidEvent=async function(evId){
     showToast('ยกเลิกรายการแล้ว · ย้อนยอดเรียบร้อย');
     logActivity('cash_void',`ยกเลิก ${names[ev.type]||ev.type} ${BRANCHES[b]} ฿${fmt(amt)}`);
   }catch(e){showToast('ยกเลิกไม่สำเร็จ','err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 
 function renderCashPage(){
@@ -4267,9 +4281,9 @@ function renderCashPage(){
     ${cashRow('+ เบิกจากสำรอง',`฿${fmt(r2dT)}`)}
     ${cashRow('+ ยอดขายเงินสดวันนี้',`฿${fmt(cashSales)}`,'จากระบบยอดขาย')}
     ${depT>0?cashRow('− ดึงเข้าตู้เซฟ (ก่อนปิด)',`฿${fmt(depBeforeClose)}`):''}
-    ${cashRow('= ควรมีตอนปิดร้าน',`฿${fmt(closeEv?(closeEv.expected||0):expClose)}`,'',true)}`;
+    ${cashRow('= ควรมีตอนปิดร้าน',`฿${fmt(closeEv?cashCloseCalc(branch,closeEv).expected:expClose)}`,'',true)}`;
   if(closeEv){
-    const diff=closeEv.diff||0;
+    const diff=cashCloseCalc(branch,closeEv).diff;
     const dc=diff===0?'#0F8A63':(diff>0?'#1E3A8A':'#C2410C');
     const dt=diff===0?'✓ ตรงพอดี':(diff>0?`เกิน ฿${fmt(Math.abs(diff))}`:`ขาด ฿${fmt(Math.abs(diff))}`);
     html+=`${cashRow('เงินนับจริงตอนปิด',`฿${fmt(closeEv.counted!=null?closeEv.counted:closeEv.amount)}`)}
@@ -4302,7 +4316,7 @@ function renderCashPage(){
       let status;
       if(!ce)status=`<span style="color:var(--text3)">ยังไม่ปิดร้าน</span>`;
       else{
-        const d=ce.diff||0;
+        const d=cashCloseCalc(i,ce).diff;
         const base=d===0?`<span style="color:#0F8A63;font-weight:700">✓ ตรง</span>`:(d>0?`<span style="color:#1E3A8A;font-weight:700">เกิน ฿${fmt(Math.abs(d))}</span>`:`<span style="color:#C2410C;font-weight:700">ขาด ฿${fmt(Math.abs(d))}</span>`);
         status=base+(ce.reviewed?` · <span style="color:#0F8A63">✔ตรวจแล้ว</span>`:` · <button class="btn btn-sm" style="padding:2px 9px;font-size:11px" onclick="cashMarkReviewed('${ce.id}')">ตรวจแล้ว</button>`);
       }
@@ -4334,9 +4348,10 @@ window.cashOpenPrompt=function(branch){
   setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
 };
 window.cashDoOpen=async function(branch){
-  const amt=parseFloat(document.getElementById('cash-in').value);
-  if(isNaN(amt)||amt<0){showToast('กรอกยอดเงินให้ถูกต้อง','err');return;}
+  if(_cashBusy)return;_cashBusy=true;
   try{
+    const amt=parseFloat(document.getElementById('cash-in').value);
+    if(isNaN(amt)||amt<0){showToast('กรอกยอดเงินให้ถูกต้อง','err');return;}
     await cashSaveState(branch,{drawer:amt,openDrawer:amt,openDate:todayStr(),openBy:cashWho()});
     await cashAddEvent({branch,type:'open',amount:amt,denoms:cashGetDenoms()});
     closeMD();renderCashPage();
@@ -4344,6 +4359,7 @@ window.cashDoOpen=async function(branch){
     logActivity('cash_open',`เปิดร้าน ${BRANCHES[branch]} ลิ้นชัก ฿${fmt(amt)}`);
     if(window.refreshTodoStatus)refreshTodoStatus();
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashR2DPrompt=function(branch){
   const st=cashGet(branch);
@@ -4355,16 +4371,18 @@ window.cashR2DPrompt=function(branch){
   setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
 };
 window.cashDoR2D=async function(branch){
-  const amt=parseFloat(document.getElementById('cash-in').value);
-  if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
-  const st=cashGet(branch);
-  if(amt>st.reserve){if(!await capsuleConfirm(`เงินสำรองมีแค่ ฿${fmt(st.reserve)} — เบิก ฿${fmt(amt)} จะทำให้สำรองติดลบ ยืนยันไหม?`))return;}
+  if(_cashBusy)return;_cashBusy=true;
   try{
+    const amt=parseFloat(document.getElementById('cash-in').value);
+    if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
+    const st=cashGet(branch);
+    if(amt>st.reserve){if(!await capsuleConfirm(`เงินสำรองมีแค่ ฿${fmt(st.reserve)} — เบิก ฿${fmt(amt)} จะทำให้สำรองติดลบ ยืนยันไหม?`))return;}
     await cashSaveState(branch,{reserve:st.reserve-amt,drawer:st.drawer+amt});
     await cashAddEvent({branch,type:'r2d',amount:amt,denoms:cashGetDenoms()});
     closeMD();renderCashPage();showToast('เบิกสำรองมาลิ้นชัก ฿'+fmt(amt));
     logActivity('cash_r2d',`เบิกสำรอง→ลิ้นชัก ${BRANCHES[branch]} ฿${fmt(amt)}`);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashTopupPrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
@@ -4377,15 +4395,17 @@ window.cashTopupPrompt=function(branch){
 };
 window.cashDoTopup=async function(branch){
   if(!isAdmin)return;
-  const amt=parseFloat(document.getElementById('cash-in').value);
-  if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
-  const st=cashGet(branch);
+  if(_cashBusy)return;_cashBusy=true;
   try{
+    const amt=parseFloat(document.getElementById('cash-in').value);
+    if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
+    const st=cashGet(branch);
     await cashSaveState(branch,{reserve:st.reserve+amt});
     await cashAddEvent({branch,type:'topup',amount:amt,denoms:cashGetDenoms()});
     closeMD();renderCashPage();showToast('เติมเงินสำรอง ฿'+fmt(amt));
     logActivity('cash_topup',`เติมสำรอง ${BRANCHES[branch]} ฿${fmt(amt)}`);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashClosePrompt=function(branch){
   if(!cashOpenedToday(branch)){showToast('ยังไม่ได้เปิดร้านวันนี้','err');return;}
@@ -4403,11 +4423,12 @@ window.cashClosePrompt=function(branch){
   setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
 };
 window.cashDoClose=async function(branch){
-  const counted=parseFloat(document.getElementById('cash-in').value);
-  if(isNaN(counted)||counted<0){showToast('กรอกยอดให้ถูกต้อง','err');return;}
-  const expected=cashExpectedClose(branch);
-  const diff=Math.round((counted-expected)*100)/100;
+  if(_cashBusy)return;_cashBusy=true;
   try{
+    const counted=parseFloat(document.getElementById('cash-in').value);
+    if(isNaN(counted)||counted<0){showToast('กรอกยอดให้ถูกต้อง','err');return;}
+    const expected=cashExpectedClose(branch);
+    const diff=Math.round((counted-expected)*100)/100;
     await cashSaveState(branch,{drawer:counted});
     await cashAddEvent({branch,type:'close',amount:counted,counted,expected,diff,cashSales:cashSalesToday(branch),denoms:cashGetDenoms()});
     closeMD();renderCashPage();
@@ -4415,6 +4436,7 @@ window.cashDoClose=async function(branch){
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับ ฿${fmt(counted)} (${diff===0?'ตรง':diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))})`);
     if(window.refreshTodoStatus)refreshTodoStatus();
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashDepositPrompt=function(branch){
   const st=cashGet(branch);
@@ -4427,16 +4449,18 @@ window.cashDepositPrompt=function(branch){
   setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
 };
 window.cashDoDeposit=async function(branch){
-  const amt=parseFloat(document.getElementById('cash-in').value);
-  if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
-  const st=cashGet(branch);
-  if(amt>st.drawer){if(!await capsuleConfirm(`ลิ้นชักมีแค่ ฿${fmt(st.drawer)} — ดึง ฿${fmt(amt)} จะทำให้ลิ้นชักติดลบ ยืนยันไหม?`))return;}
+  if(_cashBusy)return;_cashBusy=true;
   try{
+    const amt=parseFloat(document.getElementById('cash-in').value);
+    if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
+    const st=cashGet(branch);
+    if(amt>st.drawer){if(!await capsuleConfirm(`ลิ้นชักมีแค่ ฿${fmt(st.drawer)} — ดึง ฿${fmt(amt)} จะทำให้ลิ้นชักติดลบ ยืนยันไหม?`))return;}
     await cashSaveState(branch,{drawer:st.drawer-amt,safe:st.safe+amt});
     await cashAddEvent({branch,type:'deposit',amount:amt,denoms:cashGetDenoms()});
     closeMD();renderCashPage();showToast('ดึงเข้าตู้เซฟ ฿'+fmt(amt));
     logActivity('cash_deposit',`ดึงเข้าตู้เซฟ ${BRANCHES[branch]} ฿${fmt(amt)}`);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashSafeOutPrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
@@ -4450,16 +4474,18 @@ window.cashSafeOutPrompt=function(branch){
 };
 window.cashDoSafeOut=async function(branch){
   if(!isAdmin)return;
-  const amt=parseFloat(document.getElementById('cash-in').value);
-  if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
-  const st=cashGet(branch);
-  if(amt>st.safe){if(!await capsuleConfirm(`ตู้เซฟมีแค่ ฿${fmt(st.safe)} — นำออก ฿${fmt(amt)} จะทำให้ตู้เซฟติดลบ ยืนยันไหม?`))return;}
+  if(_cashBusy)return;_cashBusy=true;
   try{
+    const amt=parseFloat(document.getElementById('cash-in').value);
+    if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
+    const st=cashGet(branch);
+    if(amt>st.safe){if(!await capsuleConfirm(`ตู้เซฟมีแค่ ฿${fmt(st.safe)} — นำออก ฿${fmt(amt)} จะทำให้ตู้เซฟติดลบ ยืนยันไหม?`))return;}
     await cashSaveState(branch,{safe:st.safe-amt});
     await cashAddEvent({branch,type:'safeout',amount:amt,denoms:cashGetDenoms()});
     closeMD();renderCashPage();showToast('นำเงินออกจากตู้เซฟ ฿'+fmt(amt));
     logActivity('cash_safeout',`นำออกตู้เซฟ ${BRANCHES[branch]} ฿${fmt(amt)}`);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashBackdatePrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
@@ -4531,7 +4557,7 @@ function cashHistRender(){
     const dLbl=dObj.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
     const closeEv=byDay[d].find(e=>e.type==='close');
     let dayTag='';
-    if(closeEv){const df=closeEv.diff||0;dayTag=df===0?`<span style="color:#0F8A63;font-weight:700;font-size:11.5px">✓ ตรง</span>`:(df>0?`<span style="color:#1E3A8A;font-weight:700;font-size:11.5px">เกิน ฿${fmt(Math.abs(df))}</span>`:`<span style="color:#C2410C;font-weight:700;font-size:11.5px">ขาด ฿${fmt(Math.abs(df))}</span>`);}
+    if(closeEv){const df=cashCloseCalc(b,closeEv).diff;dayTag=df===0?`<span style="color:#0F8A63;font-weight:700;font-size:11.5px">✓ ตรง</span>`:(df>0?`<span style="color:#1E3A8A;font-weight:700;font-size:11.5px">เกิน ฿${fmt(Math.abs(df))}</span>`:`<span style="color:#C2410C;font-weight:700;font-size:11.5px">ขาด ฿${fmt(Math.abs(df))}</span>`);}
     body+=`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)"><span style="font-family:var(--disp);font-weight:600;font-size:14px">${dLbl}</span>${dayTag}</div>${byDay[d].sort((a,c)=>(a.ts||0)-(c.ts||0)).map(ev=>cashEventRow(ev,false)).join('')}</div>`;
   });
   openModal(`<div class="modal-title">📜 ประวัติเงินสด</div>
@@ -4635,11 +4661,28 @@ window.salesOvEdit=function(ds,branch){
   const dt=document.getElementById('sales-date');if(dt)dt.value=ds;
   salesLoadForDate&&salesLoadForDate();
   salesBranch=branch;
-  document.querySelectorAll('#sales-btabs .branch-tab').forEach((b,i)=>b.classList.toggle('active',i===branch));
   salesRenderForm();
   showToast(`บันทึกยอด ${BRANCHES[branch]} · ${ds}`);
 };
-window.salesSetBranch=function(i,el){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesBranch=i;document.querySelectorAll('.branch-tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');salesRenderForm();};
+function salesRenderBranchSeg(){
+  const seg=document.getElementById('sales-btabs');if(!seg)return;
+  seg.innerHTML=BRANCHES.map((b,i)=>{
+    const on=i===salesBranch;
+    return `<button onclick="salesSetBranch(${i})" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;border-radius:12px;border:1.5px solid ${on?BCOLORS[i]:'var(--border2)'};background:${on?BCOLORS[i]:'var(--surface)'};color:${on?'#fff':'var(--text2)'};font-family:var(--font);font-size:12.5px;font-weight:${on?'700':'600'};cursor:pointer;transition:.12s;box-shadow:${on?'0 4px 12px '+BCOLORS[i]+'55':'none'}">
+      <span style="width:8px;height:8px;border-radius:50%;background:${on?'#fff':BCOLORS[i]}"></span>${b}
+    </button>`;
+  }).join('');
+}
+window.salesSetBranch=function(i){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesBranch=i;salesRenderForm();};
+// เลื่อนวัน / ไปวันนี้ (date stepper)
+window.salesDateStep=function(d){const inp=document.getElementById('sales-date');if(!inp)return;const cur=inp.value?new Date(inp.value+'T00:00:00'):new Date();cur.setDate(cur.getDate()+d);inp.value=dateStr(cur);salesOnDateChange();};
+window.salesDateToday=function(){const inp=document.getElementById('sales-date');if(inp)inp.value=todayStr();salesOnDateChange();};
+function salesDateRel(v){
+  if(!v)return '';
+  if(v===todayStr())return '● วันนี้';
+  const y=new Date();y.setDate(y.getDate()-1);if(v===dateStr(y))return '● เมื่อวาน';
+  const d=new Date(v+'T00:00:00');return d.toLocaleDateString('th-TH',{weekday:'long'});
+}
 // กรอบเวลาแก้ยอด: พนักงานแก้ยอดที่ตัวเองลงได้ภายใน 5 นาที เกินนั้นล็อก ต้องขอแอดมิน (แอดมินแก้ได้เสมอ)
 function salesLockState(){
   const date=document.getElementById('sales-date')?.value||todayStr();
@@ -4657,14 +4700,20 @@ function salesApplyLockUI(lock){
   if(lock.locked){
     note.style.display='block';
     note.innerHTML=`🔒 ยอดนี้บันทึกไว้แล้ว — แก้เองได้เฉพาะภายใน 5 นาทีหลังบันทึกเท่านั้น ตอนนี้เกินเวลาแล้ว ถ้าลงผิดให้กด “ขอแอดมินแก้” เพื่อส่งคำขอให้ผู้ดูแล`;
-    saveBtn.style.display='none';reqBtn.style.display='';
+    saveBtn.style.display='none';reqBtn.style.display='block';
   }else{
-    note.style.display='none';saveBtn.style.display='';reqBtn.style.display='none';
+    note.style.display='none';saveBtn.style.display='flex';reqBtn.style.display='none';
   }
 }
 function salesRenderForm(){
+  salesRenderBranchSeg();
+  const dInp=document.getElementById('sales-date');
+  if(dInp&&!dInp.value)dInp.value=todayStr();
+  const date=dInp?.value||todayStr();
+  const chip=document.getElementById('sales-date-chip');if(chip)chip.textContent=salesDateRel(date);
   const amounts=salesAmounts[salesBranch];
   const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
+  const bills=parseInt(salesBillCounts[salesBranch])||0;
   const _lock=salesLockState();const _dis=_lock.locked?'disabled':'';
   const payMeta=(p)=>{
     if(p==='เงินสด')return{ic:'💵',c:'var(--green-d)',bg:'var(--green-l)'};
@@ -4673,22 +4722,60 @@ function salesRenderForm(){
     if(/QR|\u0e23\u0e31\u0e10|\u0e42\u0e04\u0e23\u0e07\u0e01\u0e32\u0e23/.test(p))return{ic:'📱',c:'var(--blue-t)',bg:'var(--blue-l)'};
     return{ic:'💠',c:'var(--text2)',bg:'var(--bg)'};
   };
-  const rows=payTypes.map(p=>{const mt=payMeta(p);const val=amounts[p];const has=val&&parseFloat(val)>0;
-    return `<div class="pay-row" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border:1px solid ${has?mt.c:'var(--border)'};border-radius:13px;margin-bottom:9px;background:var(--surface);transition:.12s">
-      <span style="width:38px;height:38px;border-radius:11px;background:${mt.bg};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${mt.ic}</span>
-      <span class="pay-label" style="flex:1;font-size:13.5px;font-weight:600;color:var(--text)">${p}</span>
-      <input class="pay-input" type="number" min="0" inputmode="decimal" placeholder="0" value="${val||''}" ${_dis} oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)" style="width:108px;text-align:right;font-size:16px;font-weight:600;font-family:var(--mono)">
-      <span class="pay-unit" style="font-size:12px;color:var(--text3)">บาท</span>
-    </div>`;}).join('');
-  document.getElementById('sales-form').innerHTML=`<div style="font-size:14px;font-weight:700;margin-bottom:1rem;color:${BCOLORS[salesBranch]}">สาขา${BRANCHES[salesBranch]}</div>${rows}<div class="total-row"><span class="total-lbl">ยอดรวมสาขานี้</span><span class="total-val" id="sales-total">฿${fmt(total)}</span></div>
-  <div class="field-row" style="margin-top:1rem;gap:1rem">
-    <div class="field" style="flex:1"><label class="fl">จำนวนบิล</label><input type="number" id="sales-billcount" min="0" placeholder="0" value="${salesBillCounts[salesBranch]||''}" ${_dis} style="text-align:center"><span style="font-size:11px;color:var(--text3);margin-top:4px;display:block">บิล ${salesBillCounts[salesBranch]&&total?'· เฉลี่ย ฿'+fmt(Math.round(total/(parseInt(salesBillCounts[salesBranch])||1)))+'/บิล':''}</span></div>
-    <div class="field" style="flex:2"><label class="fl">หมายเหตุ</label><textarea id="sales-note" placeholder="เช่น มีคืนยา / เครื่องรูดบัตรขัดข้อง..." ${_dis}>${salesNotes[salesBranch]||''}</textarea></div>
+  // สถานะการบันทึกของวัน+สาขานี้
+  const e=salesEntries.find(x=>x.date===date&&x.branch===salesBranch);
+  let statusTxt='ยังไม่บันทึก';
+  if(e&&e.updatedAt){
+    const who=memberName(e.updatedBy)||'—';
+    const t=new Date(e.updatedAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    if(_lock.locked)statusTxt=`บันทึกแล้ว · ${who} · ${t} (ล็อก)`;
+    else if(!isAdmin&&_lock.mins!=null&&_lock.mins<5)statusTxt=`บันทึกแล้ว · ${who} · ${t} (แก้ได้อีก ${Math.max(1,Math.ceil(5-_lock.mins))} นาที)`;
+    else statusTxt=`บันทึกแล้ว · ${who} · ${t}`;
+  }
+  const hero=`<div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:20px;padding:17px 19px;color:#fff;margin-bottom:15px;box-shadow:0 8px 22px rgba(31,174,139,.26)">
+    <div style="font-size:12.5px;opacity:.92;font-weight:600">ยอดรวมวันนี้ · สาขา${BRANCHES[salesBranch]}</div>
+    <div id="sales-hero-total" style="font-size:38px;font-weight:800;font-family:var(--disp);letter-spacing:-1px;line-height:1.15;margin:1px 0">฿${fmt(total)}</div>
+    <div id="sales-hero-meta" style="font-size:12px;opacity:.92">${bills?`${bills} บิล · เฉลี่ย ฿${fmt(Math.round(total/bills))} / บิล`:'ยังไม่กรอกจำนวนบิล'}</div>
+    <div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 11px;border-radius:30px;margin-top:9px;background:rgba(255,255,255,.22)"><span style="width:7px;height:7px;border-radius:50%;background:#fff"></span><span id="sales-hero-status">${statusTxt}</span></div>
   </div>`;
-  if(!document.getElementById('sales-date').value)document.getElementById('sales-date').value=todayStr();
+  const rows=payTypes.map((p,i)=>{const mt=payMeta(p);const val=amounts[p];const v=parseFloat(val)||0;const has=v>0;const pct=total>0?Math.round(v/total*100):0;
+    return `<div id="sales-row-${i}" style="background:var(--surface);border:1px solid ${has?'var(--green-l)':'var(--border)'};border-radius:14px;padding:11px 13px;margin-bottom:9px;box-shadow:var(--shadow)">
+      <div style="display:flex;align-items:center;gap:11px">
+        <span style="width:40px;height:40px;border-radius:12px;background:${mt.bg};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${mt.ic}</span>
+        <div style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:600">${p}</div><div id="sales-share-${i}" style="font-size:10px;color:var(--text3);font-weight:600">${has?pct+'% ของยอดรวม':'ยังไม่กรอก'}</div></div>
+        <input type="number" min="0" inputmode="decimal" placeholder="0" value="${val||''}" ${_dis} oninput="salesUpdateAmt('${p.replace(/'/g,"\\'")}',this.value)" style="width:116px;text-align:right;font-size:18px;font-weight:700;font-family:var(--mono);border:none;outline:none;background:transparent;color:var(--text)">
+        <span style="font-size:12px;color:var(--text3)">฿</span>
+      </div>
+      <div style="height:4px;border-radius:4px;background:var(--border);margin-top:9px;overflow:hidden"><i id="sales-bar-${i}" style="display:block;height:100%;border-radius:4px;width:${pct}%;background:${mt.c}"></i></div>
+    </div>`;}).join('');
+  const subs=`<div style="display:flex;gap:9px;margin-top:13px">
+    <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:10px 13px">
+      <div style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:3px">🧾 จำนวนบิล</div>
+      <input type="number" id="sales-billcount" min="0" placeholder="0" value="${salesBillCounts[salesBranch]||''}" ${_dis} oninput="salesRecalc()" style="width:100%;border:none;outline:none;background:transparent;font-size:17px;font-weight:700;color:var(--text)">
+    </div>
+    <div style="flex:2;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:10px 13px">
+      <div style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:3px">📝 หมายเหตุ</div>
+      <textarea id="sales-note" rows="1" placeholder="ถ้ามี เช่น เครื่องรูดบัตรขัดข้อง..." ${_dis} style="width:100%;border:none;outline:none;background:transparent;font-size:12.5px;resize:none;font-family:var(--font);color:var(--text)">${salesNotes[salesBranch]||''}</textarea>
+    </div>
+  </div>`;
+  document.getElementById('sales-form').innerHTML=hero+`<div style="font-size:11.5px;font-weight:700;color:var(--text3);letter-spacing:.03em;margin:2px 2px 9px">ช่องทางการชำระ</div>`+rows+subs;
+  salesRecalc();
   salesApplyLockUI(_lock);
 }
-window.salesUpdateAmt=function(p,v){salesAmounts[salesBranch][p]=v;const total=payTypes.reduce((a,pt)=>a+(parseFloat(salesAmounts[salesBranch][pt])||0),0);const el=document.getElementById('sales-total');if(el)el.textContent='฿'+fmt(total);};
+window.salesRecalc=function(){
+  const amounts=salesAmounts[salesBranch];
+  const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
+  const bills=parseInt(document.getElementById('sales-billcount')?.value)||parseInt(salesBillCounts[salesBranch])||0;
+  const ht=document.getElementById('sales-hero-total');if(ht)ht.textContent='฿'+fmt(total);
+  const hm=document.getElementById('sales-hero-meta');if(hm)hm.textContent=bills?`${bills} บิล · เฉลี่ย ฿${fmt(Math.round(total/bills))} / บิล`:'ยังไม่กรอกจำนวนบิล';
+  const sa=document.getElementById('sales-save-amt');if(sa)sa.textContent='฿'+fmt(total);
+  payTypes.forEach((p,i)=>{const v=parseFloat(amounts[p])||0;const pct=total>0?Math.round(v/total*100):0;
+    const sh=document.getElementById('sales-share-'+i);if(sh)sh.textContent=v>0?pct+'% ของยอดรวม':'ยังไม่กรอก';
+    const bar=document.getElementById('sales-bar-'+i);if(bar)bar.style.width=pct+'%';
+    const row=document.getElementById('sales-row-'+i);if(row)row.style.borderColor=v>0?'var(--green-l)':'var(--border)';
+  });
+};
+window.salesUpdateAmt=function(p,v){salesAmounts[salesBranch][p]=v;salesRecalc();};
 // เติมค่าฟอร์มจากข้อมูลที่มีอยู่ของวันที่เลือก (ทั้ง 3 สาขา) — ใช้ตอนแก้จากภาพรวม/เปลี่ยนวัน
 window.salesLoadForDate=function(){
   const date=document.getElementById('sales-date')?.value;if(!date)return;
@@ -4817,7 +4904,6 @@ window.openRequestTarget=function(date,branch){
   setTimeout(()=>{
     const d=document.getElementById('sales-date');if(d)d.value=date;
     salesLoadForDate();salesBranch=branch;
-    document.querySelectorAll('#sales-btabs .branch-tab').forEach((b,i)=>b.classList.toggle('active',i===branch));
     salesRenderForm();
   },250);
 };
@@ -7649,9 +7735,9 @@ async function checkNotifications(){
       // โหลดข้อมูลเงินสดให้พร้อมสำหรับ (2)(3)
       try{if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData();}catch(e){}
       // (2) เงินขาด/เกินวันนี้ ที่ยังไม่ตรวจ
-      const _ci=BRANCHES.map((b,i)=>({b,ce:cashTodayClose(i)})).filter(x=>x.ce&&(x.ce.diff||0)!==0&&!x.ce.reviewed);
+      const _ci=BRANCHES.map((b,i)=>({b,i,ce:cashTodayClose(i)})).filter(x=>x.ce).map(x=>({...x,d:cashCloseCalc(x.i,x.ce).diff})).filter(x=>x.d!==0&&!x.ce.reviewed);
       if(_ci.length){
-        const txt=_ci.map(x=>`${x.b} ${x.ce.diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(x.ce.diff))}`).join(', ');
+        const txt=_ci.map(x=>`${x.b} ${x.d>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(x.d))}`).join(', ');
         alerts.push({color:'red',icon:'💸',text:`วันนี้เงินปิดร้านไม่ตรง: ${txt}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('cash')" style="margin-left:auto">ตรวจ</button>`});
       }
       // (3) เงินในตู้เซฟเกินเกณฑ์ → ควรนำฝากธนาคาร
