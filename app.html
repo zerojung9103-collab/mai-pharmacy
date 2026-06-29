@@ -1533,8 +1533,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.53.0';
+const APP_VERSION='3.53.1';
 const CHANGELOG=[
+  {v:'3.53.1',date:'2026-06-29',changes:['งานวันนี้: ปุ่ม“ไปทำ”ของงานเงินสด (นับเงินต้นวัน/ปลายวัน) กระโดดไปเปิดหน้าจอนับเงินของสาขานั้นให้ทันที · “นับเงินปลายวัน (ปิดร้าน)” จะซ่อนไว้ก่อน แสดงเฉพาะหลังทำ“นับเงินต้นวัน (เปิดร้าน)”เสร็จแล้ว และจัดให้เปิดร้านมาก่อนเสมอ']},
   {v:'3.53.0',date:'2026-06-29',changes:['รีดีไซน์หน้างานวันนี้ให้เข้าใจง่ายขึ้น: แยกเป็น 2 กลุ่มชัดเจน — “ต้องไปทำในระบบ” (เช่น ลงยอดขาย/เปิด-ปิดร้าน) ระบบติ๊กให้เอง มีปุ่ม“ไปทำ →” พาไปหน้านั้น · กับ “งานทั่วไป” ที่แตะติ๊กเอง · เพิ่มวงแหวนความคืบหน้า + เหลืออีกกี่งาน · มุมแอดมินจัดกลุ่มแบบเดียวกันทุกสาขา']},
   {v:'3.52.1',date:'2026-06-28',changes:['แก้บั๊กเงินสด 2 จุด: (1) กันกดบันทึกซ้ำ — ดึงเข้าเซฟ/เบิก/ปิดร้าน ฯลฯ ถ้ากดรัวจะบันทึกครั้งเดียว ไม่เป็น 2 เท่าอีก (2) ถ้าแก้ยอดขายทีหลังจากปิดร้าน ยอด“ควรมี/ผลต่าง”ของวันนี้จะคำนวณใหม่ตามยอดขายล่าสุดให้อัตโนมัติ']},
   {v:'3.52.0',date:'2026-06-28',changes:['รีดีไซน์หน้าบันทึกยอดขายใหม่ให้ใช้ง่ายขึ้น: ยอดรวมเด่นเป็นการ์ดใหญ่ด้านบน (อัปเดตสด) · เลือกสาขาแบบปุ่มสี + เลื่อนวันด้วย ‹ › และปุ่ม“วันนี้” · แต่ละช่องทางชำระโชว์ % สัดส่วน+แถบกราฟ · มีสถานะ“ยังไม่บันทึก/บันทึกแล้วโดยใคร เมื่อไหร่” · ปุ่มบันทึกโชว์ยอดรวม — ตรรกะ/การบันทึก/กฎ 5 นาที เหมือนเดิมทุกอย่าง']},
@@ -4031,6 +4032,15 @@ async function loadCashPage(){
   renderCashBranchSeg();
   await Promise.all([loadCashData(),loadMyCheckinBranch()]);
   renderCashPage();
+  // มาจากการกด "ไปทำ" ในงานวันนี้ → เลือกสาขา + เปิด modal นับเงินให้เลย
+  if(window._cashPendingAction){
+    const {branch,act}=window._cashPendingAction;window._cashPendingAction=null;
+    const bi=document.getElementById('cash-branch');if(bi)bi.value=String(branch);
+    renderCashBranchSeg();renderCashPage();
+    if(act==='open')cashOpenPrompt(branch);
+    else if(act==='close')cashClosePrompt(branch);
+    else if(act==='deposit')cashDepositPrompt(branch);
+  }
 }
 function renderCashBranchSeg(){
   const seg=document.getElementById('cash-branch-seg');
@@ -9384,7 +9394,7 @@ function todoAutoRow(t,i,data,branch,opts){
   const ic=todoAutoIcon(t),link=todoLink(t);
   const when=t.done?`✓ เรียบร้อย${t.isAuto?' (ระบบตรวจให้)':(t.doneBy?' · '+memberName(t.doneBy):'')}${t.doneAt?' · '+new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''}`:'⏳ ยังไม่ได้ทำ';
   const right=t.done?'<div style="font-size:20px;color:var(--green);flex-shrink:0">✓</div>'
-    :(opts.showGo&&link?`<button onclick="goto('${link}')" style="background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font)">ไปทำ →</button>`:'');
+    :(opts.showGo&&link?`<button onclick="todoGo('${t.autoCheck}',${branch},'${link}')" style="background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font)">ไปทำ →</button>`:'');
   const del=opts.showDelete?`<button onclick="event.stopPropagation();deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:13px" title="ลบ">✕</button>`:'';
   return `<div style="display:flex;align-items:center;gap:11px;background:${t.done?'var(--green-ll)':'var(--surface)'};border:1px solid ${t.done?'var(--green-l)':'var(--border)'};border-radius:13px;padding:11px 12px;margin-bottom:8px">
     <div style="width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${t.done?'var(--green)':'var(--amber-l)'}">${ic}</div>
@@ -9401,24 +9411,40 @@ function todoManualRow(t,i,data,branch,opts){
   </div>`;
 }
 function todoSecHead(icon,title,hint,mt){return `<div style="display:flex;align-items:center;gap:8px;margin:${mt} 2px 10px"><span style="font-size:13.5px;font-weight:700">${icon} ${title}</span><span style="font-size:10.5px;color:var(--text3)">· ${hint}</span></div>`;}
+// เรียง/กรองงานระบบ: นับเงินต้นวัน (เปิดร้าน) มาก่อน · นับเงินปลายวัน (ปิดร้าน) ซ่อนจนกว่าจะเปิดร้านเสร็จ
+function todoOrderAuto(auto){
+  const openT=auto.find(x=>x.t.autoCheck==='cash_open');
+  const shown=auto.filter(x=>!(x.t.autoCheck==='cash_close'&&openT&&!openT.t.done));
+  const rk=t=>t.autoCheck==='cash_open'?0:(t.autoCheck==='cash_close'?2:1);
+  return shown.map((x,n)=>({x,n})).sort((a,b)=>(rk(a.x.t)-rk(b.x.t))||(a.n-b.n)).map(o=>o.x);
+}
+// กระโดดเข้าฟีเจอร์/เปิด modal ของงานนั้นทันที
+window.todoGo=function(autoCheck,branch,link){
+  const act=({cash_open:'open',cash_close:'close',purse:'deposit'})[autoCheck];
+  if(act){window._cashPendingAction={branch,act};goto('cash');return;}
+  goto(link||({sales:'sales',checkin:'checkin'})[autoCheck]||'home');
+};
 
 // มุมมองแอดมิน: ทุกสาขา + ใครทำแล้ว/ยัง
 function renderTodoAdminView(datas){
   const el=document.getElementById('todo-page-content');
   if(!el)return;
+  const branchShown=datas.map(({branch,data})=>{
+    const tasks=data?.tasks||[];
+    const auto=todoOrderAuto(tasks.map((t,i)=>({t,i})).filter(x=>x.t.autoCheck));
+    const manual=tasks.map((t,i)=>({t,i})).filter(x=>!x.t.autoCheck);
+    return {branch,data,auto,manual,shown:[...auto,...manual]};
+  });
   let totalAll=0,doneAll=0;
-  datas.forEach(({data})=>{const t=data?.tasks||[];totalAll+=t.length;doneAll+=t.filter(x=>x.done).length;});
+  branchShown.forEach(b=>{totalAll+=b.shown.length;doneAll+=b.shown.filter(x=>x.t.done).length;});
   const pctAll=totalAll?Math.round(doneAll/totalAll*100):0;
   let html=totalAll?todoHero(pctAll,doneAll,totalAll,totalAll-doneAll):'';
-  datas.forEach(({branch,data})=>{
-    const tasks=data?.tasks||[];
-    const done=tasks.filter(t=>t.done).length;
-    const auto=tasks.map((t,i)=>({t,i})).filter(x=>x.t.autoCheck);
-    const manual=tasks.map((t,i)=>({t,i})).filter(x=>!x.t.autoCheck);
+  branchShown.forEach(({branch,data,auto,manual,shown})=>{
+    const done=shown.filter(x=>x.t.done).length;
     html+=`<div class="card" style="margin-bottom:14px;border-left:4px solid ${BCOLORS[branch]}">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${tasks.length?'11px':'0'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:${shown.length?'11px':'0'}">
         <div style="font-family:var(--disp);font-weight:600;font-size:15px">${BRANCHES[branch]}</div>
-        <span style="font-size:12px;font-weight:700;color:${tasks.length&&done===tasks.length?'var(--green-d)':'var(--amber-t)'}">${tasks.length?done+'/'+tasks.length+' งาน':'ยังไม่มีงาน'}</span>
+        <span style="font-size:12px;font-weight:700;color:${shown.length&&done===shown.length?'var(--green-d)':'var(--amber-t)'}">${shown.length?done+'/'+shown.length+' งาน':'ยังไม่มีงาน'}</span>
       </div>
       ${auto.map(x=>todoAutoRow(x.t,x.i,data,branch,{showGo:false,showDelete:true})).join('')}
       ${manual.map(x=>todoManualRow(x.t,x.i,data,branch,{canToggle:true,showDelete:true})).join('')}
@@ -9438,11 +9464,12 @@ function renderTodoPageContent(data,branch){
     </div>`;
     return;
   }
-  const done=tasks.filter(t=>t.done).length;
-  const pct=Math.round(done/tasks.length*100);
-  const auto=tasks.map((t,i)=>({t,i})).filter(x=>x.t.autoCheck);
+  const auto=todoOrderAuto(tasks.map((t,i)=>({t,i})).filter(x=>x.t.autoCheck));
   const manual=tasks.map((t,i)=>({t,i})).filter(x=>!x.t.autoCheck);
-  let html=todoHero(pct,done,tasks.length,tasks.length-done);
+  const shown=[...auto,...manual];                       // นับเฉพาะงานที่แสดงจริง (ปิดร้านที่ซ่อนไว้ไม่นับจนกว่าจะถึงเวลา)
+  const done=shown.filter(x=>x.t.done).length;
+  const pct=shown.length?Math.round(done/shown.length*100):0;
+  let html=todoHero(pct,done,shown.length,shown.length-done);
   if(auto.length){
     html+=todoSecHead('📲','ต้องไปทำในระบบ','ระบบติ๊กให้อัตโนมัติเมื่อทำเสร็จ','6px');
     html+=auto.map(x=>todoAutoRow(x.t,x.i,data,branch,{showGo:true,showDelete:isAdmin})).join('');
