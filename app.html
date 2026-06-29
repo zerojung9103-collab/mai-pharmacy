@@ -1533,8 +1533,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.53.1';
+const APP_VERSION='3.53.2';
 const CHANGELOG=[
+  {v:'3.53.2',date:'2026-06-29',changes:['ตรวจแก้บั๊กจากการรีวิว: (เงินสด) ยกเลิกการ“ปิดร้าน”แล้วคืนยอดลิ้นชักก่อนปิดให้ถูกต้อง (เดิมไม่คืน ทำให้ลิ้นชักเพี้ยน) · กันยอดขายนับเป็น 0 เพราะชนิดสาขาไม่ตรง (string/number) · (ยอดขาย) หัวการ์ดโชว์วันที่ที่เลือกจริง ไม่ใช่“วันนี้”เสมอ + แก้วันที่ parse แบบ local · (งานวันนี้) การ์ดหน้าแรก/badge นับงานให้ตรงกับหน้างานวันนี้ (ซ่อนปิดร้านที่ยังไม่ถึงเวลาเหมือนกัน)']},
   {v:'3.53.1',date:'2026-06-29',changes:['งานวันนี้: ปุ่ม“ไปทำ”ของงานเงินสด (นับเงินต้นวัน/ปลายวัน) กระโดดไปเปิดหน้าจอนับเงินของสาขานั้นให้ทันที · “นับเงินปลายวัน (ปิดร้าน)” จะซ่อนไว้ก่อน แสดงเฉพาะหลังทำ“นับเงินต้นวัน (เปิดร้าน)”เสร็จแล้ว และจัดให้เปิดร้านมาก่อนเสมอ']},
   {v:'3.53.0',date:'2026-06-29',changes:['รีดีไซน์หน้างานวันนี้ให้เข้าใจง่ายขึ้น: แยกเป็น 2 กลุ่มชัดเจน — “ต้องไปทำในระบบ” (เช่น ลงยอดขาย/เปิด-ปิดร้าน) ระบบติ๊กให้เอง มีปุ่ม“ไปทำ →” พาไปหน้านั้น · กับ “งานทั่วไป” ที่แตะติ๊กเอง · เพิ่มวงแหวนความคืบหน้า + เหลืออีกกี่งาน · มุมแอดมินจัดกลุ่มแบบเดียวกันทุกสาขา']},
   {v:'3.52.1',date:'2026-06-28',changes:['แก้บั๊กเงินสด 2 จุด: (1) กันกดบันทึกซ้ำ — ดึงเข้าเซฟ/เบิก/ปิดร้าน ฯลฯ ถ้ากดรัวจะบันทึกครั้งเดียว ไม่เป็น 2 เท่าอีก (2) ถ้าแก้ยอดขายทีหลังจากปิดร้าน ยอด“ควรมี/ผลต่าง”ของวันนี้จะคำนวณใหม่ตามยอดขายล่าสุดให้อัตโนมัติ']},
@@ -4070,11 +4071,11 @@ async function loadCashData(){
   }catch(e){console.error('loadCashData',e);}
 }
 function cashGet(b){const s=cashState[String(b)]||{};return{reserve:+s.reserve||0,drawer:+s.drawer||0,safe:+s.safe||0,openDrawer:(s.openDrawer==null?null:+s.openDrawer),openDate:s.openDate||null,openBy:s.openBy||''};}
-function cashSalesToday(b){const e=salesEntries.find(x=>x.date===todayStr()&&x.branch===b);return e?(parseFloat(e.amounts&&e.amounts['เงินสด'])||0):0;}
-function cashSumToday(b,type){return cashEvents.filter(ev=>ev.branch===b&&ev.date===todayStr()&&ev.type===type).reduce((a,ev)=>a+(ev.amount||0),0);}
+function cashSalesToday(b){const e=salesEntries.find(x=>x.date===todayStr()&&+x.branch===+b);return e?(parseFloat(e.amounts&&e.amounts['เงินสด'])||0):0;}
+function cashSumToday(b,type){return cashEvents.filter(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type===type).reduce((a,ev)=>a+(ev.amount||0),0);}
 function cashOpenedToday(b){return cashGet(b).openDate===todayStr();}
 function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===todayStr()?(st.openDrawer||0):0;return open+cashSumToday(b,'r2d')+cashSalesToday(b)-cashSumToday(b,'deposit');}
-function cashTodayClose(b){return cashEvents.find(ev=>ev.branch===b&&ev.date===todayStr()&&ev.type==='close');}
+function cashTodayClose(b){return cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='close');}
 // คำนวณ "ควรมี/ผลต่าง" ของรายการปิดร้าน — ถ้าเป็นของวันนี้ คิดสดตามยอดขายล่าสุด (เผื่อแก้ยอดขายทีหลัง),
 // ถ้าเป็นวันก่อน ใช้ค่าที่บันทึกไว้ (ยอดขายอ้างอิงเฉพาะวันนี้)
 function cashCloseCalc(branch,ev){
@@ -4082,7 +4083,7 @@ function cashCloseCalc(branch,ev){
   if(ev.date===todayStr()){
     const st=cashGet(branch);
     const open=st.openDate===todayStr()?(st.openDrawer||0):0;
-    const depBefore=cashEvents.filter(x=>x.branch===branch&&x.date===todayStr()&&x.type==='deposit'&&x.ts<ev.ts).reduce((a,x)=>a+(x.amount||0),0);
+    const depBefore=cashEvents.filter(x=>+x.branch===+branch&&x.date===todayStr()&&x.type==='deposit'&&x.ts<ev.ts).reduce((a,x)=>a+(x.amount||0),0);
     const exp=open+cashSumToday(branch,'r2d')+cashSalesToday(branch)-depBefore;
     return {counted,expected:exp,diff:Math.round((counted-exp)*100)/100};
   }
@@ -4202,7 +4203,7 @@ window.cashVoidEvent=async function(evId){
   else if(ev.type==='deposit')patch={drawer:st.drawer+amt,safe:st.safe-amt};
   else if(ev.type==='safeout')patch={safe:st.safe+amt};
   else if(ev.type==='open')patch={drawer:0,openDrawer:null,openDate:null,openBy:''};
-  else if(ev.type==='close')patch={}; // close แค่บันทึกผล — ลบ event ให้ปิดใหม่ได้ ไม่แตะยอด
+  else if(ev.type==='close')patch=(ev.prevDrawer!=null)?{drawer:ev.prevDrawer}:{}; // คืนยอดลิ้นชักก่อนปิด (ถ้าบันทึกไว้) เพื่อให้ปิดใหม่ได้ถูกต้อง
   if(_cashBusy)return;_cashBusy=true;
   try{
     if(!cashEvents.find(e=>e.id===evId)){return;} // กันยกเลิกซ้ำ (รายการถูกลบไปแล้ว)
@@ -4440,8 +4441,9 @@ window.cashDoClose=async function(branch){
     if(isNaN(counted)||counted<0){showToast('กรอกยอดให้ถูกต้อง','err');return;}
     const expected=cashExpectedClose(branch);
     const diff=Math.round((counted-expected)*100)/100;
+    const prevDrawer=cashGet(branch).drawer; // เก็บยอดลิ้นชักก่อนปิด เผื่อยกเลิกการปิดแล้วต้องคืนค่า
     await cashSaveState(branch,{drawer:counted});
-    await cashAddEvent({branch,type:'close',amount:counted,counted,expected,diff,cashSales:cashSalesToday(branch),denoms:cashGetDenoms()});
+    await cashAddEvent({branch,type:'close',amount:counted,counted,expected,diff,prevDrawer,cashSales:cashSalesToday(branch),denoms:cashGetDenoms()});
     closeMD();renderCashPage();
     showToast(diff===0?'ปิดร้าน · เงินตรงพอดี ✓':(diff>0?`ปิดร้าน · เกิน ฿${fmt(Math.abs(diff))}`:`ปิดร้าน · ขาด ฿${fmt(Math.abs(diff))}`));
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับ ฿${fmt(counted)} (${diff===0?'ตรง':diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))})`);
@@ -4743,8 +4745,9 @@ function salesRenderForm(){
     else if(!isAdmin&&_lock.mins!=null&&_lock.mins<5)statusTxt=`บันทึกแล้ว · ${who} · ${t} (แก้ได้อีก ${Math.max(1,Math.ceil(5-_lock.mins))} นาที)`;
     else statusTxt=`บันทึกแล้ว · ${who} · ${t}`;
   }
+  const heroDateLabel=date===todayStr()?'ยอดรวมวันนี้':('ยอดรวมวันที่ '+new Date(date+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'}));
   const hero=`<div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:20px;padding:17px 19px;color:#fff;margin-bottom:15px;box-shadow:0 8px 22px rgba(31,174,139,.26)">
-    <div style="font-size:12.5px;opacity:.92;font-weight:600">ยอดรวมวันนี้ · สาขา${BRANCHES[salesBranch]}</div>
+    <div style="font-size:12.5px;opacity:.92;font-weight:600">${heroDateLabel} · สาขา${BRANCHES[salesBranch]}</div>
     <div id="sales-hero-total" style="font-size:38px;font-weight:800;font-family:var(--disp);letter-spacing:-1px;line-height:1.15;margin:1px 0">฿${fmt(total)}</div>
     <div id="sales-hero-meta" style="font-size:12px;opacity:.92">${bills?`${bills} บิล · เฉลี่ย ฿${fmt(Math.round(total/bills))} / บิล`:'ยังไม่กรอกจำนวนบิล'}</div>
     <div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 11px;border-radius:30px;margin-top:9px;background:rgba(255,255,255,.22)"><span style="width:7px;height:7px;border-radius:50%;background:#fff"></span><span id="sales-hero-status">${statusTxt}</span></div>
@@ -5012,7 +5015,7 @@ window.salesViewDay=function(){
   const date=document.getElementById('sales-date')?.value||todayStr();
   const es=BRANCHES.map((b,i)=>salesEntries.find(x=>x.date===date&&x.branch===i));
   const grand=es.reduce((a,e)=>a+(e?.total||0),0);
-  const dlabel=new Date(date).toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const dlabel=new Date(date+'T00:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const branchCards=BRANCHES.map((b,i)=>{
     const e=es[i];
     if(!e){return `<div style="border:1px dashed var(--border2);border-radius:13px;padding:13px;margin-bottom:9px"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:700;color:${BCOLORS[i]}">${b}</span><span style="font-size:12px;color:var(--text3)">ยังไม่บันทึก</span></div></div>`;}
@@ -7812,7 +7815,10 @@ window.refreshTodoStatus=async function(){
       let data=null;
       try{data=await ensureTodayTasks(b);}catch(e){}
       const tasks=(data&&data.tasks)||[];
-      per.push({branch:b,total:tasks.length,done:tasks.filter(t=>t.done).length,pending:tasks.filter(t=>!t.done).length});
+      // นับเฉพาะงานที่แสดงจริง (ซ่อนปิดร้านจนกว่าจะเปิดร้าน) ให้ตรงกับหน้างานวันนี้
+      const auto=todoOrderAuto(tasks.map((t,i)=>({t,i})).filter(x=>x.t.autoCheck));
+      const shown=[...auto.map(x=>x.t),...tasks.filter(t=>!t.autoCheck)];
+      per.push({branch:b,total:shown.length,done:shown.filter(t=>t.done).length,pending:shown.filter(t=>!t.done).length});
     }
     window._todoStatus=per;
     renderTodoHomeCard(per);
