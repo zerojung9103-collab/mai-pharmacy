@@ -1357,6 +1357,11 @@ input,select,textarea{border-radius:14px}
     </div>
     <div id="todo-page-content"><div style="text-align:center;padding:3rem;color:var(--text3)">กำลังโหลด...</div></div>
   </div>
+  <!-- ===== สนามฝึก (โหมดฝึกพนักงาน — ไม่กระทบข้อมูลจริง) ===== -->
+  <div class="page" id="page-training">
+    <div class="topbar"><div><div class="page-title">สนามฝึกพนักงาน</div><div class="page-sub">ลองทำงานทั้งวันแบบจำลอง — ไม่กระทบข้อมูลจริง</div></div></div>
+    <div id="training-content"></div>
+  </div>
   <!-- ===== หน้าประวัติการขาย (admin) ===== -->
   <div class="page" id="page-sales-history">
     <div class="topbar">
@@ -1533,8 +1538,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.54.0';
+const APP_VERSION='3.55.0';
 const CHANGELOG=[
+  {v:'3.55.0',date:'2026-06-29',changes:['เพิ่ม “สนามฝึก” (เฉพาะแอดมิน ไว้สอนพนักงาน) — หน้าจำลองเดินทีละบทตามงานจริงทั้งวัน (เช็คอิน→เปิดร้านนับเงิน→ลงยอด→ปิดร้านเทียบยอด→เช็คเอาท์) มีคำอธิบายแต่ละขั้น + ผลลัพธ์จำลอง · ใช้ข้อมูลสมมติ ไม่เขียน/ไม่กระทบข้อมูลจริงเลย · เข้าจากเมนูเพิ่มเติม']},
   {v:'3.54.0',date:'2026-06-29',changes:['ระบบพาทำงาน: เพิ่มการ์ดไกด์“ขั้นต่อไปของคุณ”บนหน้าแรก (เฉพาะพนักงาน) บอกว่าต้องทำอะไรต่อ + ปุ่มพาไปทำทันที ตามสถานะของวัน (เช็คอิน→เปิดร้าน→ลงยอด/ปิดร้าน→เช็คเอาท์) พร้อมแถบความคืบหน้า · เพิ่ม popup ถาม“ไปขั้นต่อไปไหม”หลังเช็คอิน/เปิดร้าน/ปิดร้านสำเร็จ เพื่อพาไปทำขั้นต่อไปง่ายๆ']},
   {v:'3.53.2',date:'2026-06-29',changes:['ตรวจแก้บั๊กจากการรีวิว: (เงินสด) ยกเลิกการ“ปิดร้าน”แล้วคืนยอดลิ้นชักก่อนปิดให้ถูกต้อง (เดิมไม่คืน ทำให้ลิ้นชักเพี้ยน) · กันยอดขายนับเป็น 0 เพราะชนิดสาขาไม่ตรง (string/number) · (ยอดขาย) หัวการ์ดโชว์วันที่ที่เลือกจริง ไม่ใช่“วันนี้”เสมอ + แก้วันที่ parse แบบ local · (งานวันนี้) การ์ดหน้าแรก/badge นับงานให้ตรงกับหน้างานวันนี้ (ซ่อนปิดร้านที่ยังไม่ถึงเวลาเหมือนกัน)']},
   {v:'3.53.1',date:'2026-06-29',changes:['งานวันนี้: ปุ่ม“ไปทำ”ของงานเงินสด (นับเงินต้นวัน/ปลายวัน) กระโดดไปเปิดหน้าจอนับเงินของสาขานั้นให้ทันที · “นับเงินปลายวัน (ปิดร้าน)” จะซ่อนไว้ก่อน แสดงเฉพาะหลังทำ“นับเงินต้นวัน (เปิดร้าน)”เสร็จแล้ว และจัดให้เปิดร้านมาก่อนเสมอ']},
@@ -1721,10 +1727,11 @@ const FEATURE_DEFS=[
   {page:'dosecalc',icon:'💊',label:'คำนวณยา',color:'#639922',cat:'more',zone:'tool',perm:null},
   {page:'drugwarn',icon:'⚠️',label:'คำเตือนยา',color:'#D4690E',cat:'more',zone:'tool',perm:null},
   {page:'foreignlabel',icon:'🌏',label:'ฉลากยาต่างชาติ',color:'#3B8EEA',cat:'sales',zone:'tool',perm:null},
+  {page:'training',icon:'🎓',label:'สนามฝึก (ลองใช้งาน)',color:'#8B7FF0',cat:'more',zone:'more',perm:null},
   {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',cat:'more',zone:'more',perm:null},
 ];
 const ZONE_PAL=[['var(--green-l)','var(--green-d)'],['var(--blue-l)','var(--blue-t)'],['var(--amber-l)','var(--amber-t)'],['var(--purple-l)','var(--purple-t)'],['var(--rose-l)','var(--rose-d)']];
-const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'ภาพรวมยอดขาย/กราฟ','sales-history':'ดู/แก้ยอดย้อนหลัง',foreignlabel:'แปลฉลาก/วิธีใช้',members:'พนักงาน/สิทธิ์/เงินเดือน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณตามน้ำหนัก/อายุ',drugwarn:'ข้อควรระวัง/ปฏิกิริยา',settings:'สาขา/GPS/ประเภทจ่าย'};
+const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'ภาพรวมยอดขาย/กราฟ','sales-history':'ดู/แก้ยอดย้อนหลัง',foreignlabel:'แปลฉลาก/วิธีใช้',members:'พนักงาน/สิทธิ์/เงินเดือน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณตามน้ำหนัก/อายุ',drugwarn:'ข้อควรระวัง/ปฏิกิริยา',training:'ฝึกใช้งานแบบจำลอง (ไม่กระทบจริง)',settings:'สาขา/GPS/ประเภทจ่าย'};
 function zoneFeatures(z){return FEATURE_DEFS.filter(f=>f.zone===z&&featureShow(f));}
 // แถวเมนูแบบรายการ (ไอคอนชิป + ชื่อ + คำบรรยาย)
 function featRowBtn(f,i){const pal=ZONE_PAL[i%ZONE_PAL.length];return `<button onclick="goto('${f.page}')" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;width:100%;cursor:pointer;font-family:var(--font);text-align:left;box-shadow:var(--shadow);margin-bottom:9px">
@@ -1751,7 +1758,7 @@ function renderMoreGrouped(){
   return h;
 }
 function featureShow(f){
-  if(f.page==='sales-history')return isAdmin;
+  if(f.page==='sales-history'||f.page==='training')return isAdmin; // เฉพาะแอดมิน (สนามฝึกไว้สอนพนักงาน)
   return isAdmin||f.perm===null||hasPerm(f.perm);
 }
 function catFeatures(catId){return FEATURE_DEFS.filter(f=>f.cat===catId&&featureShow(f));}
@@ -2533,6 +2540,7 @@ window.goto=function(page){
   if(page==='foreignlabel'){loadForeignLabelData();flRenderBlockList();flRenderCustomBlockInputs();}
   if(page==='theme')renderThemePage();
   if(page==='todo')loadTodoPage();
+  if(page==='training')renderTraining();
   if(page==='sales-history'){if(!isAdmin){showToast('เฉพาะ admin','err');goto('home');return;}loadSalesFromCloud().then(shInitPage);}
   currentPage=page;
   localStorage.setItem('lastPage',page); // จำหน้าปัจจุบันไว้ข้าม refresh
@@ -9649,6 +9657,53 @@ async function showTodoPopupAfterCheckin(branch){
       </div>
     </div>`);
   }catch(e){console.error('showTodoPopup',e);}
+}
+
+// ===== สนามฝึกพนักงาน (โหมดฝึก — ข้อมูลสมมติ ไม่เขียน Firestore / ไม่กระทบของจริง) =====
+let _trStep=0;
+window.renderTraining=function(){ _trStep=0; _trRender(); };
+function _trProgress(){
+  const S=['เช็คอิน','เปิดร้าน','ลงยอด','ปิดร้าน','เช็คเอาท์'];
+  return `<div style="display:flex;gap:5px;margin-bottom:16px">`+S.map((n,i)=>`<div style="flex:1;text-align:center"><div style="height:5px;border-radius:3px;background:${i<=_trStep?'var(--green)':'var(--border)'};${i===_trStep?'box-shadow:0 0 0 2px var(--green-l)':''};margin-bottom:5px"></div><div style="font-size:9.5px;font-weight:600;color:${i<=_trStep?'var(--green-d)':'var(--text3)'}">${n}</div></div>`).join('')+`</div>`;
+}
+function _trHead(){
+  return `<div style="display:flex;align-items:center;gap:10px;background:var(--purple-l);border:1px solid #D8D2F8;color:var(--purple-t);border-radius:13px;padding:11px 14px;font-size:12.5px;font-weight:600;margin-bottom:12px">🎓 โหมดฝึก — ลองได้เต็มที่ ข้อมูลไม่ถูกบันทึกจริง ไม่กระทบของจริงเลย</div>
+  <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button onclick="renderTraining()" style="background:var(--surface);border:1px solid var(--border2);border-radius:11px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font)">↺ เริ่มใหม่</button></div>`;
+}
+function _trLesson(num,ic,title,why,btn){
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:var(--shadow);max-width:520px;margin:0 auto">
+    <span style="display:inline-block;background:var(--green-l);color:var(--green-d);font-size:11px;font-weight:700;padding:3px 11px;border-radius:20px;letter-spacing:.5px">บทที่ ${num} / 5</span>
+    <div style="font-size:42px;margin:12px 0 4px">${ic}</div>
+    <div style="font-size:22px;font-weight:800;font-family:var(--disp)">${title}</div>
+    <div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:13px;padding:12px 14px;font-size:13px;color:var(--green-dd);line-height:1.6;margin:13px 0">${why}</div>
+    <div id="tr-inter"></div>
+    <button id="tr-do" style="display:block;width:100%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--font);font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 6px 16px rgba(31,174,139,.3)">${btn}</button>
+    <div style="font-size:12px;color:var(--text3);text-align:center;margin-top:9px">👆 ลองกดดู — นี่คือการฝึก ไม่ใช่ของจริง</div>
+  </div>`;
+}
+function _trRender(){
+  const el=document.getElementById('training-content');if(!el)return;
+  let stage;
+  if(_trStep===0) stage=_trLesson(1,'📍','เช็คอินเข้างาน','ทุกเช้าที่มาถึงร้าน <b>กดเช็คอิน</b> ระบบจะจับสาขาจาก GPS และบันทึกเวลาให้อัตโนมัติ — ถ้ามาสายระบบจะรู้','📍 ลองเช็คอิน');
+  else if(_trStep===1) stage=_trLesson(2,'☀️','เปิดร้าน — นับเงินลิ้นชัก','ก่อนเริ่มขาย <b>นับเงินในลิ้นชัก</b> กรอกจำนวนเหรียญ/แบงค์แต่ละชนิด ระบบรวมยอดให้','บันทึกเปิดร้าน');
+  else if(_trStep===2) stage=_trLesson(3,'💰','ลงยอดขาย','ตอนสรุป กรอก<b>ยอดขายแต่ละช่องทาง</b> (เงินสด/บัตร/QR) ระบบรวมให้','บันทึกยอด');
+  else if(_trStep===3) stage=_trLesson(4,'🌙','ปิดร้าน — นับเงิน','ตอนเลิกงาน <b>นับเงินจริง</b>ในลิ้นชัก ระบบเทียบกับ "ยอดที่ควรมี" แล้วบอกว่า ตรง / ขาด / เกิน','ลองนับเงินปิดร้าน');
+  else if(_trStep===4) stage=_trLesson(5,'📍','เช็คเอาท์ออกงาน','ก่อนกลับบ้าน <b>กดเช็คเอาท์</b> เพื่อลงเวลาออกงาน — เท่านี้ก็จบวันแล้ว!','📍 ลองเช็คเอาท์');
+  else stage=`<div style="text-align:center;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:22px;padding:30px 22px;box-shadow:0 10px 26px rgba(31,174,139,.3);max-width:520px;margin:0 auto"><div style="font-size:56px">🎉</div><div style="font-size:24px;font-weight:800;font-family:var(--disp);margin:6px 0">จบการฝึกแล้ว!</div><div style="font-size:13.5px;opacity:.95;line-height:1.6">เก่งมาก! คุณลองทำครบทั้งวันแล้ว<br>พร้อมใช้งานจริงได้เลย 💚</div><button onclick="renderTraining()" style="background:#fff;color:var(--green-dd);border:none;border-radius:14px;padding:14px 24px;font-family:var(--font);font-weight:800;font-size:15px;cursor:pointer;margin-top:16px">↺ ฝึกอีกครั้ง</button></div>`;
+  el.innerHTML=_trHead()+_trProgress()+stage;
+  const btn=document.getElementById('tr-do');
+  if(btn)btn.onclick=_trDo;
+}
+function _trDo(){
+  const inter=document.getElementById('tr-inter'), btn=document.getElementById('tr-do');
+  if(!inter||!btn)return;
+  const adv=()=>{btn.textContent='ต่อไป →';btn.onclick=()=>{_trStep++;_trRender();};};
+  const ok=(t)=>`<div style="background:var(--green-l);color:var(--green-d);border-radius:13px;padding:13px;text-align:center;font-weight:700;margin-bottom:10px">${t}</div>`;
+  if(_trStep===0){inter.innerHTML=ok('✅ เช็คอินสำเร็จ 08:30 น. · สาขาบางปู');adv();}
+  else if(_trStep===1){inter.innerHTML=ok('✅ เปิดร้านแล้ว · ลิ้นชัก ฿500 (นับเหรียญ/แบงค์ครบ)');adv();}
+  else if(_trStep===2){inter.innerHTML=ok('✅ บันทึกยอดขาย ฿3,500');adv();}
+  else if(_trStep===3){inter.innerHTML=`<div style="font-size:12.5px;color:var(--text2);background:var(--bg);border-radius:11px;padding:11px;margin-bottom:8px">ควรมี <b>฿3,500</b> · คุณนับได้ <b>฿3,480</b></div><div style="background:var(--red-l);color:var(--red-t);border-radius:13px;padding:13px;text-align:center;font-weight:700;margin-bottom:10px">ขาด ฿20 — ไม่เป็นไร ระบบแจ้งแอดมินให้ตรวจเอง</div>`;adv();}
+  else if(_trStep===4){_trStep++;_trRender();}
 }
 
 // ===== DRUG WARNINGS =====
