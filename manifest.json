@@ -22,5 +22,28 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "ลงยอดขาย",
+      "short_name": "ลงยอดขาย",
+      "description": "บันทึกยอดขายวันนี้",
+      "url": "./app.html?go=sales",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "นับเงิน (เปิด/ปิดร้าน)",
+      "short_name": "นับเงิน",
+      "description": "เปิดหน้าจอเงินสด นับเงินเปิด/ปิดร้าน",
+      "url": "./app.html?go=cash",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "เช็คอิน/เช็คเอาท์",
+      "short_name": "เช็คอิน",
+      "description": "ลงเวลาเข้า–ออกงาน",
+      "url": "./app.html?go=checkin",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
