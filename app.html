@@ -568,30 +568,38 @@ input,select,textarea{border-radius:14px}
   <!-- DASHBOARD -->
   <div class="page" id="page-dashboard">
     <div class="topbar">
-      <div><div class="page-title">ภาพรวมร้าน</div><div class="page-sub">สรุปวันนี้และยอดขายทุกสาขา</div></div>
-      <div class="tabs" id="db-tabs">
+      <div><div class="page-title">ยอดขาย &amp; รายงาน</div><div class="page-sub">ภาพรวม · สรุปเดือน · ส่งออกเก็บเป็น Excel</div></div>
+    </div>
+    <div class="tabs" id="dash-outer-tabs" style="margin-bottom:1.1rem">
+      <button class="tab active" onclick="dashSetTab('overview',this)">📈 ภาพรวม</button>
+      <button class="tab" onclick="dashSetTab('summary',this)">📋 สรุปเดือน</button>
+      <button class="tab" onclick="dashSetTab('export',this)">📥 ส่งออก/สำรอง</button>
+    </div>
+    <div id="dash-overview">
+      <div class="tabs" id="db-tabs" style="margin-bottom:1.1rem">
         <button class="tab active" onclick="dbSetMode('day',this)">รายวัน</button>
         <button class="tab" onclick="dbSetMode('month',this)">รายเดือน</button>
         <button class="tab" onclick="dbSetMode('year',this)">รายปี</button>
       </div>
-    </div>
-    <div id="db-today-overview" style="margin-bottom:1.25rem"></div>
-    <div id="db-filter" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem"></div>
-    <div class="metric-grid" id="db-metrics"></div>
-    <div class="db-2col">
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
-          <div><div style="font-family:var(--disp);font-weight:600;font-size:16px">กราฟยอดขายแยกสาขา</div><div id="db-chart-sub" style="font-size:11px;color:var(--text3);margin-top:2px"></div></div>
-          <div class="legend-row" id="db-legend"></div>
+      <div id="db-today-overview" style="margin-bottom:1.25rem"></div>
+      <div id="db-filter" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:1.25rem"></div>
+      <div class="metric-grid" id="db-metrics"></div>
+      <div class="db-2col">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+            <div><div style="font-family:var(--disp);font-weight:600;font-size:16px">กราฟยอดขายแยกสาขา</div><div id="db-chart-sub" style="font-size:11px;color:var(--text3);margin-top:2px"></div></div>
+            <div class="legend-row" id="db-legend"></div>
+          </div>
+          <div class="chart-wrap"><canvas id="dbChart" role="img" aria-label="กราฟยอดขาย"></canvas></div>
         </div>
-        <div class="chart-wrap"><canvas id="dbChart" role="img" aria-label="กราฟยอดขาย"></canvas></div>
+        <div class="card" id="db-branch-split"></div>
       </div>
-      <div class="card" id="db-branch-split"></div>
+      <div class="branch-cards" id="db-bcards" style="margin-top:1rem"></div>
+      <div id="db-paystat" style="margin-top:1rem"></div>
+      <div id="db-day-detail" style="margin-top:1rem"></div>
+      <div id="db-staff-status" style="margin-top:1rem"></div>
     </div>
-    <div class="branch-cards" id="db-bcards" style="margin-top:1rem"></div>
-    <div id="db-paystat" style="margin-top:1rem"></div>
-    <div id="db-day-detail" style="margin-top:1rem"></div>
-    <div id="db-staff-status" style="margin-top:1rem"></div>
+    <div id="dash-report" style="display:none"></div>
   </div>
 
   <!-- SCHEDULE -->
@@ -1596,8 +1604,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.64.1';
+const APP_VERSION='3.66.1';
 const CHANGELOG=[
+  {v:'3.66.1',date:'2026-06-30',changes:['เก็บงานหลังรวมเมนู: ปุ่มลัดหน้าแรก + reload ข้อมูลสด อ้างชื่อ/อัปเดตแท็บ “ยอดขาย & รายงาน” ให้ตรง']},
+  {v:'3.66.0',date:'2026-06-30',changes:['ลดเมนูซ้ำซ้อน: รวม “ภาพรวมยอดขาย” + “รายงาน & สำรองข้อมูล” เป็นหน้าเดียว “ยอดขาย & รายงาน” มี 3 แท็บ (ภาพรวม/กราฟ · สรุปเดือน · ส่งออก/สำรอง) — แอดมินหาง่ายขึ้น ไม่งงว่าจะดูยอดที่หน้าไหน · ประวัติการขายคงไว้แยก (ไว้แก้ยอดเก่า) · เนื้อหาเดิมครบทุกอย่าง พนักงานไม่กระทบ']},
+  {v:'3.65.1',date:'2026-06-30',changes:['ตรวจความถูกต้องทั้งระบบ (รายงาน/เงินสด) ผ่านหมด · แก้: หน้ารายงานโหลดข้อมูลสดทุกครั้งที่เปิด (เดิมใช้ข้อมูล cache ตอนล็อกอิน อาจไม่ล่าสุด)']},
+  {v:'3.65.0',date:'2026-06-30',changes:['เพิ่มหน้า “รายงาน & สำรองข้อมูล” (เฉพาะแอดมิน): สรุปรายเดือน — ยอดขายรวม/แยกสาขา/แยกช่องทางจ่าย, จำนวนบิล, เงินขาด-เกินรวมจากการปิดร้าน, ค่าใช้จ่าย(เบิกซื้อของ) เลือกเดือนได้ · ส่งออกเป็นไฟล์ Excel/CSV (ภาษาไทยไม่เพี้ยน) ทั้งรายเดือนและสำรองทั้งหมด — ยอดขาย/รายการเงินสด/สรุปเดือน ไว้เก็บเป็นสำเนากันข้อมูลหาย']},
   {v:'3.64.1',date:'2026-06-30',changes:['สนามฝึก: แก้ปัญหา“ไปต่อไม่ได้” ตอนนับเงิน — นับไม่ตรงไม่บล็อกแล้ว มีปุ่ม“เติมจำนวนที่ถูกให้”ช่วย · ตอนปิดร้านรับยอดที่นับได้แล้วโชว์ ตรง/ขาด/เกิน ทันที (เหมือนแอปจริง) ไม่บังคับให้ตรงเป๊ะ']},
   {v:'3.64.0',date:'2026-06-30',changes:['ยกเครื่อง “สนามฝึก” ใหม่เป็น “จำลองวันทำงานจริง” — เล่นเหมือนพนักงานใช้แอปจริง: เช็คอิน→เปิดร้านนับเงิน(บล็อกนับจริง)→ลูกค้าเดินเข้าซื้อยาเป็นรายๆจ่ายหลายช่องทาง(ฝึกทอนเงิน)→เบิกสำรอง/เบิกซื้อของตามจังหวะ→ลงยอด→ปิดร้านเทียบยอดจากที่ขายมาจริง→เช็คเอาท์ มีคะแนน/สรุปผล สุ่มได้หลายรอบ · ข้อมูลอยู่ใน sandbox ไม่กระทบของจริง (admin-only)']},
   {v:'3.63.0',date:'2026-06-30',changes:['งานวันนี้ (มุมพนักงาน): แสดงงานระบบ“ทีละขั้น” — โชว์เฉพาะขั้นปัจจุบัน (ไฮไลต์ + ปุ่มไปทำเด่น) ทำเสร็จขั้นถัดไปค่อยโผล่ มีบอก“อีกกี่ขั้น” · ลดความงงว่าจะทำอะไรก่อน-หลัง (แอดมินยังเห็นครบทุกขั้นไว้ตรวจ)']},
@@ -1787,7 +1799,7 @@ const FEATURE_DEFS=[
   {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',cat:'mywork',zone:'more',perm:null},
   {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'mywork',zone:'more',perm:'payroll_self'},
   {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',cat:'sales',zone:'daily',perm:'sales'},
-  {page:'dashboard',icon:'📈',label:'ภาพรวมยอดขาย',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
+  {page:'dashboard',icon:'📊',label:'ยอดขาย & รายงาน',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
   {page:'sales-history',icon:'📋',label:'ประวัติการขาย',color:'#534AB7',cat:'sales',zone:'admin',perm:null},
   {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',zone:'admin',perm:'members'},
   {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',zone:'admin',perm:'payroll_all'},
@@ -1802,7 +1814,7 @@ const FEATURE_DEFS=[
   {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',cat:'more',zone:'more',perm:null},
 ];
 const ZONE_PAL=[['var(--green-l)','var(--green-d)'],['var(--blue-l)','var(--blue-t)'],['var(--amber-l)','var(--amber-t)'],['var(--purple-l)','var(--purple-t)'],['var(--rose-l)','var(--rose-d)']];
-const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'ภาพรวมยอดขาย/กราฟ','sales-history':'ดู/แก้ยอดย้อนหลัง',foreignlabel:'แปลฉลาก/วิธีใช้',members:'พนักงาน/สิทธิ์/เงินเดือน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณตามน้ำหนัก/อายุ',drugwarn:'ข้อควรระวัง/ปฏิกิริยา',training:'ฝึกใช้งานแบบจำลอง (ไม่กระทบจริง)',settings:'สาขา/GPS/ประเภทจ่าย'};
+const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'กราฟ · สรุปเดือน · ส่งออก Excel','sales-history':'ดู/แก้ยอดย้อนหลัง',foreignlabel:'แปลฉลาก/วิธีใช้',members:'พนักงาน/สิทธิ์/เงินเดือน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณตามน้ำหนัก/อายุ',drugwarn:'ข้อควรระวัง/ปฏิกิริยา',training:'ฝึกใช้งานแบบจำลอง (ไม่กระทบจริง)',report:'สรุปรายเดือน + ส่งออก Excel',settings:'สาขา/GPS/ประเภทจ่าย'};
 function zoneFeatures(z){return FEATURE_DEFS.filter(f=>f.zone===z&&featureShow(f));}
 // แถวเมนูแบบรายการ (ไอคอนชิป + ชื่อ + คำบรรยาย)
 function featRowBtn(f,i){const pal=ZONE_PAL[i%ZONE_PAL.length];return `<button onclick="goto('${f.page}')" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;width:100%;cursor:pointer;font-family:var(--font);text-align:left;box-shadow:var(--shadow);margin-bottom:9px">
@@ -1829,7 +1841,7 @@ function renderMoreGrouped(){
   return h;
 }
 function featureShow(f){
-  if(f.page==='sales-history'||f.page==='training')return isAdmin; // เฉพาะแอดมิน (สนามฝึกไว้สอนพนักงาน)
+  if(f.page==='sales-history'||f.page==='training')return isAdmin; // เฉพาะแอดมิน
   return isAdmin||f.perm===null||hasPerm(f.perm);
 }
 function catFeatures(catId){return FEATURE_DEFS.filter(f=>f.cat===catId&&featureShow(f));}
@@ -2387,7 +2399,7 @@ function buildBottomNav(){
   const nav=document.getElementById('bottom-nav');
   if(!nav)return;
   // ปุ่มที่ 2 ปรับตาม role: admin→แดชบอร์ด, มีสิทธิ์ขาย→ยอดขาย, อื่นๆ→ตารางเวร
-  const secondary=(isAdmin||hasPerm('dashboard_admin'))?{page:'dashboard',ic:'chart-bar',lbl:'แดชบอร์ด'}
+  const secondary=(isAdmin||hasPerm('dashboard_admin'))?{page:'dashboard',ic:'chart-bar',lbl:'ยอดขาย & รายงาน'}
     :(hasPerm('sales'))?{page:'sales',ic:'cash',lbl:'ยอดขาย'}
     :{page:'schedule',ic:'calendar-event',lbl:'ตารางเวร'};
   const slots=[
@@ -2599,7 +2611,7 @@ let _rtAll=[], _rtBusy=null;
 function refreshActivePage(){
   const p=currentPage;
   if(p==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
-  else if(p==='dashboard'){dbRender();loadSalesFromCloud();}
+  else if(p==='dashboard'){Promise.all([loadSalesFromCloud(),loadCashData()]).then(dashRefresh);}
   else if(p==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   else if(p==='members')loadMembers();
   else if(p==='payroll')loadPayroll();
@@ -2621,6 +2633,7 @@ function startRealtimeAll(){
   });
 }
 window.goto=function(page){
+  if(page==='report')page='dashboard'; // รวมหน้ารายงานเข้ากับ "ยอดขาย & รายงาน" แล้ว
   if(!canAccessPage(page)){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
@@ -2653,7 +2666,7 @@ window.goto=function(page){
   if(backBtn)backBtn.style.display=topLevel?'none':'inline-flex';
   if(page==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
   if(page.startsWith('cat-'))renderCatPage(page.slice(4));
-  if(page==='dashboard'){dbRender();loadSalesFromCloud();}
+  if(page==='dashboard')dashInit();
   if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   if(page==='cash'){startCashLive();loadCashPage();}
@@ -5315,7 +5328,7 @@ async function loadSalesFromCloud(){
     saveLocal();
     // รีเฟรชหน้าจอถ้ากำลังดูอยู่
     if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderHistory();
-    if(document.getElementById('page-dashboard')?.classList.contains('active'))dbRender();
+    if(document.getElementById('page-dashboard')?.classList.contains('active')&&typeof dashRefresh==='function')dashRefresh();
     if(document.getElementById('page-home')?.classList.contains('active')&&typeof renderHome==='function')renderHome();
   }catch(e){console.error('loadSales error',e);}
 }
@@ -10384,6 +10397,154 @@ window.trDecision=function(right){
   else{trFb(`<div style="${TR_FB_BAD}">❌ ไม่ควรทำแบบนั้น — ห้ามเติมเงินตัวเองให้ยอดตรง เพราะจะปิดบังปัญหา · ที่ถูกคือ<b>บันทึกตามจริง แล้วแจ้งแอดมิน</b></div><button onclick="trAfterDecision()" style="${trBig}">เข้าใจแล้ว — เช็คเอาท์ →</button>`);}
 };
 window.trAfterDecision=function(){trState.answered=false;trState.clock='20:05';trState.step='checkout';trRender();};
+
+// ===== รายงาน & สำรองข้อมูล (admin) — สรุปรายเดือน + ส่งออก Excel/CSV =====
+let _rpYear=new Date().getFullYear(), _rpMonth=new Date().getMonth()+1;
+function rpPrefix(){return `${_rpYear}-${String(_rpMonth).padStart(2,'0')}`;}
+// รวมข้อมูลของช่วงที่ระบุ (prefix='' = ทั้งหมด)
+function rpAgg(prefix){
+  const inRange=d=>!prefix||String(d||'').startsWith(prefix);
+  const branches=BRANCHES.map((b,bi)=>{
+    const es=salesEntries.filter(e=>+e.branch===bi&&inRange(e.date));
+    const total=es.reduce((a,e)=>a+(parseFloat(e.total)||0),0);
+    const bills=es.reduce((a,e)=>a+(parseInt(e.billCount)||0),0);
+    const pays={};payTypes.forEach(p=>{pays[p]=es.reduce((a,e)=>a+(parseFloat(e.amounts&&e.amounts[p])||0),0);});
+    const closes=cashEvents.filter(e=>+e.branch===bi&&e.type==='close'&&inRange(e.date));
+    const diff=closes.reduce((a,e)=>a+(cashCloseCalc(bi,e).diff||0),0);
+    const expense=cashEvents.filter(e=>+e.branch===bi&&e.type==='expense'&&inRange(e.date)).reduce((a,e)=>a+(e.amount||0),0);
+    return {bi,name:b,total,bills,pays,diff,expense,closeDays:closes.length};
+  });
+  const sum=k=>branches.reduce((a,x)=>a+x[k],0);
+  const payTotals={};payTypes.forEach(p=>{payTotals[p]=branches.reduce((a,x)=>a+x.pays[p],0);});
+  return {branches,grand:{total:sum('total'),bills:sum('bills'),diff:sum('diff'),expense:sum('expense'),pays:payTotals}};
+}
+window.rpShiftMonth=function(delta){
+  _rpMonth+=delta;
+  if(_rpMonth<1){_rpMonth=12;_rpYear--;}
+  if(_rpMonth>12){_rpMonth=1;_rpYear++;}
+  renderReport();
+};
+function rpCard(label,val,sub,col){
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px 14px;box-shadow:var(--shadow)">
+    <div style="font-size:11.5px;color:var(--text3)">${label}</div>
+    <div style="font-size:21px;font-weight:800;font-family:var(--disp);color:${col||'var(--text)'};margin-top:2px">${val}</div>
+    ${sub?`<div style="font-size:11px;color:var(--text3);margin-top:1px">${sub}</div>`:''}
+  </div>`;
+}
+// ===== แท็บรวมในหน้า "ยอดขาย & รายงาน" (ฐาน = dashboard เดิม) =====
+let _rpSub='summary';
+function dashRefresh(){
+  const rp=document.getElementById('dash-report');
+  if(rp&&rp.style.display!=='none')renderReport(); else dbRender();
+}
+function dashInit(){
+  document.querySelectorAll('#dash-outer-tabs .tab').forEach((b,i)=>b.classList.toggle('active',i===0));
+  const ov=document.getElementById('dash-overview'),rp=document.getElementById('dash-report');
+  if(ov)ov.style.display=''; if(rp)rp.style.display='none';
+  dbRender();
+  Promise.all([loadSalesFromCloud(),loadCashData()]).then(()=>{if(currentPage==='dashboard')dashRefresh();}).catch(()=>{});
+}
+window.dashSetTab=function(tab,el){
+  document.querySelectorAll('#dash-outer-tabs .tab').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const ov=document.getElementById('dash-overview'),rp=document.getElementById('dash-report');
+  if(tab==='overview'){if(ov)ov.style.display='';if(rp)rp.style.display='none';dbRender();}
+  else{if(ov)ov.style.display='none';if(rp)rp.style.display='';renderReport(tab==='export'?'export':'summary');}
+};
+function rpMonthNav(){
+  const future=(_rpYear>new Date().getFullYear()||(_rpYear===new Date().getFullYear()&&_rpMonth>=new Date().getMonth()+1));
+  return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:9px 12px;margin-bottom:14px;max-width:680px">
+    <button class="btn btn-sm" onclick="rpShiftMonth(-1)">◀ ก่อนหน้า</button>
+    <div style="font-weight:800;font-size:16px;font-family:var(--disp)">${MONTHS_TH[_rpMonth-1]} ${_rpYear+543}</div>
+    <button class="btn btn-sm" ${future?'disabled style="opacity:.4"':''} onclick="rpShiftMonth(1)">ถัดไป ▶</button>
+  </div>`;
+}
+function renderReport(sub){
+  if(sub)_rpSub=sub;
+  const el=document.getElementById('dash-report');if(!el)return;
+  const a=rpAgg(rpPrefix());const g=a.grand;
+  if(_rpSub==='export'){
+    el.innerHTML=rpMonthNav()+`<div class="card" style="max-width:680px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:3px">📥 ส่งออกเก็บไว้ (เปิดด้วย Excel / Google Sheets)</div>
+      <div style="font-size:11.5px;color:var(--text3);margin-bottom:12px">ดาวน์โหลดเป็นไฟล์ .csv เก็บไว้ในเครื่อง/ไดรฟ์ เป็นการสำรองข้อมูล (รองรับภาษาไทย)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-sm" onclick="rpExportSales(rpPrefix())">📊 ยอดขาย — ${MONTHS_TH[_rpMonth-1]}</button>
+        <button class="btn btn-sm" onclick="rpExportCash(rpPrefix())">💰 รายการเงินสด — ${MONTHS_TH[_rpMonth-1]}</button>
+        <button class="btn btn-sm" onclick="rpExportSummary(rpPrefix())">📋 สรุปเดือนนี้</button>
+      </div>
+      <div style="border-top:1px solid var(--border);margin:13px 0 11px"></div>
+      <div style="font-size:12px;font-weight:700;color:var(--amber-t);margin-bottom:8px">💾 สำรองข้อมูลทั้งหมด (ทุกเดือน) — แนะนำทำเดือนละครั้ง</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <button class="btn btn-sm" onclick="rpExportSales('')">📊 ยอดขายทั้งหมด</button>
+        <button class="btn btn-sm" onclick="rpExportCash('')">💰 เงินสดทั้งหมด</button>
+      </div>
+    </div>`;
+    return;
+  }
+  const diffTxt=g.diff===0?'ตรงพอดี':(g.diff>0?`เกิน ฿${fmt(g.diff)}`:`ขาด ฿${fmt(Math.abs(g.diff))}`);
+  const diffCol=g.diff===0?'var(--green-d)':(g.diff>0?'#1E3A8A':'#C2410C');
+  const payRows=payTypes.filter(p=>g.pays[p]>0).map(p=>`<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">${p}</span><b>฿${fmt(g.pays[p])}</b></div>`).join('')||'<div style="color:var(--text3);font-size:12.5px;padding:6px 0">ยังไม่มียอดขายเดือนนี้</div>';
+  const brRows=a.branches.map(x=>`<tr>
+    <td style="font-weight:600"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${BCOLORS[x.bi]};margin-right:6px"></span>${x.name}</td>
+    <td style="text-align:right;font-weight:700">฿${fmt(x.total)}</td>
+    <td style="text-align:right">${fmt(x.bills)}</td>
+    <td style="text-align:right;color:${x.diff===0?'var(--text3)':(x.diff>0?'#1E3A8A':'#C2410C')};font-weight:600">${x.diff===0?'—':(x.diff>0?'+':'-')+'฿'+fmt(Math.abs(x.diff))}</td>
+    <td style="text-align:right">${x.expense>0?'฿'+fmt(x.expense):'—'}</td>
+  </tr>`).join('');
+  el.innerHTML=rpMonthNav()+`
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;max-width:680px">
+      ${rpCard('ยอดขายรวมทั้งเดือน','฿'+fmt(g.total),`${BRANCHES.length} สาขา`,'var(--green-d)')}
+      ${rpCard('จำนวนบิลรวม',fmt(g.bills)+' บิล','')}
+      ${rpCard('เงินสด ขาด/เกิน',diffTxt,'จากการปิดร้าน',diffCol)}
+      ${rpCard('ค่าใช้จ่าย (เบิกซื้อของ)','฿'+fmt(g.expense),'')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:680px;margin-bottom:16px">
+      <div class="card" style="margin:0"><div style="font-weight:700;font-size:14px;margin-bottom:8px">💳 แยกตามช่องทางจ่าย</div>${payRows}</div>
+      <div class="card" style="margin:0"><div style="font-weight:700;font-size:14px;margin-bottom:8px">🏪 แยกตามสาขา</div>
+        <table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--text3);font-size:10.5px;text-align:right"><th style="text-align:left">สาขา</th><th>ยอดขาย</th><th>บิล</th><th>ขาด/เกิน</th><th>ค่าใช้จ่าย</th></tr></thead><tbody>${brRows}</tbody></table>
+      </div>
+    </div>`;
+}
+// ===== ส่งออก CSV (UTF-8 BOM เปิดด้วย Excel ภาษาไทยไม่เพี้ยน) =====
+function rpDownloadCSV(filename,rows){
+  const esc=v=>{v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const csv='﻿'+rows.map(r=>r.map(esc).join(',')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},150);
+  showToast('ดาวน์โหลดแล้ว — เปิดด้วย Excel ได้เลย');
+}
+const RP_TYPE_TH={open:'เปิดร้าน',close:'ปิดร้าน',r2d:'เบิกสำรอง→ลิ้นชัก',deposit:'ดึงเข้าตู้เซฟ',safeout:'นำออกตู้เซฟ',topup:'เติมสำรอง',expense:'เบิกซื้อของ/ค่าใช้จ่าย',adjust:'ปรับยอดเงิน'};
+window.rpExportSales=function(prefix){
+  const head=['วันที่','สาขา',...payTypes,'รวม','จำนวนบิล','บันทึกเมื่อ'];
+  const rows=salesEntries.filter(e=>!prefix||String(e.date||'').startsWith(prefix))
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date))||a.branch-b.branch)
+    .map(e=>[e.date,BRANCHES[e.branch]||e.branch,...payTypes.map(p=>parseFloat(e.amounts&&e.amounts[p])||0),parseFloat(e.total)||0,parseInt(e.billCount)||0,e.updatedAt?new Date(e.updatedAt).toLocaleString('th-TH'):'']);
+  if(!rows.length){showToast('ไม่มีข้อมูลยอดขายในช่วงนี้','err');return;}
+  rpDownloadCSV(`ยอดขาย-${prefix||'ทั้งหมด'}.csv`,[head,...rows]);
+};
+window.rpExportCash=function(prefix){
+  const head=['วันที่-เวลา','สาขา','ประเภทรายการ','จำนวนเงิน','เงินขาด/เกิน(ปิดร้าน)','รายละเอียด','โดย'];
+  const rows=cashEvents.filter(e=>!prefix||String(e.date||'').startsWith(prefix))
+    .slice().sort((a,b)=>(a.ts||0)-(b.ts||0))
+    .map(e=>{
+      let diffTxt='';
+      if(e.type==='close'){const d=cashCloseCalc(e.branch,e).diff;diffTxt=d===0?'ตรง':(d>0?'เกิน '+fmt(d):'ขาด '+fmt(Math.abs(d)));}
+      const detail=e.type==='expense'?((e.from==='reserve'?'จากสำรอง':'จากลิ้นชัก')+(e.note?' · '+e.note:'')):(e.type==='adjust'?`${e.pool||''} ฿${fmt(e.prevValue||0)}→฿${fmt(e.amount||0)}${e.note?' · '+e.note:''}`:(e.note||''));
+      return [e.ts?new Date(e.ts).toLocaleString('th-TH'):e.date,BRANCHES[e.branch]||e.branch,RP_TYPE_TH[e.type]||e.type,e.amount||0,diffTxt,detail,e.by||''];
+    });
+  if(!rows.length){showToast('ไม่มีรายการเงินสดในช่วงนี้','err');return;}
+  rpDownloadCSV(`เงินสด-${prefix||'ทั้งหมด'}.csv`,[head,...rows]);
+};
+window.rpExportSummary=function(prefix){
+  const a=rpAgg(prefix);
+  const head=['สาขา','ยอดขายรวม',...payTypes,'จำนวนบิล','เงินขาด/เกิน','ค่าใช้จ่าย','จำนวนวันที่ปิดร้าน'];
+  const rows=a.branches.map(x=>[x.name,x.total,...payTypes.map(p=>x.pays[p]),x.bills,x.diff,x.expense,x.closeDays]);
+  const g=a.grand;
+  rows.push(['รวมทุกสาขา',g.total,...payTypes.map(p=>g.pays[p]),g.bills,g.diff,g.expense,'']);
+  rpDownloadCSV(`สรุปรายเดือน-${prefix||'ทั้งหมด'}.csv`,[head,...rows]);
+};
 
 // ===== DRUG WARNINGS =====
 
