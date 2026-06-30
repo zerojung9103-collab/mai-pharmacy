@@ -1596,8 +1596,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.64.0';
+const APP_VERSION='3.64.1';
 const CHANGELOG=[
+  {v:'3.64.1',date:'2026-06-30',changes:['สนามฝึก: แก้ปัญหา“ไปต่อไม่ได้” ตอนนับเงิน — นับไม่ตรงไม่บล็อกแล้ว มีปุ่ม“เติมจำนวนที่ถูกให้”ช่วย · ตอนปิดร้านรับยอดที่นับได้แล้วโชว์ ตรง/ขาด/เกิน ทันที (เหมือนแอปจริง) ไม่บังคับให้ตรงเป๊ะ']},
   {v:'3.64.0',date:'2026-06-30',changes:['ยกเครื่อง “สนามฝึก” ใหม่เป็น “จำลองวันทำงานจริง” — เล่นเหมือนพนักงานใช้แอปจริง: เช็คอิน→เปิดร้านนับเงิน(บล็อกนับจริง)→ลูกค้าเดินเข้าซื้อยาเป็นรายๆจ่ายหลายช่องทาง(ฝึกทอนเงิน)→เบิกสำรอง/เบิกซื้อของตามจังหวะ→ลงยอด→ปิดร้านเทียบยอดจากที่ขายมาจริง→เช็คเอาท์ มีคะแนน/สรุปผล สุ่มได้หลายรอบ · ข้อมูลอยู่ใน sandbox ไม่กระทบของจริง (admin-only)']},
   {v:'3.63.0',date:'2026-06-30',changes:['งานวันนี้ (มุมพนักงาน): แสดงงานระบบ“ทีละขั้น” — โชว์เฉพาะขั้นปัจจุบัน (ไฮไลต์ + ปุ่มไปทำเด่น) ทำเสร็จขั้นถัดไปค่อยโผล่ มีบอก“อีกกี่ขั้น” · ลดความงงว่าจะทำอะไรก่อน-หลัง (แอดมินยังเห็นครบทุกขั้นไว้ตรวจ)']},
   {v:'3.62.0',date:'2026-06-30',changes:['ปิดร้าน: เพิ่มปุ่ม “💸 เบิกซื้อของ/ค่าใช้จ่าย” และ “💼→🧰 เบิกสำรอง” ในหน้าจอปิดร้านเลย — บันทึกค่าใช้จ่าย/เบิกที่ยังไม่ได้ลงได้ทันที ไม่ต้องสลับหน้า แล้วระบบพากลับมาปิดร้านต่อ (ยอด “ควรมี” อัปเดตให้อัตโนมัติ)']},
@@ -10149,7 +10150,15 @@ function trReset(){
     correct:0,asked:0,closeDiff:null,answered:false};
 }
 window.renderTraining=function(){ trReset(); trRender(); };
-const TR_OPEN={amt:500,txt:'แบงค์ 100×3 · แบงค์ 50×2 · แบงค์ 20×4 · เหรียญ 10×2'}; // เงินทอนตั้งต้นแบบสมจริง (ย่อย)
+const TR_OPEN={amt:500,set:{100:3,50:2,20:4,10:2},txt:'แบงค์ 100×3 · แบงค์ 50×2 · แบงค์ 20×4 · เหรียญ 10×2'}; // เงินทอนตั้งต้นแบบสมจริง (ย่อย)
+const TR_R2D={amt:500,set:{100:5},txt:'แบงค์ 100×5'}; // เบิกสำรองมาเป็นแบงค์ย่อยไว้ทอน
+// ปุ่มช่วย "เติมจำนวนที่ถูกให้" — กรอกจำนวนแต่ละชนิดให้ตรง แล้วรวมยอดใหม่ (กันผู้เล่นติด)
+window.trFillDenoms=function(which){
+  const set=(which==='r2d')?TR_R2D.set:TR_OPEN.set;
+  CASH_DENOMS.forEach(d=>{const el=document.getElementById('denom-'+d);if(el)el.value=(set[d]||'');});
+  cashDenomSum();
+  trFb(`<div style="${TR_FB_OK}">📝 เติมจำนวนให้แล้ว — กดปุ่มบันทึกด้านล่างได้เลย</div>`);
+};
 function trBreak(a){let out=[];CASH_DENOMS.forEach(d=>{const n=Math.floor(a/d);if(n>0){out.push([d,n]);a-=n*d;}});return out;}
 function trBreakText(a){return trBreak(a).map(([d,n])=>`${d>=20?'แบงค์':'เหรียญ'} ${d}×${n}`).join(' · ');}
 function trExpectedClose(){return trState.openDrawer+trState.r2d+trState.cashSales-trState.expense;}
@@ -10221,8 +10230,8 @@ function trRender(){
   }
   else if(s==='event_r2d'){
     html=trFrame('💼→🧰 เบิกสำรองมาลิ้นชัก',`
-      <div style="background:var(--red-l);color:var(--red-t);border-radius:11px;padding:10px 12px;font-size:12px;margin-bottom:12px;font-weight:600;line-height:1.5">⚠️ เงินทอน (แบงค์ย่อย) ในลิ้นชักเริ่มไม่พอ — เบิกจากกองสำรองมาเติม ฿500</div>
-      <div style="font-size:11.5px;color:var(--text2);margin-bottom:8px">กองสำรองมี ฿${fmt(trState.reserve)} · นับเงินที่เบิก ฿500 = <b>${trBreakText(500)}</b></div>
+      <div style="background:var(--red-l);color:var(--red-t);border-radius:11px;padding:10px 12px;font-size:12px;margin-bottom:12px;font-weight:600;line-height:1.5">⚠️ เงินทอน (แบงค์ย่อย) ในลิ้นชักเริ่มไม่พอ — เบิกจากกองสำรองมาเติม ฿${fmt(TR_R2D.amt)}</div>
+      <div style="font-size:11.5px;color:var(--text2);margin-bottom:8px">กองสำรองมี ฿${fmt(trState.reserve)} · นับเงินที่เบิก ฿${fmt(TR_R2D.amt)} = <b>${TR_R2D.txt}</b></div>
       ${cashDenomBlock()}
       <input type="number" id="cash-in" readonly placeholder="0" style="${trField}">
       <div id="tr-fb"></div>
@@ -10261,9 +10270,13 @@ function trRender(){
       <button onclick="trDoClose(${exp})" style="${trBig}">บันทึกปิดร้าน</button>`);
   }
   else if(s==='decision'){
+    const d=trState.closeDiff||0;
+    const resBox=d===0
+      ?`<div style="text-align:center;background:var(--green-l);color:var(--green-d);border-radius:13px;padding:13px;font-weight:800;font-size:15px;margin-bottom:13px">✅ เงินตรงพอดี! เก่งมาก (นับได้ ฿${fmt(trState.closeCounted)})</div>`
+      :`<div style="text-align:center;background:var(--red-l);color:var(--red-t);border-radius:13px;padding:13px;font-weight:800;font-size:15px;margin-bottom:5px">${d>0?'เงินเกิน':'เงินขาด'} ฿${fmt(Math.abs(d))}</div><div style="text-align:center;font-size:11.5px;color:var(--text3);margin-bottom:13px">นับได้ ฿${fmt(trState.closeCounted)} · ควรมี ฿${fmt(trState.closeExp)}</div>`;
     html=trFrame('🌙 ปิดร้านแล้ว — บทเรียน',`
-      <div style="text-align:center;background:var(--green-l);color:var(--green-d);border-radius:13px;padding:13px;font-weight:800;font-size:15px;margin-bottom:13px">✅ เงินตรงพอดี! เก่งมาก</div>
-      <div style="font-size:13.5px;font-weight:700;margin-bottom:9px">❓ คำถามทิ้งท้าย: ถ้าวันไหนปิดร้านแล้ว<b style="color:var(--red-t)">เงินขาด ฿20</b> ควรทำยังไง?</div>
+      ${resBox}
+      <div style="font-size:13.5px;font-weight:700;margin-bottom:9px">❓ คำถามทิ้งท้าย: ถ้าวันไหนปิดร้านแล้ว<b style="color:var(--red-t)">เงินขาด</b> ควรทำยังไง?</div>
       <button onclick="trDecision(true)" class="tr-choice" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:1.5px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer"><span style="width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">ก</span>บันทึกตามจริง แล้วแจ้งแอดมินให้ตรวจ</button>
       <button onclick="trDecision(false)" class="tr-choice" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:1.5px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer"><span style="width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">ข</span>เติมเงินตัวเอง ฿20 ให้ยอดตรง</button>
       <div id="tr-fb"></div>`);
@@ -10284,7 +10297,7 @@ function trRender(){
         <div style="display:flex;justify-content:space-between"><span>📍 เช็คอิน–เอาท์</span><b>✓ ผ่าน</b></div>
         <div style="display:flex;justify-content:space-between"><span>☀️ เปิดร้าน–นับเงิน</span><b>✓ ผ่าน</b></div>
         <div style="display:flex;justify-content:space-between"><span>🛒 ทอนเงินลูกค้า</span><b>${trState.correct>=trState.asked-1?'✓ ดี':'ลองอีก'}</b></div>
-        <div style="display:flex;justify-content:space-between"><span>🌙 ปิดร้าน–เทียบยอด</span><b>✓ ตรง</b></div>
+        <div style="display:flex;justify-content:space-between"><span>🌙 ปิดร้าน–เทียบยอด</span><b>${trState.closeDiff===0?'✓ ตรง':(trState.closeDiff>0?'เกิน':'ขาด')+' ฿'+fmt(Math.abs(trState.closeDiff||0))}</b></div>
       </div>
       <button onclick="renderTraining()" style="background:#fff;color:var(--green-dd);border:none;border-radius:13px;padding:12px 22px;font-family:var(--font);font-weight:800;font-size:14px;cursor:pointer;margin-top:15px">↺ ฝึกอีกครั้ง (ลูกค้า/ยอดชุดใหม่)</button>
     </div><div style="font-size:11px;color:var(--text3);text-align:center;margin-top:9px">💡 ให้พนักงานเล่นจบ 1 รอบก่อนใช้งานจริง</div></div>`;
@@ -10320,7 +10333,7 @@ window.trDoCheckin=function(){trState.clock='08:25';trState.step='open';trRender
 window.trDoOpen=function(){
   const total=cashDenomSum();
   if(!total){trFb(`<div style="${TR_FB_BAD}">⚠️ นับเงินก่อน — กรอกจำนวนแต่ละชนิด</div>`);return;}
-  if(total!==TR_OPEN.amt){trFb(`<div style="${TR_FB_BAD}">นับได้ ฿${fmt(total)} — ในลิ้นชักจริงมี ฿${fmt(TR_OPEN.amt)} ลองนับใหม่นะ (${TR_OPEN.txt})</div>`);return;}
+  if(total!==TR_OPEN.amt){trFb(`<div style="${TR_FB_BAD}">นับได้ ฿${fmt(total)} — ในลิ้นชักจริงมี ฿${fmt(TR_OPEN.amt)} (${TR_OPEN.txt})</div><button onclick="trFillDenoms('open')" style="${trBig}">📝 เติมจำนวนที่ถูกให้</button>`);return;}
   trState.drawer=total;trState.openDrawer=total;trState.clock='08:30';trState.step='day';trState.custIdx=0;trRender();
 };
 window.trAnswerChange=function(correct,price){
@@ -10349,8 +10362,9 @@ function trAdvanceDay(){
 }
 window.trDoR2D=function(){
   const total=cashDenomSum();
-  if(total!==500){trFb(`<div style="${TR_FB_BAD}">เบิก ฿500 — นับให้ครบ (${trBreakText(500)})</div>`);return;}
-  trState.reserve-=500;trState.drawer+=500;trState.r2d+=500;trState.r2dDone=true;trAdvanceDay();
+  if(!total){trFb(`<div style="${TR_FB_BAD}">⚠️ นับเงินที่เบิกก่อน — กรอกจำนวนแต่ละชนิด</div>`);return;}
+  if(total!==TR_R2D.amt){trFb(`<div style="${TR_FB_BAD}">เบิก ฿${fmt(TR_R2D.amt)} — นับได้ ฿${fmt(total)} (${TR_R2D.txt})</div><button onclick="trFillDenoms('r2d')" style="${trBig}">📝 เติมจำนวนที่ถูกให้</button>`);return;}
+  trState.reserve-=TR_R2D.amt;trState.drawer+=TR_R2D.amt;trState.r2d+=TR_R2D.amt;trState.r2dDone=true;trAdvanceDay();
 };
 window.trDoExpense=function(){
   trState.drawer-=40;trState.expense+=40;trState.expenseDone=true;trState.custIdx=4;trAdvanceDay();
@@ -10359,8 +10373,8 @@ window.trDoSales=function(){trState.clock='20:00';trState.step='close';trRender(
 window.trDoClose=function(exp){
   const total=cashDenomSum();
   if(!total){trFb(`<div style="${TR_FB_BAD}">นับเงินก่อน — กรอกจำนวนแต่ละชนิด</div>`);return;}
-  const diff=total-exp; trState.closeDiff=diff;
-  if(diff!==0){trFb(`<div style="${TR_FB_BAD}">นับได้ ฿${fmt(total)} · ควรมี ฿${fmt(exp)} (${diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))}) — ลองนับใหม่ให้ตรงนะ (${trBreakText(exp)})</div>`);return;}
+  // เหมือนแอปจริง: รับยอดที่นับได้ แล้วโชว์ ตรง/ขาด/เกิน (ไม่บล็อก)
+  trState.closeDiff=total-exp; trState.closeCounted=total; trState.closeExp=exp;
   trState.step='decision';trRender();
 };
 window.trDecision=function(right){
