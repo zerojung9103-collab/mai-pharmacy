@@ -1604,8 +1604,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.66.1';
+const APP_VERSION='3.67.0';
 const CHANGELOG=[
+  {v:'3.67.0',date:'2026-06-30',changes:['สถิติการชำระเงิน (ในแท็บภาพรวม): เพิ่มส่วน “แยกรายสาขา” — แต่ละสาขามีแถบสัดส่วนช่องทางจ่าย (เงินสด/EDC/QR) สีตรงกับวงกลมรวม + ยอด/เปอร์เซ็นต์แต่ละช่องทาง เห็นว่าสาขาไหนรับช่องทางไหนมากน้อย']},
   {v:'3.66.1',date:'2026-06-30',changes:['เก็บงานหลังรวมเมนู: ปุ่มลัดหน้าแรก + reload ข้อมูลสด อ้างชื่อ/อัปเดตแท็บ “ยอดขาย & รายงาน” ให้ตรง']},
   {v:'3.66.0',date:'2026-06-30',changes:['ลดเมนูซ้ำซ้อน: รวม “ภาพรวมยอดขาย” + “รายงาน & สำรองข้อมูล” เป็นหน้าเดียว “ยอดขาย & รายงาน” มี 3 แท็บ (ภาพรวม/กราฟ · สรุปเดือน · ส่งออก/สำรอง) — แอดมินหาง่ายขึ้น ไม่งงว่าจะดูยอดที่หน้าไหน · ประวัติการขายคงไว้แยก (ไว้แก้ยอดเก่า) · เนื้อหาเดิมครบทุกอย่าง พนักงานไม่กระทบ']},
   {v:'3.65.1',date:'2026-06-30',changes:['ตรวจความถูกต้องทั้งระบบ (รายงาน/เงินสด) ผ่านหมด · แก้: หน้ารายงานโหลดข้อมูลสดทุกครั้งที่เปิด (เดิมใช้ข้อมูล cache ตอนล็อกอิน อาจไม่ล่าสุด)']},
@@ -3125,6 +3126,22 @@ function renderPayStat(payByBranch){
   if(grandPay<=0){el.innerHTML='';if(payStatChart){payStatChart.destroy();payStatChart=null;}return;}
   const PAY_COLORS=['#16B981','#3B8EEA','#F7A823','#8B7FF0','#EC4899','#14B8C4','#F0524F'];
   const sorted=payTypes.map((p,i)=>({name:p,val:payTotals[p],color:PAY_COLORS[i%PAY_COLORS.length]})).filter(x=>x.val>0).sort((a,b)=>b.val-a.val);
+  // แยกสัดส่วนช่องทางของแต่ละสาขา (สีตรงกับ donut)
+  const branchBars=BRANCHES.map((b,bi)=>{
+    const pays=payByBranch[bi]||{};
+    const bt=payTypes.reduce((a,p)=>a+(parseFloat(pays[p])||0),0);
+    if(bt<=0)return '';
+    const segs=payTypes.map((p,i)=>{const v=parseFloat(pays[p])||0;return v>0?`<div style="width:${v/bt*100}%;background:${PAY_COLORS[i%PAY_COLORS.length]};height:100%"></div>`:'';}).join('');
+    const chips=payTypes.map((p,i)=>{const v=parseFloat(pays[p])||0;return v>0?`<span style="white-space:nowrap"><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${PAY_COLORS[i%PAY_COLORS.length]};margin-right:3px;vertical-align:-1px"></span>${p} ฿${fmt(v)} <span style="color:var(--text3)">(${Math.round(v/bt*100)}%)</span></span>`:'';}).join('');
+    return `<div style="margin-bottom:13px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-bottom:5px">
+        <span style="display:flex;align-items:center;gap:7px;font-weight:600"><span style="width:9px;height:9px;border-radius:50%;background:${BCOLORS[bi]}"></span>${b}</span>
+        <b>฿${fmt(bt)}</b>
+      </div>
+      <div style="height:9px;background:var(--bg);border-radius:5px;overflow:hidden;display:flex;gap:1px">${segs}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:11px;margin-top:5px;font-size:10.5px;color:var(--text2)">${chips}</div>
+    </div>`;
+  }).join('');
   el.innerHTML=`<div class="card">
     <div class="card-title">💳 สถิติการชำระเงิน</div>
     <div class="card-sub">สัดส่วนแต่ละประเภทการชำระ (ทุกสาขารวมกัน)</div>
@@ -3143,6 +3160,10 @@ function renderPayStat(payByBranch){
         </div>
       </div>
     </div>
+    ${branchBars?`<div style="margin-top:6px;border-top:1px solid var(--border);padding-top:14px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:12px">🏪 แยกรายสาขา</div>
+      ${branchBars}
+    </div>`:''}
   </div>`;
   if(payStatChart)payStatChart.destroy();
   payStatChart=new Chart(document.getElementById('payStatChart'),{
