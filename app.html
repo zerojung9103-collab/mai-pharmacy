@@ -238,6 +238,36 @@ textarea{resize:vertical;min-height:64px}
 #capsule-fab .cf-badge{position:absolute;top:2px;right:2px;width:13px;height:13px;border-radius:50%;background:var(--red);border:2px solid var(--surface);display:none}
 #capsule-fab.has-alert .cf-badge{display:block}
 @media(min-width:769px){#capsule-fab{bottom:24px}}
+/* ===== ปุ่มช่วยเหลือลอย (?) + แผ่นช่วยเหลือ + ทัวร์ครั้งแรก ===== */
+#help-fab{position:fixed;right:16px;bottom:84px;width:54px;height:54px;border-radius:50%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;box-shadow:0 8px 20px rgba(31,174,139,.4);font-size:25px;font-weight:800;cursor:pointer;z-index:88;display:none;align-items:center;justify-content:center;transition:transform .15s ease}
+#help-fab:active{transform:scale(.92)}
+#help-fab .hf-pulse{position:absolute;inset:0;border-radius:50%;border:2px solid var(--green);animation:hfpulse 2.4s infinite;opacity:0;pointer-events:none}
+@keyframes hfpulse{0%{transform:scale(1);opacity:.55}100%{transform:scale(1.7);opacity:0}}
+@media(min-width:769px){#help-fab{bottom:24px}}
+.help-backdrop{display:none;position:fixed;inset:0;background:rgba(40,30,20,.42);z-index:108;opacity:0;transition:opacity .25s}
+.help-backdrop.open{display:block;opacity:1}
+.help-sheet{position:fixed;left:0;right:0;bottom:0;max-width:440px;margin:0 auto;background:var(--surface);border-radius:22px 22px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.18);padding:16px 16px calc(24px + env(safe-area-inset-bottom));z-index:109;transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.8,.3,1)}
+.help-sheet.open{transform:translateY(0)}
+.help-sheet .hs-grip{width:40px;height:4px;border-radius:3px;background:var(--border2);margin:2px auto 12px}
+.help-sheet h3{font-size:17px;font-weight:700;margin-bottom:2px;color:var(--text)}
+.help-sheet .hs-sub{font-size:12px;color:var(--text3);margin-bottom:13px}
+.hrow{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--border);border-radius:14px;margin-bottom:8px;cursor:pointer;background:none;width:100%;text-align:left;font-family:var(--font)}
+.hrow:active{background:var(--bg)}
+.hrow .e{width:42px;height:42px;border-radius:12px;background:var(--green-l);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.hrow .tt{font-size:14px;font-weight:600;color:var(--text)}
+.hrow .ss{font-size:11.5px;color:var(--text3)}
+.tour-ov{display:none;position:fixed;inset:0;background:rgba(20,15,10,.74);z-index:150;align-items:flex-end;justify-content:center}
+.tour-ov.open{display:flex}
+.tour-ov .tour-box{background:var(--surface);border-radius:20px;margin:0 16px calc(110px + env(safe-area-inset-bottom));padding:22px;max-width:380px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.3);animation:tourpop .3s cubic-bezier(.2,.8,.3,1)}
+@keyframes tourpop{from{transform:scale(.92) translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.tour-ov .tour-step{font-size:11px;font-weight:700;color:var(--green-d);letter-spacing:1px}
+.tour-ov .tour-e{font-size:40px;margin:6px 0 2px}
+.tour-ov h4{font-size:19px;font-weight:800;font-family:var(--disp);margin-bottom:5px;color:var(--text)}
+.tour-ov p{font-size:13.5px;color:var(--text2);line-height:1.65}
+.tour-ov .tour-nav{display:flex;gap:9px;margin-top:18px}
+.tour-ov .tour-nav button{flex:1;padding:13px;border-radius:13px;border:none;font-family:var(--font);font-weight:700;font-size:14.5px;cursor:pointer}
+.tour-ov .tour-skip{background:var(--surface);border:1px solid var(--border2)!important;color:var(--text2)}
+.tour-ov .tour-next{background:linear-gradient(140deg,#23B895,#127C62);color:#fff}
 .hamburger{background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;color:var(--text2);display:flex;align-items:center;justify-content:center}
 .hamburger:hover{background:var(--bg)}
 .hamburger svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
@@ -1419,6 +1449,31 @@ input,select,textarea{border-radius:14px}
 <!-- Bottom Navigation (mobile) -->
 <nav class="bottom-nav" id="bottom-nav"></nav>
 
+<!-- ปุ่มช่วยเหลือลอย (?) + แผ่นช่วยเหลือ + ทัวร์ครั้งแรก -->
+<button id="help-fab" onclick="openHelpSheet()" aria-label="ช่วยเหลือ"><span class="hf-pulse"></span>?</button>
+<div class="help-backdrop" id="help-backdrop" onclick="closeHelpSheet()"></div>
+<div class="help-sheet" id="help-sheet">
+  <div class="hs-grip"></div>
+  <h3>มีอะไรให้ช่วยไหม? 💬</h3>
+  <div class="hs-sub">เลือกสิ่งที่อยากรู้ ระบบจะพาไปทำให้</div>
+  <button class="hrow" onclick="helpAction('now')"><div class="e">🧭</div><div><div class="tt">ตอนนี้ฉันควรทำอะไร?</div><div class="ss">ให้ระบบบอกขั้นต่อไป</div></div></button>
+  <button class="hrow" onclick="helpAction('sales')"><div class="e">💰</div><div><div class="tt">วิธีลงยอดขาย</div><div class="ss">พาไปหน้าบันทึกยอดขาย</div></div></button>
+  <button class="hrow" onclick="helpAction('cash')"><div class="e">🔒</div><div><div class="tt">วิธีนับเงิน เปิด/ปิดร้าน</div><div class="ss">พาไปหน้าเงินสด</div></div></button>
+  <button class="hrow" onclick="helpAction('tour')"><div class="e">▶️</div><div><div class="tt">ดูทัวร์แนะนำอีกครั้ง</div><div class="ss">4 ขั้นตอน รู้จักระบบใน 1 นาที</div></div></button>
+</div>
+<div class="tour-ov" id="tour-ov">
+  <div class="tour-box">
+    <div class="tour-step" id="tour-step">ขั้นที่ 1 / 4</div>
+    <div class="tour-e" id="tour-e">📍</div>
+    <h4 id="tour-h">หัวข้อ</h4>
+    <p id="tour-p">รายละเอียด</p>
+    <div class="tour-nav">
+      <button class="tour-skip" onclick="closeTour()">ข้าม</button>
+      <button class="tour-next" id="tour-next" onclick="tourNext()">ถัดไป →</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 // PWA — ลงทะเบียน Service Worker
 if('serviceWorker' in navigator){
@@ -1538,8 +1593,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.55.0';
+const APP_VERSION='3.57.1';
 const CHANGELOG=[
+  {v:'3.57.1',date:'2026-06-29',changes:['กันพลาด: โหมดแอดมิน“ดูระบบแบบพนักงาน”เป็นแบบดูเฉยๆ — กดปุ่มในการ์ดไกด์จะไม่เปิดหน้าจอบันทึกจริงอีกต่อไป (เด้งข้อความแนะให้ใช้“สนามฝึก”แทน) ป้องกันบันทึกข้อมูลจริงโดยไม่ตั้งใจ']},
+  {v:'3.57.0',date:'2026-06-29',changes:['เพิ่มเครื่องมือแอดมินในหน้า“สนามฝึก” (เฉพาะแอดมิน ไว้สอน/สาธิตพนักงาน) — ทำงานในเครื่องล้วน ไม่บันทึก/ไม่กระทบข้อมูลจริง: (1) “ดูระบบแบบพนักงาน” เปิดการ์ดไกด์ + ปุ่มช่วยเหลือบนหน้าแรกให้แอดมินเห็นแบบที่พนักงานเห็น (ไม่เปลี่ยน role จริง มีแถบม่วงบนสุด แตะออกได้) (2) “รีเซ็ตทัวร์แนะนำ” ล้างสถานะเพื่อให้ทัวร์ครั้งแรกเด้งใหม่ + ดูเลยได้ทันที']},
+  {v:'3.56.0',date:'2026-06-29',changes:['เพิ่ม“ปุ่มช่วยเหลือ”ลอยมุมขวาล่าง (เฉพาะพนักงาน) แตะแล้วเลือกได้ว่างงเรื่องอะไร: ตอนนี้ควรทำอะไร / วิธีลงยอดขาย / วิธีนับเงินเปิด-ปิดร้าน / ดูทัวร์อีกครั้ง — ระบบพาไปทำให้เลย · เพิ่ม“ทัวร์แนะนำครั้งแรก” 4 ขั้นตอน เด้งอัตโนมัติครั้งแรกที่พนักงานล็อกอิน (เช็คอิน→การ์ดไกด์→งานวันนี้→ปุ่มช่วยเหลือ) ข้ามหรือดูซ้ำได้']},
   {v:'3.55.0',date:'2026-06-29',changes:['เพิ่ม “สนามฝึก” (เฉพาะแอดมิน ไว้สอนพนักงาน) — หน้าจำลองเดินทีละบทตามงานจริงทั้งวัน (เช็คอิน→เปิดร้านนับเงิน→ลงยอด→ปิดร้านเทียบยอด→เช็คเอาท์) มีคำอธิบายแต่ละขั้น + ผลลัพธ์จำลอง · ใช้ข้อมูลสมมติ ไม่เขียน/ไม่กระทบข้อมูลจริงเลย · เข้าจากเมนูเพิ่มเติม']},
   {v:'3.54.0',date:'2026-06-29',changes:['ระบบพาทำงาน: เพิ่มการ์ดไกด์“ขั้นต่อไปของคุณ”บนหน้าแรก (เฉพาะพนักงาน) บอกว่าต้องทำอะไรต่อ + ปุ่มพาไปทำทันที ตามสถานะของวัน (เช็คอิน→เปิดร้าน→ลงยอด/ปิดร้าน→เช็คเอาท์) พร้อมแถบความคืบหน้า · เพิ่ม popup ถาม“ไปขั้นต่อไปไหม”หลังเช็คอิน/เปิดร้าน/ปิดร้านสำเร็จ เพื่อพาไปทำขั้นต่อไปง่ายๆ']},
   {v:'3.53.2',date:'2026-06-29',changes:['ตรวจแก้บั๊กจากการรีวิว: (เงินสด) ยกเลิกการ“ปิดร้าน”แล้วคืนยอดลิ้นชักก่อนปิดให้ถูกต้อง (เดิมไม่คืน ทำให้ลิ้นชักเพี้ยน) · กันยอดขายนับเป็น 0 เพราะชนิดสาขาไม่ตรง (string/number) · (ยอดขาย) หัวการ์ดโชว์วันที่ที่เลือกจริง ไม่ใช่“วันนี้”เสมอ + แก้วันที่ parse แบบ local · (งานวันนี้) การ์ดหน้าแรก/badge นับงานให้ตรงกับหน้างานวันนี้ (ซ่อนปิดร้านที่ยังไม่ถึงเวลาเหมือนกัน)']},
@@ -2365,6 +2423,7 @@ onAuthStateChanged(auth,async user=>{
       isTester=profile?.role==='tester';
       if(permChanged||roleChanged){
         buildNav();
+        if(typeof updateHelpFab==='function')updateHelpFab();
         // ถ้าอยู่หน้าที่เพิ่งโดนถอนสิทธิ์ → เด้งกลับหน้าที่เข้าได้
         if(!canAccessPage(currentPage))goto('checkin');
         if(roleChanged&&isAdmin!==wasAdmin)showToast(isAdmin?'คุณได้รับสิทธิ์ผู้ดูแลระบบ':'สิทธิ์ของคุณถูกปรับปรุง');
@@ -2399,6 +2458,8 @@ onAuthStateChanged(auth,async user=>{
     logActivity('login','เข้าสู่ระบบ');
     sessionStorage.setItem('nm_logged_login','1');
   }
+  updateHelpFab();
+  maybeShowFirstTour();
   loading(false);
 });
 
@@ -6484,7 +6545,7 @@ function animateHomeStats(){
 // ===== การ์ดไกด์ "ขั้นต่อไปของคุณ" บนหน้าแรก (พาพนักงานทำงานทีละสเต็ป) =====
 async function renderHomeGuide(){
   let box=document.getElementById('home-guide');if(!box)return;
-  if(isAdmin){box.innerHTML='';return;} // แอดมินมี dashboard อยู่แล้ว
+  if(isAdmin&&!window._previewEmployee){box.innerHTML='';return;} // แอดมินมี dashboard อยู่แล้ว (ยกเว้นโหมดดูแบบพนักงาน)
   try{ if(!window._myCheckinToday){const d=await getDoc(doc(db,'checkins',`${currentUser.uid}_${todayStr()}`));window._myCheckinToday=d.exists()?d.data():{};} }catch(e){}
   try{ if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData(); }catch(e){}
   box=document.getElementById('home-guide');if(!box)return; // ออกจากหน้าแล้ว
@@ -6515,6 +6576,11 @@ async function renderHomeGuide(){
   box.innerHTML=wrap(inner);
 }
 window.guideGo=function(act,branch){
+  // โหมดแอดมิน "ดูระบบแบบพนักงาน" = ดูเฉยๆ ไม่ทำงานจริง (กันบันทึกข้อมูลจริงโดยไม่ตั้งใจ)
+  if(window._previewEmployee){
+    if(typeof showToast==='function')showToast('โหมดดูเฉยๆ 👁️ — อยากลองกดจริงให้ใช้ “🎓 สนามฝึก”');
+    return;
+  }
   if(act==='open'){window._cashPendingAction={branch:+branch,act:'open'};goto('cash');}
   else if(act==='close'){window._cashPendingAction={branch:+branch,act:'close'};goto('cash');}
   else if(act==='sales')goto('sales');
@@ -6545,6 +6611,88 @@ window.showNextStep=function(kind,branch){
     <button onclick="nextStepGo('${m.act}',${branch})" style="display:block;width:100%;margin-top:17px;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-weight:800;font-size:15.5px;cursor:pointer">${m.go}</button>
     <button onclick="closeMD()" style="display:block;width:100%;margin-top:8px;background:none;border:none;color:var(--text3);font-family:var(--font);font-weight:600;font-size:13px;cursor:pointer;padding:8px">ไว้ก่อน</button>
   </div>`);
+};
+// ===== ปุ่มช่วยเหลือลอย (?) — แผ่นเมนูช่วยเหลือ =====
+// แสดงเฉพาะพนักงาน (ไม่ใช่แอดมิน) เพื่อช่วยคนที่ยังงงกับระบบ
+function updateHelpFab(){
+  const fab=document.getElementById('help-fab');if(!fab)return;
+  fab.style.display=(currentUser&&(!isAdmin||window._previewEmployee))?'flex':'none';
+}
+window.openHelpSheet=function(){
+  document.getElementById('help-backdrop')?.classList.add('open');
+  document.getElementById('help-sheet')?.classList.add('open');
+};
+window.closeHelpSheet=function(){
+  document.getElementById('help-backdrop')?.classList.remove('open');
+  document.getElementById('help-sheet')?.classList.remove('open');
+};
+window.helpAction=function(act){
+  closeHelpSheet();
+  if(act==='now'){ goto('home'); setTimeout(()=>document.getElementById('home-guide')?.scrollIntoView({behavior:'smooth',block:'center'}),120); }
+  else if(act==='sales')goto('sales');
+  else if(act==='cash')goto('cash');
+  else if(act==='tour')setTimeout(()=>startTour(),180);
+};
+// ===== ทัวร์แนะนำครั้งแรก (4 ขั้นตอน) =====
+const TOUR_STEPS=[
+  {e:'📍',h:'นี่คือ "เช็คอิน"',p:'ทุกเช้าที่มาถึงร้าน แตะเพื่อลงเวลาเข้างาน ระบบจับสาขาจาก GPS ให้อัตโนมัติ'},
+  {e:'🧭',h:'การ์ดสีเขียวบนหน้าแรก',p:'จะบอก "ขั้นต่อไป" ที่คุณต้องทำเสมอ กดปุ่มในการ์ด ระบบพาไปทำให้เลย'},
+  {e:'✅',h:'"งานวันนี้"',p:'ดูงานที่ต้องทำทั้งวัน บางอย่างระบบติ๊กให้เอง บางอย่างแตะติ๊กเอง'},
+  {e:'❓',h:'ปุ่มช่วยเหลือ (มุมขวาล่าง)',p:'งงเมื่อไหร่ แตะปุ่มนี้ ถามได้ตลอด ระบบพาไปทำให้'},
+];
+let _tourIdx=0;
+window.startTour=function(){ _tourIdx=0; _renderTourStep(); document.getElementById('tour-ov')?.classList.add('open'); };
+function _renderTourStep(){
+  const t=TOUR_STEPS[_tourIdx];if(!t)return;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('tour-step',`ขั้นที่ ${_tourIdx+1} / ${TOUR_STEPS.length}`);
+  set('tour-e',t.e);set('tour-h',t.h);set('tour-p',t.p);
+  set('tour-next',_tourIdx===TOUR_STEPS.length-1?'เริ่มใช้งาน ✓':'ถัดไป →');
+}
+window.tourNext=function(){ if(_tourIdx<TOUR_STEPS.length-1){_tourIdx++;_renderTourStep();}else closeTour(); };
+window.closeTour=function(){
+  document.getElementById('tour-ov')?.classList.remove('open');
+  try{localStorage.setItem('nm_tour_seen','1');}catch(e){}
+};
+// แสดงทัวร์อัตโนมัติครั้งแรกที่พนักงานล็อกอิน (ไม่แสดงกับแอดมิน)
+function maybeShowFirstTour(){
+  if(!currentUser||isAdmin)return;
+  let seen=false;try{seen=localStorage.getItem('nm_tour_seen')==='1';}catch(e){}
+  if(!seen)setTimeout(()=>{ if(currentUser&&!isAdmin)startTour(); },900);
+}
+// ===== เครื่องมือแอดมิน: ดูระบบแบบพนักงาน (preview) — ไม่แตะข้อมูลจริง/ไม่เปลี่ยน role =====
+window._previewEmployee=false;
+window.adminPreviewEmployee=function(){
+  if(!isAdmin)return;
+  window._previewEmployee=true;
+  let bar=document.getElementById('preview-emp-bar');
+  if(!bar){
+    bar=document.createElement('div');
+    bar.id='preview-emp-bar';
+    bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:160;background:#8B7FF0;color:#fff;text-align:center;padding:9px 16px;font-size:12.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)';
+    bar.onclick=exitPreviewEmployee;
+    bar.innerHTML='👁️ กำลังดูระบบแบบพนักงาน (สาธิต) — แตะที่นี่เพื่อออก';
+    document.body.appendChild(bar);
+  }
+  bar.style.display='block';
+  updateHelpFab();
+  goto('home');
+  setTimeout(()=>{ if(typeof renderHomeGuide==='function')renderHomeGuide(); document.getElementById('home-guide')?.scrollIntoView({behavior:'smooth',block:'center'}); },150);
+};
+window.exitPreviewEmployee=function(){
+  window._previewEmployee=false;
+  const bar=document.getElementById('preview-emp-bar');if(bar)bar.style.display='none';
+  closeHelpSheet();
+  updateHelpFab();
+  if(typeof renderHomeGuide==='function')renderHomeGuide();
+};
+// รีเซ็ตทัวร์แนะนำ — ให้ทัวร์ครั้งแรกเด้งใหม่ (ไว้สาธิต/สอนพนักงาน)
+window.adminResetTour=async function(){
+  try{localStorage.removeItem('nm_tour_seen');}catch(e){}
+  let go=true;
+  if(typeof capsuleConfirm==='function')go=await capsuleConfirm('รีเซ็ตทัวร์แนะนำแล้ว 🎉\nอยากดูทัวร์เลยตอนนี้ไหม? (ทัวร์จะเด้งให้พนักงานเองเมื่อล็อกอินครั้งแรก)',{okLabel:'ดูทัวร์เลย',danger:false});
+  if(go&&typeof startTour==='function')startTour();
+  else if(typeof showToast==='function')showToast('รีเซ็ตทัวร์แล้ว — จะเด้งให้พนักงานครั้งหน้า');
 };
 function renderHome(){
   const el=document.getElementById('home-content');
@@ -9690,9 +9838,24 @@ function _trRender(){
   else if(_trStep===3) stage=_trLesson(4,'🌙','ปิดร้าน — นับเงิน','ตอนเลิกงาน <b>นับเงินจริง</b>ในลิ้นชัก ระบบเทียบกับ "ยอดที่ควรมี" แล้วบอกว่า ตรง / ขาด / เกิน','ลองนับเงินปิดร้าน');
   else if(_trStep===4) stage=_trLesson(5,'📍','เช็คเอาท์ออกงาน','ก่อนกลับบ้าน <b>กดเช็คเอาท์</b> เพื่อลงเวลาออกงาน — เท่านี้ก็จบวันแล้ว!','📍 ลองเช็คเอาท์');
   else stage=`<div style="text-align:center;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:22px;padding:30px 22px;box-shadow:0 10px 26px rgba(31,174,139,.3);max-width:520px;margin:0 auto"><div style="font-size:56px">🎉</div><div style="font-size:24px;font-weight:800;font-family:var(--disp);margin:6px 0">จบการฝึกแล้ว!</div><div style="font-size:13.5px;opacity:.95;line-height:1.6">เก่งมาก! คุณลองทำครบทั้งวันแล้ว<br>พร้อมใช้งานจริงได้เลย 💚</div><button onclick="renderTraining()" style="background:#fff;color:var(--green-dd);border:none;border-radius:14px;padding:14px 24px;font-family:var(--font);font-weight:800;font-size:15px;cursor:pointer;margin-top:16px">↺ ฝึกอีกครั้ง</button></div>`;
-  el.innerHTML=_trHead()+_trProgress()+stage;
+  el.innerHTML=_trAdminTools()+_trHead()+_trProgress()+stage;
   const btn=document.getElementById('tr-do');
   if(btn)btn.onclick=_trDo;
+}
+// เครื่องมือแอดมินสำหรับสอน/สาธิต — ทำงานในเครื่องล้วน ไม่เขียน/ไม่กระทบข้อมูลจริง
+function _trAdminTools(){
+  return `<div style="background:var(--purple-l);border:1px solid #D8D2F8;border-radius:18px;padding:15px 16px;margin-bottom:14px;max-width:520px;margin-left:auto;margin-right:auto">
+    <div style="font-size:14px;font-weight:800;color:var(--purple-t);margin-bottom:3px">🛠️ เครื่องมือแอดมิน (ไว้สอน/สาธิต)</div>
+    <div style="font-size:11.5px;color:var(--purple-t);opacity:.85;margin-bottom:12px">ทำงานในเครื่องนี้เท่านั้น ไม่บันทึก/ไม่กระทบข้อมูลจริงเลย</div>
+    <button onclick="adminPreviewEmployee()" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid #D8D2F8;border-radius:13px;padding:12px;margin-bottom:9px;cursor:pointer;font-family:var(--font)">
+      <span style="width:38px;height:38px;border-radius:11px;background:var(--purple-l);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">👁️</span>
+      <span><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text)">ดูระบบแบบพนักงาน</span><span style="display:block;font-size:11.5px;color:var(--text3)">เปิดการ์ดไกด์ + ปุ่มช่วยเหลือบนหน้าแรก เหมือนพนักงานเห็น</span></span>
+    </button>
+    <button onclick="adminResetTour()" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid #D8D2F8;border-radius:13px;padding:12px;cursor:pointer;font-family:var(--font)">
+      <span style="width:38px;height:38px;border-radius:11px;background:var(--purple-l);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">↺</span>
+      <span><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text)">รีเซ็ตทัวร์แนะนำ</span><span style="display:block;font-size:11.5px;color:var(--text3)">ให้ทัวร์ครั้งแรกเด้งใหม่ — ดูเลยตอนนี้ได้</span></span>
+    </button>
+  </div>`;
 }
 function _trDo(){
   const inter=document.getElementById('tr-inter'), btn=document.getElementById('tr-do');
