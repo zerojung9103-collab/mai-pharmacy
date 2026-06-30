@@ -1596,8 +1596,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.63.0';
+const APP_VERSION='3.64.0';
 const CHANGELOG=[
+  {v:'3.64.0',date:'2026-06-30',changes:['ยกเครื่อง “สนามฝึก” ใหม่เป็น “จำลองวันทำงานจริง” — เล่นเหมือนพนักงานใช้แอปจริง: เช็คอิน→เปิดร้านนับเงิน(บล็อกนับจริง)→ลูกค้าเดินเข้าซื้อยาเป็นรายๆจ่ายหลายช่องทาง(ฝึกทอนเงิน)→เบิกสำรอง/เบิกซื้อของตามจังหวะ→ลงยอด→ปิดร้านเทียบยอดจากที่ขายมาจริง→เช็คเอาท์ มีคะแนน/สรุปผล สุ่มได้หลายรอบ · ข้อมูลอยู่ใน sandbox ไม่กระทบของจริง (admin-only)']},
   {v:'3.63.0',date:'2026-06-30',changes:['งานวันนี้ (มุมพนักงาน): แสดงงานระบบ“ทีละขั้น” — โชว์เฉพาะขั้นปัจจุบัน (ไฮไลต์ + ปุ่มไปทำเด่น) ทำเสร็จขั้นถัดไปค่อยโผล่ มีบอก“อีกกี่ขั้น” · ลดความงงว่าจะทำอะไรก่อน-หลัง (แอดมินยังเห็นครบทุกขั้นไว้ตรวจ)']},
   {v:'3.62.0',date:'2026-06-30',changes:['ปิดร้าน: เพิ่มปุ่ม “💸 เบิกซื้อของ/ค่าใช้จ่าย” และ “💼→🧰 เบิกสำรอง” ในหน้าจอปิดร้านเลย — บันทึกค่าใช้จ่าย/เบิกที่ยังไม่ได้ลงได้ทันที ไม่ต้องสลับหน้า แล้วระบบพากลับมาปิดร้านต่อ (ยอด “ควรมี” อัปเดตให้อัตโนมัติ)']},
   {v:'3.61.0',date:'2026-06-30',changes:['เบิกซื้อของ: เพิ่ม “ข้อความที่ใช้บ่อย” เป็นปุ่มลัดในช่องเหตุผล (แอดมินเพิ่ม/ลบเองได้ ใช้ร่วมทุกเครื่อง) · เพิ่มเมนู “อัปเดตโปรแกรม/ตรวจรุ่นล่าสุด” ในบัญชีของฉัน — บอกชัดว่าเป็นรุ่นล่าสุดแล้วหรือมีรุ่นใหม่ · งานวันนี้: ย้าย “เก็บเงินเข้ากระเป๋า” ไปเป็นงานสุดท้าย']},
@@ -10132,66 +10133,243 @@ async function showTodoPopupAfterCheckin(branch){
 }
 
 // ===== สนามฝึกพนักงาน (โหมดฝึก — ข้อมูลสมมติ ไม่เขียน Firestore / ไม่กระทบของจริง) =====
-let _trStep=0;
-window.renderTraining=function(){ _trStep=0; _trRender(); };
-function _trProgress(){
-  const S=['เช็คอิน','เปิดร้าน','ลงยอด','ปิดร้าน','เช็คเอาท์'];
-  return `<div style="display:flex;gap:5px;margin-bottom:16px">`+S.map((n,i)=>`<div style="flex:1;text-align:center"><div style="height:5px;border-radius:3px;background:${i<=_trStep?'var(--green)':'var(--border)'};${i===_trStep?'box-shadow:0 0 0 2px var(--green-l)':''};margin-bottom:5px"></div><div style="font-size:9.5px;font-weight:600;color:${i<=_trStep?'var(--green-d)':'var(--text3)'}">${n}</div></div>`).join('')+`</div>`;
+// ===== สนามฝึก: จำลองวันทำงานจริง (admin-only) =====
+// ใช้คอมโพเนนต์หน้าจอจริง (บล็อกนับเงิน/สรุปยอด) แต่ข้อมูลอยู่ใน sandbox แยก 100% ไม่แตะ Firestore/ข้อมูลจริง
+let trState=null;
+const TR_CUSTOMERS=[
+  {emoji:'👵',name:'ป้าสมร',items:'ยาแก้ปวด + ยาธาตุน้ำขาว',price:85,pay:'cash',paid:100,time:'09:15'},
+  {emoji:'🧑',name:'คุณวิชัย',items:'ยาความดัน (1 เดือน)',price:320,pay:'edcB',time:'10:05'},
+  {emoji:'👩',name:'น้องฟ้า',items:'วิตามินซี + พลาสเตอร์',price:140,pay:'qr',time:'10:48'},
+  {emoji:'👨',name:'ลุงประเสริฐ',items:'ยาแก้ไอ + ยาดม',price:215,pay:'cash',paid:220,time:'13:30'},
+  {emoji:'🧓',name:'ป้านงลักษณ์',items:'อาหารเสริมบำรุง',price:900,pay:'cash',paid:1000,time:'16:10'},
+];
+function trReset(){
+  trState={step:'intro',clock:'08:20',reserve:2000,drawer:0,safe:5000,openDrawer:0,
+    custIdx:0,cashSales:0,edcB:0,edcW:0,qr:0,bills:0,r2d:0,expense:0,r2dDone:false,expenseDone:false,
+    correct:0,asked:0,closeDiff:null,answered:false};
 }
-function _trHead(){
-  return `<div style="display:flex;align-items:center;gap:10px;background:var(--purple-l);border:1px solid #D8D2F8;color:var(--purple-t);border-radius:13px;padding:11px 14px;font-size:12.5px;font-weight:600;margin-bottom:12px">🎓 โหมดฝึก — ลองได้เต็มที่ ข้อมูลไม่ถูกบันทึกจริง ไม่กระทบของจริงเลย</div>
-  <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><button onclick="renderTraining()" style="background:var(--surface);border:1px solid var(--border2);border-radius:11px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font)">↺ เริ่มใหม่</button></div>`;
-}
-function _trLesson(num,ic,title,why,btn){
-  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:var(--shadow);max-width:520px;margin:0 auto">
-    <span style="display:inline-block;background:var(--green-l);color:var(--green-d);font-size:11px;font-weight:700;padding:3px 11px;border-radius:20px;letter-spacing:.5px">บทที่ ${num} / 5</span>
-    <div style="font-size:42px;margin:12px 0 4px">${ic}</div>
-    <div style="font-size:22px;font-weight:800;font-family:var(--disp)">${title}</div>
-    <div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:13px;padding:12px 14px;font-size:13px;color:var(--green-dd);line-height:1.6;margin:13px 0">${why}</div>
-    <div id="tr-inter"></div>
-    <button id="tr-do" style="display:block;width:100%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:14px;padding:16px;font-family:var(--font);font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 6px 16px rgba(31,174,139,.3)">${btn}</button>
-    <div style="font-size:12px;color:var(--text3);text-align:center;margin-top:9px">👆 ลองกดดู — นี่คือการฝึก ไม่ใช่ของจริง</div>
-  </div>`;
-}
-function _trRender(){
-  const el=document.getElementById('training-content');if(!el)return;
-  let stage;
-  if(_trStep===0) stage=_trLesson(1,'📍','เช็คอินเข้างาน','ทุกเช้าที่มาถึงร้าน <b>กดเช็คอิน</b> ระบบจะจับสาขาจาก GPS และบันทึกเวลาให้อัตโนมัติ — ถ้ามาสายระบบจะรู้','📍 ลองเช็คอิน');
-  else if(_trStep===1) stage=_trLesson(2,'☀️','เปิดร้าน — นับเงินลิ้นชัก','ก่อนเริ่มขาย <b>นับเงินในลิ้นชัก</b> กรอกจำนวนเหรียญ/แบงค์แต่ละชนิด ระบบรวมยอดให้','บันทึกเปิดร้าน');
-  else if(_trStep===2) stage=_trLesson(3,'💰','ลงยอดขาย','ตอนสรุป กรอก<b>ยอดขายแต่ละช่องทาง</b> (เงินสด/บัตร/QR) ระบบรวมให้','บันทึกยอด');
-  else if(_trStep===3) stage=_trLesson(4,'🌙','ปิดร้าน — นับเงิน','ตอนเลิกงาน <b>นับเงินจริง</b>ในลิ้นชัก ระบบเทียบกับ "ยอดที่ควรมี" แล้วบอกว่า ตรง / ขาด / เกิน','ลองนับเงินปิดร้าน');
-  else if(_trStep===4) stage=_trLesson(5,'📍','เช็คเอาท์ออกงาน','ก่อนกลับบ้าน <b>กดเช็คเอาท์</b> เพื่อลงเวลาออกงาน — เท่านี้ก็จบวันแล้ว!','📍 ลองเช็คเอาท์');
-  else stage=`<div style="text-align:center;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:22px;padding:30px 22px;box-shadow:0 10px 26px rgba(31,174,139,.3);max-width:520px;margin:0 auto"><div style="font-size:56px">🎉</div><div style="font-size:24px;font-weight:800;font-family:var(--disp);margin:6px 0">จบการฝึกแล้ว!</div><div style="font-size:13.5px;opacity:.95;line-height:1.6">เก่งมาก! คุณลองทำครบทั้งวันแล้ว<br>พร้อมใช้งานจริงได้เลย 💚</div><button onclick="renderTraining()" style="background:#fff;color:var(--green-dd);border:none;border-radius:14px;padding:14px 24px;font-family:var(--font);font-weight:800;font-size:15px;cursor:pointer;margin-top:16px">↺ ฝึกอีกครั้ง</button></div>`;
-  el.innerHTML=_trAdminTools()+_trHead()+_trProgress()+stage;
-  const btn=document.getElementById('tr-do');
-  if(btn)btn.onclick=_trDo;
-}
-// เครื่องมือแอดมินสำหรับสอน/สาธิต — ทำงานในเครื่องล้วน ไม่เขียน/ไม่กระทบข้อมูลจริง
+window.renderTraining=function(){ trReset(); trRender(); };
+const TR_OPEN={amt:500,txt:'แบงค์ 100×3 · แบงค์ 50×2 · แบงค์ 20×4 · เหรียญ 10×2'}; // เงินทอนตั้งต้นแบบสมจริง (ย่อย)
+function trBreak(a){let out=[];CASH_DENOMS.forEach(d=>{const n=Math.floor(a/d);if(n>0){out.push([d,n]);a-=n*d;}});return out;}
+function trBreakText(a){return trBreak(a).map(([d,n])=>`${d>=20?'แบงค์':'เหรียญ'} ${d}×${n}`).join(' · ');}
+function trExpectedClose(){return trState.openDrawer+trState.r2d+trState.cashSales-trState.expense;}
+// เครื่องมือแอดมินสำหรับสอน/สาธิต (โชว์หน้าแรกของสนามฝึก)
 function _trAdminTools(){
-  return `<div style="background:var(--purple-l);border:1px solid #D8D2F8;border-radius:18px;padding:15px 16px;margin-bottom:14px;max-width:520px;margin-left:auto;margin-right:auto">
-    <div style="font-size:14px;font-weight:800;color:var(--purple-t);margin-bottom:3px">🛠️ เครื่องมือแอดมิน (ไว้สอน/สาธิต)</div>
-    <div style="font-size:11.5px;color:var(--purple-t);opacity:.85;margin-bottom:12px">ทำงานในเครื่องนี้เท่านั้น ไม่บันทึก/ไม่กระทบข้อมูลจริงเลย</div>
-    <button onclick="adminPreviewEmployee()" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid #D8D2F8;border-radius:13px;padding:12px;margin-bottom:9px;cursor:pointer;font-family:var(--font)">
-      <span style="width:38px;height:38px;border-radius:11px;background:var(--purple-l);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">👁️</span>
-      <span><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text)">ดูระบบแบบพนักงาน</span><span style="display:block;font-size:11.5px;color:var(--text3)">เปิดการ์ดไกด์ + ปุ่มช่วยเหลือบนหน้าแรก เหมือนพนักงานเห็น</span></span>
+  return `<div style="background:var(--purple-l);border:1px solid #D8D2F8;border-radius:16px;padding:14px 15px;margin-bottom:14px">
+    <div style="font-size:13.5px;font-weight:800;color:var(--purple-t);margin-bottom:3px">🛠️ เครื่องมือแอดมิน (ไว้สอน/สาธิต)</div>
+    <div style="font-size:11px;color:var(--purple-t);opacity:.85;margin-bottom:11px">ทำงานในเครื่องนี้เท่านั้น ไม่บันทึก/ไม่กระทบข้อมูลจริงเลย</div>
+    <button onclick="adminPreviewEmployee()" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid #D8D2F8;border-radius:12px;padding:11px;margin-bottom:8px;cursor:pointer;font-family:var(--font)">
+      <span style="width:34px;height:34px;border-radius:10px;background:var(--purple-l);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👁️</span>
+      <span><span style="display:block;font-size:13px;font-weight:700;color:var(--text)">ดูระบบแบบพนักงาน</span><span style="display:block;font-size:11px;color:var(--text3)">เปิดการ์ดไกด์ + ปุ่มช่วยเหลือบนหน้าแรก</span></span>
     </button>
-    <button onclick="adminResetTour()" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid #D8D2F8;border-radius:13px;padding:12px;cursor:pointer;font-family:var(--font)">
-      <span style="width:38px;height:38px;border-radius:11px;background:var(--purple-l);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">↺</span>
-      <span><span style="display:block;font-size:13.5px;font-weight:700;color:var(--text)">รีเซ็ตทัวร์แนะนำ</span><span style="display:block;font-size:11.5px;color:var(--text3)">ให้ทัวร์ครั้งแรกเด้งใหม่ — ดูเลยตอนนี้ได้</span></span>
+    <button onclick="adminResetTour()" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid #D8D2F8;border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font)">
+      <span style="width:34px;height:34px;border-radius:10px;background:var(--purple-l);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">↺</span>
+      <span><span style="display:block;font-size:13px;font-weight:700;color:var(--text)">รีเซ็ตทัวร์แนะนำ</span><span style="display:block;font-size:11px;color:var(--text3)">ให้ทัวร์ครั้งแรกเด้งใหม่</span></span>
     </button>
   </div>`;
 }
-function _trDo(){
-  const inter=document.getElementById('tr-inter'), btn=document.getElementById('tr-do');
-  if(!inter||!btn)return;
-  const adv=()=>{btn.textContent='ต่อไป →';btn.onclick=()=>{_trStep++;_trRender();};};
-  const ok=(t)=>`<div style="background:var(--green-l);color:var(--green-d);border-radius:13px;padding:13px;text-align:center;font-weight:700;margin-bottom:10px">${t}</div>`;
-  if(_trStep===0){inter.innerHTML=ok('✅ เช็คอินสำเร็จ 08:30 น. · สาขาบางปู');adv();}
-  else if(_trStep===1){inter.innerHTML=ok('✅ เปิดร้านแล้ว · ลิ้นชัก ฿500 (นับเหรียญ/แบงค์ครบ)');adv();}
-  else if(_trStep===2){inter.innerHTML=ok('✅ บันทึกยอดขาย ฿3,500');adv();}
-  else if(_trStep===3){inter.innerHTML=`<div style="font-size:12.5px;color:var(--text2);background:var(--bg);border-radius:11px;padding:11px;margin-bottom:8px">ควรมี <b>฿3,500</b> · คุณนับได้ <b>฿3,480</b></div><div style="background:var(--red-l);color:var(--red-t);border-radius:13px;padding:13px;text-align:center;font-weight:700;margin-bottom:10px">ขาด ฿20 — ไม่เป็นไร ระบบแจ้งแอดมินให้ตรวจเอง</div>`;adv();}
-  else if(_trStep===4){_trStep++;_trRender();}
+// กรอบมือถือจำลอง + แถบบนเหมือนแอป (ให้รู้สึกเหมือนพนักงานกำลังใช้งานจริง)
+function trFrame(title,body){
+  return `<div style="max-width:400px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
+      <div style="background:var(--purple-l);border:1px solid #D8D2F8;color:var(--purple-t);border-radius:10px;padding:6px 11px;font-size:11.5px;font-weight:700;flex:1">🎓 โหมดฝึก · ข้อมูลไม่บันทึกจริง</div>
+      <button onclick="renderTraining()" style="background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:6px 10px;font-size:11.5px;font-weight:600;color:var(--text2);cursor:pointer;font-family:var(--font)">↺ เริ่มใหม่</button>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 8px 26px rgba(80,60,40,.1)">
+      <div style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(120deg,#1FAE8B,#0E5E49);color:#fff;padding:11px 15px">
+        <div style="font-weight:700;font-size:14.5px">${title}</div>
+        <div style="font-size:11px;opacity:.92;text-align:right">⏰ ${trState.clock} น.<br>📍 สาขาบางปู</div>
+      </div>
+      <div style="padding:15px">${body}</div>
+    </div>
+  </div>`;
 }
+const trBig='display:block;width:100%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:13px;padding:14px;font-family:var(--font);font-weight:800;font-size:15px;cursor:pointer;margin-top:13px;box-shadow:0 6px 16px rgba(31,174,139,.3)';
+const trField='width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:9px;padding:10px 12px;font-size:20px;font-weight:700;text-align:right;margin-top:4px';
+function trRender(){
+  const el=document.getElementById('training-content');if(!el)return;
+  const s=trState.step;
+  let html='';
+  if(s==='intro'){
+    html=`<div style="max-width:400px;margin:0 auto">${_trAdminTools()}
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px 20px;text-align:center;box-shadow:var(--shadow)">
+        <div style="font-size:46px">🎬</div>
+        <div style="font-size:21px;font-weight:800;font-family:var(--disp);margin:5px 0 3px">จำลองวันทำงานจริง</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.6">เล่นเหมือนพนักงานกำลังใช้แอปจริง — เปิดร้าน นับเงิน ขายของให้ลูกค้า ปิดร้านเทียบยอด<br><b style="color:var(--green-d)">หน้าจอเหมือนของจริงทุกอย่าง · ข้อมูลไม่กระทบของจริง</b></div>
+        <div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:12px;padding:11px 13px;font-size:12px;color:var(--green-dd);margin-top:14px;text-align:left;line-height:1.6">📖 <b>ฉากวันนี้:</b> เช้าวันศุกร์ สาขาบางปู คุณเป็นคนเปิดร้าน วันนี้จะมีลูกค้าเข้ามา ${TR_CUSTOMERS.length} คน จ่ายหลายช่องทาง</div>
+        <button onclick="trStart()" style="${trBig}">▶ เริ่มวันทำงาน</button>
+      </div></div>`;
+  }
+  else if(s==='checkin'){
+    html=trFrame('เช็คอิน',`<div style="text-align:center">
+      <div style="background:var(--bg);border-radius:13px;padding:16px;margin-bottom:13px"><div style="font-size:26px">🕐</div><div style="font-size:17px;font-weight:800;font-family:var(--disp)">${trState.clock} น.</div><div style="font-size:11.5px;color:var(--text3)">ศุกร์ 30 มิ.ย. · กำลังหาตำแหน่ง…พบสาขาบางปู</div></div>
+      <div style="font-size:12.5px;color:var(--text2);line-height:1.5">มาถึงร้านแล้ว — กดเช็คอินเพื่อลงเวลาเข้างาน ระบบจับสาขาจาก GPS ให้</div>
+      <button onclick="trDoCheckin()" style="${trBig}">📍 เช็คอินเข้างาน</button></div>`);
+  }
+  else if(s==='open'){
+    html=trFrame('☀️ เปิดร้าน — นับเงินลิ้นชัก',`
+      <div style="background:var(--blue-l);color:var(--blue-t);border-radius:11px;padding:10px 12px;font-size:12px;margin-bottom:12px;line-height:1.55">🧰 เปิดลิ้นชักมา เจอเงินทอนตั้งต้น: <b>${TR_OPEN.txt}</b><br>นับแล้ว<b>กรอกจำนวนแต่ละชนิด</b>ให้ตรง ระบบรวมยอดให้</div>
+      ${cashDenomBlock()}
+      <label style="font-size:11.5px;color:var(--text2);font-weight:600">เงินในลิ้นชัก (บาท)</label>
+      <input type="number" id="cash-in" readonly placeholder="0" style="${trField}">
+      <div id="tr-fb"></div>
+      <button onclick="trDoOpen()" style="${trBig}">บันทึกเปิดร้าน</button>`);
+  }
+  else if(s==='day'){
+    const c=TR_CUSTOMERS[trState.custIdx];
+    html=trFrame('🛒 หน้าร้าน — รับลูกค้า',trDayBody(c));
+  }
+  else if(s==='event_r2d'){
+    html=trFrame('💼→🧰 เบิกสำรองมาลิ้นชัก',`
+      <div style="background:var(--red-l);color:var(--red-t);border-radius:11px;padding:10px 12px;font-size:12px;margin-bottom:12px;font-weight:600;line-height:1.5">⚠️ เงินทอน (แบงค์ย่อย) ในลิ้นชักเริ่มไม่พอ — เบิกจากกองสำรองมาเติม ฿500</div>
+      <div style="font-size:11.5px;color:var(--text2);margin-bottom:8px">กองสำรองมี ฿${fmt(trState.reserve)} · นับเงินที่เบิก ฿500 = <b>${trBreakText(500)}</b></div>
+      ${cashDenomBlock()}
+      <input type="number" id="cash-in" readonly placeholder="0" style="${trField}">
+      <div id="tr-fb"></div>
+      <button onclick="trDoR2D()" style="${trBig}">บันทึกเบิกสำรอง</button>`);
+  }
+  else if(s==='event_expense'){
+    html=trFrame('💸 เบิกซื้อของ/ค่าใช้จ่าย',`
+      <div style="background:var(--amber-l);color:var(--amber-t);border-radius:11px;padding:10px 12px;font-size:12px;margin-bottom:12px;line-height:1.55">🧹 ถุงขยะร้านหมด หยิบเงินในลิ้นชักไปซื้อ <b>฿40</b> — บันทึกเป็นค่าใช้จ่าย จะได้ไม่ขึ้นว่าเงินขาดตอนปิดร้าน</div>
+      <div style="background:var(--bg);border-radius:10px;padding:11px;margin-bottom:6px"><div style="font-size:11.5px;color:var(--text2)">หยิบจาก: <b>🧰 ลิ้นชัก</b> · จำนวน <b>฿40</b></div><div style="font-size:11.5px;color:var(--text2);margin-top:3px">เหตุผล: <b>ถุงขยะ</b></div></div>
+      <button onclick="trDoExpense()" style="${trBig}">บันทึกเบิกเงิน</button>`);
+  }
+  else if(s==='sales'){
+    const rows=[['เงินสด','💵',trState.cashSales],['EDC สีดำ','💳',trState.edcB],['EDC สีขาว','💳',trState.edcW],['QR / โครงการรัฐ','📱',trState.qr]];
+    const tot=trState.cashSales+trState.edcB+trState.edcW+trState.qr;
+    html=trFrame('💰 บันทึกยอดขายวันนี้',`
+      <div style="font-size:12px;color:var(--text2);margin-bottom:11px;line-height:1.5">สิ้นวัน — ระบบรวมยอดแต่ละช่องทางจากที่ขายมาทั้งวันให้แล้ว ตรวจแล้วกดบันทึก</div>
+      ${rows.map(([n,ic,v])=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 12px;margin-bottom:7px"><span style="font-size:12.5px;font-weight:600">${ic} ${n}</span><span style="font-weight:800;font-family:var(--mono)">฿${fmt(v)}</span></div>`).join('')}
+      <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);margin-top:6px;padding-top:9px"><span style="font-weight:700">รวมทั้งวัน (${trState.bills} บิล)</span><span style="font-weight:800;font-size:17px;color:var(--green-d)">฿${fmt(tot)}</span></div>
+      <button onclick="trDoSales()" style="${trBig}">💾 บันทึกยอดขาย</button>`);
+  }
+  else if(s==='close'){
+    const exp=trExpectedClose();
+    html=trFrame('🌙 ปิดร้าน — นับเงินลิ้นชัก',`
+      <div style="background:var(--bg);border-radius:11px;padding:11px 13px;margin-bottom:11px;font-size:12.5px;line-height:1.9">
+        <div style="display:flex;justify-content:space-between"><span>เงินต้นลิ้นชัก</span><b>฿${fmt(trState.openDrawer)}</b></div>
+        <div style="display:flex;justify-content:space-between"><span>+ เบิกจากสำรอง</span><b>฿${fmt(trState.r2d)}</b></div>
+        <div style="display:flex;justify-content:space-between"><span>+ ยอดขายเงินสด</span><b>฿${fmt(trState.cashSales)}</b></div>
+        ${trState.expense>0?`<div style="display:flex;justify-content:space-between"><span>− เบิกซื้อของ</span><b>฿${fmt(trState.expense)}</b></div>`:''}
+        <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);margin-top:5px;padding-top:5px"><span style="font-weight:700">= ควรมี</span><b style="color:var(--green-d)">฿${fmt(exp)}</b></div>
+      </div>
+      <div style="background:var(--blue-l);color:var(--blue-t);border-radius:11px;padding:10px 12px;font-size:12px;margin-bottom:11px;line-height:1.5">🧰 นับเงินจริงในลิ้นชักตอนนี้ได้: <b>${trBreakText(exp)}</b><br>กรอกแยกชนิดให้ตรง แล้วดูว่าเงิน ตรง/ขาด/เกิน</div>
+      ${cashDenomBlock()}
+      <label style="font-size:11.5px;color:var(--text2);font-weight:600">เงินนับได้จริง (บาท)</label>
+      <input type="number" id="cash-in" readonly placeholder="0" style="${trField}">
+      <div id="tr-fb"></div>
+      <button onclick="trDoClose(${exp})" style="${trBig}">บันทึกปิดร้าน</button>`);
+  }
+  else if(s==='decision'){
+    html=trFrame('🌙 ปิดร้านแล้ว — บทเรียน',`
+      <div style="text-align:center;background:var(--green-l);color:var(--green-d);border-radius:13px;padding:13px;font-weight:800;font-size:15px;margin-bottom:13px">✅ เงินตรงพอดี! เก่งมาก</div>
+      <div style="font-size:13.5px;font-weight:700;margin-bottom:9px">❓ คำถามทิ้งท้าย: ถ้าวันไหนปิดร้านแล้ว<b style="color:var(--red-t)">เงินขาด ฿20</b> ควรทำยังไง?</div>
+      <button onclick="trDecision(true)" class="tr-choice" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:1.5px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer"><span style="width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">ก</span>บันทึกตามจริง แล้วแจ้งแอดมินให้ตรวจ</button>
+      <button onclick="trDecision(false)" class="tr-choice" style="display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:#fff;border:1.5px solid var(--border2);border-radius:12px;padding:12px;margin-bottom:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer"><span style="width:24px;height:24px;border-radius:7px;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0">ข</span>เติมเงินตัวเอง ฿20 ให้ยอดตรง</button>
+      <div id="tr-fb"></div>`);
+  }
+  else if(s==='checkout'){
+    html=trFrame('📍 เช็คเอาท์ออกงาน',`<div style="text-align:center">
+      <div style="background:var(--bg);border-radius:13px;padding:16px;margin-bottom:13px"><div style="font-size:26px">🌙</div><div style="font-size:17px;font-weight:800;font-family:var(--disp)">20:05 น.</div><div style="font-size:11.5px;color:var(--text3)">ปิดร้านเรียบร้อย · ก่อนกลับบ้านลงเวลาออกงาน</div></div>
+      <button onclick="trGo('done')" style="${trBig}">📍 เช็คเอาท์ออกงาน</button></div>`);
+  }
+  else if(s==='done'){
+    const total=trState.asked||1, sc=trState.correct;
+    html=`<div style="max-width:400px;margin:0 auto"><div style="text-align:center;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:20px;padding:26px 20px;box-shadow:0 10px 26px rgba(31,174,139,.3)">
+      <div style="font-size:50px">🎉</div>
+      <div style="font-size:22px;font-weight:800;font-family:var(--disp);margin:4px 0">จบวันทำงานแล้ว!</div>
+      <div style="font-size:38px;font-weight:800;font-family:var(--disp)">${sc} / ${total}</div>
+      <div style="font-size:13px;opacity:.95">${sc===total?'ทำถูกหมดเลย — พร้อมใช้งานจริง 💚':'ทำได้ดี! ลองฝึกอีกครั้งให้ครบ 💪'}</div>
+      <div style="background:rgba(255,255,255,.16);border-radius:12px;padding:11px;margin-top:13px;font-size:12px;text-align:left;line-height:1.8">
+        <div style="display:flex;justify-content:space-between"><span>📍 เช็คอิน–เอาท์</span><b>✓ ผ่าน</b></div>
+        <div style="display:flex;justify-content:space-between"><span>☀️ เปิดร้าน–นับเงิน</span><b>✓ ผ่าน</b></div>
+        <div style="display:flex;justify-content:space-between"><span>🛒 ทอนเงินลูกค้า</span><b>${trState.correct>=trState.asked-1?'✓ ดี':'ลองอีก'}</b></div>
+        <div style="display:flex;justify-content:space-between"><span>🌙 ปิดร้าน–เทียบยอด</span><b>✓ ตรง</b></div>
+      </div>
+      <button onclick="renderTraining()" style="background:#fff;color:var(--green-dd);border:none;border-radius:13px;padding:12px 22px;font-family:var(--font);font-weight:800;font-size:14px;cursor:pointer;margin-top:15px">↺ ฝึกอีกครั้ง (ลูกค้า/ยอดชุดใหม่)</button>
+    </div><div style="font-size:11px;color:var(--text3);text-align:center;margin-top:9px">💡 ให้พนักงานเล่นจบ 1 รอบก่อนใช้งานจริง</div></div>`;
+  }
+  el.innerHTML=html;
+  if(['open','event_r2d','close'].includes(s))setTimeout(()=>document.getElementById('denom-1000')?.focus(),80);
+}
+function trDayBody(c){
+  const payPill=c.pay==='cash'?'<span style="background:var(--green-l);color:var(--green-d);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px">💵 เงินสด</span>'
+    :c.pay==='edcB'?'<span style="background:var(--blue-l);color:var(--blue-t);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px">💳 บัตร EDC ดำ</span>'
+    :'<span style="background:var(--purple-l);color:var(--purple-t);font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px">📱 QR/โครงการรัฐ</span>';
+  const head=`<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:10px"><span>ลูกค้าคนที่ ${trState.custIdx+1}/${TR_CUSTOMERS.length}</span><span>🧰 ลิ้นชัก ฿${fmt(trState.drawer)}</span></div>
+    <div style="display:flex;align-items:flex-start;gap:11px;margin-bottom:12px">
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--amber-l);display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0">${c.emoji}</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:700">${c.name}</div><div style="font-size:12px;color:var(--text2);line-height:1.5">${c.items} · <b>฿${fmt(c.price)}</b></div><div style="margin-top:4px">${payPill}</div></div>
+      <div style="font-size:10.5px;color:var(--text3)">${c.time}</div>
+    </div>`;
+  if(c.pay==='cash'){
+    const exact=c.paid===c.price;
+    return head+`<div style="background:var(--amber-l);color:var(--amber-t);border-radius:11px;padding:11px 13px;font-size:12.5px;font-weight:600;line-height:1.55">💵 ${c.name}จ่ายเงินสด <b>฿${fmt(c.paid)}</b> ค่ายา <b>฿${fmt(c.price)}</b>${exact?' (พอดี)':''} — ต้องทอนเท่าไหร่?</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:9px"><span style="font-size:13px;color:var(--text2)">ทอน ฿</span><input type="number" id="tr-change" inputmode="numeric" placeholder="0" style="flex:1;border:1.5px solid var(--green);border-radius:9px;padding:9px;font-weight:700;text-align:center;font-size:16px;background:var(--green-ll)"><button onclick="trAnswerChange(${c.paid-c.price},${c.price})" style="background:var(--green);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-weight:800;font-family:var(--font);font-size:13px;cursor:pointer">ตรวจ</button></div>
+      <div id="tr-fb"></div>`;
+  }
+  return head+`<div style="background:var(--bg);border-radius:11px;padding:11px 13px;font-size:12.5px;color:var(--text2);line-height:1.55">ลูกค้าจ่ายผ่าน${c.pay==='qr'?' QR / โครงการรัฐ':' บัตร (เครื่อง EDC)'} — เงินไม่เข้าลิ้นชัก แต่ระบบนับเป็นยอดขายช่องทางนี้ให้</div>
+    <button onclick="trNextCustomer()" style="${trBig}">✓ รับชำระ — ลูกค้าถัดไป</button>`;
+}
+function trFb(html){const el=document.getElementById('tr-fb');if(el)el.innerHTML=html;}
+const TR_FB_OK='background:var(--green-l);color:var(--green-d);border-radius:11px;padding:11px 13px;font-size:12.5px;font-weight:600;margin-top:10px;line-height:1.5';
+const TR_FB_BAD='background:var(--red-l);color:var(--red-t);border-radius:11px;padding:11px 13px;font-size:12.5px;font-weight:600;margin-top:10px;line-height:1.5';
+window.trStart=function(){trState.clock='08:22';trGo('checkin');};
+window.trGo=function(step){trState.step=step;trRender();};
+window.trDoCheckin=function(){trState.clock='08:25';trState.step='open';trRender();};
+window.trDoOpen=function(){
+  const total=cashDenomSum();
+  if(!total){trFb(`<div style="${TR_FB_BAD}">⚠️ นับเงินก่อน — กรอกจำนวนแต่ละชนิด</div>`);return;}
+  if(total!==TR_OPEN.amt){trFb(`<div style="${TR_FB_BAD}">นับได้ ฿${fmt(total)} — ในลิ้นชักจริงมี ฿${fmt(TR_OPEN.amt)} ลองนับใหม่นะ (${TR_OPEN.txt})</div>`);return;}
+  trState.drawer=total;trState.openDrawer=total;trState.clock='08:30';trState.step='day';trState.custIdx=0;trRender();
+};
+window.trAnswerChange=function(correct,price){
+  const v=parseInt(document.getElementById('tr-change')?.value);
+  if(isNaN(v)){trFb(`<div style="${TR_FB_BAD}">ใส่จำนวนเงินทอนก่อน</div>`);return;}
+  if(trState.answered)return; trState.answered=true; trState.asked++;
+  if(v===correct){trState.correct++;trFb(`<div style="${TR_FB_OK}">✅ ถูกต้อง! ทอน ฿${fmt(correct)} · เงินสด ฿${fmt(price)} เข้าลิ้นชัก</div><button onclick="trNextCustomer()" style="${trBig}">รับเงิน — ลูกค้าถัดไป →</button>`);}
+  else{trFb(`<div style="${TR_FB_BAD}">ยังไม่ใช่ — รับมา ฿${fmt(price+correct)} ค่ายา ฿${fmt(price)} ต้องทอน <b>฿${fmt(correct)}</b></div><button onclick="trNextCustomer()" style="${trBig}">เข้าใจแล้ว — ลูกค้าถัดไป →</button>`);}
+};
+window.trNextCustomer=function(){
+  const c=TR_CUSTOMERS[trState.custIdx];
+  if(c){ trState.bills++;
+    if(c.pay==='cash'){trState.cashSales+=c.price;trState.drawer+=c.price;}
+    else if(c.pay==='edcB')trState.edcB+=c.price;
+    else if(c.pay==='qr')trState.qr+=c.price;
+  }
+  trState.custIdx++; trState.answered=false;
+  trAdvanceDay();
+};
+function trAdvanceDay(){
+  if(trState.custIdx>=2&&!trState.r2dDone){trState.clock='11:20';trState.step='event_r2d';}
+  else if(trState.custIdx>=4&&!trState.expenseDone){trState.clock='16:40';trState.step='event_expense';}
+  else if(trState.custIdx>=TR_CUSTOMERS.length){trState.clock='19:55';trState.step='sales';}
+  else {trState.step='day';}
+  trRender();
+}
+window.trDoR2D=function(){
+  const total=cashDenomSum();
+  if(total!==500){trFb(`<div style="${TR_FB_BAD}">เบิก ฿500 — นับให้ครบ (${trBreakText(500)})</div>`);return;}
+  trState.reserve-=500;trState.drawer+=500;trState.r2d+=500;trState.r2dDone=true;trAdvanceDay();
+};
+window.trDoExpense=function(){
+  trState.drawer-=40;trState.expense+=40;trState.expenseDone=true;trState.custIdx=4;trAdvanceDay();
+};
+window.trDoSales=function(){trState.clock='20:00';trState.step='close';trRender();};
+window.trDoClose=function(exp){
+  const total=cashDenomSum();
+  if(!total){trFb(`<div style="${TR_FB_BAD}">นับเงินก่อน — กรอกจำนวนแต่ละชนิด</div>`);return;}
+  const diff=total-exp; trState.closeDiff=diff;
+  if(diff!==0){trFb(`<div style="${TR_FB_BAD}">นับได้ ฿${fmt(total)} · ควรมี ฿${fmt(exp)} (${diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))}) — ลองนับใหม่ให้ตรงนะ (${trBreakText(exp)})</div>`);return;}
+  trState.step='decision';trRender();
+};
+window.trDecision=function(right){
+  if(trState.answered)return; trState.answered=true; trState.asked++;
+  document.querySelectorAll('.tr-choice').forEach(b=>b.style.pointerEvents='none');
+  if(right){trState.correct++;trFb(`<div style="${TR_FB_OK}">🛡️ ถูกต้อง! เงินขาดเล็กน้อยเป็นเรื่องปกติ — <b>บันทึกตามจริงเสมอ ห้ามปิดบัง</b> ระบบแจ้งแอดมินให้มาตรวจเอง</div><button onclick="trAfterDecision()" style="${trBig}">เช็คเอาท์ →</button>`);}
+  else{trFb(`<div style="${TR_FB_BAD}">❌ ไม่ควรทำแบบนั้น — ห้ามเติมเงินตัวเองให้ยอดตรง เพราะจะปิดบังปัญหา · ที่ถูกคือ<b>บันทึกตามจริง แล้วแจ้งแอดมิน</b></div><button onclick="trAfterDecision()" style="${trBig}">เข้าใจแล้ว — เช็คเอาท์ →</button>`);}
+};
+window.trAfterDecision=function(){trState.answered=false;trState.clock='20:05';trState.step='checkout';trRender();};
 
 // ===== DRUG WARNINGS =====
 
