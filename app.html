@@ -794,6 +794,10 @@ input,select,textarea{border-radius:14px}
       </div>
 
       <div class="card-title" style="margin-bottom:.75rem">เลือกพนักงานที่ต้องการคำนวณ</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" onclick="openPRBatch()">⚡ ทำหลายคนพร้อมกัน</button>
+        <button class="btn btn-sm" onclick="openSlipSettings()">✏️ ข้อความในสลิป</button>
+      </div>
       <div class="pr-person-select" id="pr-person-select"></div>
 
       <div id="pr-calc-area" style="display:none">
@@ -1604,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.68.0';
+const APP_VERSION='3.69.0';
 const CHANGELOG=[
+  {v:'3.69.0',date:'2026-06-30',changes:['จัดการเงินเดือน: เพิ่มโหมด “⚡ ทำหลายคนพร้อมกัน” — ระบบคิดเงินเดือนทุกคนจากตารางเวร+เงินที่ตั้งไว้ให้อัตโนมัติ ติ๊กเลือกคนแล้วบันทึก&จ่ายทีเดียว · ใส่รายการเพิ่ม/หัก “ให้ทุกคน” ได้ในครั้งเดียว (เช่น โบนัสปีใหม่) · เพิ่มข้อความบนสลิป: ตั้งค่ารวม (ชื่อร้าน/ข้อความหัว/ข้อความท้าย-คำขอบคุณ ผ่านปุ่ม “✏️ ข้อความในสลิป”) + ใส่ข้อความเฉพาะรายคน/รอบได้ — แสดงบนสลิป PDF ทุกใบ']},
   {v:'3.68.0',date:'2026-06-30',changes:['เพิ่ม “หน้าต่างลอยมินิ” (บัญชีของฉัน → 📌 หน้าต่างลอยมินิ) — เปิดหน้าต่างเล็กลอยอยู่เหนือทุกโปรแกรมบนคอมพิวเตอร์ แสดงงานวันนี้ + ขั้นต่อไป + ปุ่มลัด (นับเงิน/ลงยอด/งานวันนี้) กดแล้วเด้งไปทำในแอปได้เลย ไม่ต้องสลับหน้าต่างเอง อัปเดตสถานะอัตโนมัติ · ใช้ได้บน Chrome/Edge รุ่นใหม่บนเครื่องคอม (หมายเหตุ: ต้องกดเปิดเอง 1 ครั้ง เบราว์เซอร์ไม่อนุญาตให้เด้งเองตอนเปิดเครื่อง)']},
   {v:'3.67.0',date:'2026-06-30',changes:['สถิติการชำระเงิน (ในแท็บภาพรวม): เพิ่มส่วน “แยกรายสาขา” — แต่ละสาขามีแถบสัดส่วนช่องทางจ่าย (เงินสด/EDC/QR) สีตรงกับวงกลมรวม + ยอด/เปอร์เซ็นต์แต่ละช่องทาง เห็นว่าสาขาไหนรับช่องทางไหนมากน้อย']},
   {v:'3.66.1',date:'2026-06-30',changes:['เก็บงานหลังรวมเมนู: ปุ่มลัดหน้าแรก + reload ข้อมูลสด อ้างชื่อ/อัปเดตแท็บ “ยอดขาย & รายงาน” ให้ตรง']},
@@ -2173,6 +2178,8 @@ const PERM_LABELS={
 let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","EDC สีดำ","EDC สีขาว","QR / โครงการรัฐ"]');
 // ข้อความเบิกเงินที่ใช้บ่อย (admin จัดการเอง) — ใช้เป็นปุ่มลัดในช่อง “ซื้ออะไร/เหตุผล”
 let expenseReasons=JSON.parse(localStorage.getItem('nm_expenseReasons')||'["ถุงขยะ","น้ำดื่ม","ถุงหูหิ้ว","ค่าส่งของ","อุปกรณ์ทำความสะอาด"]');
+// ตั้งค่าข้อความบนสลิปเงินเดือน (admin ตั้งเอง ใช้ร่วมทุกสลิป)
+let slipCfg=Object.assign({companyName:'ร้านขายยา ใหม่เภสัช',headerNote:'',footerNote:''},JSON.parse(localStorage.getItem('nm_slipCfg')||'{}'));
 let shifts=JSON.parse(localStorage.getItem('nm_shifts')||'[]');
 let salesEntries=JSON.parse(localStorage.getItem('nm_sales')||'[]');
 let nextShiftId=Math.max(0,...shifts.map(s=>s.id),100)+1;
@@ -2488,6 +2495,7 @@ onAuthStateChanged(auth,async user=>{
   loadBranchLocations();
   loadPayTypesFromCloud();
   loadExpenseReasonsFromCloud();
+  loadSlipCfgFromCloud();
   loadTempStaffFromCloud();
   loadTodoTemplates();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
@@ -6021,20 +6029,11 @@ function renderPRPersonSelect(){
   }).join('');
 }
 
-// ===== เลือกพนักงานเพื่อคำนวณ =====
-window.selectPRPerson=async function(uid){
-  prCurrentPerson=uid;
-  renderPRPersonSelect();
-  const m=allMembers.find(x=>x.uid===uid);
-  if(!m)return;
-  loading(true);
-
-  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
-  // โหลดการเช็คอินของเดือนนี้ (เพื่อหักสาย)
+// คำนวณชั่วโมงทำงาน + หักสาย จากตารางเวร (ใช้ร่วมทั้งคำนวณรายคน และโหมดหลายคน)
+// กฎ 1: สายเกิน 30 นาที → หัก 0.5 ชม. ทันที (ต่อเวร)
+// กฎ 2: สาย 1-30 นาที → ไม่หักทันที แต่ทบสะสมไว้ พอครบ 60 นาที (1 ชม.) ค่อยหัก 1 ชม. (เรียงตามวันที่จริง)
+async function _prComputeHours(uid, monthStr){
   if(!allCheckins.length)await loadCheckinsForSchedule();
-  // คำนวณชั่วโมงทำงานจากตารางเวร + หักสาย
-  // กฎ 1: สายเกิน 30 นาที → หัก 0.5 ชม. ทันที (ต่อเวร)
-  // กฎ 2: สาย 1-30 นาที → ไม่หักทันที แต่ทบสะสมไว้ พอครบ 60 นาที (1 ชม.) ค่อยหัก 1 ชม. (เรียงตามวันที่ เพื่อทบตามลำดับเวลาจริง)
   const myShifts=[...shifts.filter(s=>s.staffId===uid&&s.date?.startsWith(monthStr))].sort((a,b)=>a.date.localeCompare(b.date));
   let rawHours=0, lateDeduction=0, lateCount=0, minorLateAccum=0, minorLateEvents=0, accumDeductCount=0;
   myShifts.forEach(s=>{
@@ -6047,15 +6046,28 @@ window.selectPRPerson=async function(uid){
     if(ci&&ci.checkIn){
       const[cih,cim]=ci.checkIn.split(':').map(Number);
       const lateMin=(cih*60+cim)-(sh*60+sm);
-      if(lateMin>30){
-        lateDeduction+=0.5;lateCount++;
-      }else if(lateMin>0){
+      if(lateMin>30){ lateDeduction+=0.5;lateCount++; }
+      else if(lateMin>0){
         minorLateAccum+=lateMin;minorLateEvents++;
         while(minorLateAccum>=60){lateDeduction+=1;minorLateAccum-=60;accumDeductCount++;}
       }
     }
   });
-  const hours=Math.max(0,Math.round((rawHours-lateDeduction)*10)/10); // กันชั่วโมงติดลบ (ถ้าหักสายเกินชั่วโมงทำงาน)
+  const hours=Math.max(0,Math.round((rawHours-lateDeduction)*10)/10); // กันชั่วโมงติดลบ
+  return {hours,rawHours:Math.round(rawHours*10)/10,lateDeduction,lateCount,minorLateAccum,minorLateEvents,accumDeductCount,shiftCount:myShifts.length};
+}
+
+// ===== เลือกพนักงานเพื่อคำนวณ =====
+window.selectPRPerson=async function(uid){
+  prCurrentPerson=uid;
+  renderPRPersonSelect();
+  const m=allMembers.find(x=>x.uid===uid);
+  if(!m)return;
+  loading(true);
+
+  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+  const H=await _prComputeHours(uid,monthStr);
+  const {hours,rawHours,lateDeduction,lateCount,minorLateAccum,minorLateEvents,accumDeductCount,shiftCount}=H;
 
   // โหลด record ที่บันทึกไว้
   let saved=null;
@@ -6072,15 +6084,16 @@ window.selectPRPerson=async function(uid){
     lateRate:saved?.lateRate!=null?saved.lateRate:(salary.lateRate||0),
     hours:saved?.hoursOverride!=null?saved.hoursOverride:hours,
     autoHours:hours,
-    rawHours:Math.round(rawHours*10)/10,
+    rawHours,
     lateDeduction,
     lateCount,
     minorLateAccum,
     minorLateEvents,
     accumDeductCount,
-    shiftCount:myShifts.length,
+    shiftCount,
     otHours:saved?.otHours||0,
     otRate:saved?.otRate||0,
+    slipNote:saved?.slipNote||'',
     status:saved?.status||'pending'
   };
   loading(false);
@@ -6208,6 +6221,10 @@ function renderPRCalc(){
       <button class="btn btn-primary btn-sm" onclick="addPRExtra()">+ เพิ่ม</button>
     </div>
 
+    <div style="margin:1.25rem 0 .75rem;font-size:13px;font-weight:700">💬 ข้อความบนสลิป (เฉพาะรอบนี้)</div>
+    <input type="text" id="pr-slip-note" value="${(d.slipNote||'').replace(/"/g,'&quot;')}" placeholder="เช่น โบนัสพิเศษเดือนนี้ ขอบคุณที่ตั้งใจทำงาน" onchange="prData.slipNote=this.value" style="width:100%">
+    <div style="font-size:11px;color:var(--text3);margin-top:4px">ข้อความนี้จะพิมพ์บนสลิปของคนนี้ · ตั้งข้อความรวมทุกคนได้ที่ปุ่ม “✏️ ข้อความในสลิป” ด้านบน</div>
+
     <div class="pr-net-box">
       <div>
         <div class="lbl">เงินเดือนสุทธิ</div>
@@ -6261,6 +6278,7 @@ window.savePRPerson=async function(){
       bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
       deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
       extraItems:prExtraItems,
+      slipNote:(document.getElementById('pr-slip-note')?.value||d.slipNote||'').trim(),
       net:d.computedNet,status:'paid',
       updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
     });
@@ -6270,6 +6288,127 @@ window.savePRPerson=async function(){
     renderPRCalc();renderPRPersonSelect();
   }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
   loading(false);
+};
+
+// ===== โหมดทำเงินเดือนหลายคนพร้อมกัน =====
+// คำนวณ record พร้อมบันทึก ของพนักงาน 1 คน (อิงตารางเวร + เงินเดือนที่ตั้งไว้ + record เดิมถ้ามี)
+async function _prComputeRow(m, monthStr){
+  const uid=m.uid;
+  const H=await _prComputeHours(uid,monthStr);
+  let saved=null; try{const pr=await getDoc(doc(db,'payroll',`${uid}_${monthStr}`));if(pr.exists())saved=pr.data();}catch(e){}
+  const salary=m.salary||{type:'fixed',base:0,hourlyRate:0};
+  const type=salary.type||'fixed';
+  const base=salary.base||0, hourlyRate=salary.hourlyRate||0;
+  const lateRate=saved?.lateRate!=null?saved.lateRate:(salary.lateRate||0);
+  const hours=saved?.hoursOverride!=null?saved.hoursOverride:H.hours;
+  const baseAmt=type==='hourly'?0:base;
+  const hourlyAmt=type==='fixed'?0:Math.round(hours*hourlyRate);
+  const otHours=saved?.otHours||0, otRate=saved?.otRate||0, otAmt=Math.round(otHours*otRate);
+  const lateDeductAmt=type==='fixed'?Math.round((H.lateDeduction||0)*(lateRate||0)):0;
+  const extraItems=saved?.extraItems?[...saved.extraItems]:[];
+  return {uid,name:`${m.firstName||''} ${m.lastName||''}`.trim(),salaryType:type,base,hourlyRate,lateRate,
+    hours,autoHours:H.hours,rawHours:H.rawHours,lateDeduction:H.lateDeduction,lateCount:H.lateCount,
+    baseAmt,hourlyAmt,otHours,otRate,otAmt,lateDeductAmt,extraItems,slipNote:saved?.slipNote||'',
+    status:saved?.status||'pending',alreadySaved:!!saved};
+}
+function _prRowNet(row, sharedExtra){
+  const items=[...row.extraItems];
+  if(sharedExtra&&!items.some(x=>x.name===sharedExtra.name&&x.type===sharedExtra.type&&x.amount===sharedExtra.amount))items.push(sharedExtra);
+  const add=items.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0);
+  const ded=items.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0);
+  const net=row.baseAmt+row.hourlyAmt+row.otAmt+add-ded-row.lateDeductAmt;
+  return {items,add,ded,net};
+}
+let _prBatchRows=[];
+window.openPRBatch=async function(){
+  if(!isAdmin&&!hasPerm('payroll_all')){showToast('เฉพาะผู้มีสิทธิ์จัดการเงินเดือน','err');return;}
+  if(document.getElementById('pr-month'))prMonth=parseInt(document.getElementById('pr-month').value);
+  if(document.getElementById('pr-year'))prYear=parseInt(document.getElementById('pr-year').value);
+  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+  loading(true);
+  try{
+    if(!allMembers.length)await loadMembers();
+    if(!shifts.length)await loadShiftsFromCloud();
+    const active=allMembers.filter(m=>m.status==='active');
+    _prBatchRows=await Promise.all(active.map(m=>_prComputeRow(m,monthStr)));
+  }catch(e){loading(false);showToast('คำนวณไม่สำเร็จ: '+e.message,'err');return;}
+  loading(false);
+  _prBatchRender();
+};
+function _prBatchRender(){
+  const rows=_prBatchRows;
+  const monthName=MONTHS_TH[prMonth-1];
+  if(!rows.length){openModal(`<div class="modal-title">⚡ ทำเงินเดือนหลายคน</div><div style="padding:1rem 0;color:var(--text3)">ยังไม่มีสมาชิก active</div><div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);return;}
+  const list=rows.map(r=>{
+    const calc=_prRowNet(r);
+    const typeLbl=r.salaryType==='fixed'?'ประจำ':r.salaryType==='hourly'?'รายชั่วโมง':'ผสม';
+    const badge=r.alreadySaved?`<span style="font-size:10px;font-weight:600;color:var(--green-d);background:var(--green-l);padding:1px 7px;border-radius:20px;margin-left:6px">บันทึกแล้ว</span>`:'';
+    return `<label style="display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--border);border-radius:10px;margin-bottom:7px;cursor:pointer">
+      <input type="checkbox" class="pb-chk" data-uid="${r.uid}" checked style="width:17px;height:17px;flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${r.name||'—'}${badge}</div>
+        <div style="font-size:11px;color:var(--text3)">${typeLbl} · ${r.salaryType!=='fixed'?r.hours+' ชม. · ':''}${r.lateDeduction>0?'หักสาย '+r.lateDeduction+' ชม. · ':''}สุทธิ</div>
+      </div>
+      <div style="font-weight:700;font-size:14px;color:var(--green-dd)">฿${fmt(calc.net)}</div>
+    </label>`;
+  }).join('');
+  openModal(`<div class="modal-title">⚡ ทำเงินเดือนหลายคน — ${monthName} ${prYear+543}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">ระบบคิดให้จากตารางเวร + เงินเดือนที่ตั้งไว้ · ติ๊กเลือกคนที่จะบันทึก แล้วกดปุ่มล่าง (ปรับละเอียดรายคนได้ที่หน้าหลัก)</div>
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn btn-sm" onclick="prBatchToggleAll(true)">เลือกทั้งหมด</button>
+      <button class="btn btn-sm" onclick="prBatchToggleAll(false)">ไม่เลือก</button>
+    </div>
+    <div style="max-height:40vh;overflow:auto;margin-bottom:14px">${list}</div>
+    <div style="background:var(--bg);border-radius:11px;padding:12px;margin-bottom:8px">
+      <div style="font-size:12.5px;font-weight:700;margin-bottom:8px">➕ ใส่รายการให้ทุกคนที่เลือก (ไม่บังคับ)</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <input type="text" id="pb-extra-name" placeholder="ชื่อรายการ เช่น โบนัสปีใหม่" style="flex:1;min-width:130px;font-size:12.5px">
+        <select id="pb-extra-type" style="width:auto;padding:8px 10px;font-size:12.5px"><option value="add">+ รายรับ</option><option value="ded">- หัก</option></select>
+        <input type="number" id="pb-extra-amt" placeholder="บาท" style="width:90px;font-size:12.5px" min="0">
+      </div>
+      <div style="font-size:12.5px;font-weight:700;margin:10px 0 6px">💬 ข้อความบนสลิปให้ทุกคน (ไม่บังคับ)</div>
+      <input type="text" id="pb-note" placeholder="เช่น ขอบคุณสำหรับเดือนที่ผ่านมา" style="width:100%;font-size:12.5px">
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeMD()">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="prBatchSave()">💾 บันทึก & จ่าย</button>
+    </div>`);
+}
+window.prBatchToggleAll=function(on){document.querySelectorAll('.pb-chk').forEach(c=>c.checked=on);};
+window.prBatchSave=async function(){
+  const checked=[...document.querySelectorAll('.pb-chk')].filter(c=>c.checked).map(c=>c.dataset.uid);
+  if(!checked.length){showToast('ยังไม่ได้เลือกใคร','err');return;}
+  const exName=document.getElementById('pb-extra-name').value.trim();
+  const exAmt=parseFloat(document.getElementById('pb-extra-amt').value)||0;
+  const exType=document.getElementById('pb-extra-type').value;
+  const sharedExtra=(exName&&exAmt>0)?{name:exName,type:exType,amount:exAmt}:null;
+  const sharedNote=document.getElementById('pb-note').value.trim();
+  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+  loading(true);
+  let ok=0, grand=0;
+  try{
+    for(const uid of checked){
+      const row=_prBatchRows.find(r=>r.uid===uid);if(!row)continue;
+      const calc=_prRowNet(row,sharedExtra);
+      await setDoc(doc(db,'payroll',`${uid}_${monthStr}`),{
+        uid,name:row.name,month:prMonth,year:prYear,monthStr,
+        salaryType:row.salaryType,baseAmt:row.baseAmt,hourlyAmt:row.hourlyAmt||0,
+        hours:row.hours,hoursOverride:row.hours,autoHours:row.autoHours,
+        lateRate:row.lateRate||0,lateDeduction:row.lateDeduction||0,lateDeductAmt:row.lateDeductAmt||0,
+        otHours:row.otHours||0,otRate:row.otRate||0,otAmt:row.otAmt||0,
+        bonus:calc.add,deduction:calc.ded,extraItems:calc.items,
+        slipNote:sharedNote||row.slipNote||'',
+        net:calc.net,status:'paid',
+        updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
+      });
+      prMonthRecords[uid]={net:calc.net,status:'paid'};
+      ok++;grand+=calc.net;
+    }
+  }catch(e){loading(false);showToast('บันทึกบางส่วนไม่สำเร็จ: '+e.message,'err');return;}
+  loading(false);
+  closeMD();
+  showToast(`บันทึกเงินเดือน ${ok} คน · รวม ฿${fmt(grand)} ✅`);
+  renderPRPersonSelect();
 };
 
 window.exportPersonSlip=function(){
@@ -6282,7 +6421,8 @@ window.exportPersonSlip=function(){
     otHours:d.otHours||0,otRate:d.otRate||0,otAmt:d.otAmt||0,
     bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
     deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
-    net:d.computedNet,status:d.status,extraItems:prExtraItems
+    net:d.computedNet,status:d.status,extraItems:prExtraItems,
+    slipNote:(document.getElementById('pr-slip-note')?.value||d.slipNote||'').trim()
   };
   const role=m?.role||'';
   downloadHTML(buildMonthSlip(rec,d.name,role,d.uid),`สลิป_${d.name}_${MONTHS_TH[prMonth-1]}_${prYear}.html`);
@@ -6618,6 +6758,8 @@ function buildMonthSlip(r, memberName, memberRole, uid){
     .ps-title .company{font-size:18px;font-weight:700}
     .ps-title .doc{font-size:12px;color:#5A6B7B;margin-top:2px}
     .ps-title .branch{font-size:10px;color:#94A3B3;margin-top:2px}
+    .ps-note-head{font-size:11px;color:#5A6B7B;margin-top:5px;font-style:italic}
+    .ps-msg{margin-top:14px;background:#F8FAF9;border:1px solid #D4DAD8;border-left:3px solid #1FAE8B;border-radius:4px;padding:9px 12px;font-size:11.5px;color:#3A4A45;line-height:1.5}
     .ps-info-table{width:100%;font-size:12px;margin-bottom:14px;border-collapse:collapse}
     .ps-info-table td{padding:4px 0}
     .ps-info-table .lbl{color:#5A6B7B;width:24%}
@@ -6645,9 +6787,10 @@ function buildMonthSlip(r, memberName, memberRole, uid){
   </style></head><body>
   <div class="payslip">
     <div class="ps-title">
-      <div class="company">ร้านขายยา ใหม่เภสัช</div>
+      <div class="company">${slipEsc(slipCfg.companyName||'ร้านขายยา ใหม่เภสัช')}</div>
       <div class="doc">ใบแจ้งเงินเดือน (PAY SLIP)</div>
       <div class="branch">3 สาขา • ทรัพย์พัฒนา / บางปู / อินดี้</div>
+      ${slipCfg.headerNote?`<div class="ps-note-head">${slipEsc(slipCfg.headerNote)}</div>`:''}
     </div>
 
     <table class="ps-info-table">
@@ -6682,6 +6825,8 @@ function buildMonthSlip(r, memberName, memberRole, uid){
       <span class="lbl">เงินสุทธิที่ได้รับ :</span><span class="amt">฿${fmt(r.net)}</span>
       <div><span class="ps-status">${statusLabel}</span></div>
     </div>
+
+    ${(r.slipNote||slipCfg.footerNote)?`<div class="ps-msg">${[r.slipNote,slipCfg.footerNote].filter(Boolean).map(slipEsc).join('<br>')}</div>`:''}
 
     <div class="ps-sign">
       <div class="ps-sign-box"><div class="ps-sign-line"></div>ผู้จ่ายเงิน</div>
@@ -6924,6 +7069,40 @@ async function loadExpenseReasonsFromCloud(){
     }
   }catch(e){}
 }
+// ===== ตั้งค่าข้อความบนสลิปเงินเดือน =====
+async function loadSlipCfgFromCloud(){
+  try{
+    const d=await getDoc(doc(db,'config','slipSettings'));
+    if(d.exists()){
+      slipCfg=Object.assign({companyName:'ร้านขายยา ใหม่เภสัช',headerNote:'',footerNote:''},d.data());
+      localStorage.setItem('nm_slipCfg',JSON.stringify(slipCfg));
+    }
+  }catch(e){}
+}
+window.openSlipSettings=function(){
+  openModal(`<div class="modal-title">✏️ ข้อความบนสลิปเงินเดือน</div>
+    <div style="font-size:12.5px;color:var(--text3);margin-bottom:14px">ข้อความเหล่านี้จะแสดงบนสลิปของทุกคน (ตั้งครั้งเดียว ใช้ร่วมกัน)</div>
+    <label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">ชื่อร้าน / บริษัท (หัวสลิป)</label>
+    <input type="text" id="slip-company" value="${(slipCfg.companyName||'').replace(/"/g,'&quot;')}" placeholder="ร้านขายยา ใหม่เภสัช" style="width:100%;margin-bottom:14px">
+    <label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">ข้อความหัวสลิป <span style="color:var(--text3);font-weight:400">(เช่น คำขวัญ/ประกาศ — เว้นว่างได้)</span></label>
+    <input type="text" id="slip-header" value="${(slipCfg.headerNote||'').replace(/"/g,'&quot;')}" placeholder="เช่น สำนักงานใหญ่ ถ.สุขุมวิท" style="width:100%;margin-bottom:14px">
+    <label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">ข้อความท้ายสลิป / หมายเหตุ <span style="color:var(--text3);font-weight:400">(เช่น คำขอบคุณ, เงื่อนไข)</span></label>
+    <textarea id="slip-footer" rows="3" placeholder="เช่น ขอบคุณสำหรับความทุ่มเท · กรุณาตรวจสอบยอดภายใน 7 วัน" style="width:100%;resize:vertical">${slipCfg.footerNote||''}</textarea>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveSlipSettings()">บันทึก</button></div>`);
+};
+window.saveSlipSettings=async function(){
+  slipCfg={
+    companyName:document.getElementById('slip-company').value.trim()||'ร้านขายยา ใหม่เภสัช',
+    headerNote:document.getElementById('slip-header').value.trim(),
+    footerNote:document.getElementById('slip-footer').value.trim()
+  };
+  localStorage.setItem('nm_slipCfg',JSON.stringify(slipCfg));
+  try{await setDoc(doc(db,'config','slipSettings'),slipCfg);showToast('บันทึกข้อความสลิปแล้ว ✅');}
+  catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว): '+e.message,'err');}
+  closeMD();
+};
+// escape ข้อความผู้ใช้ก่อนใส่ใน HTML สลิป
+function slipEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 // ===== พนักงานชั่วคราว (เก็บรายชื่อไว้ใช้ซ้ำ) =====
 async function syncTempStaffToCloud(){
   try{await setDoc(doc(db,'config','tempStaff'),{names:tempStaff});}catch(e){}
