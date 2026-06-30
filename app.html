@@ -1608,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.72.0';
+const APP_VERSION='3.73.0';
 const CHANGELOG=[
+  {v:'3.73.0',date:'2026-06-30',changes:['สลิปเงินเดือน: ปรับขนาดเป็น “ครึ่ง A4” (A5 แนวตั้ง) ให้พอดีหน้าเดียว — เดิมเนื้อหา (ตารางวันลา/รายการเยอะ) ดันให้ล้นเกินหน้า · บีบระยะ/ฟอนต์ให้กระชับ ย้าย footer ให้ไหลตามเนื้อหา (ไม่ทับกัน) · ตั้งหน้ากระดาษพิมพ์เป็น A5 พิมพ์/บันทึก PDF ได้พอดี · สลิปรวมทั้งเดือนก็แก้ให้แต่ละคนขึ้นหน้าใหม่ + มีสไตล์ครบ']},
   {v:'3.72.0',date:'2026-06-30',changes:['สลิปเงินเดือน: แก้ “งวดเงินเดือน” บนสลิปได้เอง (พิมพ์ข้อความเอง เช่น “ก.ค. 2026” หรือ “1–15 ก.ค.”) — มีช่องในหน้าคำนวณรายคน และตั้งรวมทุกคนได้ในโหมดทำหลายคน (เดิมล็อกตามเดือน/ปีที่เลือก)']},
   {v:'3.71.0',date:'2026-06-30',changes:['สลิปเงินเดือน: แก้ “วันที่จ่าย” บนสลิปได้เอง — มีช่องเลือกวันที่ในหน้าคำนวณรายคน (เดิมระบบใส่วันสุดท้ายของเดือนให้อัตโนมัติ) และตั้ง “วันที่จ่าย” รวมทุกคนได้ในโหมดทำหลายคนพร้อมกัน']},
   {v:'3.70.0',date:'2026-06-30',changes:['เงินเดือน: (1) แก้ไขรอบที่ “จ่ายแล้ว” ได้ — คลิกชื่อคนนั้นเปิดขึ้นมาแก้ตัวเลขได้เลย มีแถบบอกชัด + ปุ่มเปลี่ยนเป็น “บันทึกการแก้ไข” (ทับยอดเดิม) · แก้บั๊กเงินเดือนฐานที่เคยเด้งกลับเป็นค่าตั้งต้น ตอนนี้โหลดยอดที่จ่ายจริงกลับมา (2) เพิ่ม “สิทธิ์วันลา” บนสลิป — admin กรอกเอง (ประเภท/สิทธิ์ทั้งหมด/ใช้ไป → คำนวณคงเหลือให้) เลือกเปิด–ปิดการแสดงได้ต่อคน เก็บที่โปรไฟล์พนักงานใช้ได้ทุกเดือน แสดงเป็นตารางบนสลิป PDF']},
@@ -6539,11 +6540,13 @@ window.exportAllSlips=async function(){
     if(!recs.length){showToast('เดือนนี้ยังไม่มีใครบันทึกเงินเดือน','err');loading(false);return;}
     // เรียงตามชื่อ
     recs.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
-    // สร้างสลิปแต่ละคน ต่อกันในหน้าเดียว (แต่ละสลิปขึ้นหน้าใหม่ตอนพิมพ์)
+    // สร้างสลิปแต่ละคน ต่อกัน (แต่ละสลิปขึ้นหน้าใหม่ตอนพิมพ์) — ดึง CSS ของสลิปมาใช้ร่วม
+    let slipStyle='';
     const slips=recs.map(r=>{
       const m=allMembers.find(x=>x.uid===r.uid);
       const role=m?.role||'';
       const inner=buildMonthSlip(r,r.name,role,r.uid);
+      if(!slipStyle){const sm=inner.match(/<style>([\s\S]*?)<\/style>/);slipStyle=sm?sm[1]:'';}
       // ดึงเฉพาะ body ของสลิป (ตัด html/head ออก เพื่อรวมหลายอันในไฟล์เดียว)
       const bodyMatch=inner.match(/<body>([\s\S]*?)<\/body>/);
       let body=bodyMatch?bodyMatch[1]:inner;
@@ -6556,11 +6559,11 @@ window.exportAllSlips=async function(){
 <title>สลิปเงินเดือน ${MONTHS_TH[prMonth-1]} ${prYear} (${recs.length} คน)</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
+  ${slipStyle}
   body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:16px}
-  .slip-page{margin:0 auto 20px;max-width:148mm}
-  .print-all-btn{display:block;margin:0 auto 20px;padding:12px 28px;background:#16B981;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(22,185,129,.4)}
-  @media print{body{background:#fff;padding:0}.slip-page{margin:0;max-width:100%;page-break-after:always}.slip-page:last-child{page-break-after:auto}.print-all-btn{display:none}@page{size:A5;margin:0}}
+  .slip-page{margin:0 auto 14px;width:148mm;max-width:100%}
+  .print-all-btn{display:block;margin:0 auto 18px;padding:12px 28px;background:#16B981;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(22,185,129,.4)}
+  @media print{body{background:#fff;padding:0}.slip-page{margin:0;width:100%;page-break-after:always}.slip-page:last-child{page-break-after:auto}.print-all-btn{display:none}@page{size:A5 portrait;margin:6mm}}
 </style></head><body>
 <button class="print-all-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกสลิปทั้งหมดเป็น PDF (${recs.length} คน)</button>
 ${slips}
@@ -6849,39 +6852,40 @@ function buildMonthSlip(r, memberName, memberRole, uid){
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:16px;color:#16202E}
-    .payslip{background:#fff;width:148mm;min-height:210mm;margin:0 auto;padding:12mm;border:1.5px solid #16202E;position:relative}
-    .ps-title{text-align:center;border-bottom:1.5px solid #16202E;padding-bottom:12px;margin-bottom:14px}
-    .ps-title .company{font-size:18px;font-weight:700}
-    .ps-title .doc{font-size:12px;color:#5A6B7B;margin-top:2px}
-    .ps-title .branch{font-size:10px;color:#94A3B3;margin-top:2px}
-    .ps-note-head{font-size:11px;color:#5A6B7B;margin-top:5px;font-style:italic}
-    .ps-msg{margin-top:14px;background:#F8FAF9;border:1px solid #D4DAD8;border-left:3px solid #1FAE8B;border-radius:4px;padding:9px 12px;font-size:11.5px;color:#3A4A45;line-height:1.5}
-    .ps-leave{margin-top:16px}
-    .ps-leave-h{font-size:11px;font-weight:700;color:#5A6B7B;margin-bottom:6px}
-    .ps-info-table{width:100%;font-size:12px;margin-bottom:14px;border-collapse:collapse}
-    .ps-info-table td{padding:4px 0}
+    body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:14px;color:#16202E}
+    /* ขนาดครึ่ง A4 (A5 แนวตั้ง 148×210mm) — เนื้อหาไหลตามจริง ไม่ดันล้นหน้า */
+    .payslip{background:#fff;width:148mm;margin:0 auto;padding:7mm 9mm;border:1.5px solid #16202E;display:flex;flex-direction:column}
+    .ps-title{text-align:center;border-bottom:1.5px solid #16202E;padding-bottom:6px;margin-bottom:7px}
+    .ps-title .company{font-size:15px;font-weight:700;line-height:1.15}
+    .ps-title .doc{font-size:10.5px;color:#5A6B7B;margin-top:1px}
+    .ps-title .branch{font-size:9px;color:#94A3B3;margin-top:1px}
+    .ps-note-head{font-size:9.5px;color:#5A6B7B;margin-top:2px;font-style:italic}
+    .ps-msg{margin-top:7px;background:#F8FAF9;border:1px solid #D4DAD8;border-left:3px solid #1FAE8B;border-radius:4px;padding:6px 10px;font-size:10px;color:#3A4A45;line-height:1.4}
+    .ps-leave{margin-top:8px}
+    .ps-leave-h{font-size:9.5px;font-weight:700;color:#5A6B7B;margin-bottom:4px}
+    .ps-info-table{width:100%;font-size:10.5px;margin-bottom:7px;border-collapse:collapse}
+    .ps-info-table td{padding:2px 0}
     .ps-info-table .lbl{color:#5A6B7B;width:24%}
     .ps-info-table .val{font-weight:600;width:26%}
-    .ps-main-table{width:100%;border-collapse:collapse;font-size:12px;border:1px solid #B4B2A9}
-    .ps-main-table th{background:#F1EFE8;padding:7px 10px;font-weight:700;border:1px solid #B4B2A9;font-size:11px}
+    .ps-main-table{width:100%;border-collapse:collapse;font-size:10.5px;border:1px solid #B4B2A9}
+    .ps-main-table th{background:#F1EFE8;padding:4px 9px;font-weight:700;border:1px solid #B4B2A9;font-size:10px}
     .ps-main-table th.r,.ps-main-table td.r{text-align:right}
-    .ps-main-table td{padding:6px 10px;border:1px solid #D4DAD8}
+    .ps-main-table td{padding:3.5px 9px;border:1px solid #D4DAD8}
     .ps-main-table tr.total td{background:#F1EFE8;font-weight:700;border-color:#B4B2A9}
-    .ps-net{text-align:right;margin-top:14px;padding-top:12px;border-top:2px solid #16202E}
-    .ps-net .lbl{font-size:13px;color:#5A6B7B}
-    .ps-net .amt{font-size:20px;font-weight:700;margin-left:8px}
-    .ps-status{display:inline-block;font-size:11px;font-weight:600;padding:3px 12px;border-radius:4px;background:#F1EFE8;color:#444441;margin-top:10px}
-    .ps-sign{display:grid;grid-template-columns:1fr 1fr;gap:50px;margin-top:38px;font-size:11px}
+    .ps-net{text-align:right;margin-top:8px;padding-top:7px;border-top:2px solid #16202E}
+    .ps-net .lbl{font-size:11.5px;color:#5A6B7B}
+    .ps-net .amt{font-size:18px;font-weight:700;margin-left:8px}
+    .ps-status{display:inline-block;font-size:10px;font-weight:600;padding:2px 10px;border-radius:4px;background:#F1EFE8;color:#444441;margin-top:6px}
+    .ps-sign{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:13px;font-size:10px}
     .ps-sign-box{text-align:center;color:#5A6B7B}
-    .ps-sign-line{border-top:1px dotted #888780;margin-bottom:6px;padding-top:30px}
-    .ps-foot{position:absolute;bottom:10mm;left:12mm;right:12mm;border-top:1px solid #D4DAD8;padding-top:8px;font-size:10px;color:#94A3B3;display:flex;justify-content:space-between}
-    .print-btn{display:block;margin:16px auto;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+    .ps-sign-line{border-top:1px dotted #888780;margin-bottom:4px;padding-top:15px}
+    .ps-foot{margin-top:9px;border-top:1px solid #D4DAD8;padding-top:5px;font-size:8.5px;color:#94A3B3;display:flex;justify-content:space-between}
+    .print-btn{display:block;margin:14px auto;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
     @media print{
       body{background:#fff;padding:0}
-      .payslip{width:100%;min-height:auto;padding:10mm;border:1.5px solid #16202E}
+      .payslip{width:100%;margin:0;padding:5mm 8mm;border:none}
       .print-btn{display:none}
-      @page{size:A5;margin:8mm}
+      @page{size:A5 portrait;margin:5mm}
     }
   </style></head><body>
   <div class="payslip">
