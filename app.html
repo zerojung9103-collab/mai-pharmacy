@@ -1604,8 +1604,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.67.0';
+const APP_VERSION='3.68.0';
 const CHANGELOG=[
+  {v:'3.68.0',date:'2026-06-30',changes:['เพิ่ม “หน้าต่างลอยมินิ” (บัญชีของฉัน → 📌 หน้าต่างลอยมินิ) — เปิดหน้าต่างเล็กลอยอยู่เหนือทุกโปรแกรมบนคอมพิวเตอร์ แสดงงานวันนี้ + ขั้นต่อไป + ปุ่มลัด (นับเงิน/ลงยอด/งานวันนี้) กดแล้วเด้งไปทำในแอปได้เลย ไม่ต้องสลับหน้าต่างเอง อัปเดตสถานะอัตโนมัติ · ใช้ได้บน Chrome/Edge รุ่นใหม่บนเครื่องคอม (หมายเหตุ: ต้องกดเปิดเอง 1 ครั้ง เบราว์เซอร์ไม่อนุญาตให้เด้งเองตอนเปิดเครื่อง)']},
   {v:'3.67.0',date:'2026-06-30',changes:['สถิติการชำระเงิน (ในแท็บภาพรวม): เพิ่มส่วน “แยกรายสาขา” — แต่ละสาขามีแถบสัดส่วนช่องทางจ่าย (เงินสด/EDC/QR) สีตรงกับวงกลมรวม + ยอด/เปอร์เซ็นต์แต่ละช่องทาง เห็นว่าสาขาไหนรับช่องทางไหนมากน้อย']},
   {v:'3.66.1',date:'2026-06-30',changes:['เก็บงานหลังรวมเมนู: ปุ่มลัดหน้าแรก + reload ข้อมูลสด อ้างชื่อ/อัปเดตแท็บ “ยอดขาย & รายงาน” ให้ตรง']},
   {v:'3.66.0',date:'2026-06-30',changes:['ลดเมนูซ้ำซ้อน: รวม “ภาพรวมยอดขาย” + “รายงาน & สำรองข้อมูล” เป็นหน้าเดียว “ยอดขาย & รายงาน” มี 3 แท็บ (ภาพรวม/กราฟ · สรุปเดือน · ส่งออก/สำรอง) — แอดมินหาง่ายขึ้น ไม่งงว่าจะดูยอดที่หน้าไหน · ประวัติการขายคงไว้แยก (ไว้แก้ยอดเก่า) · เนื้อหาเดิมครบทุกอย่าง พนักงานไม่กระทบ']},
@@ -2523,6 +2524,7 @@ window.openAccountMenu=function(){
     <button class="assist-chip" onclick="closeMD();goto('settings')"><span class="ic">⚙️</span><span>ตั้งค่าระบบ</span></button>
     <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION}${isAdmin?' — ดูประวัติอัปเดต':''}</span></button>
     <button class="assist-chip" onclick="checkAppUpdate()"><span class="ic">🔄</span><span>อัปเดตโปรแกรม / ตรวจรุ่นล่าสุด</span></button>
+    <button class="assist-chip" onclick="openMiniWindow()"><span class="ic">📌</span><span>หน้าต่างลอยมินิ (บนคอม) — งานวันนี้</span></button>
     <button class="assist-chip" onclick="closeMD();goto('theme')"><span class="ic">🎨</span><span>ธีมของฉัน</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
     <button class="assist-chip" onclick="doLogout()" style="color:var(--red-t)"><span class="ic">🚪</span><span>ออกจากระบบ</span></button>
@@ -2567,6 +2569,103 @@ window.doAppUpdate=async function(){
     const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)));
   }catch(e){}
   location.reload(true);
+};
+
+// ===== 📌 หน้าต่างลอยมินิ (Document Picture-in-Picture) — หน้าต่างเล็กลอยเหนือทุกโปรแกรมบนคอม =====
+window._miniPip=null; window._miniTimer=null;
+async function _miniState(){
+  let ci={};
+  try{
+    if(window._myCheckinToday)ci=window._myCheckinToday;
+    else{const d=await getDoc(doc(db,'checkins',`${currentUser.uid}_${todayStr()}`));ci=d.exists()?d.data():{};window._myCheckinToday=ci;}
+  }catch(e){}
+  try{ if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData(); }catch(e){}
+  const branch=(typeof todoBranchesForUser==='function'&&todoBranchesForUser()[0])??(profile?.branch??0);
+  const checkedIn=!!ci.checkIn, checkedOut=!!ci.checkOut;
+  let opened=false,closed=false,salesLogged=false;
+  try{opened=cashOpenedToday(branch);}catch(e){}
+  try{closed=!!cashTodayClose(branch);}catch(e){}
+  try{const se=salesEntries.find(e=>e.date===todayStr()&&+e.branch===+branch);salesLogged=!!(se&&se.total>0);}catch(e){}
+  const steps=[{k:'เช็คอิน',done:checkedIn},{k:'เปิดร้าน',done:opened},{k:'ลงยอด',done:salesLogged},{k:'ปิดร้าน',done:closed},{k:'เช็คเอาท์',done:checkedOut}];
+  let next;
+  if(!checkedIn)next={icon:'📍',label:'เช็คอินเข้างาน',act:'checkin'};
+  else if(!opened)next={icon:'☀️',label:'เปิดร้าน นับเงิน',act:'open'};
+  else if(!salesLogged&&!closed)next={icon:'💰',label:'ลงยอดขาย',act:'sales'};
+  else if(!closed)next={icon:'🌙',label:'ปิดร้าน นับเงิน',act:'close'};
+  else if(!checkedOut)next={icon:'📍',label:'เช็คเอาท์ออกงาน',act:'checkout'};
+  else next=null;
+  return {branch,steps,next};
+}
+function _miniHTML(st){
+  const name=(profile?`${profile.firstName||''}`.trim():'')||'พนักงาน';
+  const bname=(typeof BRANCHES!=='undefined'&&BRANCHES[st.branch])||'';
+  const nextIdx=st.steps.findIndex(s=>!s.done);
+  const track=st.steps.map((s,i)=>{
+    const on=s.done, cur=(i===nextIdx);
+    return `<div style="flex:1;text-align:center">
+      <div style="height:6px;border-radius:3px;background:${on?'#16B981':(cur?'#F7A823':'#E3DACE')};margin-bottom:4px"></div>
+      <div style="font-size:9px;font-weight:700;color:${on?'#147A60':(cur?'#8A6418':'#A89E90')}">${s.k}</div></div>`;
+  }).join('');
+  const nextCard = st.next
+    ? `<div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:16px;padding:14px;color:#fff;text-align:center;box-shadow:0 6px 16px rgba(31,174,139,.28)">
+         <div style="font-size:10px;font-weight:700;letter-spacing:1px;opacity:.9">ขั้นต่อไปของคุณ</div>
+         <div style="font-size:30px;margin:3px 0">${st.next.icon}</div>
+         <div style="font-size:17px;font-weight:800">${st.next.label}</div>
+         <button id="mini-act" style="margin-top:11px;width:100%;background:#fff;color:#0C5544;border:none;border-radius:11px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">ไปทำเลย →</button>
+       </div>`
+    : `<div style="background:#E3F5EF;border:1.5px solid #1FAE8B;border-radius:16px;padding:18px;text-align:center;color:#147A60">
+         <div style="font-size:34px">🎉</div><div style="font-size:16px;font-weight:800;margin-top:3px">วันนี้เรียบร้อยแล้ว!</div>
+         <div style="font-size:11.5px;color:#6E6458;margin-top:2px">ทำครบทุกอย่างแล้ว เก่งมาก 💚</div></div>`;
+  const qbtn=(id,ic,t)=>`<button id="${id}" style="background:#fff;border:1px solid #E3DACE;border-radius:11px;padding:10px 4px;font-weight:700;color:#3A332C;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px"><span style="font-size:18px">${ic}</span>${t}</button>`;
+  return `
+  <div style="background:linear-gradient(140deg,#23B895,#127C62);color:#fff;padding:13px 15px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">💊</span><b style="font-size:15px">ใหม่เภสัช</b></div>
+    <div style="font-size:11px;opacity:.9;text-align:right">${bname?'🏪 '+bname:''}</div>
+  </div>
+  <div style="padding:14px;display:flex;flex-direction:column;gap:13px">
+    <div style="font-size:12.5px;color:#6E6458">สวัสดี ${name} 👋 · งานวันนี้</div>
+    ${nextCard}
+    <div style="display:flex;gap:5px">${track}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px">
+      ${qbtn('mini-cash','💵','นับเงิน')}${qbtn('mini-sales','💰','ลงยอด')}${qbtn('mini-todo','📋','งานวันนี้')}
+    </div>
+    <button id="mini-open" style="background:#F1FAF6;border:1px solid #1FAE8B;border-radius:11px;padding:10px;font-size:12.5px;font-weight:700;color:#147A60;cursor:pointer">↗️ เปิดแอปเต็มจอ</button>
+  </div>`;
+}
+async function _miniRefresh(){
+  const pip=window._miniPip;if(!pip||pip.closed)return;
+  const st=await _miniState();
+  pip.document.body.innerHTML=_miniHTML(st);
+  const g=id=>pip.document.getElementById(id);
+  const bringUp=()=>{try{window.focus();}catch(e){}};
+  if(g('mini-act')&&st.next)g('mini-act').onclick=()=>{bringUp();guideGo(st.next.act,st.branch);setTimeout(()=>_miniRefresh().catch(()=>{}),900);};
+  if(g('mini-cash'))g('mini-cash').onclick=()=>{bringUp();goto('cash');};
+  if(g('mini-sales'))g('mini-sales').onclick=()=>{bringUp();goto('sales');};
+  if(g('mini-todo'))g('mini-todo').onclick=()=>{bringUp();goto('todo');};
+  if(g('mini-open'))g('mini-open').onclick=()=>{bringUp();};
+}
+window.openMiniWindow=async function(){
+  if(typeof closeMD==='function')closeMD();
+  if(!('documentPictureInPicture' in window)){
+    showToast('หน้าต่างลอยใช้ได้บน Chrome/Edge รุ่นใหม่ (เครื่องคอมพิวเตอร์) เท่านั้น','err');
+    return;
+  }
+  try{
+    if(window._miniPip&&!window._miniPip.closed){window._miniPip.focus();return;}
+    const pip=await documentPictureInPicture.requestWindow({width:290,height:440});
+    window._miniPip=pip;
+    const head=pip.document.head;
+    const l1=pip.document.createElement('link');l1.rel='stylesheet';l1.href='https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600;700&display=swap';head.appendChild(l1);
+    const stl=pip.document.createElement('style');
+    stl.textContent="*{box-sizing:border-box;margin:0;padding:0}body{font-family:'IBM Plex Sans Thai',-apple-system,sans-serif;background:#FAF6F1;color:#3A332C}button{font-family:inherit}";
+    head.appendChild(stl);
+    pip.document.title='ใหม่เภสัช — งานวันนี้';
+    await _miniRefresh();
+    window._miniTimer=setInterval(()=>{_miniRefresh().catch(()=>{});},15000);
+    pip.addEventListener('pagehide',()=>{clearInterval(window._miniTimer);window._miniPip=null;});
+  }catch(e){
+    showToast('เปิดหน้าต่างลอยไม่ได้ ลองใหม่อีกครั้ง','err');
+  }
 };
 
 // ===== PERMISSION MAP =====
