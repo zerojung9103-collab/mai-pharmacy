@@ -1596,8 +1596,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.60.2';
+const APP_VERSION='3.63.0';
 const CHANGELOG=[
+  {v:'3.63.0',date:'2026-06-30',changes:['งานวันนี้ (มุมพนักงาน): แสดงงานระบบ“ทีละขั้น” — โชว์เฉพาะขั้นปัจจุบัน (ไฮไลต์ + ปุ่มไปทำเด่น) ทำเสร็จขั้นถัดไปค่อยโผล่ มีบอก“อีกกี่ขั้น” · ลดความงงว่าจะทำอะไรก่อน-หลัง (แอดมินยังเห็นครบทุกขั้นไว้ตรวจ)']},
+  {v:'3.62.0',date:'2026-06-30',changes:['ปิดร้าน: เพิ่มปุ่ม “💸 เบิกซื้อของ/ค่าใช้จ่าย” และ “💼→🧰 เบิกสำรอง” ในหน้าจอปิดร้านเลย — บันทึกค่าใช้จ่าย/เบิกที่ยังไม่ได้ลงได้ทันที ไม่ต้องสลับหน้า แล้วระบบพากลับมาปิดร้านต่อ (ยอด “ควรมี” อัปเดตให้อัตโนมัติ)']},
+  {v:'3.61.0',date:'2026-06-30',changes:['เบิกซื้อของ: เพิ่ม “ข้อความที่ใช้บ่อย” เป็นปุ่มลัดในช่องเหตุผล (แอดมินเพิ่ม/ลบเองได้ ใช้ร่วมทุกเครื่อง) · เพิ่มเมนู “อัปเดตโปรแกรม/ตรวจรุ่นล่าสุด” ในบัญชีของฉัน — บอกชัดว่าเป็นรุ่นล่าสุดแล้วหรือมีรุ่นใหม่ · งานวันนี้: ย้าย “เก็บเงินเข้ากระเป๋า” ไปเป็นงานสุดท้าย']},
   {v:'3.60.2',date:'2026-06-30',changes:['งานวันนี้: เรียงงานระบบตามลำดับงานจริง — เช็คอิน → นับเงินต้นวัน → ลงยอดขาย → เก็บเงินเข้ากระเป๋า → นับเงินปลายวัน (เดิมเช็คอินไปแทรกกลาง)']},
   {v:'3.60.1',date:'2026-06-30',changes:['ข้อความแจ้งสถานะ (toast) หลังกดบันทึก ใหญ่ขึ้น/เห็นชัดขึ้นบนมือถือ — ย้ายมากลางจอด้านล่าง (เหนือแถบเมนู) ตัวอักษรใหญ่ขึ้น มีไอคอน ✅/⚠️ นำหน้า · ข้อความผิดพลาดค้างนานขึ้น (4.5 วิ) · กันหลายข้อความซ้อนกันแล้วหายเร็วเกิน']},
   {v:'3.60.0',date:'2026-06-30',changes:['เพิ่มเมนูลัดบนไอคอนแอป (Windows/มือถือ) — ติดตั้งแอปแล้วคลิกขวา/กดค้างที่ไอคอน จะมีเมนู “ลงยอดขาย / นับเงิน / เช็คอิน” เด้งเข้าหน้านั้นทันที ไม่ต้องไล่เมนูเอง (รองรับ ?go= ในลิงก์ ทำ shortcut บนเดสก์ท็อปได้)']},
@@ -2152,12 +2155,15 @@ const PERM_LABELS={
 
 // ===== LOCAL DATA =====
 let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","EDC สีดำ","EDC สีขาว","QR / โครงการรัฐ"]');
+// ข้อความเบิกเงินที่ใช้บ่อย (admin จัดการเอง) — ใช้เป็นปุ่มลัดในช่อง “ซื้ออะไร/เหตุผล”
+let expenseReasons=JSON.parse(localStorage.getItem('nm_expenseReasons')||'["ถุงขยะ","น้ำดื่ม","ถุงหูหิ้ว","ค่าส่งของ","อุปกรณ์ทำความสะอาด"]');
 let shifts=JSON.parse(localStorage.getItem('nm_shifts')||'[]');
 let salesEntries=JSON.parse(localStorage.getItem('nm_sales')||'[]');
 let nextShiftId=Math.max(0,...shifts.map(s=>s.id),100)+1;
 
 function saveLocal(){
   localStorage.setItem('nm_payTypes',JSON.stringify(payTypes));
+  localStorage.setItem('nm_expenseReasons',JSON.stringify(expenseReasons));
   localStorage.setItem('nm_shifts',JSON.stringify(shifts));
   localStorage.setItem('nm_sales',JSON.stringify(salesEntries));
 }
@@ -2465,6 +2471,7 @@ onAuthStateChanged(auth,async user=>{
   if(isAdmin){loadAlertSettings();loadEditRequests();loadCashData();}
   loadBranchLocations();
   loadPayTypesFromCloud();
+  loadExpenseReasonsFromCloud();
   loadTempStaffFromCloud();
   loadTodoTemplates();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
@@ -2500,6 +2507,7 @@ window.openAccountMenu=function(){
     </div>
     <button class="assist-chip" onclick="closeMD();goto('settings')"><span class="ic">⚙️</span><span>ตั้งค่าระบบ</span></button>
     <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION}${isAdmin?' — ดูประวัติอัปเดต':''}</span></button>
+    <button class="assist-chip" onclick="checkAppUpdate()"><span class="ic">🔄</span><span>อัปเดตโปรแกรม / ตรวจรุ่นล่าสุด</span></button>
     <button class="assist-chip" onclick="closeMD();goto('theme')"><span class="ic">🎨</span><span>ธีมของฉัน</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
     <button class="assist-chip" onclick="doLogout()" style="color:var(--red-t)"><span class="ic">🚪</span><span>ออกจากระบบ</span></button>
@@ -2507,6 +2515,43 @@ window.openAccountMenu=function(){
   const installBtn=document.getElementById('install-app-btn');
   const accInstall=document.getElementById('acc-install-btn');
   if(accInstall)accInstall.style.display=(installBtn&&installBtn.style.display!=='none')?'flex':'none';
+};
+// 🔄 ตรวจ/อัปเดตโปรแกรม — เทียบเวอร์ชันที่รันอยู่ กับไฟล์ล่าสุดบนเซิร์ฟเวอร์ · บอกชัดถ้าเป็นรุ่นล่าสุดแล้ว
+window.checkAppUpdate=async function(){
+  openModal(`<div class="modal-title">🔄 ตรวจสอบการอัปเดต</div>
+    <div id="upd-body" style="text-align:center;padding:1.6rem 0">
+      <div class="spinner" style="margin:0 auto 12px"></div>
+      <div style="font-size:13px;color:var(--text3)">กำลังตรวจรุ่นล่าสุด...</div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+  let latest=null;
+  try{
+    const res=await fetch('./app.html?_nmupd='+Date.now(),{cache:'no-store'});
+    const txt=await res.text();
+    const m=txt.match(/APP_VERSION\s*=\s*['"]([\d.]+)['"]/);
+    latest=m?m[1]:null;
+  }catch(e){}
+  const body=document.getElementById('upd-body');if(!body)return;
+  if(!latest){
+    body.innerHTML=`<div style="font-size:38px">📡</div><div style="font-size:15px;font-weight:700;margin-top:8px">ตรวจสอบไม่ได้</div><div style="font-size:12.5px;color:var(--text3);margin-top:4px">เช็กอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง</div>`;
+    return;
+  }
+  if(latest===APP_VERSION){
+    body.innerHTML=`<div style="font-size:44px">✅</div><div style="font-size:17px;font-weight:800;color:var(--green-d);margin-top:8px">เป็นรุ่นล่าสุดแล้ว</div><div style="font-size:12.5px;color:var(--text3);margin-top:4px">เวอร์ชัน ${APP_VERSION} — ไม่ต้องอัปเดต</div>`;
+  }else{
+    body.innerHTML=`<div style="font-size:44px">⬆️</div><div style="font-size:17px;font-weight:800;color:var(--amber-t);margin-top:8px">มีรุ่นใหม่!</div>
+      <div style="font-size:12.5px;color:var(--text2);margin-top:4px">ตอนนี้ <b>${APP_VERSION}</b> → ใหม่ <b>${latest}</b></div>
+      <button class="btn btn-primary" style="margin-top:15px;width:100%;padding:13px;font-size:14px" onclick="doAppUpdate()">⬇️ อัปเดตเป็นรุ่นใหม่เลย</button>
+      <div style="font-size:11px;color:var(--text3);margin-top:7px">ระบบจะโหลดใหม่ ใช้เวลาแป๊บเดียว</div>`;
+  }
+};
+window.doAppUpdate=async function(){
+  const b=document.getElementById('upd-body');if(b)b.innerHTML=`<div class="spinner" style="margin:0 auto 12px"></div><div style="font-size:13px;color:var(--text3)">กำลังอัปเดต...</div>`;
+  try{
+    if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){try{await r.update();}catch(e){}}}
+    const keys=await caches.keys();await Promise.all(keys.map(k=>caches.delete(k)));
+  }catch(e){}
+  location.reload(true);
 };
 
 // ===== PERMISSION MAP =====
@@ -4521,6 +4566,7 @@ window.cashDoOpen=async function(branch){
   finally{_cashBusy=false;}
 };
 window.cashR2DPrompt=function(branch){
+  window._cashReturnToClose=null; // เปิดปกติ → ไม่กลับไปหน้าปิดร้าน (ยกเว้นเรียกผ่าน FromClose)
   const st=cashGet(branch);
   openModal(`<div class="modal-title">💼→🧰 เบิกเงินสำรองมาลิ้นชัก · ${BRANCHES[branch]}</div>
     <div style="font-size:12.5px;color:var(--text2);margin-bottom:10px">เงินสำรองคงเหลือ: <b>฿${fmt(st.reserve)}</b></div>
@@ -4541,8 +4587,10 @@ window.cashDoR2D=async function(branch){
     }
     await cashSaveState(branch,{reserve:st.reserve-amt,drawer:st.drawer+amt});
     await cashAddEvent({branch,type:'r2d',amount:amt,denoms:cashGetDenoms()});
+    const _rc=window._cashReturnToClose;window._cashReturnToClose=null;
     closeMD();renderCashPage();showToast('เบิกสำรองมาลิ้นชัก ฿'+fmt(amt));
     logActivity('cash_r2d',`เบิกสำรอง→ลิ้นชัก ${BRANCHES[branch]} ฿${fmt(amt)}`);
+    if(_rc!=null)setTimeout(()=>cashClosePrompt(+_rc),120);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
   finally{_cashBusy=false;}
 };
@@ -4559,6 +4607,7 @@ window.cashExpSetSrc=function(src){
   });
 };
 window.cashExpensePrompt=function(branch){
+  window._cashReturnToClose=null; // เปิดปกติ → ไม่กลับไปหน้าปิดร้าน (ยกเว้นเรียกผ่าน FromClose)
   const st=cashGet(branch);
   const srcBtn=(s,label,bal)=>`<button type="button" id="exp-src-${s}" onclick="cashExpSetSrc('${s}')" style="flex:1;padding:9px 8px;border-radius:11px;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-family:var(--font);font-size:12.5px;font-weight:500;cursor:pointer;line-height:1.3">${label}<br><span style="font-size:10.5px;opacity:.8">เหลือ ฿${fmt(bal)}</span></button>`;
   openModal(`<div class="modal-title">💸 เบิกเงินซื้อของ / ค่าใช้จ่าย · ${BRANCHES[branch]}</div>
@@ -4569,6 +4618,7 @@ window.cashExpensePrompt=function(branch){
     ${cashDenomBlock()}
     <div class="field"><label class="fl">จำนวนที่เบิก (บาท)</label><input type="number" id="cash-in" inputmode="decimal" placeholder="0" readonly style="font-size:20px;font-weight:600"></div>
     <div class="field"><label class="fl">ซื้ออะไร / เหตุผล (บังคับ)</label><input type="text" id="exp-note" placeholder="เช่น ถุงขยะ, น้ำดื่ม, ค่าส่งของ" maxlength="120"></div>
+    <div id="exp-reason-chips" style="margin:-2px 0 4px">${cashReasonChipsHTML()}</div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoExpense(${branch})">บันทึกเบิกเงิน</button></div>`);
   cashExpSetSrc('drawer');
   setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
@@ -4591,10 +4641,49 @@ window.cashDoExpense=async function(branch){
     const patch=from==='reserve'?{reserve:st.reserve-amt}:{drawer:st.drawer-amt};
     await cashSaveState(branch,patch);
     await cashAddEvent({branch,type:'expense',amount:amt,from,note,denoms:cashGetDenoms()});
+    const _rc=window._cashReturnToClose;window._cashReturnToClose=null;
     closeMD();renderCashPage();showToast(`เบิกซื้อของจาก${poolName} ฿${fmt(amt)}`);
     logActivity('cash_expense',`เบิกซื้อของ ${BRANCHES[branch]} จาก${poolName} ฿${fmt(amt)} (${note})`);
+    if(_rc!=null)setTimeout(()=>cashClosePrompt(+_rc),120); // กลับไปหน้าปิดร้านต่อ (ยอดควรมีอัปเดตแล้ว)
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
   finally{_cashBusy=false;}
+};
+// ปุ่มลัด “ข้อความที่ใช้บ่อย” ในช่องเหตุผล (admin จัดการเอง)
+function cashReasonChipsHTML(){
+  const esc=s=>String(s).replace(/'/g,"\\'");
+  const chips=(expenseReasons||[]).map(r=>`<button type="button" onclick="cashPickReason('${esc(r)}')" style="background:var(--green-l);color:var(--green-d);border:1px solid var(--green-l);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">${r}</button>`).join('');
+  const manage=isAdmin?`<button type="button" onclick="cashManageReasons()" style="background:var(--surface);color:var(--text2);border:1px dashed var(--border2);border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)">✏️ จัดการ</button>`:'';
+  if(!chips&&!manage)return '';
+  return `<div style="font-size:11px;color:var(--text3);margin-bottom:5px">แตะข้อความที่ใช้บ่อย${isAdmin?' (จัดการได้)':''}</div><div style="display:flex;flex-wrap:wrap;gap:6px">${chips}${manage}</div>`;
+}
+window.cashPickReason=function(text){const el=document.getElementById('exp-note');if(el){el.value=text;el.focus();}};
+window.cashManageReasons=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const list=(expenseReasons||[]).map((r,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px">${r}</span><button class="btn btn-danger btn-sm" onclick="cashRemoveReason(${i})">ลบ</button></div>`).join('')||`<div style="color:var(--text3);font-size:12.5px;padding:8px 0">ยังไม่มีข้อความ</div>`;
+  openModal(`<div class="modal-title">✏️ จัดการข้อความที่ใช้บ่อย</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">ข้อความเหล่านี้จะขึ้นเป็นปุ่มลัดตอนเบิกเงินซื้อของ — ใช้ร่วมกันทุกเครื่อง</div>
+    <div id="reason-list">${list}</div>
+    <div style="display:flex;gap:8px;margin-top:12px"><input type="text" id="new-reason" placeholder="พิมพ์ข้อความใหม่ เช่น ค่าน้ำแข็ง" maxlength="40" style="flex:1;border:1px solid var(--border2);border-radius:9px;padding:9px;font-family:var(--font);font-size:13px"><button class="btn btn-primary" onclick="cashAddReason()">เพิ่ม</button></div>
+    <div class="modal-footer"><button class="btn" onclick="cashBackToExpense()">เสร็จ</button></div>`);
+  setTimeout(()=>document.getElementById('new-reason')?.focus(),80);
+};
+window.cashAddReason=function(){
+  if(!isAdmin)return;
+  const inp=document.getElementById('new-reason');const v=(inp?.value||'').trim();
+  if(!v){showToast('พิมพ์ข้อความก่อน','err');return;}
+  if(expenseReasons.includes(v)){showToast('ข้อความนี้มีอยู่แล้ว','err');return;}
+  expenseReasons.push(v);saveLocal();syncExpenseReasonsToCloud();cashManageReasons();
+};
+window.cashRemoveReason=function(i){
+  if(!isAdmin)return;
+  expenseReasons.splice(i,1);saveLocal();syncExpenseReasonsToCloud();cashManageReasons();
+};
+window.cashBackToExpense=function(){
+  const seg=document.getElementById('exp-reason-chips');
+  // ถ้ายังเปิด modal เบิกเงินอยู่เบื้องหลังไม่ได้ — เปิดใหม่ให้เห็นปุ่มที่อัปเดต
+  const braw=document.getElementById('cash-branch')?.value;
+  closeMD();
+  if(braw!==''&&braw!=null)cashExpensePrompt(parseInt(braw));
 };
 // ⚖️ ปรับยอดเงิน (แอดมิน) — ตั้งยอดสำรอง/ลิ้นชัก/ตู้เซฟ ให้ตรงจริง (แก้ติดลบ/ตั้งต้น)
 window.cashAdjSetPool=function(pool){
@@ -4673,21 +4762,30 @@ window.cashDoTopup=async function(branch){
 };
 window.cashClosePrompt=function(branch){
   if(!cashOpenedToday(branch)){showToast('ยังไม่ได้เปิดร้านวันนี้','err');return;}
+  window._cashReturnToClose=null; // เปิดหน้าปิดร้านปกติ → ล้าง flag เก่า
   const st=cashGet(branch);const exp=cashExpectedClose(branch);
   openModal(`<div class="modal-title">🌙 ปิดร้าน — นับเงินลิ้นชัก · ${BRANCHES[branch]}</div>
-    <div style="background:var(--bg);border-radius:11px;padding:11px 13px;margin-bottom:12px;font-size:12.5px;line-height:1.95">
+    <div style="background:var(--bg);border-radius:11px;padding:11px 13px;margin-bottom:10px;font-size:12.5px;line-height:1.95">
       <div style="display:flex;justify-content:space-between"><span>เงินต้นลิ้นชัก</span><b>฿${fmt(st.openDrawer||0)}</b></div>
       <div style="display:flex;justify-content:space-between"><span>+ เบิกจากสำรอง</span><b>฿${fmt(cashSumToday(branch,'r2d'))}</b></div>
       <div style="display:flex;justify-content:space-between"><span>+ ยอดขายเงินสด</span><b>฿${fmt(cashSalesToday(branch))}</b></div>
       ${cashSumToday(branch,'deposit')>0?`<div style="display:flex;justify-content:space-between"><span>− ดึงเข้าตู้เซฟ</span><b>฿${fmt(cashSumToday(branch,'deposit'))}</b></div>`:''}
-      ${cashExpenseDrawerToday(branch)>0?`<div style="display:flex;justify-content:space-between"><span>− เบิกซื้อของ</span><b>฿${fmt(cashExpenseDrawerToday(branch))}</b></div>`:''}
+      ${cashExpenseDrawerToday(branch)>0?`<div style="display:flex;justify-content:space-between"><span>− เบิกซื้อของ/ค่าใช้จ่าย</span><b>฿${fmt(cashExpenseDrawerToday(branch))}</b></div>`:''}
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);margin-top:5px;padding-top:5px"><span style="font-weight:700">= ควรมี</span><b style="color:var(--green-d)">฿${fmt(exp)}</b></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:5px">มีค่าใช้จ่าย/เบิกที่ยังไม่ได้ลง? บันทึกได้เลยที่นี่ ไม่ต้องสลับหน้า</div>
+    <div style="display:flex;gap:7px;margin-bottom:13px">
+      <button class="btn btn-sm" style="flex:1" onclick="cashExpenseFromClose(${branch})">💸 เบิกซื้อของ/ค่าใช้จ่าย</button>
+      <button class="btn btn-sm" style="flex:1" onclick="cashR2DFromClose(${branch})">💼→🧰 เบิกสำรอง</button>
     </div>
     ${cashDenomBlock()}
     <div class="field"><label class="fl">เงินนับได้จริงในลิ้นชัก (บาท)</label><input type="number" id="cash-in" inputmode="decimal" placeholder="0" readonly style="font-size:22px;font-weight:700"></div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoClose(${branch})">บันทึกปิดร้าน</button></div>`);
   setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
 };
+// เปิดหน้าจอเบิกค่าใช้จ่าย/เบิกสำรอง “จากหน้าปิดร้าน” แล้วกลับมาปิดร้านต่อ (ยอดควรมีอัปเดตให้)
+window.cashExpenseFromClose=function(branch){cashExpensePrompt(branch);window._cashReturnToClose=branch;};
+window.cashR2DFromClose=function(branch){cashR2DPrompt(branch);window._cashReturnToClose=branch;};
 window.cashDoClose=async function(branch){
   if(_cashBusy)return;_cashBusy=true;
   try{
@@ -6675,6 +6773,19 @@ async function loadPayTypesFromCloud(){
       localStorage.setItem('nm_payTypes',JSON.stringify(payTypes));
       if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderForm();
       if(document.getElementById('pay-type-list'))renderPayTypeSettings();
+    }
+  }catch(e){}
+}
+// sync ข้อความเบิกเงินที่ใช้บ่อย ขึ้น/ลง Firestore (ใช้ร่วมทุกเครื่อง)
+async function syncExpenseReasonsToCloud(){
+  try{await setDoc(doc(db,'config','expenseReasons'),{list:expenseReasons});}catch(e){showToast('sync ข้อความไม่ได้: '+e.message,'err');}
+}
+async function loadExpenseReasonsFromCloud(){
+  try{
+    const d=await getDoc(doc(db,'config','expenseReasons'));
+    if(d.exists()&&Array.isArray(d.data().list)){
+      expenseReasons=d.data().list;
+      localStorage.setItem('nm_expenseReasons',JSON.stringify(expenseReasons));
     }
   }catch(e){}
 }
@@ -9828,14 +9939,15 @@ function todoHero(pct,done,total,rem){
 function todoAutoIcon(t){return ({sales:'💰',cash_open:'☀️',cash_close:'🌙',purse:'🔒',checkin:'📍'})[t.autoCheck]||'📲';}
 function todoLink(t){return t.linkedPage||({sales:'sales',cash_open:'cash',cash_close:'cash',purse:'cash',checkin:'checkin'})[t.autoCheck]||'';}
 function todoAutoRow(t,i,data,branch,opts){
-  const ic=todoAutoIcon(t),link=todoLink(t);
-  const when=t.done?`✓ เรียบร้อย${t.isAuto?' (ระบบตรวจให้)':(t.doneBy?' · '+memberName(t.doneBy):'')}${t.doneAt?' · '+new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''}`:'⏳ ยังไม่ได้ทำ';
+  const ic=todoAutoIcon(t),link=todoLink(t),cur=opts.current;
+  const when=t.done?`✓ เรียบร้อย${t.isAuto?' (ระบบตรวจให้)':(t.doneBy?' · '+memberName(t.doneBy):'')}${t.doneAt?' · '+new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''}`:(cur?'👉 ทำขั้นนี้ต่อเลย':'⏳ ยังไม่ได้ทำ');
   const right=t.done?'<div style="font-size:20px;color:var(--green);flex-shrink:0">✓</div>'
-    :(opts.showGo&&link?`<button onclick="todoGo('${t.autoCheck}',${branch},'${link}')" style="background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font)">ไปทำ →</button>`:'');
+    :(opts.showGo&&link?`<button onclick="todoGo('${t.autoCheck}',${branch},'${link}')" style="background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:10px;padding:${cur?'10px 16px':'8px 12px'};font-size:${cur?'13px':'12px'};font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;font-family:var(--font);${cur?'box-shadow:0 4px 12px rgba(31,174,139,.32)':''}">ไปทำ →</button>`:'');
   const del=opts.showDelete?`<button onclick="event.stopPropagation();deleteTodoTask('${data.date}',${branch},${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;font-size:13px" title="ลบ">✕</button>`:'';
-  return `<div style="display:flex;align-items:center;gap:11px;background:${t.done?'var(--green-ll)':'var(--surface)'};border:1px solid ${t.done?'var(--green-l)':'var(--border)'};border-radius:13px;padding:11px 12px;margin-bottom:8px">
+  const bd=t.done?'var(--green-l)':(cur?'var(--green)':'var(--border)');
+  return `<div style="display:flex;align-items:center;gap:11px;background:${t.done?'var(--green-ll)':'var(--surface)'};border:${cur?'1.5px':'1px'} solid ${bd};border-radius:13px;padding:11px 12px;margin-bottom:8px;${cur?'box-shadow:0 5px 16px rgba(31,174,139,.16)':''}">
     <div style="width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;background:${t.done?'var(--green)':'var(--amber-l)'}">${ic}</div>
-    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${t.title}</div><div style="font-size:11px;margin-top:1px;color:${t.done?'var(--green-d)':'var(--amber-t)'}">${when}</div></div>
+    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:${cur?'700':'600'}">${t.title}</div><div style="font-size:11px;margin-top:1px;color:${t.done?'var(--green-d)':'var(--amber-t)'}">${when}</div></div>
     ${right}${del}
   </div>`;
 }
@@ -9850,7 +9962,7 @@ function todoManualRow(t,i,data,branch,opts){
 function todoSecHead(icon,title,hint,mt){return `<div style="display:flex;align-items:center;gap:8px;margin:${mt} 2px 10px"><span style="font-size:13.5px;font-weight:700">${icon} ${title}</span><span style="font-size:10.5px;color:var(--text3)">· ${hint}</span></div>`;}
 // เรียงงานระบบตาม flow งานจริง: เช็คอิน → นับเงินต้นวัน → ลงยอด → เก็บเงินกระเป๋า → นับเงินปลายวัน
 // (นับเงินปลายวัน/ปิดร้าน ซ่อนจนกว่าจะนับเงินต้นวัน/เปิดร้านเสร็จ)
-const TODO_FLOW_ORDER={checkin:0,cash_open:1,sales:2,purse:3,cash_close:5};
+const TODO_FLOW_ORDER={checkin:0,cash_open:1,sales:2,cash_close:3,purse:6};
 function todoOrderAuto(auto){
   const openT=auto.find(x=>x.t.autoCheck==='cash_open');
   const shown=auto.filter(x=>!(x.t.autoCheck==='cash_close'&&openT&&!openT.t.done));
@@ -9910,8 +10022,13 @@ function renderTodoPageContent(data,branch){
   const pct=shown.length?Math.round(done/shown.length*100):0;
   let html=todoHero(pct,done,shown.length,shown.length-done);
   if(auto.length){
-    html+=todoSecHead('📲','ต้องไปทำในระบบ','ระบบติ๊กให้อัตโนมัติเมื่อทำเสร็จ','6px');
-    html+=auto.map(x=>todoAutoRow(x.t,x.i,data,branch,{showGo:true,showDelete:isAdmin})).join('');
+    html+=todoSecHead('📲','ต้องไปทำในระบบ','ทำทีละขั้น ระบบติ๊กให้เมื่อเสร็จ','6px');
+    // แสดงทีละขั้น: โชว์งานที่เสร็จแล้ว + ขั้นปัจจุบัน (ขั้นถัดไปจะโผล่เมื่อทำขั้นนี้เสร็จ)
+    const firstUndone=auto.findIndex(x=>!x.t.done);
+    let autoShown=auto,hiddenCount=0;
+    if(firstUndone!==-1){autoShown=auto.slice(0,firstUndone+1);hiddenCount=auto.length-autoShown.length;}
+    html+=autoShown.map((x,n)=>todoAutoRow(x.t,x.i,data,branch,{showGo:true,showDelete:isAdmin,current:(firstUndone!==-1&&n===firstUndone)})).join('');
+    if(hiddenCount>0)html+=`<div style="text-align:center;font-size:11.5px;color:var(--text3);padding:2px 0 8px">🔒 อีก ${hiddenCount} ขั้น — จะแสดงเมื่อทำขั้นนี้เสร็จ</div>`;
   }
   if(manual.length){
     html+=todoSecHead('✅','งานทั่วไป','แตะเพื่อติ๊กเมื่อทำเสร็จ',auto.length?'18px':'6px');
