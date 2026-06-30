@@ -1593,8 +1593,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.57.1';
+const APP_VERSION='3.58.0';
 const CHANGELOG=[
+  {v:'3.58.0',date:'2026-06-30',changes:['เพิ่มรายการเงินสด “💸 เบิกซื้อของ/ค่าใช้จ่าย” — กรณีพนักงานหยิบเงินไปซื้อของใช้ในร้านระหว่างวัน เลือกหักจากลิ้นชักหรือกองสำรองได้ ใส่จำนวน(นับแยกชนิดเงิน)+เหตุผล/ชื่อของ · ระบบหักยอดให้ถูกต้อง ตอนปิดร้านจะไม่ขึ้นว่า“เงินขาด”อีก (สูตรควรมีหักค่าใช้จ่ายที่เบิกจากลิ้นชักแล้ว) · พนักงานทำเองได้ ยกเลิกได้ใน 5 นาที · แสดงในสรุปวันนี้/ประวัติ']},
   {v:'3.57.1',date:'2026-06-29',changes:['กันพลาด: โหมดแอดมิน“ดูระบบแบบพนักงาน”เป็นแบบดูเฉยๆ — กดปุ่มในการ์ดไกด์จะไม่เปิดหน้าจอบันทึกจริงอีกต่อไป (เด้งข้อความแนะให้ใช้“สนามฝึก”แทน) ป้องกันบันทึกข้อมูลจริงโดยไม่ตั้งใจ']},
   {v:'3.57.0',date:'2026-06-29',changes:['เพิ่มเครื่องมือแอดมินในหน้า“สนามฝึก” (เฉพาะแอดมิน ไว้สอน/สาธิตพนักงาน) — ทำงานในเครื่องล้วน ไม่บันทึก/ไม่กระทบข้อมูลจริง: (1) “ดูระบบแบบพนักงาน” เปิดการ์ดไกด์ + ปุ่มช่วยเหลือบนหน้าแรกให้แอดมินเห็นแบบที่พนักงานเห็น (ไม่เปลี่ยน role จริง มีแถบม่วงบนสุด แตะออกได้) (2) “รีเซ็ตทัวร์แนะนำ” ล้างสถานะเพื่อให้ทัวร์ครั้งแรกเด้งใหม่ + ดูเลยได้ทันที']},
   {v:'3.56.0',date:'2026-06-29',changes:['เพิ่ม“ปุ่มช่วยเหลือ”ลอยมุมขวาล่าง (เฉพาะพนักงาน) แตะแล้วเลือกได้ว่างงเรื่องอะไร: ตอนนี้ควรทำอะไร / วิธีลงยอดขาย / วิธีนับเงินเปิด-ปิดร้าน / ดูทัวร์อีกครั้ง — ระบบพาไปทำให้เลย · เพิ่ม“ทัวร์แนะนำครั้งแรก” 4 ขั้นตอน เด้งอัตโนมัติครั้งแรกที่พนักงานล็อกอิน (เช็คอิน→การ์ดไกด์→งานวันนี้→ปุ่มช่วยเหลือ) ข้ามหรือดูซ้ำได้']},
@@ -4143,8 +4144,10 @@ async function loadCashData(){
 function cashGet(b){const s=cashState[String(b)]||{};return{reserve:+s.reserve||0,drawer:+s.drawer||0,safe:+s.safe||0,openDrawer:(s.openDrawer==null?null:+s.openDrawer),openDate:s.openDate||null,openBy:s.openBy||''};}
 function cashSalesToday(b){const e=salesEntries.find(x=>x.date===todayStr()&&+x.branch===+b);return e?(parseFloat(e.amounts&&e.amounts['เงินสด'])||0):0;}
 function cashSumToday(b,type){return cashEvents.filter(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type===type).reduce((a,ev)=>a+(ev.amount||0),0);}
+// รวมยอด "เบิกซื้อของ" ที่หักจากลิ้นชักวันนี้ (เฉพาะ from==='drawer' — ที่หักจากสำรองไม่กระทบลิ้นชัก)
+function cashExpenseDrawerToday(b){return cashEvents.filter(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='expense'&&(ev.from==='drawer'||ev.from==null)).reduce((a,ev)=>a+(ev.amount||0),0);}
 function cashOpenedToday(b){return cashGet(b).openDate===todayStr();}
-function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===todayStr()?(st.openDrawer||0):0;return open+cashSumToday(b,'r2d')+cashSalesToday(b)-cashSumToday(b,'deposit');}
+function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===todayStr()?(st.openDrawer||0):0;return open+cashSumToday(b,'r2d')+cashSalesToday(b)-cashSumToday(b,'deposit')-cashExpenseDrawerToday(b);}
 function cashTodayClose(b){return cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='close');}
 // คำนวณ "ควรมี/ผลต่าง" ของรายการปิดร้าน — ถ้าเป็นของวันนี้ คิดสดตามยอดขายล่าสุด (เผื่อแก้ยอดขายทีหลัง),
 // ถ้าเป็นวันก่อน ใช้ค่าที่บันทึกไว้ (ยอดขายอ้างอิงเฉพาะวันนี้)
@@ -4154,7 +4157,8 @@ function cashCloseCalc(branch,ev){
     const st=cashGet(branch);
     const open=st.openDate===todayStr()?(st.openDrawer||0):0;
     const depBefore=cashEvents.filter(x=>+x.branch===+branch&&x.date===todayStr()&&x.type==='deposit'&&x.ts<ev.ts).reduce((a,x)=>a+(x.amount||0),0);
-    const exp=open+cashSumToday(branch,'r2d')+cashSalesToday(branch)-depBefore;
+    const expBefore=cashEvents.filter(x=>+x.branch===+branch&&x.date===todayStr()&&x.type==='expense'&&(x.from==='drawer'||x.from==null)&&x.ts<ev.ts).reduce((a,x)=>a+(x.amount||0),0);
+    const exp=open+cashSumToday(branch,'r2d')+cashSalesToday(branch)-depBefore-expBefore;
     return {counted,expected:exp,diff:Math.round((counted-exp)*100)/100};
   }
   return {counted,expected:ev.expected||0,diff:ev.diff||0};
@@ -4228,6 +4232,7 @@ const CASH_TYPES={
   close:{t:'ปิดร้าน — นับเงิน',i:'🌙',c:'#1E3A8A'},
   deposit:{t:'ดึงเข้าตู้เซฟ',i:'🔒',c:'#1E3A8A'},
   safeout:{t:'นำออกจากตู้เซฟ',i:'🏦',c:'#C2410C'},
+  expense:{t:'เบิกซื้อของ/ค่าใช้จ่าย',i:'💸',c:'#C2410C'},
 };
 function cashEventRow(ev,voidable){
   const meta=CASH_TYPES[ev.type]||{t:ev.type,i:'•',c:'var(--text2)'};
@@ -4250,10 +4255,11 @@ function cashEventRow(ev,voidable){
   const _bdInfo=ev.backdated?`<div style="font-size:10px;color:var(--text3)">ลงย้อนหลังโดย ${ev.recordedBy||'—'} · ${ev.recordedAt?new Date(ev.recordedAt).toLocaleDateString('th-TH',{day:'numeric',month:'short'}):''}</div>`:'';
   const _dn=cashDenomSummary(ev.denoms);
   const _dnInfo=_dn?`<div style="font-size:10.5px;color:var(--text3);margin-top:2px">🪙 ${_dn}</div>`:'';
+  const _expInfo=ev.type==='expense'?`<div style="font-size:11px;color:var(--text2);margin-top:1px">${ev.from==='reserve'?'💼 จากสำรอง':'🧰 จากลิ้นชัก'}${ev.note?' · '+ev.note:''}</div>`:'';
   return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
     <div style="display:flex;align-items:flex-start;gap:10px;min-width:0">
       <span style="width:30px;height:30px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${meta.i}</span>
-      <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:${meta.c}">${meta.t}${_bd}</div><div style="font-size:11px;color:var(--text3)">${ev.by} · ${dStr}</div>${_dnInfo}${_bdInfo}${review}${undo}</div>
+      <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:${meta.c}">${meta.t}${_bd}</div><div style="font-size:11px;color:var(--text3)">${ev.by} · ${dStr}</div>${_expInfo}${_dnInfo}${_bdInfo}${review}${undo}</div>
     </div>
     <div style="text-align:right;white-space:nowrap;font-size:13.5px;font-weight:600;font-family:var(--mono)">${right}</div>
   </div>`;
@@ -4265,13 +4271,14 @@ window.cashVoidEvent=async function(evId){
   const _selfWindow=(ev.byUid===currentUser?.uid)&&_mins<5;
   if(!isAdmin&&!_selfWindow){showToast('เกิน 5 นาที — แจ้งแอดมินให้ยกเลิกรายการนี้','err');return;}
   const b=ev.branch, st=cashGet(b), amt=ev.amount||0;
-  const names={open:'เปิดร้าน',r2d:'เบิกสำรอง→ลิ้นชัก',topup:'เติมสำรอง',close:'ปิดร้าน',deposit:'ดึงเข้าตู้เซฟ',safeout:'นำออกตู้เซฟ'};
+  const names={open:'เปิดร้าน',r2d:'เบิกสำรอง→ลิ้นชัก',topup:'เติมสำรอง',close:'ปิดร้าน',deposit:'ดึงเข้าตู้เซฟ',safeout:'นำออกตู้เซฟ',expense:'เบิกซื้อของ/ค่าใช้จ่าย'};
   if(!await capsuleConfirm(`ยกเลิกรายการ “${names[ev.type]||ev.type}” ฿${fmt(amt)}?\nระบบจะย้อนยอดเงินกลับ และลบรายการนี้`))return;
   let patch={};
   if(ev.type==='r2d')patch={reserve:st.reserve+amt,drawer:st.drawer-amt};
   else if(ev.type==='topup')patch={reserve:st.reserve-amt};
   else if(ev.type==='deposit')patch={drawer:st.drawer+amt,safe:st.safe-amt};
   else if(ev.type==='safeout')patch={safe:st.safe+amt};
+  else if(ev.type==='expense')patch=(ev.from==='reserve')?{reserve:st.reserve+amt}:{drawer:st.drawer+amt};
   else if(ev.type==='open')patch={drawer:0,openDrawer:null,openDate:null,openBy:''};
   else if(ev.type==='close')patch=(ev.prevDrawer!=null)?{drawer:ev.prevDrawer}:{}; // คืนยอดลิ้นชักก่อนปิด (ถ้าบันทึกไว้) เพื่อให้ปิดใหม่ได้ถูกต้อง
   if(_cashBusy)return;_cashBusy=true;
@@ -4308,6 +4315,7 @@ function renderCashPage(){
   const cashSales=cashSalesToday(branch);
   const r2dT=cashSumToday(branch,'r2d');
   const depT=cashSumToday(branch,'deposit');
+  const expDrawerT=cashExpenseDrawerToday(branch); // เบิกซื้อของจากลิ้นชักวันนี้
   // ยอดดึงเข้าตู้เซฟ "ก่อนปิดร้าน" — ใช้คิดยอดควรมี (ถ้าปิดแล้ว นับเฉพาะที่เกิดก่อน event ปิด)
   const _closeEv0=cashTodayClose(branch);
   const depBeforeClose=cashEvents.filter(ev=>ev.branch===branch&&ev.date===todayStr()&&ev.type==='deposit'&&(!_closeEv0||ev.ts<_closeEv0.ts)).reduce((a,ev)=>a+(ev.amount||0),0);
@@ -4353,6 +4361,7 @@ function renderCashPage(){
       <button class="btn btn-sm" onclick="cashR2DPrompt(${branch})">💼→🧰 เบิกสำรองมาลิ้นชัก</button>
       ${closeEv?'':`<button class="btn btn-sm btn-blue" onclick="cashClosePrompt(${branch})">🌙 ปิดร้าน — นับเงิน</button>`}
       <button class="btn btn-sm" onclick="cashDepositPrompt(${branch})">🧰→🔒 ดึงเข้าตู้เซฟ</button>
+      <button class="btn btn-sm" onclick="cashExpensePrompt(${branch})">💸 เบิกซื้อของ/ค่าใช้จ่าย</button>
     </div>`;
   }
   // สรุปวันนี้
@@ -4363,6 +4372,7 @@ function renderCashPage(){
     ${cashRow('+ เบิกจากสำรอง',`฿${fmt(r2dT)}`)}
     ${cashRow('+ ยอดขายเงินสดวันนี้',`฿${fmt(cashSales)}`,'จากระบบยอดขาย')}
     ${depT>0?cashRow('− ดึงเข้าตู้เซฟ (ก่อนปิด)',`฿${fmt(depBeforeClose)}`):''}
+    ${expDrawerT>0?cashRow('− เบิกซื้อของ (จากลิ้นชัก)',`฿${fmt(expDrawerT)}`):''}
     ${cashRow('= ควรมีตอนปิดร้าน',`฿${fmt(closeEv?cashCloseCalc(branch,closeEv).expected:expClose)}`,'',true)}`;
   if(closeEv){
     const diff=cashCloseCalc(branch,closeEv).diff;
@@ -4467,6 +4477,53 @@ window.cashDoR2D=async function(branch){
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
   finally{_cashBusy=false;}
 };
+// 💸 เบิกเงินซื้อของ/ค่าใช้จ่าย — เงินออกจากลิ้นชักหรือสำรอง (พนักงานทำเองได้)
+window.cashExpSetSrc=function(src){
+  const inp=document.getElementById('exp-src'); if(inp)inp.value=src;
+  ['drawer','reserve'].forEach(s=>{
+    const b=document.getElementById('exp-src-'+s); if(!b)return;
+    const on=s===src;
+    b.style.background=on?'var(--green-d)':'var(--surface)';
+    b.style.color=on?'#fff':'var(--text2)';
+    b.style.borderColor=on?'var(--green-d)':'var(--border2)';
+    b.style.fontWeight=on?'700':'500';
+  });
+};
+window.cashExpensePrompt=function(branch){
+  const st=cashGet(branch);
+  const srcBtn=(s,label,bal)=>`<button type="button" id="exp-src-${s}" onclick="cashExpSetSrc('${s}')" style="flex:1;padding:9px 8px;border-radius:11px;border:1.5px solid var(--border2);background:var(--surface);color:var(--text2);font-family:var(--font);font-size:12.5px;font-weight:500;cursor:pointer;line-height:1.3">${label}<br><span style="font-size:10.5px;opacity:.8">เหลือ ฿${fmt(bal)}</span></button>`;
+  openModal(`<div class="modal-title">💸 เบิกเงินซื้อของ / ค่าใช้จ่าย · ${BRANCHES[branch]}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.55">หยิบเงินไปซื้อของใช้ในร้าน/จ่ายค่าใช้จ่าย — เลือกว่าหยิบจากกองไหน แล้วนับเงินที่หยิบ</div>
+    <label class="fl" style="display:block;margin-bottom:5px">หยิบเงินจาก</label>
+    <div style="display:flex;gap:8px;margin-bottom:12px">${srcBtn('drawer','🧰 ลิ้นชักหน้าร้าน',st.drawer)}${srcBtn('reserve','💼 กองสำรอง',st.reserve)}</div>
+    <input type="hidden" id="exp-src" value="drawer">
+    ${cashDenomBlock()}
+    <div class="field"><label class="fl">จำนวนที่เบิก (บาท)</label><input type="number" id="cash-in" inputmode="decimal" placeholder="0" readonly style="font-size:20px;font-weight:600"></div>
+    <div class="field"><label class="fl">ซื้ออะไร / เหตุผล (บังคับ)</label><input type="text" id="exp-note" placeholder="เช่น ถุงขยะ, น้ำดื่ม, ค่าส่งของ" maxlength="120"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoExpense(${branch})">บันทึกเบิกเงิน</button></div>`);
+  cashExpSetSrc('drawer');
+  setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
+};
+window.cashDoExpense=async function(branch){
+  if(_cashBusy)return;_cashBusy=true;
+  try{
+    const amt=parseFloat(document.getElementById('cash-in').value);
+    if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
+    const note=(document.getElementById('exp-note')?.value||'').trim();
+    if(!note){showToast('ใส่เหตุผล/ชื่อของที่ซื้อด้วย','err');document.getElementById('exp-note')?.focus();return;}
+    const from=(document.getElementById('exp-src')?.value==='reserve')?'reserve':'drawer';
+    const st=cashGet(branch);
+    const bal=from==='reserve'?st.reserve:st.drawer;
+    const poolName=from==='reserve'?'กองสำรอง':'ลิ้นชัก';
+    if(amt>bal){if(!await capsuleConfirm(`${poolName}มีแค่ ฿${fmt(bal)} — เบิก ฿${fmt(amt)} จะทำให้${poolName}ติดลบ ยืนยันไหม?`))return;}
+    const patch=from==='reserve'?{reserve:st.reserve-amt}:{drawer:st.drawer-amt};
+    await cashSaveState(branch,patch);
+    await cashAddEvent({branch,type:'expense',amount:amt,from,note,denoms:cashGetDenoms()});
+    closeMD();renderCashPage();showToast(`เบิกซื้อของจาก${poolName} ฿${fmt(amt)}`);
+    logActivity('cash_expense',`เบิกซื้อของ ${BRANCHES[branch]} จาก${poolName} ฿${fmt(amt)} (${note})`);
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
+};
 window.cashTopupPrompt=function(branch){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
   openModal(`<div class="modal-title">➕ เติมเงินสำรอง · ${BRANCHES[branch]}</div>
@@ -4498,6 +4555,8 @@ window.cashClosePrompt=function(branch){
       <div style="display:flex;justify-content:space-between"><span>เงินต้นลิ้นชัก</span><b>฿${fmt(st.openDrawer||0)}</b></div>
       <div style="display:flex;justify-content:space-between"><span>+ เบิกจากสำรอง</span><b>฿${fmt(cashSumToday(branch,'r2d'))}</b></div>
       <div style="display:flex;justify-content:space-between"><span>+ ยอดขายเงินสด</span><b>฿${fmt(cashSalesToday(branch))}</b></div>
+      ${cashSumToday(branch,'deposit')>0?`<div style="display:flex;justify-content:space-between"><span>− ดึงเข้าตู้เซฟ</span><b>฿${fmt(cashSumToday(branch,'deposit'))}</b></div>`:''}
+      ${cashExpenseDrawerToday(branch)>0?`<div style="display:flex;justify-content:space-between"><span>− เบิกซื้อของ</span><b>฿${fmt(cashExpenseDrawerToday(branch))}</b></div>`:''}
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);margin-top:5px;padding-top:5px"><span style="font-weight:700">= ควรมี</span><b style="color:var(--green-d)">฿${fmt(exp)}</b></div>
     </div>
     ${cashDenomBlock()}
