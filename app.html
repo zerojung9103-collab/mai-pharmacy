@@ -1608,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.70.0';
+const APP_VERSION='3.71.0';
 const CHANGELOG=[
+  {v:'3.71.0',date:'2026-06-30',changes:['สลิปเงินเดือน: แก้ “วันที่จ่าย” บนสลิปได้เอง — มีช่องเลือกวันที่ในหน้าคำนวณรายคน (เดิมระบบใส่วันสุดท้ายของเดือนให้อัตโนมัติ) และตั้ง “วันที่จ่าย” รวมทุกคนได้ในโหมดทำหลายคนพร้อมกัน']},
   {v:'3.70.0',date:'2026-06-30',changes:['เงินเดือน: (1) แก้ไขรอบที่ “จ่ายแล้ว” ได้ — คลิกชื่อคนนั้นเปิดขึ้นมาแก้ตัวเลขได้เลย มีแถบบอกชัด + ปุ่มเปลี่ยนเป็น “บันทึกการแก้ไข” (ทับยอดเดิม) · แก้บั๊กเงินเดือนฐานที่เคยเด้งกลับเป็นค่าตั้งต้น ตอนนี้โหลดยอดที่จ่ายจริงกลับมา (2) เพิ่ม “สิทธิ์วันลา” บนสลิป — admin กรอกเอง (ประเภท/สิทธิ์ทั้งหมด/ใช้ไป → คำนวณคงเหลือให้) เลือกเปิด–ปิดการแสดงได้ต่อคน เก็บที่โปรไฟล์พนักงานใช้ได้ทุกเดือน แสดงเป็นตารางบนสลิป PDF']},
   {v:'3.69.0',date:'2026-06-30',changes:['จัดการเงินเดือน: เพิ่มโหมด “⚡ ทำหลายคนพร้อมกัน” — ระบบคิดเงินเดือนทุกคนจากตารางเวร+เงินที่ตั้งไว้ให้อัตโนมัติ ติ๊กเลือกคนแล้วบันทึก&จ่ายทีเดียว · ใส่รายการเพิ่ม/หัก “ให้ทุกคน” ได้ในครั้งเดียว (เช่น โบนัสปีใหม่) · เพิ่มข้อความบนสลิป: ตั้งค่ารวม (ชื่อร้าน/ข้อความหัว/ข้อความท้าย-คำขอบคุณ ผ่านปุ่ม “✏️ ข้อความในสลิป”) + ใส่ข้อความเฉพาะรายคน/รอบได้ — แสดงบนสลิป PDF ทุกใบ']},
   {v:'3.68.0',date:'2026-06-30',changes:['เพิ่ม “หน้าต่างลอยมินิ” (บัญชีของฉัน → 📌 หน้าต่างลอยมินิ) — เปิดหน้าต่างเล็กลอยอยู่เหนือทุกโปรแกรมบนคอมพิวเตอร์ แสดงงานวันนี้ + ขั้นต่อไป + ปุ่มลัด (นับเงิน/ลงยอด/งานวันนี้) กดแล้วเด้งไปทำในแอปได้เลย ไม่ต้องสลับหน้าต่างเอง อัปเดตสถานะอัตโนมัติ · ใช้ได้บน Chrome/Edge รุ่นใหม่บนเครื่องคอม (หมายเหตุ: ต้องกดเปิดเอง 1 ครั้ง เบราว์เซอร์ไม่อนุญาตให้เด้งเองตอนเปิดเครื่อง)']},
@@ -6099,6 +6100,7 @@ window.selectPRPerson=async function(uid){
     otHours:saved?.otHours||0,
     otRate:saved?.otRate||0,
     slipNote:saved?.slipNote||'',
+    payDate:saved?.payDate||'',
     status:saved?.status||'pending'
   };
   loading(false);
@@ -6144,6 +6146,9 @@ function renderPRCalc(){
     </div>`;
   }).join('');
 
+  const _lastDay=new Date(prYear,prMonth,0).getDate();
+  const _defPay=d.payDate||`${prYear}-${String(prMonth).padStart(2,'0')}-${String(_lastDay).padStart(2,'0')}`;
+
   document.getElementById('pr-calc-card').innerHTML=`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
       <div class="pr-person-av" style="width:48px;height:48px;font-size:18px">${d.name.charAt(0)}</div>
@@ -6155,6 +6160,11 @@ function renderPRCalc(){
     </div>
 
     ${d.status==='paid'?`<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:10px 13px;margin-bottom:1rem;font-size:12.5px;color:var(--blue-t)">✏️ <b>รอบนี้จ่ายแล้ว — แก้ไขได้</b> · ปรับตัวเลขด้านล่างแล้วกด “บันทึกการแก้ไข” ระบบจะทับยอดเดิมให้</div>`:''}
+
+    <div class="pr-line">
+      <span class="pr-line-label">📅 วันที่จ่าย (บนสลิป)</span>
+      <input type="date" id="pr-pay-date" class="pr-line-input" style="width:auto" value="${_defPay}" onchange="prData.payDate=this.value">
+    </div>
 
     <!-- สรุปชั่วโมงจากตารางเวร (แสดงทุกคน) -->
     <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:10px;padding:12px 14px;margin-bottom:1rem">
@@ -6341,6 +6351,7 @@ window.savePRPerson=async function(){
       deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
       extraItems:prExtraItems,
       slipNote:(document.getElementById('pr-slip-note')?.value||d.slipNote||'').trim(),
+      payDate:(document.getElementById('pr-pay-date')?.value||d.payDate||''),
       net:d.computedNet,status:'paid',
       updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
     });
@@ -6422,6 +6433,10 @@ function _prBatchRender(){
     </div>
     <div style="max-height:40vh;overflow:auto;margin-bottom:14px">${list}</div>
     <div style="background:var(--bg);border-radius:11px;padding:12px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:12.5px;font-weight:700">📅 วันที่จ่าย (ทุกคน)</span>
+        <input type="date" id="pb-paydate" value="${prYear}-${String(prMonth).padStart(2,'0')}-${String(new Date(prYear,prMonth,0).getDate()).padStart(2,'0')}" style="width:auto;padding:7px 10px;font-size:12.5px">
+      </div>
       <div style="font-size:12.5px;font-weight:700;margin-bottom:8px">➕ ใส่รายการให้ทุกคนที่เลือก (ไม่บังคับ)</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <input type="text" id="pb-extra-name" placeholder="ชื่อรายการ เช่น โบนัสปีใหม่" style="flex:1;min-width:130px;font-size:12.5px">
@@ -6445,6 +6460,7 @@ window.prBatchSave=async function(){
   const exType=document.getElementById('pb-extra-type').value;
   const sharedExtra=(exName&&exAmt>0)?{name:exName,type:exType,amount:exAmt}:null;
   const sharedNote=document.getElementById('pb-note').value.trim();
+  const sharedPayDate=document.getElementById('pb-paydate')?.value||'';
   const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
   loading(true);
   let ok=0, grand=0;
@@ -6460,6 +6476,7 @@ window.prBatchSave=async function(){
         otHours:row.otHours||0,otRate:row.otRate||0,otAmt:row.otAmt||0,
         bonus:calc.add,deduction:calc.ded,extraItems:calc.items,
         slipNote:sharedNote||row.slipNote||'',
+        payDate:sharedPayDate||'',
         net:calc.net,status:'paid',
         updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
       });
@@ -6484,7 +6501,8 @@ window.exportPersonSlip=function(){
     bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
     deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
     net:d.computedNet,status:d.status,extraItems:prExtraItems,
-    slipNote:(document.getElementById('pr-slip-note')?.value||d.slipNote||'').trim()
+    slipNote:(document.getElementById('pr-slip-note')?.value||d.slipNote||'').trim(),
+    payDate:(document.getElementById('pr-pay-date')?.value||d.payDate||'')
   };
   const role=m?.role||'';
   downloadHTML(buildMonthSlip(rec,d.name,role,d.uid),`สลิป_${d.name}_${MONTHS_TH[prMonth-1]}_${prYear}.html`);
@@ -6777,7 +6795,9 @@ function buildMonthSlip(r, memberName, memberRole, uid){
   // งวดที่จ่าย = วันสุดท้ายของเดือน
   const lastDay=new Date(r.year,r.month,0).getDate();
   const period=`${MONTHS_TH[r.month-1]} ${r.year}`;
-  const payDate=`${lastDay} ${MONTHS_TH[r.month-1]} ${r.year}`;
+  let payDate;
+  if(r.payDate){const _pd=new Date(r.payDate+'T00:00:00');payDate=isNaN(_pd.getTime())?r.payDate:`${_pd.getDate()} ${MONTHS_TH[_pd.getMonth()]} ${_pd.getFullYear()}`;}
+  else payDate=`${lastDay} ${MONTHS_TH[r.month-1]} ${r.year}`;
   const printAt=new Date().toLocaleString('th-TH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 
   // แยกรายการ รายรับ / รายหัก
