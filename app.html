@@ -1608,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.69.0';
+const APP_VERSION='3.70.0';
 const CHANGELOG=[
+  {v:'3.70.0',date:'2026-06-30',changes:['เงินเดือน: (1) แก้ไขรอบที่ “จ่ายแล้ว” ได้ — คลิกชื่อคนนั้นเปิดขึ้นมาแก้ตัวเลขได้เลย มีแถบบอกชัด + ปุ่มเปลี่ยนเป็น “บันทึกการแก้ไข” (ทับยอดเดิม) · แก้บั๊กเงินเดือนฐานที่เคยเด้งกลับเป็นค่าตั้งต้น ตอนนี้โหลดยอดที่จ่ายจริงกลับมา (2) เพิ่ม “สิทธิ์วันลา” บนสลิป — admin กรอกเอง (ประเภท/สิทธิ์ทั้งหมด/ใช้ไป → คำนวณคงเหลือให้) เลือกเปิด–ปิดการแสดงได้ต่อคน เก็บที่โปรไฟล์พนักงานใช้ได้ทุกเดือน แสดงเป็นตารางบนสลิป PDF']},
   {v:'3.69.0',date:'2026-06-30',changes:['จัดการเงินเดือน: เพิ่มโหมด “⚡ ทำหลายคนพร้อมกัน” — ระบบคิดเงินเดือนทุกคนจากตารางเวร+เงินที่ตั้งไว้ให้อัตโนมัติ ติ๊กเลือกคนแล้วบันทึก&จ่ายทีเดียว · ใส่รายการเพิ่ม/หัก “ให้ทุกคน” ได้ในครั้งเดียว (เช่น โบนัสปีใหม่) · เพิ่มข้อความบนสลิป: ตั้งค่ารวม (ชื่อร้าน/ข้อความหัว/ข้อความท้าย-คำขอบคุณ ผ่านปุ่ม “✏️ ข้อความในสลิป”) + ใส่ข้อความเฉพาะรายคน/รอบได้ — แสดงบนสลิป PDF ทุกใบ']},
   {v:'3.68.0',date:'2026-06-30',changes:['เพิ่ม “หน้าต่างลอยมินิ” (บัญชีของฉัน → 📌 หน้าต่างลอยมินิ) — เปิดหน้าต่างเล็กลอยอยู่เหนือทุกโปรแกรมบนคอมพิวเตอร์ แสดงงานวันนี้ + ขั้นต่อไป + ปุ่มลัด (นับเงิน/ลงยอด/งานวันนี้) กดแล้วเด้งไปทำในแอปได้เลย ไม่ต้องสลับหน้าต่างเอง อัปเดตสถานะอัตโนมัติ · ใช้ได้บน Chrome/Edge รุ่นใหม่บนเครื่องคอม (หมายเหตุ: ต้องกดเปิดเอง 1 ครั้ง เบราว์เซอร์ไม่อนุญาตให้เด้งเองตอนเปิดเครื่อง)']},
   {v:'3.67.0',date:'2026-06-30',changes:['สถิติการชำระเงิน (ในแท็บภาพรวม): เพิ่มส่วน “แยกรายสาขา” — แต่ละสาขามีแถบสัดส่วนช่องทางจ่าย (เงินสด/EDC/QR) สีตรงกับวงกลมรวม + ยอด/เปอร์เซ็นต์แต่ละช่องทาง เห็นว่าสาขาไหนรับช่องทางไหนมากน้อย']},
@@ -5965,6 +5966,7 @@ let prMonth=new Date().getMonth()+1, prYear=new Date().getFullYear();
 let prCurrentPerson=null; // uid ที่กำลังคำนวณ
 let prExtraItems=[]; // รายการพิเศษของคนนี้ [{name,type,amount}]
 let prData={}; // เก็บข้อมูลคำนวณของคนปัจจุบัน
+let prLeave={show:false,items:[]}; // สิทธิ์วันลาที่จะแสดงบนสลิปของคนนี้ (admin กรอกเอง) [{type,total,used}]
 
 window.prMonthChanged=function(){
   prMonth=parseInt(document.getElementById('pr-month').value);
@@ -6075,11 +6077,14 @@ window.selectPRPerson=async function(uid){
 
   const salary=m.salary||{type:'fixed',base:0,hourlyRate:0};
   prExtraItems=saved?.extraItems?[...saved.extraItems]:[];
+  // สิทธิ์วันลาบนสลิป (เก็บที่โปรไฟล์พนักงาน) — โหลดมาแก้ไขได้
+  prLeave=m.slipLeave?JSON.parse(JSON.stringify(m.slipLeave)):{show:false,items:[]};
+  if(!Array.isArray(prLeave.items))prLeave.items=[];
 
   prData={
     uid,name:`${m.firstName||''} ${m.lastName||''}`.trim(),
     salaryType:salary.type||'fixed',
-    base:salary.base||0,
+    base:(saved&&saved.baseAmt!=null&&(salary.type||'fixed')!=='hourly')?saved.baseAmt:(salary.base||0),
     hourlyRate:salary.hourlyRate||0,
     lateRate:saved?.lateRate!=null?saved.lateRate:(salary.lateRate||0),
     hours:saved?.hoursOverride!=null?saved.hoursOverride:hours,
@@ -6125,6 +6130,20 @@ function renderPRCalc(){
       </div>
     </div>`).join('');
 
+  const leaveRows=prLeave.items.map((it,i)=>{
+    const left=(Number(it.total)||0)-(Number(it.used)||0);
+    return `<div class="pr-line">
+      <span class="pr-line-label">🌴 ${it.type||'(ไม่ระบุ)'}</span>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" class="pr-line-input" style="width:62px" value="${Number(it.total)||0}" min="0" onchange="updatePRLeaveField(${i},'total',this.value)" title="สิทธิ์ทั้งหมด">
+        <span style="font-size:11px;color:var(--text3)">−</span>
+        <input type="number" class="pr-line-input" style="width:62px" value="${Number(it.used)||0}" min="0" onchange="updatePRLeaveField(${i},'used',this.value)" title="ใช้ไป">
+        <span style="font-size:12px;color:var(--green-d);font-weight:600;min-width:56px;text-align:right">เหลือ ${left}</span>
+        <button class="btn btn-sm btn-danger" onclick="removePRLeave(${i})" style="padding:3px 8px">×</button>
+      </div>
+    </div>`;
+  }).join('');
+
   document.getElementById('pr-calc-card').innerHTML=`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
       <div class="pr-person-av" style="width:48px;height:48px;font-size:18px">${d.name.charAt(0)}</div>
@@ -6134,6 +6153,8 @@ function renderPRCalc(){
       </div>
       <span class="${d.status==='paid'?'sta-on':'sta-off'}">${d.status==='paid'?'จ่ายแล้ว':'รอดำเนินการ'}</span>
     </div>
+
+    ${d.status==='paid'?`<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:10px 13px;margin-bottom:1rem;font-size:12.5px;color:var(--blue-t)">✏️ <b>รอบนี้จ่ายแล้ว — แก้ไขได้</b> · ปรับตัวเลขด้านล่างแล้วกด “บันทึกการแก้ไข” ระบบจะทับยอดเดิมให้</div>`:''}
 
     <!-- สรุปชั่วโมงจากตารางเวร (แสดงทุกคน) -->
     <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:10px;padding:12px 14px;margin-bottom:1rem">
@@ -6225,6 +6246,22 @@ function renderPRCalc(){
     <input type="text" id="pr-slip-note" value="${(d.slipNote||'').replace(/"/g,'&quot;')}" placeholder="เช่น โบนัสพิเศษเดือนนี้ ขอบคุณที่ตั้งใจทำงาน" onchange="prData.slipNote=this.value" style="width:100%">
     <div style="font-size:11px;color:var(--text3);margin-top:4px">ข้อความนี้จะพิมพ์บนสลิปของคนนี้ · ตั้งข้อความรวมทุกคนได้ที่ปุ่ม “✏️ ข้อความในสลิป” ด้านบน</div>
 
+    <div style="margin:1.25rem 0 .5rem;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
+      <span>🌴 สิทธิ์วันลา (บนสลิป)</span>
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text2)">
+        <input type="checkbox" ${prLeave.show?'checked':''} onchange="prLeaveSetShow(this.checked)" style="width:16px;height:16px"> แสดงบนสลิปคนนี้
+      </label>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">admin กรอกเอง เช่น ลาพักร้อน สิทธิ์ 6 / ใช้ 2 (เหลือ 4) — กรอกแล้วกด “💾 บันทึกสิทธิ์ลา” · เก็บที่โปรไฟล์พนักงาน ใช้ทุกเดือน</div>
+    ${leaveRows||'<div style="font-size:12px;color:var(--text3);padding:6px 0">ยังไม่มีรายการ</div>'}
+    <div class="pr-extra-row" style="margin-top:.6rem">
+      <input type="text" id="pr-leave-type" placeholder="ประเภท เช่น ลาพักร้อน" style="flex:1;min-width:120px">
+      <input type="number" id="pr-leave-total" placeholder="สิทธิ์" style="width:78px" min="0">
+      <input type="number" id="pr-leave-used" placeholder="ใช้ไป" style="width:78px" min="0">
+      <button class="btn btn-primary btn-sm" onclick="addPRLeave()">+ เพิ่ม</button>
+    </div>
+    <button class="btn btn-sm" onclick="savePRLeave()" style="margin-top:8px">💾 บันทึกสิทธิ์ลา</button>
+
     <div class="pr-net-box">
       <div>
         <div class="lbl">เงินเดือนสุทธิ</div>
@@ -6236,7 +6273,7 @@ function renderPRCalc(){
     <div style="display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap">
       <button class="btn btn-primary" onclick="savePRPerson()" style="flex:1">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        บันทึกและจ่ายเงินเดือน
+        ${d.status==='paid'?'บันทึกการแก้ไข':'บันทึกและจ่ายเงินเดือน'}
       </button>
       <button class="btn" onclick="exportPersonSlip()">📥 สลิป PDF</button>
     </div>
@@ -6261,6 +6298,31 @@ window.addPRExtra=function(){
 window.removePRExtra=function(i){
   prExtraItems.splice(i,1);
   renderPRCalc();
+};
+
+// ===== สิทธิ์วันลาบนสลิป (admin กรอกเอง เก็บที่โปรไฟล์พนักงาน) =====
+window.prLeaveSetShow=function(on){prLeave.show=!!on;};
+window.updatePRLeaveField=function(i,field,val){if(prLeave.items[i]){prLeave.items[i][field]=parseFloat(val)||0;renderPRCalc();}};
+window.addPRLeave=function(){
+  const type=document.getElementById('pr-leave-type').value.trim();
+  const total=parseFloat(document.getElementById('pr-leave-total').value)||0;
+  const used=parseFloat(document.getElementById('pr-leave-used').value)||0;
+  if(!type){showToast('กรุณากรอกประเภทการลา','err');return;}
+  prLeave.items.push({type,total,used});
+  if(!prLeave.show)prLeave.show=true; // เพิ่มแล้วเปิดแสดงให้เลย
+  renderPRCalc();
+};
+window.removePRLeave=function(i){prLeave.items.splice(i,1);renderPRCalc();};
+window.savePRLeave=async function(){
+  if(!prCurrentPerson){showToast('เลือกพนักงานก่อน','err');return;}
+  loading(true);
+  try{
+    const payload={show:!!prLeave.show,items:prLeave.items.map(it=>({type:String(it.type||''),total:Number(it.total)||0,used:Number(it.used)||0}))};
+    await updateDoc(doc(db,'members',prCurrentPerson),{slipLeave:payload});
+    const m=allMembers.find(x=>x.uid===prCurrentPerson);if(m)m.slipLeave=JSON.parse(JSON.stringify(payload));
+    showToast(`บันทึกสิทธิ์วันลาแล้ว ✅ ${prLeave.show?'(จะขึ้นบนสลิป)':'(ปิดการแสดงอยู่)'}`);
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
+  loading(false);
 };
 
 window.savePRPerson=async function(){
@@ -6760,6 +6822,8 @@ function buildMonthSlip(r, memberName, memberRole, uid){
     .ps-title .branch{font-size:10px;color:#94A3B3;margin-top:2px}
     .ps-note-head{font-size:11px;color:#5A6B7B;margin-top:5px;font-style:italic}
     .ps-msg{margin-top:14px;background:#F8FAF9;border:1px solid #D4DAD8;border-left:3px solid #1FAE8B;border-radius:4px;padding:9px 12px;font-size:11.5px;color:#3A4A45;line-height:1.5}
+    .ps-leave{margin-top:16px}
+    .ps-leave-h{font-size:11px;font-weight:700;color:#5A6B7B;margin-bottom:6px}
     .ps-info-table{width:100%;font-size:12px;margin-bottom:14px;border-collapse:collapse}
     .ps-info-table td{padding:4px 0}
     .ps-info-table .lbl{color:#5A6B7B;width:24%}
@@ -6825,6 +6889,12 @@ function buildMonthSlip(r, memberName, memberRole, uid){
       <span class="lbl">เงินสุทธิที่ได้รับ :</span><span class="amt">฿${fmt(r.net)}</span>
       <div><span class="ps-status">${statusLabel}</span></div>
     </div>
+
+    ${(()=>{const lv=mem?.slipLeave;if(!lv||!lv.show||!Array.isArray(lv.items)||!lv.items.length)return '';
+      const rows=lv.items.map(it=>{const tot=Number(it.total)||0,used=Number(it.used)||0;return `<tr><td>${slipEsc(it.type||'')}</td><td class="r">${fmt(tot)}</td><td class="r">${fmt(used)}</td><td class="r">${fmt(tot-used)}</td></tr>`;}).join('');
+      return `<div class="ps-leave"><div class="ps-leave-h">สิทธิ์การลา (Leave Entitlement) — หน่วย: วัน</div>
+        <table class="ps-main-table"><thead><tr><th style="text-align:left">ประเภทการลา</th><th class="r">สิทธิ์ทั้งหมด</th><th class="r">ใช้ไป</th><th class="r">คงเหลือ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    })()}
 
     ${(r.slipNote||slipCfg.footerNote)?`<div class="ps-msg">${[r.slipNote,slipCfg.footerNote].filter(Boolean).map(slipEsc).join('<br>')}</div>`:''}
 
