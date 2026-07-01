@@ -1608,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.77.0';
+const APP_VERSION='3.78.0';
 const CHANGELOG=[
+  {v:'3.78.0',date:'2026-07-01',changes:['หน้าเงินสด & ตู้เซฟ: เพิ่ม “🔎 สรุปเงินภาพรวม” สำหรับแอดมิน monitor เงินทุกสาขาในที่เดียว — เงินสดในระบบทั้งหมด (สำรอง/ลิ้นชัก/เซฟ), ตารางแยกรายสาขา + สถานะเปิด/ปิด, ความเคลื่อนไหววันนี้ (ขายเงินสด/เบิกซื้อของ/ดึงเข้าเซฟ/เติมสำรอง), ขาด-เกินรวมจากการปิดร้าน, และกล่องเตือน “ต้องดู” (ยอดติดลบ/เปิดค้าง/ปิดร้านขาด-เกินที่ยังไม่ตรวจ)']},
   {v:'3.77.0',date:'2026-07-01',changes:['ตรวจ+แก้ความสอดคล้อง “เงินสด & ตู้เซฟ” กับ “บันทึกยอดขาย”: ยอดควรมีตอนปิดร้านดึง “ยอดขายเงินสด” จากบันทึกยอดขาย (ช่องเงินสด) ถูกต้องอยู่แล้ว (บัตร/EDC/อื่นๆ ไม่นับเข้าลิ้นชัก) · แก้จุดที่หน้าเงินสดอาจใช้ยอดขายเก่า: ตอนนี้เปิดหน้าเงินสดจะโหลดยอดขายล่าสุด และถ้ามีคนลงยอดจากเครื่องอื่น ยอด “ควรมี” จะอัปเดตสดทันที']},
   {v:'3.76.0',date:'2026-07-01',changes:['แก้ตัวเช็ค EDC ให้ตรงจุดประสงค์: เป็น “ยอดรูดบัตรสะสมทั้งเดือน” เทียบขั้นต่ำค่าเช่าเครื่อง (ดีฟอลต์ ฿50,000/เครื่อง/เดือน · ปรับได้ที่ตั้งค่า) — กรอกยอดรูดบัตรแต่ละเครื่องรายวัน ระบบรวมทั้งเดือนให้ แสดงแถบความคืบหน้า + บอกว่าขาดอีกเท่าไรถึงจะครบ (ไม่ถึงต้องจ่ายค่าเช่า) · EDC ไม่รวมกับยอดขาย “รับชำระอื่นๆ” แล้ว (เป็นตัวเช็คแยกล้วนๆ)']},
   {v:'3.75.0',date:'2026-07-01',changes:['รื้อการคีย์ยอดขายใหม่: เหลือ 2 ช่อง “เงินสด” + “รับชำระเงินอื่นๆ” (เดิม 4 ช่อง) · เพิ่มกล่อง “🔍 เช็คยอดจาก EDC ดำ/ขาว” — กรอกยอดเครื่องรูดบัตร ระบบเช็คทันทีว่ารวมแล้วตรงกับยอดรับชำระอื่นๆ ไหม (ตรง/ขาด/เกิน) · ยอดขายเก่าที่ลงด้วย 4 ช่องทางถูกแปลงให้อัตโนมัติ (รับชำระอื่นๆ = EDC+QR รวม) และดึง EDC ดำ/ขาว เดิมมาเป็นตัวเช็คให้ — ยอดรวม/รายงานย้อนหลังครบเหมือนเดิม']},
@@ -4541,6 +4542,86 @@ window.cashVoidEvent=async function(evId){
   finally{_cashBusy=false;}
 };
 
+// สรุปเงินภาพรวมทุกสาขา (เฉพาะแอดมิน) — ไว้ monitor เงินสำรอง/ลิ้นชัก/เซฟ + ความเคลื่อนไหว + ขาด/เกิน วันนี้
+function cashAdminSummary(){
+  if(!isAdmin)return '';
+  let totR=0,totD=0,totS=0, salesCash=0,expTot=0,depTot=0,topupTot=0,r2dTot=0,safeoutTot=0, diffTot=0, closedCount=0, openedCount=0, hasClose=false;
+  const warns=[];
+  const rows=BRANCHES.map((bn,b)=>{
+    const st=cashGet(b);
+    totR+=st.reserve;totD+=st.drawer;totS+=st.safe;
+    const bTot=st.reserve+st.drawer+st.safe;
+    const opened=cashOpenedToday(b), closeEv=cashTodayClose(b);
+    if(opened)openedCount++; if(closeEv)closedCount++;
+    salesCash+=cashSalesToday(b);
+    expTot+=cashSumToday(b,'expense'); depTot+=cashSumToday(b,'deposit');
+    topupTot+=cashSumToday(b,'topup'); r2dTot+=cashSumToday(b,'r2d'); safeoutTot+=cashSumToday(b,'safeout');
+    let diff=null;
+    if(closeEv){diff=cashCloseCalc(b,closeEv).diff; diffTot+=diff; hasClose=true;}
+    ['reserve','drawer','safe'].forEach(k=>{ if(st[k]<0)warns.push(`${bn}: ${CASH_POOLS[k].t}ติดลบ ฿${fmt(st[k])}`); });
+    if(opened&&!closeEv)warns.push(`${bn}: เปิดร้านแล้ว ยังไม่ปิดร้าน`);
+    if(closeEv&&diff!==0&&!closeEv.reviewed)warns.push(`${bn}: ปิดร้าน${diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))} — ยังไม่ตรวจ`);
+    const statusChip=closeEv?`<span style="color:var(--green-d);font-weight:600">✓ ปิดแล้ว</span>`:(opened?`<span style="color:var(--amber-t);font-weight:600">● เปิดอยู่</span>`:`<span style="color:var(--text3)">— ยังไม่เปิด</span>`);
+    const diffChip=diff==null?'<span style="color:var(--text3)">—</span>':(diff===0?`<span style="color:var(--green-d);font-weight:700">ตรง</span>`:(diff>0?`<span style="color:#1E3A8A;font-weight:700">+฿${fmt(diff)}</span>`:`<span style="color:var(--red-t);font-weight:700">−฿${fmt(-diff)}</span>`));
+    return `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:7px 6px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${BCOLORS[b]};margin-right:6px"></span>${bn}</td>
+      <td style="padding:7px 6px;text-align:right;font-family:var(--mono);color:${st.reserve<0?'var(--red-t)':'inherit'}">฿${fmt(st.reserve)}</td>
+      <td style="padding:7px 6px;text-align:right;font-family:var(--mono);color:${st.drawer<0?'var(--red-t)':'inherit'}">฿${fmt(st.drawer)}</td>
+      <td style="padding:7px 6px;text-align:right;font-family:var(--mono);color:${st.safe<0?'var(--red-t)':'inherit'}">฿${fmt(st.safe)}</td>
+      <td style="padding:7px 6px;text-align:right;font-family:var(--mono);font-weight:700">฿${fmt(bTot)}</td>
+      <td style="padding:7px 6px;text-align:center;font-size:11.5px">${statusChip}</td>
+      <td style="padding:7px 6px;text-align:right;font-size:12px">${diffChip}</td>
+    </tr>`;
+  }).join('');
+  const grand=totR+totD+totS;
+  const flow=(ic,label,val,col)=>`<div style="flex:1;min-width:80px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:9px 11px">
+    <div style="font-size:10.5px;color:var(--text3);font-weight:600">${ic} ${label}</div>
+    <div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${col||'var(--text)'};margin-top:2px">฿${fmt(val)}</div></div>`;
+  const diffColor=diffTot===0?'var(--green-d)':(diffTot>0?'#1E3A8A':'var(--red-t)');
+  const diffLabel=!hasClose?'ยังไม่มีสาขาปิดร้าน':(diffTot===0?'ตรงพอดี ✓':(diffTot>0?`เกินรวม +฿${fmt(diffTot)}`:`ขาดรวม −฿${fmt(-diffTot)}`));
+  return `<div class="card" style="margin-bottom:1.1rem;border:1.5px solid var(--green-l)">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:800;color:var(--green-dd)">🔎 สรุปเงินภาพรวม <span style="font-size:11px;font-weight:600;color:var(--text3)">แอดมิน · ทุกสาขา</span></div>
+      <button class="btn btn-sm" onclick="loadCashPage();showToast('รีเฟรชแล้ว')" style="padding:4px 11px">↻ รีเฟรช</button>
+    </div>
+    <div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:14px;padding:15px 17px;color:#fff;margin-bottom:12px">
+      <div style="font-size:12px;opacity:.9;font-weight:600">💰 เงินสดในระบบทั้งหมด (ทุกสาขา)</div>
+      <div style="font-size:30px;font-weight:800;font-family:var(--disp);letter-spacing:-.5px;margin:1px 0">฿${fmt(grand)}</div>
+      <div style="display:flex;gap:14px;margin-top:6px;font-size:11.5px;flex-wrap:wrap">
+        <span>💼 สำรอง ฿${fmt(totR)}</span><span>🧰 ลิ้นชัก ฿${fmt(totD)}</span><span>🔒 เซฟ ฿${fmt(totS)}</span>
+      </div>
+    </div>
+    <div style="overflow-x:auto;margin-bottom:13px">
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:420px">
+        <thead><tr style="color:var(--text3);font-size:11px;text-align:left">
+          <th style="padding:4px 6px;font-weight:700">สาขา</th>
+          <th style="padding:4px 6px;text-align:right;font-weight:700">💼 สำรอง</th>
+          <th style="padding:4px 6px;text-align:right;font-weight:700">🧰 ลิ้นชัก</th>
+          <th style="padding:4px 6px;text-align:right;font-weight:700">🔒 เซฟ</th>
+          <th style="padding:4px 6px;text-align:right;font-weight:700">รวม</th>
+          <th style="padding:4px 6px;text-align:center;font-weight:700">สถานะ</th>
+          <th style="padding:4px 6px;text-align:right;font-weight:700">ขาด/เกิน</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="font-size:11.5px;font-weight:700;color:var(--text3);margin-bottom:7px">📊 ความเคลื่อนไหววันนี้ (ทุกสาขา)</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+      ${flow('💵','ขายเงินสด',salesCash,'var(--green-d)')}
+      ${flow('💸','เบิกซื้อของ',expTot,'var(--amber-t)')}
+      ${flow('🔒','ดึงเข้าเซฟ',depTot)}
+      ${flow('💼','เติมสำรอง',topupTot)}
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:11px;padding:11px 14px;${diffTot!==0&&hasClose?`border:1px solid ${diffColor}`:''}">
+      <span style="font-size:12.5px;font-weight:600">⚖️ ขาด/เกิน จากปิดร้านวันนี้ <span style="color:var(--text3);font-weight:500">(${closedCount}/${BRANCHES.length} สาขาปิดแล้ว)</span></span>
+      <span style="font-size:14px;font-weight:800;color:${diffColor}">${diffLabel}</span>
+    </div>
+    ${warns.length?`<div style="margin-top:12px;background:var(--red-l);border:1px solid var(--red);border-radius:11px;padding:11px 13px">
+      <div style="font-size:12.5px;font-weight:700;color:var(--red-t);margin-bottom:5px">⚠️ ต้องดู (${warns.length})</div>
+      ${warns.map(w=>`<div style="font-size:12px;color:var(--red-t);padding:2px 0">• ${w}</div>`).join('')}
+    </div>`:`<div style="margin-top:12px;font-size:12px;color:var(--green-d);text-align:center">✓ ไม่มีรายการที่ต้องตรวจสอบ</div>`}
+  </div>`;
+}
 function renderCashPage(){
   try{
   const el=document.getElementById('cash-content');
@@ -4548,10 +4629,10 @@ function renderCashPage(){
   const _braw=document.getElementById('cash-branch')?.value;
   // ต้องเลือกสาขาก่อน ถึงจะดู/กรอกข้อมูลได้
   if(_braw===''||_braw==null){
-    el.innerHTML=`<div class="card" style="text-align:center;padding:2.5rem 1.5rem;color:var(--text3)">
+    el.innerHTML=(isAdmin?cashAdminSummary():'')+`<div class="card" style="text-align:center;padding:2.5rem 1.5rem;color:var(--text3)">
       <div style="font-size:34px;margin-bottom:10px">🏪</div>
       <div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px">เลือกสาขาก่อน</div>
-      <div style="font-size:13px">แตะเลือกสาขาด้านบน เพื่อดูและบันทึกเงินสด</div>
+      <div style="font-size:13px">แตะเลือกสาขาด้านบน เพื่อดูและบันทึกเงินสด${isAdmin?' · หรือดูสรุปภาพรวมด้านบน':''}</div>
     </div>`;
     return;
   }
@@ -4699,7 +4780,7 @@ function renderCashPage(){
     html+=`<button class="btn" style="width:100%;margin-top:10px" onclick="cashHistoryPrompt(${branch})">📜 ดูประวัติเงินสดย้อนหลัง</button>`;
     html+=`<button class="btn" style="width:100%;margin-top:8px" onclick="cashBackdatePrompt(${branch})">🕓 บันทึกเงินสดย้อนหลัง</button>`;
   }
-  el.innerHTML=html;
+  el.innerHTML=(isAdmin?cashAdminSummary():'')+html;
   }catch(e){console.error('renderCashPage',e);}
 }
 
