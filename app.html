@@ -1608,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.80.0';
+const APP_VERSION='3.80.1';
 const CHANGELOG=[
+  {v:'3.80.1',date:'2026-07-01',changes:['แยกชนิดเงิน: เปลี่ยนเป็นตารางแยกรายสาขา — แต่ละชนิด (แบงค์ 1000/500/...) แสดงจำนวนของแต่ละสาขา + รวม + แถวรวมเป็นเงินต่อสาขา เทียบกันได้ในตารางเดียว (เลื่อนซ้าย-ขวาได้)']},
   {v:'3.80.0',date:'2026-07-01',changes:['สรุปเงิน (แอดมิน): เพิ่ม “🪙 แยกชนิดเงิน” (แบบพับเก็บได้) — ดูว่าลิ้นชักมีแบงค์ 1000 กี่ใบ / 500 กี่ใบ ฯลฯ รวมทุกสาขา + แยกรายสาขา อิงจากการนับเปิด/ปิดร้านล่าสุด']},
   {v:'3.79.0',date:'2026-07-01',changes:['เพิ่ม “มอนิเตอร์เงินสำรอง” ในสรุปเงิน (แอดมิน): ตั้งเงินสำรองขั้นต่ำต่อสาขาได้ (ดีฟอลต์ ฿2,000) · แสดงแถบระดับเงินสำรองแต่ละสาขา + สถานะ พอใช้/⚠️ใกล้หมด/🔴หมด + ปุ่ม “เติมสำรอง” ด่วนถ้าต่ำ · สรุปการเคลื่อนไหวสำรองวันนี้ (เติม/เบิกไปลิ้นชัก/ซื้อของจากสำรอง) · เตือนในกล่อง “ต้องดู” เมื่อสำรองต่ำกว่าขั้นต่ำ — กันเงินทอนหมดจนพนักงานเบิกไม่ได้']},
   {v:'3.78.0',date:'2026-07-01',changes:['หน้าเงินสด & ตู้เซฟ: เพิ่ม “🔎 สรุปเงินภาพรวม” สำหรับแอดมิน monitor เงินทุกสาขาในที่เดียว — เงินสดในระบบทั้งหมด (สำรอง/ลิ้นชัก/เซฟ), ตารางแยกรายสาขา + สถานะเปิด/ปิด, ความเคลื่อนไหววันนี้ (ขายเงินสด/เบิกซื้อของ/ดึงเข้าเซฟ/เติมสำรอง), ขาด-เกินรวมจากการปิดร้าน, และกล่องเตือน “ต้องดู” (ยอดติดลบ/เปิดค้าง/ปิดร้านขาด-เกินที่ยังไม่ตรวจ)']},
@@ -4625,32 +4626,27 @@ function cashAdminSummary(){
   });
   const anyDenom=CASH_DENOMS.some(d=>denomTotals[d]>0);
   let denomGrand=0; CASH_DENOMS.forEach(d=>denomGrand+=d*denomTotals[d]);
+  const denomHeader=`<tr style="color:var(--text3);font-size:10.5px"><th style="padding:3px 6px;text-align:left;font-weight:700;white-space:nowrap">ชนิด</th>${BRANCHES.map((bn,b)=>`<th style="padding:3px 6px;text-align:right;font-weight:700;white-space:nowrap"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${BCOLORS[b]};margin-right:3px"></span>${bn}</th>`).join('')}<th style="padding:3px 6px;text-align:right;font-weight:700">รวม</th></tr>`;
+  const branchDenomVal=perBranchDenom.map(x=>{let v=0;if(x.ev&&x.ev.denoms)CASH_DENOMS.forEach(d=>v+=d*(parseInt(x.ev.denoms[d])||0));return v;});
   const denomRows=CASH_DENOMS.filter(d=>denomTotals[d]>0).map(d=>{
-    const c=denomTotals[d], unit=d>=20?'ใบ':'เหรียญ', kind=d>=20?'แบงค์':'เหรียญ';
-    return `<tr style="border-top:1px solid var(--border)">
-      <td style="padding:5px 6px">${kind} ${d}</td>
-      <td style="padding:5px 6px;text-align:right;font-family:var(--mono);font-weight:700">${fmt(c)} ${unit}</td>
-      <td style="padding:5px 6px;text-align:right;font-family:var(--mono);color:var(--text2)">฿${fmt(d*c)}</td>
-    </tr>`;
+    const kind=d>=20?'แบงค์':'เหรียญ';
+    const cells=perBranchDenom.map(x=>{const c=x.ev&&x.ev.denoms?(parseInt(x.ev.denoms[d])||0):0;return `<td style="padding:5px 6px;text-align:right;font-family:var(--mono)">${c?fmt(c):'<span style="color:var(--border2)">–</span>'}</td>`;}).join('');
+    return `<tr style="border-top:1px solid var(--border)"><td style="padding:5px 6px;white-space:nowrap">${kind} ${d}</td>${cells}<td style="padding:5px 6px;text-align:right;font-family:var(--mono);font-weight:700">${fmt(denomTotals[d])}</td></tr>`;
   }).join('');
-  const perBranchDenomHtml=perBranchDenom.map(x=>{
-    if(!x.ev)return `<div style="font-size:11.5px;margin-top:7px"><b>${x.bn}</b> <span style="color:var(--text3)">— ยังไม่มีการนับ</span></div>`;
-    const t=new Date(x.ev.ts||0);
-    const when=(x.ev.type==='close'?'ปิดร้าน':'เปิดร้าน')+' '+t.toLocaleDateString('th-TH',{day:'numeric',month:'short'})+' '+t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    return `<div style="font-size:11.5px;margin-top:7px;line-height:1.5"><b>${x.bn}</b> <span style="color:var(--text3)">(นับ${when})</span><br><span style="font-family:var(--mono)">${cashDenomSummary(x.ev.denoms)||'—'}</span></div>`;
-  }).join('');
+  const denomMoneyRow=`<tr style="border-top:2px solid var(--border2)"><td style="padding:6px 6px;font-weight:700;white-space:nowrap">รวมเป็นเงิน</td>${branchDenomVal.map(v=>`<td style="padding:6px 6px;text-align:right;font-family:var(--mono);font-weight:700">฿${fmt(v)}</td>`).join('')}<td style="padding:6px 6px;text-align:right;font-family:var(--mono);font-weight:800;color:var(--green-dd)">฿${fmt(denomGrand)}</td></tr>`;
+  const denomWhen=perBranchDenom.map(x=>{if(!x.ev)return `${x.bn}: ยังไม่นับ`;const t=new Date(x.ev.ts||0);return `${x.bn}: นับ${x.ev.type==='close'?'ปิด':'เปิด'}ร้าน ${t.toLocaleDateString('th-TH',{day:'numeric',month:'short'})} ${t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}`;}).join(' · ');
   const denomDetails=`<details ${window._denomOpen?'open':''} ontoggle="window._denomOpen=this.open" style="margin-bottom:13px;border:1px solid var(--border);border-radius:14px">
     <summary style="list-style:none;cursor:pointer;padding:12px 14px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
       <span>🪙 แยกชนิดเงิน — ลิ้นชัก <span style="font-size:10.5px;font-weight:500;color:var(--text3)">ตามนับล่าสุด</span></span>
       <span style="color:var(--text3);font-size:11px">แตะดู ▾</span>
     </summary>
     <div style="padding:0 14px 13px">
-      ${anyDenom?`<table style="width:100%;border-collapse:collapse;font-size:12.5px">
-        <thead><tr style="color:var(--text3);font-size:11px"><th style="padding:3px 6px;text-align:left;font-weight:700">ชนิด</th><th style="padding:3px 6px;text-align:right;font-weight:700">จำนวน (รวมทุกสาขา)</th><th style="padding:3px 6px;text-align:right;font-weight:700">เป็นเงิน</th></tr></thead>
-        <tbody>${denomRows}<tr style="border-top:2px solid var(--border2)"><td style="padding:6px 6px;font-weight:700">รวมลิ้นชัก</td><td></td><td style="padding:6px 6px;text-align:right;font-weight:800;font-family:var(--mono);color:var(--green-dd)">฿${fmt(denomGrand)}</td></tr></tbody>
-      </table>
-      <div style="font-size:10.5px;color:var(--text3);margin-top:8px">องค์ประกอบจากการนับเปิด/ปิดร้านล่าสุด (ถ้ามีเบิก-ดึงเงินหลังนับ ตัวเลขอาจต่างจากยอดปัจจุบันเล็กน้อย)</div>
-      <div style="border-top:1px dashed var(--border2);margin-top:10px;padding-top:6px">${perBranchDenomHtml}</div>`
+      ${anyDenom?`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;min-width:360px">
+        <thead>${denomHeader}</thead>
+        <tbody>${denomRows}${denomMoneyRow}</tbody>
+      </table></div>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:9px">🕐 ${denomWhen}</div>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:5px">องค์ประกอบจากการนับเปิด/ปิดร้านล่าสุด · ถ้ามีเบิก-ดึงเงินหลังนับ ตัวเลขอาจต่างจากยอดปัจจุบันเล็กน้อย · เลื่อนตารางซ้าย-ขวาได้</div>`
       :'<div style="font-size:12px;color:var(--text3);padding:6px 0">ยังไม่มีข้อมูลการนับแยกชนิดเงิน</div>'}
     </div>
   </details>`;
