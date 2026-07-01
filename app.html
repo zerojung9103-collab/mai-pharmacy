@@ -1608,8 +1608,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.74.0';
+const APP_VERSION='3.76.0';
 const CHANGELOG=[
+  {v:'3.76.0',date:'2026-07-01',changes:['แก้ตัวเช็ค EDC ให้ตรงจุดประสงค์: เป็น “ยอดรูดบัตรสะสมทั้งเดือน” เทียบขั้นต่ำค่าเช่าเครื่อง (ดีฟอลต์ ฿50,000/เครื่อง/เดือน · ปรับได้ที่ตั้งค่า) — กรอกยอดรูดบัตรแต่ละเครื่องรายวัน ระบบรวมทั้งเดือนให้ แสดงแถบความคืบหน้า + บอกว่าขาดอีกเท่าไรถึงจะครบ (ไม่ถึงต้องจ่ายค่าเช่า) · EDC ไม่รวมกับยอดขาย “รับชำระอื่นๆ” แล้ว (เป็นตัวเช็คแยกล้วนๆ)']},
+  {v:'3.75.0',date:'2026-07-01',changes:['รื้อการคีย์ยอดขายใหม่: เหลือ 2 ช่อง “เงินสด” + “รับชำระเงินอื่นๆ” (เดิม 4 ช่อง) · เพิ่มกล่อง “🔍 เช็คยอดจาก EDC ดำ/ขาว” — กรอกยอดเครื่องรูดบัตร ระบบเช็คทันทีว่ารวมแล้วตรงกับยอดรับชำระอื่นๆ ไหม (ตรง/ขาด/เกิน) · ยอดขายเก่าที่ลงด้วย 4 ช่องทางถูกแปลงให้อัตโนมัติ (รับชำระอื่นๆ = EDC+QR รวม) และดึง EDC ดำ/ขาว เดิมมาเป็นตัวเช็คให้ — ยอดรวม/รายงานย้อนหลังครบเหมือนเดิม']},
   {v:'3.74.0',date:'2026-07-01',changes:['เงินเปิดร้านมาตรฐาน: เพิ่มค่ามาตรฐาน (ดีฟอลต์ ฿5,000 · ปรับได้ที่ตั้งค่า) — ตอนนับเปิดร้านระบบโชว์ยอดมาตรฐาน + เทียบให้ทันทีว่า ตรง/ขาด/เกิน เท่าไร (พนักงานยังกรอกตามจริงได้ตามสถานการณ์) · ลบเมนู “บทความ” และ “คำเตือนยา” ออกจากระบบ']},
   {v:'3.73.0',date:'2026-06-30',changes:['สลิปเงินเดือน: ปรับขนาดเป็น “ครึ่ง A4” (A5 แนวตั้ง) ให้พอดีหน้าเดียว — เดิมเนื้อหา (ตารางวันลา/รายการเยอะ) ดันให้ล้นเกินหน้า · บีบระยะ/ฟอนต์ให้กระชับ ย้าย footer ให้ไหลตามเนื้อหา (ไม่ทับกัน) · ตั้งหน้ากระดาษพิมพ์เป็น A5 พิมพ์/บันทึก PDF ได้พอดี · สลิปรวมทั้งเดือนก็แก้ให้แต่ละคนขึ้นหน้าใหม่ + มีสไตล์ครบ']},
   {v:'3.72.0',date:'2026-06-30',changes:['สลิปเงินเดือน: แก้ “งวดเงินเดือน” บนสลิปได้เอง (พิมพ์ข้อความเอง เช่น “ก.ค. 2026” หรือ “1–15 ก.ค.”) — มีช่องในหน้าคำนวณรายคน และตั้งรวมทุกคนได้ในโหมดทำหลายคน (เดิมล็อกตามเดือน/ปีที่เลือก)']},
@@ -2178,15 +2180,17 @@ const PERM_LABELS={
 };
 
 // ===== LOCAL DATA =====
-let payTypes=JSON.parse(localStorage.getItem('nm_payTypes')||'["เงินสด","EDC สีดำ","EDC สีขาว","QR / โครงการรัฐ"]');
+// ช่องทางการชำระ = 2 ช่องคงที่ (เงินสด + รับชำระเงินอื่นๆ) · EDC ดำ/ขาว เก็บไว้เป็น "ตัวเช็ค" แยก ไม่ใช่ช่องทางหลัก
+const SALES_CASH='เงินสด', SALES_OTHER='รับชำระเงินอื่นๆ';
+let payTypes=['เงินสด','รับชำระเงินอื่นๆ'];
 // ข้อความเบิกเงินที่ใช้บ่อย (admin จัดการเอง) — ใช้เป็นปุ่มลัดในช่อง “ซื้ออะไร/เหตุผล”
 let expenseReasons=JSON.parse(localStorage.getItem('nm_expenseReasons')||'["ถุงขยะ","น้ำดื่ม","ถุงหูหิ้ว","ค่าส่งของ","อุปกรณ์ทำความสะอาด"]');
 // ตั้งค่าข้อความบนสลิปเงินเดือน (admin ตั้งเอง ใช้ร่วมทุกสลิป)
 let slipCfg=Object.assign({companyName:'ร้านขายยา ใหม่เภสัช',headerNote:'',footerNote:''},JSON.parse(localStorage.getItem('nm_slipCfg')||'{}'));
-// ตั้งค่าเงินสด: เงินเปิดร้านมาตรฐาน (ร้านคงเงินไว้ในลิ้นชักตอนเปิด — ปรับได้ตามสถานการณ์)
-let cashCfg=Object.assign({floatTarget:5000},JSON.parse(localStorage.getItem('nm_cashCfg')||'{}'));
+// ตั้งค่าเงินสด: เงินเปิดร้านมาตรฐาน + ยอดรูดบัตร EDC ขั้นต่ำต่อเครื่อง/เดือน (ต่ำกว่านี้ต้องจ่ายค่าเช่าเครื่อง)
+let cashCfg=Object.assign({floatTarget:5000,edcTarget:50000},JSON.parse(localStorage.getItem('nm_cashCfg')||'{}'));
 let shifts=JSON.parse(localStorage.getItem('nm_shifts')||'[]');
-let salesEntries=JSON.parse(localStorage.getItem('nm_sales')||'[]');
+let salesEntries=JSON.parse(localStorage.getItem('nm_sales')||'[]').map(e=>{const n=salesNormalizeEntry(e);return{...e,amounts:n.amounts,total:n.total,edcCheck:n.edcCheck};});
 let nextShiftId=Math.max(0,...shifts.map(s=>s.id),100)+1;
 
 function saveLocal(){
@@ -5163,6 +5167,8 @@ window.cashHistPick=function(branch,val){
 
 // ===== SALES =====
 let salesBranch=0,salesAmounts={0:{},1:{},2:{}},salesNotes={0:'',1:'',2:''},salesBillCounts={0:'',1:'',2:''};
+// ตัวเช็ค EDC (ดำ/ขาว) ต่อสาขา — ไว้ตรวจว่ารวมแล้วตรงกับยอด "รับชำระเงินอื่นๆ" ไหม
+let salesEdc={0:{black:'',white:''},1:{black:'',white:''},2:{black:'',white:''}};
 window.salesSetView=function(v,el){document.querySelectorAll('#sales-tabs .tab').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('sales-entry').style.display=v==='entry'?'':'none';document.getElementById('sales-history').style.display=v==='history'?'':'none';document.getElementById('sales-overview').style.display=v==='overview'?'':'none';const dw=document.getElementById('sales-date-wrap');if(dw)dw.style.display=v==='entry'?'':'none';if(v==='history')salesRenderHistory();if(v==='overview')salesRenderOverview();};
 let salesOvY=new Date().getFullYear(),salesOvM=new Date().getMonth();
 window.salesOvMonth=function(d){let m=salesOvM+d,y=salesOvY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}salesOvM=m;salesOvY=y;salesRenderOverview();};
@@ -5224,7 +5230,7 @@ function salesRenderBranchSeg(){
     </button>`;
   }).join('');
 }
-window.salesSetBranch=function(i){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesBranch=i;salesRenderForm();};
+window.salesSetBranch=function(i){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesEdc[salesBranch]={black:document.getElementById('sales-edc-black')?.value||'',white:document.getElementById('sales-edc-white')?.value||''};salesBranch=i;salesRenderForm();};
 // เลื่อนวัน / ไปวันนี้ (date stepper)
 window.salesDateStep=function(d){const inp=document.getElementById('sales-date');if(!inp)return;const cur=inp.value?new Date(inp.value+'T00:00:00'):new Date();cur.setDate(cur.getDate()+d);inp.value=dateStr(cur);salesOnDateChange();};
 window.salesDateToday=function(){const inp=document.getElementById('sales-date');if(inp)inp.value=todayStr();salesOnDateChange();};
@@ -5268,6 +5274,7 @@ function salesRenderForm(){
   const _lock=salesLockState();const _dis=_lock.locked?'disabled':'';
   const payMeta=(p)=>{
     if(p==='เงินสด')return{ic:'💵',c:'var(--green-d)',bg:'var(--green-l)'};
+    if(p===SALES_OTHER||/อื่น/.test(p))return{ic:'💳',c:'var(--blue-t)',bg:'var(--blue-l)'};
     if(/ดำ/.test(p))return{ic:'💳',c:'#1F2937',bg:'#E5E7EB'};
     if(/ขาว/.test(p))return{ic:'💳',c:'#64748B',bg:'#F1F5F9'};
     if(/QR|\u0e23\u0e31\u0e10|\u0e42\u0e04\u0e23\u0e07\u0e01\u0e32\u0e23/.test(p))return{ic:'📱',c:'var(--blue-t)',bg:'var(--blue-l)'};
@@ -5310,10 +5317,65 @@ function salesRenderForm(){
       <textarea id="sales-note" rows="1" placeholder="ถ้ามี เช่น เครื่องรูดบัตรขัดข้อง..." ${_dis} style="width:100%;border:none;outline:none;background:transparent;font-size:12.5px;resize:none;font-family:var(--font);color:var(--text)">${salesNotes[salesBranch]||''}</textarea>
     </div>
   </div>`;
-  document.getElementById('sales-form').innerHTML=hero+`<div style="font-size:11.5px;font-weight:700;color:var(--text3);letter-spacing:.03em;margin:2px 2px 9px">ช่องทางการชำระ</div>`+rows+subs;
+  const edc=salesEdc[salesBranch]||{black:'',white:''};
+  const edcBlock=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 13px;margin-top:11px;box-shadow:var(--shadow)">
+    <div style="font-size:12.5px;font-weight:700;margin-bottom:2px">💳 ยอดรูดบัตร EDC <span style="font-weight:400;color:var(--text3)">(เช็คขั้นต่ำค่าเช่าเครื่อง)</span></div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:9px">กรอกยอดที่รูดผ่านเครื่องแต่ละเครื่องของวันนี้ · ระบบรวมทั้งเดือนให้ ดูว่าครบขั้นต่ำ ฿${fmt(cashCfg.edcTarget||0)} หรือยัง (ไม่ถึงต้องจ่ายค่าเช่าเครื่อง) · ไม่รวมกับยอดขายด้านบน</div>
+    <div style="display:flex;gap:9px">
+      <div style="flex:1"><div style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:3px">💳 EDC ดำ (วันนี้)</div>
+        <input type="number" min="0" inputmode="decimal" id="sales-edc-black" placeholder="0" value="${edc.black||''}" ${_dis} oninput="salesEdcRecalc()" style="width:100%;text-align:right;font-size:16px;font-weight:700;font-family:var(--mono);border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--bg);color:var(--text)"></div>
+      <div style="flex:1"><div style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:3px">💳 EDC ขาว (วันนี้)</div>
+        <input type="number" min="0" inputmode="decimal" id="sales-edc-white" placeholder="0" value="${edc.white||''}" ${_dis} oninput="salesEdcRecalc()" style="width:100%;text-align:right;font-size:16px;font-weight:700;font-family:var(--mono);border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:var(--bg);color:var(--text)"></div>
+    </div>
+    <div style="border-top:1px dashed var(--border2);margin-top:11px;padding-top:11px"><div id="sales-edc-hint"></div></div>
+  </div>`;
+  document.getElementById('sales-form').innerHTML=hero+`<div style="font-size:11.5px;font-weight:700;color:var(--text3);letter-spacing:.03em;margin:2px 2px 9px">ช่องทางการชำระ</div>`+rows+edcBlock+subs;
   salesRecalc();
+  salesEdcRecalc();
   salesApplyLockUI(_lock);
 }
+// รวมยอดรูดบัตร EDC (ดำ/ขาว) ทั้งเดือนของสาขา — ไม่รวมวันที่กำลังแก้ (จะบวกค่าสดจากฟอร์มแทน)
+function edcMonthTotal(branch, monthPrefix, exclDate){
+  let black=0,white=0;
+  salesEntries.forEach(e=>{
+    if(e.branch!==branch||!e.date||!e.date.startsWith(monthPrefix))return;
+    if(exclDate&&e.date===exclDate)return;
+    if(e.edcCheck){black+=parseFloat(e.edcCheck.black)||0;white+=parseFloat(e.edcCheck.white)||0;}
+  });
+  return {black,white};
+}
+function edcTrackerHTML(black,white,monthPrefix){
+  const target=cashCfg.edcTarget||0;
+  const mm=parseInt(monthPrefix.slice(5,7))-1;
+  const mLabel=(MONTHS_TH[mm]||'')+' '+monthPrefix.slice(0,4);
+  const row=(name,val)=>{
+    const pct=target?Math.min(100,Math.round(val/target*100)):0;
+    const ok=target>0&&val>=target;const diff=target-val;
+    return `<div style="margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:3px">
+        <span style="font-weight:600">${name}</span>
+        <span style="font-weight:700;color:${ok?'var(--green-d)':'var(--text)'}">฿${fmt(val)} <span style="color:var(--text3);font-weight:500">/ ฿${fmt(target)}</span></span>
+      </div>
+      <div style="height:8px;border-radius:5px;background:var(--border);overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${ok?'var(--green)':'var(--amber)'}"></i></div>
+      <div style="font-size:11px;font-weight:600;margin-top:3px;color:${ok?'var(--green-d)':'var(--red-t)'}">${ok?'✓ ครบขั้นต่ำแล้ว — ไม่เสียค่าเช่าเครื่อง':'ขาดอีก ฿'+fmt(diff)+' ถึงจะครบขั้นต่ำ'}</div>
+    </div>`;
+  };
+  return `<div style="text-align:left;font-weight:400">
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">📅 ยอดรูดบัตรสะสมเดือน${mLabel} · สาขา${BRANCHES[salesBranch]}</div>
+    ${row('💳 EDC ดำ',black)}${row('💳 EDC ขาว',white)}
+  </div>`;
+}
+window.salesEdcRecalc=function(){
+  const bEl=document.getElementById('sales-edc-black'),wEl=document.getElementById('sales-edc-white');
+  if(!bEl||!wEl)return;
+  salesEdc[salesBranch]={black:bEl.value,white:wEl.value};
+  const date=document.getElementById('sales-date')?.value||todayStr();
+  const monthPrefix=date.slice(0,7);
+  const base=edcMonthTotal(salesBranch,monthPrefix,date);
+  const totB=base.black+(parseFloat(bEl.value)||0), totW=base.white+(parseFloat(wEl.value)||0);
+  const hint=document.getElementById('sales-edc-hint');if(!hint)return;
+  hint.innerHTML=edcTrackerHTML(totB,totW,monthPrefix);
+};
 window.salesRecalc=function(){
   const amounts=salesAmounts[salesBranch];
   const total=payTypes.reduce((a,p)=>a+(parseFloat(amounts[p])||0),0);
@@ -5336,6 +5398,7 @@ window.salesLoadForDate=function(){
     salesAmounts[b]={};payTypes.forEach(p=>{salesAmounts[b][p]=e?(e.amounts?.[p]||''):'';});
     salesNotes[b]=e?(e.note||''):'';
     salesBillCounts[b]=e?(e.billCount||''):'';
+    salesEdc[b]=e&&e.edcCheck?{black:e.edcCheck.black||'',white:e.edcCheck.white||''}:{black:'',white:''};
   }
 };
 // เปลี่ยนวันที่ → โหลดค่าของวันนั้นมาแสดงทันที (auto refresh)
@@ -5348,12 +5411,14 @@ window.salesSave=function(){
   salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';
   const date=document.getElementById('sales-date').value;
   if(!date){showToast('กรุณาเลือกวันที่','err');return;}
+  salesEdc[salesBranch]={black:document.getElementById('sales-edc-black')?.value||'',white:document.getElementById('sales-edc-white')?.value||''};
   const amounts={};
   payTypes.forEach(p=>{amounts[p]=parseFloat(salesAmounts[salesBranch]?.[p])||0;});
   const total=payTypes.reduce((a,p)=>a+amounts[p],0);
   const billCount=parseInt(salesBillCounts[salesBranch])||0;
+  const edcCheck={black:parseFloat(salesEdc[salesBranch].black)||0,white:parseFloat(salesEdc[salesBranch].white)||0};
   const idx=salesEntries.findIndex(e=>e.date===date&&e.branch===salesBranch);
-  const rec={date,branch:salesBranch,amounts,total,billCount,note:salesNotes[salesBranch],updatedBy:currentUser?.uid||'',updatedAt:new Date().toISOString()};
+  const rec={date,branch:salesBranch,amounts,total,edcCheck,billCount,note:salesNotes[salesBranch],updatedBy:currentUser?.uid||'',updatedAt:new Date().toISOString()};
   if(idx>=0)salesEntries[idx]=rec;else salesEntries.push(rec);
   saveLocal();
   salesRenderForm(); // อัปเดตสถานะกรอบเวลา 5 นาที (เริ่มนับจากตอนนี้)
@@ -5460,15 +5525,25 @@ window.openRequestTarget=function(date,branch){
   },250);
 };
 // โหลดยอดขายจาก Firestore (sync ทุกเครื่อง — cloud คือแหล่งข้อมูลหลัก)
+// แปลงรายการยอดขายให้เป็นสคีมา 2 ช่อง (เงินสด + รับชำระเงินอื่นๆ) — รองรับยอดเก่า (EDC ดำ/ขาว/QR แยกกัน)
+// ยอดเก่า: รับชำระอื่นๆ = ผลรวมช่องที่ไม่ใช่เงินสด · ดึง EDC ดำ/ขาว เดิมมาเป็น "ตัวเช็ค" ให้อัตโนมัติ
+function salesNormalizeEntry(x){
+  const raw=x.amounts||{};
+  const cash=parseFloat(raw[SALES_CASH])||0;
+  let other=parseFloat(raw[SALES_OTHER]);
+  if(isNaN(other)){other=0;Object.keys(raw).forEach(k=>{if(k!==SALES_CASH)other+=parseFloat(raw[k])||0;});}
+  const amounts={[SALES_CASH]:cash,[SALES_OTHER]:other};
+  let edcCheck=x.edcCheck||null;
+  if(!edcCheck){const b=parseFloat(raw['EDC สีดำ'])||0,w=parseFloat(raw['EDC สีขาว'])||0;if(b||w)edcCheck={black:b,white:w};}
+  return {amounts,total:cash+other,edcCheck};
+}
 async function loadSalesFromCloud(){
   try{
     const snap=await getDocs(collection(db,'sales'));
     salesEntries=snap.docs.map(d=>{
       const x=d.data();
-      const amounts={};
-      Object.keys(x.amounts||{}).forEach(k=>{amounts[k]=parseFloat(x.amounts[k])||0;});
-      const total=Object.values(amounts).reduce((a,v)=>a+v,0);
-      return{date:x.date,branch:x.branch,amounts,total,billCount:x.billCount||0,note:x.note||'',updatedBy:x.updatedBy||'',updatedAt:x.updatedAt||''};
+      const n=salesNormalizeEntry(x);
+      return{date:x.date,branch:x.branch,amounts:n.amounts,total:n.total,edcCheck:n.edcCheck,billCount:x.billCount||0,note:x.note||'',updatedBy:x.updatedBy||'',updatedAt:x.updatedAt||''};
     });
     // คำนวณยอดขายรวมวันนี้ (ใช้ใน renderHome stat card)
     const today=todayStr();
@@ -7161,14 +7236,37 @@ window.buildSettingsNav=function(){
     return `<button class="btn btn-sm" style="font-size:12px;padding:6px 12px" onclick="(function(){var el=document.getElementById('${c.id}');var y=el.getBoundingClientRect().top+window.scrollY-76;window.scrollTo({top:y,behavior:'smooth'});el.style.transition='box-shadow .3s';el.style.boxShadow='0 0 0 2px var(--green)';setTimeout(function(){el.style.boxShadow='';},900);})()">${t}</button>`;
   }).join('');
 };
-function renderPayTypeSettings(){const card=document.getElementById('paytype-card');if(card)card.style.display=isAdmin?'':'none';if(!isAdmin)return;document.getElementById('pay-type-list').innerHTML=payTypes.map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="flex:1;font-size:13px;font-weight:500">${p}</span>${payTypes.length>1?`<button class="btn btn-danger btn-sm" onclick="removePayType(${i})">ลบ</button>`:''}</div>`).join('')+`<button class="btn btn-sm" style="width:100%;margin-top:10px" onclick="resetPayTypesStandard()">↺ ตั้งเป็นชุดมาตรฐาน 4 ช่องทาง (เงินสด · EDC ดำ · EDC ขาว · QR/โครงการรัฐ)</button>
+function renderPayTypeSettings(){
+  const card=document.getElementById('paytype-card');if(card)card.style.display=isAdmin?'':'none';if(!isAdmin)return;
+  // ช่องทางคงที่ 2 แบบแล้ว — ซ่อนช่องเพิ่มประเภท
+  const addInp=document.getElementById('new-pay-name');if(addInp&&addInp.parentElement)addInp.parentElement.style.display='none';
+  const sub=card?.querySelector('.card-sub');if(sub)sub.textContent='ช่องทางคงที่ 2 แบบ + เงินเปิดร้านมาตรฐาน (เฉพาะผู้ดูแลระบบ)';
+  document.getElementById('pay-type-list').innerHTML=`
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:17px">💵</span><span style="flex:1;font-size:13px;font-weight:600">เงินสด</span></div>
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 0"><span style="font-size:17px">💳</span><span style="flex:1;font-size:13px;font-weight:600">รับชำระเงินอื่นๆ</span><span style="font-size:10.5px;color:var(--text3)">เช็คด้วย EDC ดำ/ขาว</span></div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">คีย์ยอดขาย 2 ช่องนี้ · EDC ดำ/ขาว ใช้ตรวจว่ายอด “รับชำระอื่นๆ” ครบไหม (ไม่ใช่ช่องทางแยก)</div>
     <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
     <div style="font-size:13px;font-weight:700;margin-bottom:4px">🎯 เงินเปิดร้านมาตรฐาน</div>
     <div style="font-size:11.5px;color:var(--text3);margin-bottom:8px">ยอดที่ร้านคงไว้ในลิ้นชักตอนเปิดร้าน — ตอนนับเปิดร้านระบบจะเทียบให้ว่าตรง/ขาด/เกิน (พนักงานยังกรอกตามจริงได้เสมอ)</div>
     <div style="display:flex;align-items:center;gap:8px">
       <input type="number" id="cash-float-target" min="0" value="${cashCfg.floatTarget||0}" style="flex:1" placeholder="5000">
       <button class="btn btn-primary btn-sm" onclick="saveCashFloatTarget(document.getElementById('cash-float-target').value)">บันทึก</button>
-    </div>`;}
+    </div>
+    <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px">💳 ยอดรูดบัตร EDC ขั้นต่ำ (ต่อเครื่อง/เดือน)</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:8px">ถ้ายอดรูดบัตรทั้งเดือนของเครื่องไหนไม่ถึงยอดนี้ ต้องจ่ายค่าเช่าเครื่อง — หน้าลงยอดขายจะเตือนให้เห็นว่าขาดอีกเท่าไร</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <input type="number" id="edc-target" min="0" value="${cashCfg.edcTarget||0}" style="flex:1" placeholder="50000">
+      <button class="btn btn-primary btn-sm" onclick="saveEdcTarget(document.getElementById('edc-target').value)">บันทึก</button>
+    </div>`;
+}
+window.saveEdcTarget=async function(v){
+  const n=Math.max(0,parseFloat(v)||0);
+  cashCfg.edcTarget=n;
+  localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
+  try{await setDoc(doc(db,'config','cashSettings'),cashCfg);showToast('บันทึกยอดขั้นต่ำ EDC ฿'+fmt(n)+' แล้ว');}
+  catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว)','err');}
+};
 window.resetPayTypesStandard=async function(){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}if(!await capsuleConfirm('ตั้งช่องทางชำระเป็นชุดมาตรฐาน 4 แบบ?\nเงินสด · EDC สีดำ · EDC สีขาว · QR / โครงการรัฐ\n(ยอดเก่าที่บันทึกด้วยชื่อช่องทางเดิมยังอยู่ครบ)'))return;payTypes=['เงินสด','EDC สีดำ','EDC สีขาว','QR / โครงการรัฐ'];saveLocal();syncPayTypesToCloud();renderPayTypeSettings();if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderForm();showToast('ตั้งช่องทางมาตรฐานแล้ว');};
 window.addPayType=function(){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const inp=document.getElementById('new-pay-name');const name=inp.value.trim();if(!name||payTypes.includes(name)){showToast('ชื่อซ้ำหรือว่างเปล่า','err');return;}payTypes.push(name);inp.value='';saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('เพิ่มประเภทการชำระแล้ว');};
 window.removePayType=function(i){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}if(payTypes[i]==='เงินสด'){showToast('ลบ "เงินสด" ไม่ได้ — เป็นช่องที่เชื่อมกับระบบนับเงินสด','err');return;}payTypes.splice(i,1);saveLocal();syncPayTypesToCloud();renderPayTypeSettings();showToast('ลบแล้ว');};
@@ -7178,14 +7276,11 @@ async function syncPayTypesToCloud(){
   try{await setDoc(doc(db,'config','payTypes'),{types:payTypes});}catch(e){showToast('sync ประเภทการชำระไม่ได้: '+e.message,'err');}
 }
 async function loadPayTypesFromCloud(){
+  // ช่องทางเป็น 2 ช่องคงที่แล้ว — ถ้า cloud ยังเป็นชุดเก่า ให้ migrate ขึ้นไปครั้งเดียว (ไม่ทับ payTypes ด้วยของเก่า)
   try{
     const d=await getDoc(doc(db,'config','payTypes'));
-    if(d.exists()&&Array.isArray(d.data().types)&&d.data().types.length){
-      payTypes=d.data().types;
-      localStorage.setItem('nm_payTypes',JSON.stringify(payTypes));
-      if(document.getElementById('page-sales')?.classList.contains('active'))salesRenderForm();
-      if(document.getElementById('pay-type-list'))renderPayTypeSettings();
-    }
+    const cur=d.exists()&&Array.isArray(d.data().types)?d.data().types:null;
+    if(!cur||cur.length!==2||cur[0]!==SALES_CASH||cur[1]!==SALES_OTHER){syncPayTypesToCloud();}
   }catch(e){}
 }
 // sync ข้อความเบิกเงินที่ใช้บ่อย ขึ้น/ลง Firestore (ใช้ร่วมทุกเครื่อง)
@@ -7240,7 +7335,7 @@ async function loadCashCfgFromCloud(){
   try{
     const d=await getDoc(doc(db,'config','cashSettings'));
     if(d.exists()){
-      cashCfg=Object.assign({floatTarget:5000},d.data());
+      cashCfg=Object.assign({floatTarget:5000,edcTarget:50000},d.data());
       localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
     }
   }catch(e){}
