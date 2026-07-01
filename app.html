@@ -1608,8 +1608,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.80.1';
+const APP_VERSION='3.82.0';
 const CHANGELOG=[
+  {v:'3.82.0',date:'2026-07-01',changes:['เงินสำรองแยกชนิด: แก้ให้ “อัปเดตสด” — เดิมค้างอยู่แค่ยอดนับล่าสุด เวลาเติม/เบิกเงินสำรองไม่ขยับ · ตอนนี้ใช้นับล่าสุดเป็นฐาน แล้วบวกเติม(+)/ลบเบิกไปลิ้นชัก-ซื้อของ(−) แยกชนิดให้อัตโนมัติ (เช่น เติมเหรียญ 1 บาท 100 เหรียญ ก็ขึ้นให้เลย) · ถ้ามีรายการที่ไม่ได้แยกชนิด/ปรับยอด จะเตือนว่าต่างจากยอดจริงเท่าไร แนะนำให้กดนับสำรองใหม่เพื่อรีเซ็ต']},
+  {v:'3.81.0',date:'2026-07-01',changes:['เปลี่ยน “แยกชนิดเงิน” จากลิ้นชัก → เป็น “เงินสำรอง (เงินทอน)” ตามที่ใช้จริง: เพิ่มปุ่ม “🪙 นับสำรอง” ต่อสาขา (นับแยกแบงค์/เหรียญ ระบบตั้งยอดสำรอง = ที่นับได้) · มอนิเตอร์แสดงองค์ประกอบเงินสำรองแยกรายสาขา (แบงค์/เหรียญกี่ใบ) เพื่อดูว่ามีเงินย่อยพอทอนไหม · ถ้ามีเติม/เบิกหลังนับ จะบอกส่วนต่างให้']},
   {v:'3.80.1',date:'2026-07-01',changes:['แยกชนิดเงิน: เปลี่ยนเป็นตารางแยกรายสาขา — แต่ละชนิด (แบงค์ 1000/500/...) แสดงจำนวนของแต่ละสาขา + รวม + แถวรวมเป็นเงินต่อสาขา เทียบกันได้ในตารางเดียว (เลื่อนซ้าย-ขวาได้)']},
   {v:'3.80.0',date:'2026-07-01',changes:['สรุปเงิน (แอดมิน): เพิ่ม “🪙 แยกชนิดเงิน” (แบบพับเก็บได้) — ดูว่าลิ้นชักมีแบงค์ 1000 กี่ใบ / 500 กี่ใบ ฯลฯ รวมทุกสาขา + แยกรายสาขา อิงจากการนับเปิด/ปิดร้านล่าสุด']},
   {v:'3.79.0',date:'2026-07-01',changes:['เพิ่ม “มอนิเตอร์เงินสำรอง” ในสรุปเงิน (แอดมิน): ตั้งเงินสำรองขั้นต่ำต่อสาขาได้ (ดีฟอลต์ ฿2,000) · แสดงแถบระดับเงินสำรองแต่ละสาขา + สถานะ พอใช้/⚠️ใกล้หมด/🔴หมด + ปุ่ม “เติมสำรอง” ด่วนถ้าต่ำ · สรุปการเคลื่อนไหวสำรองวันนี้ (เติม/เบิกไปลิ้นชัก/ซื้อของจากสำรอง) · เตือนในกล่อง “ต้องดู” เมื่อสำรองต่ำกว่าขั้นต่ำ — กันเงินทอนหมดจนพนักงานเบิกไม่ได้']},
@@ -4477,6 +4479,7 @@ const CASH_TYPES={
   safeout:{t:'นำออกจากตู้เซฟ',i:'🏦',c:'#C2410C'},
   expense:{t:'เบิกซื้อของ/ค่าใช้จ่าย',i:'💸',c:'#C2410C'},
   adjust:{t:'ปรับยอดเงิน (แอดมิน)',i:'⚖️',c:'#7C3AED'},
+  reservecount:{t:'นับเงินสำรอง (เงินทอน)',i:'🪙',c:'#7C3AED'},
 };
 const CASH_POOLS={reserve:{t:'เงินสำรอง',i:'💼'},drawer:{t:'ลิ้นชัก',i:'🧰'},safe:{t:'ตู้เซฟ',i:'🔒'}};
 function cashEventRow(ev,voidable){
@@ -4521,7 +4524,7 @@ window.cashVoidEvent=async function(evId){
   const _selfWindow=(ev.byUid===currentUser?.uid)&&_mins<5;
   if(!isAdmin&&!_selfWindow){showToast('เกิน 5 นาที — แจ้งแอดมินให้ยกเลิกรายการนี้','err');return;}
   const b=ev.branch, st=cashGet(b), amt=ev.amount||0;
-  const names={open:'เปิดร้าน',r2d:'เบิกสำรอง→ลิ้นชัก',topup:'เติมสำรอง',close:'ปิดร้าน',deposit:'ดึงเข้าตู้เซฟ',safeout:'นำออกตู้เซฟ',expense:'เบิกซื้อของ/ค่าใช้จ่าย',adjust:'ปรับยอดเงิน'};
+  const names={open:'เปิดร้าน',r2d:'เบิกสำรอง→ลิ้นชัก',topup:'เติมสำรอง',close:'ปิดร้าน',deposit:'ดึงเข้าตู้เซฟ',safeout:'นำออกตู้เซฟ',expense:'เบิกซื้อของ/ค่าใช้จ่าย',adjust:'ปรับยอดเงิน',reservecount:'นับเงินสำรอง'};
   if(!await capsuleConfirm(`ยกเลิกรายการ “${names[ev.type]||ev.type}” ฿${fmt(amt)}?\nระบบจะย้อนยอดเงินกลับ และลบรายการนี้`))return;
   let patch={};
   if(ev.type==='r2d')patch={reserve:st.reserve+amt,drawer:st.drawer-amt};
@@ -4530,6 +4533,7 @@ window.cashVoidEvent=async function(evId){
   else if(ev.type==='safeout')patch={safe:st.safe+amt};
   else if(ev.type==='expense')patch=(ev.from==='reserve')?{reserve:st.reserve+amt}:{drawer:st.drawer+amt};
   else if(ev.type==='adjust'&&ev.pool&&ev.prevValue!=null)patch={[ev.pool]:ev.prevValue}; // คืนยอดก่อนปรับ
+  else if(ev.type==='reservecount'&&ev.prevValue!=null)patch={reserve:ev.prevValue}; // คืนยอดสำรองก่อนนับ
   else if(ev.type==='open')patch={drawer:0,openDrawer:null,openDate:null,openBy:''};
   else if(ev.type==='close')patch=(ev.prevDrawer!=null)?{drawer:ev.prevDrawer}:{}; // คืนยอดลิ้นชักก่อนปิด (ถ้าบันทึกไว้) เพื่อให้ปิดใหม่ได้ถูกต้อง
   if(_cashBusy)return;_cashBusy=true;
@@ -4545,13 +4549,58 @@ window.cashVoidEvent=async function(evId){
   finally{_cashBusy=false;}
 };
 
-// หา event นับลิ้นชักล่าสุดของสาขา (เปิด/ปิดร้าน ที่มีการแยกชนิดเงิน) — ใช้ดูองค์ประกอบแบงค์/เหรียญ
-function cashLatestCountDenoms(b){
-  const evs=cashEvents.filter(ev=>+ev.branch===+b&&(ev.type==='open'||ev.type==='close')&&ev.denoms&&Object.keys(ev.denoms).length);
+// หา event นับเงินสำรองล่าสุดของสาขา — ใช้เป็น "ฐาน" ขององค์ประกอบเงินทอน
+function cashLatestReserveCount(b){
+  const evs=cashEvents.filter(ev=>+ev.branch===+b&&ev.type==='reservecount'&&ev.denoms&&Object.keys(ev.denoms).length);
   if(!evs.length)return null;
   evs.sort((a,c)=>(c.ts||0)-(a.ts||0));
   return evs[0];
 }
+// องค์ประกอบเงินสำรองแยกชนิด "แบบสด" = นับล่าสุดเป็นฐาน + เติมหลังนับ(+) − เบิกไปลิ้นชัก/ซื้อของหลังนับ(−)
+// แก้ปัญหาเดิมที่ค้างอยู่แค่ยอดนับ ไม่ขยับตามเติม/เบิก
+function cashReserveDenoms(b){
+  const base=cashLatestReserveCount(b);
+  const baseTs=base?(base.ts||0):0;
+  const denoms={}; CASH_DENOMS.forEach(d=>denoms[d]=0);
+  if(base&&base.denoms)CASH_DENOMS.forEach(d=>{denoms[d]+=(parseInt(base.denoms[d])||0);});
+  let moved=false;
+  cashEvents.filter(ev=>+ev.branch===+b&&(ev.ts||0)>baseTs&&ev.denoms).forEach(ev=>{
+    const sign=ev.type==='topup'?1:(ev.type==='r2d'?-1:((ev.type==='expense'&&ev.from==='reserve')?-1:0));
+    if(!sign)return;
+    CASH_DENOMS.forEach(d=>{denoms[d]+=sign*(parseInt(ev.denoms[d])||0);});
+    moved=true;
+  });
+  let computed=0; CASH_DENOMS.forEach(d=>computed+=d*denoms[d]);
+  return {denoms,computed,base,moved,hasData:!!(base||moved)};
+}
+// ===== นับเงินสำรอง (เงินทอน) แยกชนิด — ตั้งยอดสำรอง = ที่นับได้ + เก็บองค์ประกอบไว้ monitor =====
+window.cashReserveCountPrompt=function(branch){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const st=cashGet(branch);
+  openModal(`<div class="modal-title">🪙 นับเงินสำรอง (เงินทอน) · ${BRANCHES[branch]}</div>
+    <div style="font-size:12.5px;color:var(--text3);margin-bottom:12px">นับเงินสำรองที่ใช้ทอน แยกแบงค์/เหรียญ ระบบจะตั้งยอดสำรอง = ที่นับได้ และเก็บองค์ประกอบไว้ดูว่ามีเงินย่อยพอทอนไหม</div>
+    <div style="display:flex;justify-content:space-between;background:var(--bg);border-radius:9px;padding:9px 12px;font-size:12.5px;margin-bottom:11px"><span>ยอดสำรองในระบบตอนนี้</span><b>฿${fmt(st.reserve)}</b></div>
+    ${cashDenomBlock()}
+    <div class="field"><label class="fl">เงินสำรองนับได้จริง (บาท)</label><input type="number" id="cash-in" inputmode="decimal" placeholder="0" readonly style="font-size:22px;font-weight:700"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashDoReserveCount(${branch})">บันทึกการนับ</button></div>`);
+  setTimeout(()=>document.getElementById('denom-1000')?.focus(),100);
+};
+window.cashDoReserveCount=async function(branch){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  if(_cashBusy)return;_cashBusy=true;
+  try{
+    const counted=parseFloat(document.getElementById('cash-in').value);
+    if(isNaN(counted)||counted<0){showToast('กรอกยอดให้ถูกต้อง','err');return;}
+    const st=cashGet(branch);const prevVal=st.reserve||0;
+    const delta=Math.round((counted-prevVal)*100)/100;
+    await cashSaveState(branch,{reserve:counted});
+    await cashAddEvent({branch,type:'reservecount',pool:'reserve',amount:counted,prevValue:prevVal,delta,denoms:cashGetDenoms()});
+    closeMD();renderCashPage();
+    showToast(`นับเงินสำรอง ${BRANCHES[branch]} · ฿${fmt(counted)}${delta!==0?` (${delta>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(delta))})`:' ตรง'}`);
+    logActivity('cash_reservecount',`นับเงินสำรอง ${BRANCHES[branch]} ฿${fmt(prevVal)}→฿${fmt(counted)}`);
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
+};
 // สรุปเงินภาพรวมทุกสาขา (เฉพาะแอดมิน) — ไว้ monitor เงินสำรอง/ลิ้นชัก/เซฟ + ความเคลื่อนไหว + ขาด/เกิน วันนี้
 function cashAdminSummary(){
   if(!isAdmin)return '';
@@ -4605,7 +4654,10 @@ function cashAdminSummary(){
         <span style="font-family:var(--mono);font-weight:700">฿${fmt(r)}${resMin?` <span style="color:var(--text3);font-weight:500">/ ฿${fmt(resMin)}</span>`:''}</span>
       </div>
       <div style="height:8px;border-radius:5px;background:var(--border);overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${barCol}"></i></div>
-      ${(empty||low)?`<button class="btn btn-sm" style="margin-top:6px;padding:4px 12px;color:var(--green-d);border-color:var(--green)" onclick="cashTopupPrompt(${b})">💼 เติมสำรอง ${bn}</button>`:''}
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <button class="btn btn-sm" style="padding:4px 12px" onclick="cashReserveCountPrompt(${b})">🪙 นับสำรอง</button>
+        ${(empty||low)?`<button class="btn btn-sm" style="padding:4px 12px;color:var(--green-d);border-color:var(--green)" onclick="cashTopupPrompt(${b})">💼 เติม</button>`:''}
+      </div>
     </div>`;
   }).join('');
   const resSection=`<div style="border:1px solid var(--border);border-radius:14px;padding:13px 14px;margin-bottom:13px">
@@ -4617,27 +4669,33 @@ function cashAdminSummary(){
       <span>ซื้อของจากสำรอง <b style="color:var(--amber-t)">−฿${fmt(resExpToday)}</b></span>
     </div>
   </div>`;
-  // ===== แยกชนิดเงิน (ลิ้นชัก · ตามการนับล่าสุด) =====
+  // ===== แยกชนิดเงินสำรอง (เงินทอน) · ตามการนับล่าสุด =====
   const denomTotals={}; CASH_DENOMS.forEach(d=>denomTotals[d]=0);
   const perBranchDenom=BRANCHES.map((bn,b)=>{
-    const ev=cashLatestCountDenoms(b);
-    if(ev&&ev.denoms)CASH_DENOMS.forEach(d=>{denomTotals[d]+=(parseInt(ev.denoms[d])||0);});
-    return {bn,b,ev};
+    const rd=cashReserveDenoms(b);
+    CASH_DENOMS.forEach(d=>{denomTotals[d]+=rd.denoms[d];});
+    return {bn,b,rd};
   });
-  const anyDenom=CASH_DENOMS.some(d=>denomTotals[d]>0);
+  const anyDenom=perBranchDenom.some(x=>x.rd.hasData);
   let denomGrand=0; CASH_DENOMS.forEach(d=>denomGrand+=d*denomTotals[d]);
   const denomHeader=`<tr style="color:var(--text3);font-size:10.5px"><th style="padding:3px 6px;text-align:left;font-weight:700;white-space:nowrap">ชนิด</th>${BRANCHES.map((bn,b)=>`<th style="padding:3px 6px;text-align:right;font-weight:700;white-space:nowrap"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${BCOLORS[b]};margin-right:3px"></span>${bn}</th>`).join('')}<th style="padding:3px 6px;text-align:right;font-weight:700">รวม</th></tr>`;
-  const branchDenomVal=perBranchDenom.map(x=>{let v=0;if(x.ev&&x.ev.denoms)CASH_DENOMS.forEach(d=>v+=d*(parseInt(x.ev.denoms[d])||0));return v;});
-  const denomRows=CASH_DENOMS.filter(d=>denomTotals[d]>0).map(d=>{
+  const branchDenomVal=perBranchDenom.map(x=>x.rd.computed);
+  const denomRows=CASH_DENOMS.filter(d=>denomTotals[d]!==0).map(d=>{
     const kind=d>=20?'แบงค์':'เหรียญ';
-    const cells=perBranchDenom.map(x=>{const c=x.ev&&x.ev.denoms?(parseInt(x.ev.denoms[d])||0):0;return `<td style="padding:5px 6px;text-align:right;font-family:var(--mono)">${c?fmt(c):'<span style="color:var(--border2)">–</span>'}</td>`;}).join('');
+    const cells=perBranchDenom.map(x=>{const c=x.rd.denoms[d];return `<td style="padding:5px 6px;text-align:right;font-family:var(--mono)">${c<0?`<span style="color:var(--red-t)">${fmt(c)}</span>`:(c?fmt(c):'<span style="color:var(--border2)">–</span>')}</td>`;}).join('');
     return `<tr style="border-top:1px solid var(--border)"><td style="padding:5px 6px;white-space:nowrap">${kind} ${d}</td>${cells}<td style="padding:5px 6px;text-align:right;font-family:var(--mono);font-weight:700">${fmt(denomTotals[d])}</td></tr>`;
   }).join('');
   const denomMoneyRow=`<tr style="border-top:2px solid var(--border2)"><td style="padding:6px 6px;font-weight:700;white-space:nowrap">รวมเป็นเงิน</td>${branchDenomVal.map(v=>`<td style="padding:6px 6px;text-align:right;font-family:var(--mono);font-weight:700">฿${fmt(v)}</td>`).join('')}<td style="padding:6px 6px;text-align:right;font-family:var(--mono);font-weight:800;color:var(--green-dd)">฿${fmt(denomGrand)}</td></tr>`;
-  const denomWhen=perBranchDenom.map(x=>{if(!x.ev)return `${x.bn}: ยังไม่นับ`;const t=new Date(x.ev.ts||0);return `${x.bn}: นับ${x.ev.type==='close'?'ปิด':'เปิด'}ร้าน ${t.toLocaleDateString('th-TH',{day:'numeric',month:'short'})} ${t.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}`;}).join(' · ');
+  const denomWhen=perBranchDenom.map(x=>{
+    if(!x.rd.hasData)return `${x.bn}: ยังไม่มีข้อมูลแยกชนิด`;
+    const actual=cashGet(x.b).reserve;
+    const diff=Math.round((actual-x.rd.computed)*100)/100;
+    const src=x.rd.base?(`นับ ${new Date(x.rd.base.ts||0).toLocaleDateString('th-TH',{day:'numeric',month:'short'})} ${new Date(x.rd.base.ts||0).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})}`+(x.rd.moved?' + เติม/เบิกหลังนับ':'')):'คิดจากรายการเติม/เบิก';
+    return `${x.bn}: ${src}${diff!==0?` · ⚠️ ต่างจากยอดสำรองจริง ${diff>0?'+':''}฿${fmt(diff)}`:' · ✓ ตรงยอดสำรอง'}`;
+  }).join(' · ');
   const denomDetails=`<details ${window._denomOpen?'open':''} ontoggle="window._denomOpen=this.open" style="margin-bottom:13px;border:1px solid var(--border);border-radius:14px">
     <summary style="list-style:none;cursor:pointer;padding:12px 14px;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center">
-      <span>🪙 แยกชนิดเงิน — ลิ้นชัก <span style="font-size:10.5px;font-weight:500;color:var(--text3)">ตามนับล่าสุด</span></span>
+      <span>🪙 เงินสำรอง (เงินทอน) แยกชนิด <span style="font-size:10.5px;font-weight:500;color:var(--text3)">ตามนับล่าสุด</span></span>
       <span style="color:var(--text3);font-size:11px">แตะดู ▾</span>
     </summary>
     <div style="padding:0 14px 13px">
@@ -4646,8 +4704,8 @@ function cashAdminSummary(){
         <tbody>${denomRows}${denomMoneyRow}</tbody>
       </table></div>
       <div style="font-size:10.5px;color:var(--text3);margin-top:9px">🕐 ${denomWhen}</div>
-      <div style="font-size:10.5px;color:var(--text3);margin-top:5px">องค์ประกอบจากการนับเปิด/ปิดร้านล่าสุด · ถ้ามีเบิก-ดึงเงินหลังนับ ตัวเลขอาจต่างจากยอดปัจจุบันเล็กน้อย · เลื่อนตารางซ้าย-ขวาได้</div>`
-      :'<div style="font-size:12px;color:var(--text3);padding:6px 0">ยังไม่มีข้อมูลการนับแยกชนิดเงิน</div>'}
+      <div style="font-size:10.5px;color:var(--text3);margin-top:5px">อัปเดตสด: ฐาน = นับล่าสุด แล้ว + เติม/ − เบิก แยกชนิดให้อัตโนมัติ · ดูว่ามีแบงค์ย่อย/เหรียญพอทอนไหม · ⚠️ = มีบางรายการไม่ได้แยกชนิด/ปรับยอด → กด 🪙 นับสำรอง เพื่อรีเซ็ตให้ตรง · เลื่อนตารางซ้าย-ขวาได้</div>`
+      :'<div style="font-size:12px;color:var(--text3);padding:8px 0;line-height:1.6">ยังไม่มีการนับเงินสำรองแยกชนิด<br>กดปุ่ม <b>🪙 นับสำรอง</b> ที่การ์ดมอนิเตอร์เงินสำรองด้านบน เพื่อบันทึกว่ามีแบงค์/เหรียญอะไรบ้าง</div>'}
     </div>
   </details>`;
   const flow=(ic,label,val,col)=>`<div style="flex:1;min-width:80px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:9px 11px">
