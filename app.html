@@ -1608,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.76.0';
+const APP_VERSION='3.77.0';
 const CHANGELOG=[
+  {v:'3.77.0',date:'2026-07-01',changes:['ตรวจ+แก้ความสอดคล้อง “เงินสด & ตู้เซฟ” กับ “บันทึกยอดขาย”: ยอดควรมีตอนปิดร้านดึง “ยอดขายเงินสด” จากบันทึกยอดขาย (ช่องเงินสด) ถูกต้องอยู่แล้ว (บัตร/EDC/อื่นๆ ไม่นับเข้าลิ้นชัก) · แก้จุดที่หน้าเงินสดอาจใช้ยอดขายเก่า: ตอนนี้เปิดหน้าเงินสดจะโหลดยอดขายล่าสุด และถ้ามีคนลงยอดจากเครื่องอื่น ยอด “ควรมี” จะอัปเดตสดทันที']},
   {v:'3.76.0',date:'2026-07-01',changes:['แก้ตัวเช็ค EDC ให้ตรงจุดประสงค์: เป็น “ยอดรูดบัตรสะสมทั้งเดือน” เทียบขั้นต่ำค่าเช่าเครื่อง (ดีฟอลต์ ฿50,000/เครื่อง/เดือน · ปรับได้ที่ตั้งค่า) — กรอกยอดรูดบัตรแต่ละเครื่องรายวัน ระบบรวมทั้งเดือนให้ แสดงแถบความคืบหน้า + บอกว่าขาดอีกเท่าไรถึงจะครบ (ไม่ถึงต้องจ่ายค่าเช่า) · EDC ไม่รวมกับยอดขาย “รับชำระอื่นๆ” แล้ว (เป็นตัวเช็คแยกล้วนๆ)']},
   {v:'3.75.0',date:'2026-07-01',changes:['รื้อการคีย์ยอดขายใหม่: เหลือ 2 ช่อง “เงินสด” + “รับชำระเงินอื่นๆ” (เดิม 4 ช่อง) · เพิ่มกล่อง “🔍 เช็คยอดจาก EDC ดำ/ขาว” — กรอกยอดเครื่องรูดบัตร ระบบเช็คทันทีว่ารวมแล้วตรงกับยอดรับชำระอื่นๆ ไหม (ตรง/ขาด/เกิน) · ยอดขายเก่าที่ลงด้วย 4 ช่องทางถูกแปลงให้อัตโนมัติ (รับชำระอื่นๆ = EDC+QR รวม) และดึง EDC ดำ/ขาว เดิมมาเป็นตัวเช็คให้ — ยอดรวม/รายงานย้อนหลังครบเหมือนเดิม']},
   {v:'3.74.0',date:'2026-07-01',changes:['เงินเปิดร้านมาตรฐาน: เพิ่มค่ามาตรฐาน (ดีฟอลต์ ฿5,000 · ปรับได้ที่ตั้งค่า) — ตอนนับเปิดร้านระบบโชว์ยอดมาตรฐาน + เทียบให้ทันทีว่า ตรง/ขาด/เกิน เท่าไร (พนักงานยังกรอกตามจริงได้ตามสถานการณ์) · ลบเมนู “บทความ” และ “คำเตือนยา” ออกจากระบบ']},
@@ -2731,6 +2732,7 @@ function refreshActivePage(){
   if(p==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
   else if(p==='dashboard'){Promise.all([loadSalesFromCloud(),loadCashData()]).then(dashRefresh);}
   else if(p==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
+  else if(p==='cash'){loadSalesFromCloud().then(()=>{if(currentPage==='cash'&&typeof renderCashPage==='function')renderCashPage();});} // ยอดขายเงินสดเปลี่ยน → อัปเดต “ควรมี” บนหน้าเงินสด
   else if(p==='members')loadMembers();
   else if(p==='payroll')loadPayroll();
   else if(p==='my-payroll')loadMyPayroll();
@@ -2787,7 +2789,7 @@ window.goto=function(page){
   if(page==='dashboard')dashInit();
   if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
-  if(page==='cash'){startCashLive();loadCashPage();}
+  if(page==='cash'){startCashLive();loadCashPage();loadSalesFromCloud().then(()=>{if(document.getElementById('page-cash')?.classList.contains('active')&&typeof renderCashPage==='function')renderCashPage();});}
   startRealtimeAll();
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
