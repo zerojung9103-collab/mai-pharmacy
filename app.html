@@ -1617,8 +1617,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.92.0';
+const APP_VERSION='3.94.0';
 const CHANGELOG=[
+  {v:'3.94.0',date:'2026-07-04',changes:['จัดการแจ้งเตือนอัจฉริยะได้แล้ว: (1) "เงินปิดร้านไม่ตรงซ้ำ" นับเฉพาะรายการที่ยังไม่กด ✔ ตรวจแล้ว + ปุ่ม "✔ รับทราบทั้งหมด" กดครั้งเดียวเคลียร์รายการค้างทั้งสาขา (ซากจากบั๊กเวอร์ชันเก่าหายไป — มีไม่ตรงครั้งใหม่ค่อยเด้งอีก) (2) ปุ่ม 🔕 ปิดเสียง 7 วัน ที่แจ้งเตือนตู้เซฟเกิน/ยอดขายผิดปกติ/บิลเฉลี่ยเพี้ยน/เงินไม่ตรงซ้ำ — ปิดครั้งเดียวเงียบทุกเครื่อง ครบกำหนดเด้งกลับเอง']},
+  {v:'3.93.0',date:'2026-07-04',changes:['เช็คอินของ role ผู้ทดสอบ (🧪) ไม่ปนกับข้อมูลจริงแล้ว — ไม่แสดงในหน้าประวัติลงเวลา ไม่นับในสถิติเข้างาน/มาสายบนหน้าแรก ตารางเวร สรุปสัปดาห์ และแจ้งเตือนสายบ่อย (ตัวผู้ทดสอบเองยังเช็คอิน/รีเซ็ตทดสอบได้ตามปกติ)']},
   {v:'3.92.0',date:'2026-07-03',changes:['แก้บั๊กตัดเงินเข้าเซฟไม่ได้: ระบบคิดยอดตัดให้แต่กดแล้วเจอ "ลิ้นชักมีแค่ ฿5,000 — ตัดเกินไม่ได้" — สาเหตุคือด่านตรวจเทียบกับยอดลิ้นชักดิบในระบบ (ที่ยังไม่รวมยอดขายเงินสดของวัน) ตอนนี้ทุกจุดเทียบกับ "ลิ้นชักควรมีตอนนี้" ตามสูตรแล้ว (ต้นลิ้นชัก + ขายเงินสด − ที่เก็บเซฟ − เบิกซื้อของ) ครอบคลุมทั้งตัดเข้าเซฟตอนปิดร้าน ดึงเข้าเซฟระหว่างวัน และเบิกซื้อของจากลิ้นชัก']},
   {v:'3.91.0',date:'2026-07-03',changes:['จัดระเบียบสิทธิ์เงินสำรองตามกติการ้าน: (1) พนักงานนับเงินสำรองประจำสัปดาห์ได้แล้ว (เดิมกดแล้วติด "เฉพาะผู้ดูแล") — นับแล้วยอดอัปเดตตามจริง ประวัติแสดง "ยอดในระบบ → นับได้ · ตรง/ขาด/เกิน" ให้ผู้ดูแลเห็นทุกครั้ง (2) เงินสำรองพนักงานแก้ไม่ได้แล้ว: เบิกซื้อของหยิบได้เฉพาะลิ้นชัก และปุ่มเบิกสำรอง→ลิ้นชักเหลือเฉพาะผู้ดูแล — ต้องการแบงค์ย่อยให้ใช้วิธีแลกกับลิ้นชัก (ไม่ต้องบันทึก)']},
   {v:'3.90.0',date:'2026-07-03',changes:['🧠 ผู้ช่วยอัจฉริยะ: (1) เตือนอัตโนมัติสำหรับคนที่กำลังเข้าเวร — อย่าลืมเปิดร้าน · ถึงเวลาปิดร้าน (ล้อตามเวลาออกเวรในตารางของแต่ละคน) · เมื่อวานยังไม่ลงยอดขาย · แบงค์ 20/100 ในเงินสำรองใกล้หมด · EDC โค้งสุดท้ายยังห่างเป้า พร้อมปุ่มกดแล้วพาไปทำได้เลย (2) ผู้ดูแลจับความผิดปกติอัตโนมัติ — ยอดขายสูง/ต่ำผิดปกติ (เทียบวันเดียวกันย้อนหลัง 6 สัปดาห์) · บิลเฉลี่ยเพี้ยน · เงินปิดร้านไม่ตรงซ้ำๆ ใน 30 วัน · ค้างนับเงินสำรอง (3) สรุปสัปดาห์อัตโนมัติ — การ์ดเด้งเช้าวันจันทร์ + ปุ่ม 🗓 สรุปสัปดาห์ ในหน้ายอดขาย & รายงาน เลื่อนดูย้อนหลังได้ทุกสัปดาห์ · เกณฑ์ทุกตัวปรับได้ในตั้งค่า → เกณฑ์แจ้งเตือนผู้ดูแล']},
@@ -3213,7 +3215,7 @@ async function renderStaffStatus(targetId='db-staff-status'){
   try{
     const snap=await getDocs(query(collection(db,'checkins'),where('date','==',today)));
     const todayCi=snap.docs.map(d=>({...d.data(),id:d.id}));
-    todayCi.forEach(c=>{if(!allCheckins.find(x=>x.uid===c.uid&&x.date===c.date))allCheckins.push(c);});
+    todayCi.forEach(c=>{if(isTestCheckin(c))return;if(!allCheckins.find(x=>x.uid===c.uid&&x.date===c.date))allCheckins.push(c);});
   }catch(e){}
   if(!dayShifts.length){
     el.innerHTML=`<div class="card"><div style="font-family:var(--disp);font-weight:600;font-size:16px;margin-bottom:.25rem">สถานะพนักงานวันนี้</div><div style="font-size:13px;color:var(--text3);padding:1rem 0;text-align:center">ยังไม่มีเวรในตารางวันนี้</div></div>`;
@@ -3406,6 +3408,8 @@ let bdaySettings=JSON.parse(localStorage.getItem('nm_bday_settings')||'{}');
 let memberBdays=[];
 let allLeaves=[]; // วันลาทั้งหมด สำหรับแสดงในตารางเวร
 let allCheckins=[]; // การเช็คอินทั้งหมด สำหรับแสดงในตารางเวร + คำนวณ payroll
+// เช็คอินของ role tester = ข้อมูลทดสอบ — ไม่นับรวมในหน้าประวัติ/สถิติ/แจ้งเตือนของจริง
+function isTestCheckin(x){if(!x)return false;if(x.isTesterCheckin)return true;const m=(allMembers||[]).find(mm=>mm.uid===x.uid);return m?.role==='tester';}
 
 // โหลดวันลาทั้งหมดจาก Firestore
 async function loadLeavesForSchedule(){
@@ -3419,7 +3423,7 @@ async function loadLeavesForSchedule(){
 async function loadCheckinsForSchedule(){
   try{
     const snap=await getDocs(collection(db,'checkins'));
-    allCheckins=snap.docs.map(d=>({id:d.id,...d.data()}));
+    allCheckins=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>!isTestCheckin(c));
   }catch(e){allCheckins=[];}
 }
 
@@ -9353,7 +9357,7 @@ window.loadCheckinHistory=async function(){
   document.getElementById('cih-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
   try{
     const snap=await getDocs(query(collection(db,'checkins'),where('date','==',date)));
-    const recs=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
+    const recs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>!isTestCheckin(r)).sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
     const checkedIn=recs.filter(r=>r.checkIn).length;
     const checkedOut=recs.filter(r=>r.checkOut).length;
     const lateCount=recs.filter(r=>r.isLate).length;
@@ -9667,6 +9671,39 @@ window.updateNotifBell=function(){
   const n=(window._currentAlerts||[]).length;
   document.querySelectorAll('.notif-badge').forEach(b=>{if(n>0){b.textContent=n>9?'9+':n;b.style.display='flex';}else{b.style.display='none';}});
 };
+// ===== 🔕 ปิดเสียงแจ้งเตือนชั่วคราว (บันทึกใน config → เงียบทุกเครื่อง) =====
+function alertMuted(key){const u=(alertSettings.mutes||{})[key];return !!u&&u>new Date().toISOString();}
+window.muteAlert=async function(key,days){
+  if(!isAdmin)return;
+  days=days||7;
+  alertSettings.mutes={...(alertSettings.mutes||{}),[key]:new Date(Date.now()+days*86400000).toISOString()};
+  try{await setDoc(doc(db,'config','alertSettings'),alertSettings);}catch(e){}
+  showToast(`🔕 ปิดเสียงแจ้งเตือนนี้ ${days} วัน — เด้งใหม่เมื่อครบกำหนด`);
+  checkNotifications();
+};
+// ✔ รับทราบเงินปิดร้านไม่ตรงทั้งหมดของสาขา (ติ๊ก "ตรวจแล้ว" ให้ทุกรายการค้าง — ครั้งใหม่หลังจากนี้ค่อยเด้งอีก)
+window.cashAckDiffs=async function(branch){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  const _d30=new Date();_d30.setDate(_d30.getDate()-30);const _d30s=dateStr(_d30);
+  const targets=cashEvents.filter(e=>+e.branch===+branch&&e.type==='close'&&(e.date||'')>=_d30s&&!e.isTest&&!e.reviewed&&cashCloseCalc(+branch,e).diff!==0);
+  if(!targets.length){showToast('ไม่มีรายการค้างตรวจแล้ว');checkNotifications();return;}
+  if(!await capsuleConfirm(`รับทราบเงินปิดร้านไม่ตรง ${targets.length} รายการของ${BRANCHES[branch]}?\nระบบจะติ๊ก "✔ ตรวจแล้ว" ให้ทั้งหมด — แจ้งเตือนนี้จะเด้งอีกเฉพาะเมื่อมีเงินไม่ตรงครั้งใหม่`,{danger:false,okLabel:'รับทราบทั้งหมด'}))return;
+  loading(true);
+  try{
+    const by=cashWho(), at=new Date().toISOString();
+    for(const ev of targets){
+      if(!isTester)await updateDoc(doc(db,'cashEvents',ev.id),{reviewed:true,reviewedBy:by,reviewedAt:at});
+      ev.reviewed=true;ev.reviewedBy=by;
+    }
+    if(isTester)testerCashPersist();
+    showToast(`✓ รับทราบแล้ว ${targets.length} รายการ`);
+    logActivity('cash_review',`รับทราบเงินปิดร้านไม่ตรง ${BRANCHES[branch]} ${targets.length} รายการ (30 วัน)`);
+    checkNotifications();
+    if(document.getElementById('page-cash')?.classList.contains('active'))renderCashPage();
+  }catch(e){showToast('ไม่สำเร็จ: '+e.message,'err');}
+  loading(false);
+};
+
 // ===== 🗓 สรุปสัปดาห์อัตโนมัติ (ผู้ดูแล) — คำนวณสดจากยอดขาย/เงินสด/ลงเวลา ไม่เก็บอะไรเพิ่ม =====
 function weekStartStr(offset){ // วันจันทร์ของสัปดาห์ (offset=1 คือสัปดาห์ที่แล้ว)
   const d=new Date();const dw=(d.getDay()+6)%7;d.setDate(d.getDate()-dw-7*(offset||0));
@@ -9701,7 +9738,7 @@ window.openWeeklySummary=async function(offset){
   let lateN=0,lateNames='';
   try{
     const snap=await getDocs(query(collection(db,'checkins'),where('date','>=',ws),where('date','<=',we)));
-    const lb={};snap.docs.forEach(d=>{const x=d.data();if(x.isLate){lateN++;lb[x.uid]=(lb[x.uid]||0)+1;}});
+    const lb={};snap.docs.forEach(d=>{const x=d.data();if(x.isLate&&!isTestCheckin(x)){lateN++;lb[x.uid]=(lb[x.uid]||0)+1;}});
     lateNames=Object.entries(lb).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([u,n])=>`${memberName(u)||'—'} ${n} ครั้ง`).join(' · ');
   }catch(e){}
   // EDC สะสมเดือนปัจจุบัน
@@ -9909,14 +9946,14 @@ async function checkNotifications(){
       }
       // (3) เงินในตู้เซฟเกินเกณฑ์ → ควรนำฝากธนาคาร
       const _sf=BRANCHES.map((b,i)=>({b,safe:cashGet(i).safe})).filter(x=>x.safe>(alertSettings.safeThreshold||0));
-      if(_sf.length&&(alertSettings.safeThreshold||0)>0){
-        alerts.push({color:'amber',icon:'🏦',text:`ตู้เซฟเกิน ฿${fmt(alertSettings.safeThreshold)}: ${_sf.map(x=>x.b+' ฿'+fmt(x.safe)).join(', ')} — ควรนำฝากธนาคาร`,action:`<button class="btn btn-sm" onclick="goto('cash')" style="margin-left:auto">ดู</button>`});
+      if(_sf.length&&(alertSettings.safeThreshold||0)>0&&!alertMuted('safe')){
+        alerts.push({color:'amber',icon:'🏦',text:`ตู้เซฟเกิน ฿${fmt(alertSettings.safeThreshold)}: ${_sf.map(x=>x.b+' ฿'+fmt(x.safe)).join(', ')} — ควรนำฝากธนาคาร`,action:`<button class="btn btn-sm" onclick="goto('cash')" style="margin-left:auto">ดู</button><button class="btn btn-sm" onclick="muteAlert('safe')" title="ปิดเสียง 7 วัน">🔕</button>`});
       }
       // (4) พนักงานสายบ่อยเดือนนี้
       try{
         const _ms=today.slice(0,8)+'01';
         const _cs=await getDocs(query(collection(db,'checkins'),where('date','>=',_ms),where('date','<=',today)));
-        const _lb={};_cs.docs.forEach(d=>{const x=d.data();if(x.isLate)_lb[x.uid]=(_lb[x.uid]||0)+1;});
+        const _lb={};_cs.docs.forEach(d=>{const x=d.data();if(x.isLate&&!isTestCheckin(x))_lb[x.uid]=(_lb[x.uid]||0)+1;});
         const _fr=Object.entries(_lb).filter(([u,n])=>n>=(alertSettings.lateThreshold||3));
         if(_fr.length){
           const nm=_fr.map(([u,n])=>`${memberName(u)||'—'} (${n} ครั้ง)`).slice(0,3).join(', ');
@@ -9935,14 +9972,14 @@ async function checkNotifications(){
             if(hist.length<3)return; // ข้อมูลย้อนหลังไม่พอเทียบ
             const avg=hist.reduce((a,e)=>a+e.total,0)/hist.length;
             const dev=Math.round((yEnt.total-avg)/avg*100);
-            if(Math.abs(dev)>=_pct)
-              alerts.push({color:dev<0?'red':'green',icon:dev<0?'📉':'📈',text:`ยอดขาย${bn}เมื่อวาน${dev<0?'ต่ำ':'สูง'}ผิดปกติ: ฿${fmt(yEnt.total)} (ปกติวันเดียวกัน ~฿${fmt(Math.round(avg))} · ${dev>0?'+':''}${dev}%)`,action:`<button class="btn btn-sm" onclick="goto('sales-history')" style="margin-left:auto">ดูยอด</button>`});
+            if(Math.abs(dev)>=_pct&&!alertMuted('anom_'+bi))
+              alerts.push({color:dev<0?'red':'green',icon:dev<0?'📉':'📈',text:`ยอดขาย${bn}เมื่อวาน${dev<0?'ต่ำ':'สูง'}ผิดปกติ: ฿${fmt(yEnt.total)} (ปกติวันเดียวกัน ~฿${fmt(Math.round(avg))} · ${dev>0?'+':''}${dev}%)`,action:`<button class="btn btn-sm" onclick="goto('sales-history')" style="margin-left:auto">ดูยอด</button><button class="btn btn-sm" onclick="muteAlert('anom_${bi}')" title="ปิดเสียง 7 วัน">🔕</button>`});
             // บิลเฉลี่ยเพี้ยนมาก (>2 เท่า หรือ <ครึ่ง) — มักเกิดจากคีย์จำนวนบิลคลาดเคลื่อน
             const pb=hist.filter(e=>+e.billCount>0).map(e=>e.total/e.billCount);
             if(yEnt.billCount>0&&pb.length>=3){
               const pa=pb.reduce((a,v)=>a+v,0)/pb.length, per=yEnt.total/yEnt.billCount;
-              if(per>pa*2||per<pa*0.5)
-                alerts.push({color:'amber',icon:'🧾',text:`บิลเฉลี่ย${bn}เมื่อวานผิดปกติ: ฿${fmt(Math.round(per))}/บิล (ปกติ ~฿${fmt(Math.round(pa))}/บิล) — ลองตรวจจำนวนบิลที่คีย์`,action:`<button class="btn btn-sm" onclick="goto('sales-history')" style="margin-left:auto">ตรวจ</button>`});
+              if((per>pa*2||per<pa*0.5)&&!alertMuted('bill_'+bi))
+                alerts.push({color:'amber',icon:'🧾',text:`บิลเฉลี่ย${bn}เมื่อวานผิดปกติ: ฿${fmt(Math.round(per))}/บิล (ปกติ ~฿${fmt(Math.round(pa))}/บิล) — ลองตรวจจำนวนบิลที่คีย์`,action:`<button class="btn btn-sm" onclick="goto('sales-history')" style="margin-left:auto">ตรวจ</button><button class="btn btn-sm" onclick="muteAlert('bill_${bi}')" title="ปิดเสียง 7 วัน">🔕</button>`});
             }
           });
         }
@@ -9953,10 +9990,11 @@ async function checkNotifications(){
         if(_rep>0){
           const _d30=new Date();_d30.setDate(_d30.getDate()-30);const _d30s=dateStr(_d30);
           BRANCHES.forEach((bn,bi)=>{
-            const diffs=cashEvents.filter(e=>+e.branch===bi&&e.type==='close'&&(e.date||'')>=_d30s&&!e.isTest).map(e=>cashCloseCalc(bi,e).diff).filter(d=>d!==0);
-            if(diffs.length>=_rep){
+            // นับเฉพาะที่ยังไม่ได้กด "✔ ตรวจแล้ว" — รับทราบแล้วไม่ฟ้องซ้ำ (ครั้งใหม่ค่อยเด้งอีก)
+            const diffs=cashEvents.filter(e=>+e.branch===bi&&e.type==='close'&&(e.date||'')>=_d30s&&!e.isTest&&!e.reviewed).map(e=>cashCloseCalc(bi,e).diff).filter(d=>d!==0);
+            if(diffs.length>=_rep&&!alertMuted('diff_'+bi)){
               const miss=diffs.filter(d=>d<0).reduce((a,v)=>a+v,0), over=diffs.filter(d=>d>0).reduce((a,v)=>a+v,0);
-              alerts.push({color:'red',icon:'⚠️',text:`${bn} เงินปิดร้านไม่ตรง ${diffs.length} ครั้งใน 30 วัน (${miss?`ขาดรวม ฿${fmt(Math.abs(miss))}`:''}${miss&&over?' · ':''}${over?`เกินรวม ฿${fmt(over)}`:''})`,action:`<button class="btn btn-sm" onclick="cashHistoryPrompt(${bi})" style="margin-left:auto">ดูประวัติ</button>`});
+              alerts.push({color:'red',icon:'⚠️',text:`${bn} เงินปิดร้านไม่ตรง ${diffs.length} ครั้งใน 30 วัน (${miss?`ขาดรวม ฿${fmt(Math.abs(miss))}`:''}${miss&&over?' · ':''}${over?`เกินรวม ฿${fmt(over)}`:''})`,action:`<button class="btn btn-sm btn-primary" onclick="cashAckDiffs(${bi})">✔ รับทราบทั้งหมด</button><button class="btn btn-sm" onclick="cashHistoryPrompt(${bi})" style="margin-left:auto">ดูประวัติ</button><button class="btn btn-sm" onclick="muteAlert('diff_${bi}')" title="ปิดเสียง 7 วัน">🔕</button>`});
             }
           });
         }
