@@ -1472,7 +1472,7 @@ input,select,textarea{border-radius:14px}
   <h3>มีอะไรให้ช่วยไหม? 💬</h3>
   <div class="hs-sub">เลือกสิ่งที่อยากรู้ ระบบจะพาไปทำให้</div>
   <button class="hrow" onclick="helpAction('now')"><div class="e">🧭</div><div><div class="tt">ตอนนี้ฉันควรทำอะไร?</div><div class="ss">ให้ระบบบอกขั้นต่อไป</div></div></button>
-  <button class="hrow" onclick="helpAction('sales')"><div class="e">💰</div><div><div class="tt">วิธีลงยอดขาย</div><div class="ss">พาไปหน้าบันทึกยอดขาย</div></div></button>
+  <button class="hrow" onclick="helpAction('sales')"><div class="e">💰</div><div><div class="tt">วิธีลงยอดขาย</div><div class="ss">ลงในหน้าเงินสด &amp; ตู้เซฟ (ปุ่มลงยอด/ปิดร้าน)</div></div></button>
   <button class="hrow" onclick="helpAction('cash')"><div class="e">🔒</div><div><div class="tt">วิธีนับเงิน เปิด/ปิดร้าน</div><div class="ss">พาไปหน้าเงินสด</div></div></button>
   <button class="hrow" onclick="helpAction('tour')"><div class="e">▶️</div><div><div class="tt">ดูทัวร์แนะนำอีกครั้ง</div><div class="ss">4 ขั้นตอน รู้จักระบบใน 1 นาที</div></div></button>
 </div>
@@ -1608,8 +1608,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.87.1';
+const APP_VERSION='3.88.0';
 const CHANGELOG=[
+  {v:'3.88.0',date:'2026-07-02',changes:['ยุบหน้า "บันทึกยอดขาย" — ทุกอย่างกรอกจบที่หน้า "เงินสด & ตู้เซฟ" ที่เดียว: เพิ่มปุ่ม "📊 ลงยอดขายวันนี้" (ฟอร์มเดียวจบ 3 ช่อง: เงินสด/รับชำระอื่นๆ/บิล — กติกาแก้ใน 5 นาทีเหมือนเดิม) + ปุ่ม "🔍 เช็ค EDC" แยก (แก้ได้เสมอ พร้อมแถบสะสมเดือนเทียบเป้าค่าเช่าเครื่อง) · ทางลัดเดิมทุกจุด (งานวันนี้/การ์ดไกด์/ปุ่มช่วยเหลือ/หน้าต่างลอย) พามาหน้าเงินสดให้อัตโนมัติ · เมนูล่างของคนมีสิทธิ์ขายเปลี่ยนเป็น "เงินสด" · ประวัติการขาย (แอดมิน) ยังอยู่เหมือนเดิม']},
   {v:'3.87.1',date:'2026-07-02',changes:['ถอดเมนู "สนามฝึก" ออก — ไม่จำเป็นแล้ว เพราะบทบาทผู้ทดสอบ (tester) ใช้ระบบเงินแบบจำลองได้เหมือนใช้งานจริงทุกอย่าง (ปลอดภัยกว่าและครบกว่า)']},
   {v:'3.87.0',date:'2026-07-02',changes:['อัปเดตบทบาท "ผู้ทดสอบ (tester)" ให้ทดสอบระบบเงินใหม่ได้เต็มรูปแบบ: หน้าเงินสด & ตู้เซฟของผู้ทดสอบเป็น 🧪 โหมดจำลองทั้งหมด (เงิน 3 กอง/เปิด-ปิดร้าน/ตัดเข้าเซฟ/เบิกซื้อของ/นับสำรอง/ลงยอดใน flow ปิดร้าน) — เก็บในเครื่องคนเดียว ไม่บันทึกเข้าระบบจริงแม้แต่บาทเดียว · มีแบนเนอร์บอกชัด + ปุ่ม "รีเซ็ตทดสอบ" เริ่มใหม่ได้ตลอด · รายการจำลองติดป้าย 🧪 · หน้าลงยอดขายปกติผู้ทดสอบกดบันทึกไม่ได้ (กันข้อมูลปลอมปนของจริง)']},
   {v:'3.86.0',date:'2026-07-02',changes:['ยกเครื่องระบบเงิน & ยอดขาย (แบบอัตโนมัติ): เปิดร้าน = กดยืนยันแคชเชียร์ครบมาตรฐานปุ่มเดียว (ไม่ต้องนับทุกเช้า — ไม่ตรงค่อยกด "นับจริง" ระบบบันทึกส่วนต่างให้) · ปิดร้านใหม่ 3 ขั้นในปุ่มเดียว: ยืนยันยอดขาย → ระบบคิดยอดตัดเข้าเซฟให้เอง (กดเก็บตามนี้/กรอกเองได้) → ยืนยันลิ้นชักเหลือมาตรฐานจบวัน · แลกเงินทอน (ลิ้นชัก↔สำรอง) ทำได้อิสระไม่ต้องบันทึก — ระบบให้นับเงินสำรองแยกชนิดสัปดาห์ละครั้งแทน (แอดมินตั้งวันได้ในตั้งค่า + โยกรอบได้ + งานขึ้นใน "งานวันนี้" เตือนค้างจนกว่าจะนับ) · ตัวนับเงินใหม่มีปุ่ม + / − แตะนับทีละใบ · เบิกซื้อของใส่ยอดรวมได้เลย (นับแยกเป็นทางเลือก) · ช่องกรอกยอดขายเป็นกล่องสีชัดเจนขึ้น · มอนิเตอร์เงินสำรองแสดง "นับล่าสุด/ค้างนับ" ต่อสาขา']},
@@ -1827,7 +1828,6 @@ const FEATURE_DEFS=[
   {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',cat:'mywork',zone:'daily',perm:null},
   {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',cat:'mywork',zone:'more',perm:null},
   {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'mywork',zone:'more',perm:'payroll_self'},
-  {page:'sales',icon:'📊',label:'บันทึกยอดขาย',color:'#8B5CF6',cat:'sales',zone:'daily',perm:'sales'},
   {page:'dashboard',icon:'📊',label:'ยอดขาย & รายงาน',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
   {page:'sales-history',icon:'📋',label:'ประวัติการขาย',color:'#534AB7',cat:'sales',zone:'admin',perm:null},
   {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',zone:'admin',perm:'members'},
@@ -2434,7 +2434,7 @@ function buildBottomNav(){
   if(!nav)return;
   // ปุ่มที่ 2 ปรับตาม role: admin→แดชบอร์ด, มีสิทธิ์ขาย→ยอดขาย, อื่นๆ→ตารางเวร
   const secondary=(isAdmin||hasPerm('dashboard_admin'))?{page:'dashboard',ic:'chart-bar',lbl:'ยอดขาย & รายงาน'}
-    :(hasPerm('sales'))?{page:'sales',ic:'cash',lbl:'ยอดขาย'}
+    :(hasPerm('sales'))?{page:'cash',ic:'cash',lbl:'เงินสด'}
     :{page:'schedule',ic:'calendar-event',lbl:'ตารางเวร'};
   const slots=[
     {page:'home',ic:'home',lbl:'หน้าหลัก'},
@@ -2674,7 +2674,7 @@ async function _miniRefresh(){
   const bringUp=()=>{try{window.focus();}catch(e){}};
   if(g('mini-act')&&st.next)g('mini-act').onclick=()=>{bringUp();guideGo(st.next.act,st.branch);setTimeout(()=>_miniRefresh().catch(()=>{}),900);};
   if(g('mini-cash'))g('mini-cash').onclick=()=>{bringUp();goto('cash');};
-  if(g('mini-sales'))g('mini-sales').onclick=()=>{bringUp();goto('sales');};
+  if(g('mini-sales'))g('mini-sales').onclick=()=>{bringUp();goto('cash');};
   if(g('mini-todo'))g('mini-todo').onclick=()=>{bringUp();goto('todo');};
   if(g('mini-open'))g('mini-open').onclick=()=>{bringUp();};
 }
@@ -4358,6 +4358,7 @@ async function loadCashPage(){
     else if(act==='close')cashCloseWizard(branch);
     else if(act==='deposit')cashDepositPrompt(branch);
     else if(act==='reservecount')cashReserveCountPrompt(branch);
+    else if(act==='sales')cashSalesPrompt(branch);
   }
 }
 function renderCashBranchSeg(){
@@ -5027,6 +5028,11 @@ function renderCashPage(){
     </div>
     <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก — ระบบตรวจด้วยการนับสำรองประจำสัปดาห์</div>`;
   }
+  // ลงยอดขาย / เช็ค EDC — ย้ายมาจากหน้า "บันทึกยอดขาย" เดิม (ทุกอย่างจบที่หน้านี้)
+  html+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+    <button class="btn btn-sm" style="flex:1" onclick="cashSalesPrompt(${branch})">📊 ลงยอดขายวันนี้</button>
+    <button class="btn btn-sm" style="flex:1" onclick="cashEdcPrompt(${branch})">🔍 เช็ค EDC</button>
+  </div>`;
   // สรุปวันนี้
   const _openDn=cashDenomSummary(_openEv?.denoms);
   html+=`<div style="margin-top:13px;border-top:1px solid var(--border);padding-top:11px">
@@ -5599,6 +5605,115 @@ window.cashDoCloseAmt=async function(branch,counted){
   finally{_cashBusy=false;}
 };
 
+// ===== ลงยอดขายวันนี้ — modal เดี่ยวแทนหน้า "บันทึกยอดขาย" เดิม (ฟอร์มเดียวจบ) =====
+window.cashSalesPrompt=function(branch,forceEdit){
+  const date=todayStr();
+  let e=salesEntries.find(x=>x.date===date&&+x.branch===+branch);
+  if(isTester){ // 🧪 ยอดจำลอง
+    const tv=window._testerSales?.[branch];
+    e=(tv!=null&&tv!=='')?{amounts:{[SALES_CASH]:tv,[SALES_OTHER]:0},billCount:0,updatedAt:new Date().toISOString()}:null;
+  }
+  const _mins=e?.updatedAt?(Date.now()-new Date(e.updatedAt).getTime())/60000:null;
+  const locked=!!e&&!isAdmin&&!isTester&&_mins!=null&&_mins>=5;
+  const cashV=e?(parseFloat(e.amounts?.[SALES_CASH])||0):0;
+  const otherV=e?(parseFloat(e.amounts?.[SALES_OTHER])||0):0;
+  if(e&&!forceEdit){
+    // มียอดแล้ว → สรุป + แก้ได้ตามกติกา 5 นาที
+    const stTxt=locked?'🔒 ล็อกแล้ว (เกิน 5 นาที) — แก้ได้เฉพาะแอดมิน':(isAdmin||isTester?'แก้ได้':'✏️ แก้ได้อีก '+Math.max(1,Math.ceil(5-_mins))+' นาที');
+    openModal(`<div class="modal-title">📊 ยอดขายวันนี้ · ${BRANCHES[branch]}</div>
+      <div style="background:var(--bg);border-radius:12px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:2">
+        <div style="display:flex;justify-content:space-between"><span>💵 เงินสด</span><b style="font-family:var(--mono)">฿${fmt(cashV)}</b></div>
+        <div style="display:flex;justify-content:space-between"><span>💳 รับชำระอื่นๆ</span><b style="font-family:var(--mono)">฿${fmt(otherV)}</b></div>
+        <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);padding-top:6px;margin-top:4px"><span style="font-weight:700">รวม${e.billCount?` (${e.billCount} บิล)`:''}</span><b style="font-family:var(--mono);color:var(--green-d)">฿${fmt(cashV+otherV)}</b></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-bottom:10px">${stTxt}</div>
+      ${locked?'':`<button class="btn btn-primary" style="width:100%;padding:12px" onclick="cashSalesPrompt(${branch},true)">✏️ แก้ยอด</button>`}
+      <button class="btn" style="width:100%;margin-top:8px" onclick="cashEdcPrompt(${branch})">🔍 เช็ค/แก้ EDC (แก้ได้เสมอ)</button>
+      <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+    return;
+  }
+  if(locked){showToast('ยอดล็อกแล้ว (เกิน 5 นาที) — แจ้งแอดมินแก้ให้','err');return;}
+  openModal(`<div class="modal-title">📊 ลงยอดขายวันนี้ · ${BRANCHES[branch]}</div>
+    <div class="field"><label class="fl">💵 เงินสด (บาท)</label><input type="number" id="cs-cash" min="0" inputmode="decimal" placeholder="0" value="${e&&cashV?cashV:''}" style="font-size:19px;font-weight:700;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:11px"></div>
+    <div class="field"><label class="fl">💳 รับชำระอื่นๆ (บัตร/โอน/QR)</label><input type="number" id="cs-other" min="0" inputmode="decimal" placeholder="0" value="${e&&otherV?otherV:''}" style="font-size:19px;font-weight:700;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:11px"></div>
+    <div class="field"><label class="fl">🧾 จำนวนบิล</label><input type="number" id="cs-bills" min="0" inputmode="numeric" placeholder="0" value="${e?.billCount||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px"></div>
+    <div style="font-size:10.5px;color:var(--text3);margin:-4px 0 10px">EDC ดำ/ขาว แก้แยกได้ที่ปุ่ม "🔍 เช็ค EDC" (แก้ได้เสมอ ไม่ล็อก)</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashSalesSave(${branch})">💾 บันทึกยอดขาย</button></div>`);
+  setTimeout(()=>document.getElementById('cs-cash')?.focus(),100);
+};
+window.cashSalesSave=async function(branch){
+  if(_cashBusy)return;_cashBusy=true;
+  try{
+    const date=todayStr();
+    const cashV=parseFloat(document.getElementById('cs-cash')?.value)||0;
+    const otherV=parseFloat(document.getElementById('cs-other')?.value)||0;
+    if(!cashV&&!otherV){showToast('ใส่ยอดขายก่อนนะ','err');return;}
+    if(isTester){ // 🧪 จำลอง
+      window._testerSales=window._testerSales||{};
+      window._testerSales[branch]=cashV;
+      testerCashPersist();
+      closeMD();renderCashPage();
+      showToast('🧪 บันทึกยอดขายจำลอง ฿'+fmt(cashV+otherV));
+      return;
+    }
+    const prev=salesEntries.find(x=>x.date===date&&+x.branch===+branch);
+    const amounts={};payTypes.forEach(p=>{amounts[p]=0;});
+    amounts[SALES_CASH]=cashV;amounts[SALES_OTHER]=otherV;
+    const rec={date,branch,amounts,total:cashV+otherV,
+      edcCheck:prev?.edcCheck||{black:0,white:0},
+      billCount:parseInt(document.getElementById('cs-bills')?.value)||0,
+      note:prev?.note||'',updatedBy:currentUser?.uid||'',updatedAt:new Date().toISOString()};
+    const idx=salesEntries.findIndex(x=>x.date===date&&+x.branch===+branch);
+    if(idx>=0)salesEntries[idx]=rec;else salesEntries.push(rec);
+    saveLocal();
+    await setDoc(doc(db,'sales',`${date}_${branch}`),{...rec});
+    closeMD();renderCashPage();
+    showToast('บันทึกยอดสาขา'+BRANCHES[branch]+' เรียบร้อย ✓');
+    logActivity('sales_save',`ยอดขายสาขา${BRANCHES[branch]} วันที่ ${date} = ฿${(cashV+otherV).toLocaleString()} (${rec.billCount} บิล)`);
+    if(window.refreshTodoStatus)refreshTodoStatus();
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
+  finally{_cashBusy=false;}
+};
+// ===== เช็ค EDC ดำ/ขาว — แก้ได้เสมอ + สะสมทั้งเดือนเทียบเป้าค่าเช่าเครื่อง =====
+window.cashEdcPrompt=function(branch){
+  const date=todayStr();
+  const e=salesEntries.find(x=>x.date===date&&+x.branch===+branch);
+  const mo=date.slice(0,7);
+  let sum=0;salesEntries.forEach(x=>{if((x.date||'').startsWith(mo))sum+=(parseFloat(x.edcCheck?.black)||0)+(parseFloat(x.edcCheck?.white)||0);});
+  const tgt=cashCfg.edcTarget||0;
+  const left=Math.max(0,tgt-sum);
+  const pct=tgt?Math.min(100,Math.round(sum/tgt*100)):0;
+  openModal(`<div class="modal-title">🔍 เช็ค EDC (ยอดรูดบัตร) · ${BRANCHES[branch]}</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">ตัวเลขเช็คค่าเช่าเครื่อง — ไม่รวมในยอดขาย · แก้ได้เสมอไม่ล็อก</div>
+    ${tgt?`<div style="background:${left===0?'var(--green-ll)':'var(--amber-l)'};border-radius:11px;padding:10px 13px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:${left===0?'var(--green-dd)':'var(--amber-t)'}"><span>สะสมเดือนนี้ (ทุกสาขา)</span><span style="font-family:var(--mono)">฿${fmt(sum)} / ฿${fmt(tgt)}</span></div>
+      <div style="height:7px;border-radius:4px;background:rgba(0,0,0,.08);margin-top:6px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${left===0?'var(--green)':'var(--amber)'}"></i></div>
+      <div style="font-size:11px;font-weight:700;margin-top:5px;color:${left===0?'var(--green-d)':'var(--amber-t)'}">${left===0?'✓ ครบเป้าแล้ว ไม่เสียค่าเช่า 🎉':'เหลืออีก ฿'+fmt(left)}</div>
+    </div>`:''}
+    <div style="display:flex;gap:8px">
+      <div class="field" style="flex:1"><label class="fl">EDC เครื่องดำ (วันนี้)</label><input type="number" id="edc-b" min="0" placeholder="0" value="${e?.edcCheck?.black||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
+      <div class="field" style="flex:1"><label class="fl">EDC เครื่องขาว (วันนี้)</label><input type="number" id="edc-w" min="0" placeholder="0" value="${e?.edcCheck?.white||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="cashEdcSave(${branch})">บันทึก EDC</button></div>`);
+};
+window.cashEdcSave=async function(branch){
+  if(_cashBusy)return;_cashBusy=true;
+  try{
+    if(isTester){closeMD();showToast('🧪 โหมดทดสอบ — EDC ไม่บันทึกจริง');return;}
+    const date=todayStr();
+    const edcCheck={black:parseFloat(document.getElementById('edc-b')?.value)||0,white:parseFloat(document.getElementById('edc-w')?.value)||0};
+    const idx=salesEntries.findIndex(x=>x.date===date&&+x.branch===+branch);
+    if(idx>=0)salesEntries[idx].edcCheck=edcCheck;
+    else salesEntries.push({date,branch,amounts:{},total:0,edcCheck,billCount:0,note:'',updatedBy:currentUser?.uid||'',updatedAt:new Date().toISOString()});
+    saveLocal();
+    await setDoc(doc(db,'sales',`${date}_${branch}`),{date,branch,edcCheck},{merge:true});
+    closeMD();
+    showToast('บันทึก EDC เรียบร้อย ✓');
+    logActivity('sales_edc',`EDC สาขา${BRANCHES[branch]} ${date} ดำ ฿${fmt(edcCheck.black)} / ขาว ฿${fmt(edcCheck.white)}`);
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
+  finally{_cashBusy=false;}
+};
+
 window.cashDepositPrompt=function(branch){
   const st=cashGet(branch);
   openModal(`<div class="modal-title">🧰→🔒 ดึงเงินเข้าตู้เซฟ · ${BRANCHES[branch]}</div>
@@ -6165,7 +6280,7 @@ window.rejectEditRequest=async function(id){
   }catch(e){showToast('ทำไม่สำเร็จ: '+e.message,'err');}
 };
 window.openRequestTarget=function(date,branch){
-  closeMD();goto('sales');
+  closeMD();goto('cash');
   setTimeout(()=>{
     const d=document.getElementById('sales-date');if(d)d.value=date;
     salesLoadForDate();salesBranch=branch;
@@ -8129,12 +8244,12 @@ async function renderHomeGuide(){
 window.guideGo=function(act,branch){
   // โหมดแอดมิน "ดูระบบแบบพนักงาน" = ดูเฉยๆ ไม่ทำงานจริง (กันบันทึกข้อมูลจริงโดยไม่ตั้งใจ)
   if(window._previewEmployee){
-    if(typeof showToast==='function')showToast('โหมดดูเฉยๆ 👁️ — อยากลองกดจริงให้ใช้ “🎓 สนามฝึก”');
+    if(typeof showToast==='function')showToast('โหมดดูเฉยๆ 👁️ — อยากลองกดจริง ให้ตั้งบทบาทเป็น “ผู้ทดสอบ” (โหมดจำลอง)');
     return;
   }
   if(act==='open'){window._cashPendingAction={branch:+branch,act:'open'};goto('cash');}
   else if(act==='close'){window._cashPendingAction={branch:+branch,act:'close'};goto('cash');}
-  else if(act==='sales')goto('sales');
+  else if(act==='sales'){window._cashPendingAction={branch:+branch,act:'sales'};goto('cash');}
   else if(act==='todo')goto('todo');
   else goto('checkin'); // checkin / checkout = หน้าเดียวกัน
 };
@@ -8180,7 +8295,7 @@ window.closeHelpSheet=function(){
 window.helpAction=function(act){
   closeHelpSheet();
   if(act==='now'){ goto('home'); setTimeout(()=>document.getElementById('home-guide')?.scrollIntoView({behavior:'smooth',block:'center'}),120); }
-  else if(act==='sales')goto('sales');
+  else if(act==='sales')goto('cash');
   else if(act==='cash')goto('cash');
   else if(act==='tour')setTimeout(()=>startTour(),180);
 };
@@ -8455,7 +8570,7 @@ function renderHome(){
     const grand=totals.reduce((a,v)=>a+v,0), mx=Math.max(...totals,1), top=totals.indexOf(Math.max(...totals));
     el.innerHTML=BRANCHES.map((b,i)=>{
       const share=grand?Math.round(totals[i]/grand*100):0;
-      return `<div onclick="goto('sales')" style="margin-bottom:14px;cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}${grand&&i===top?' <span style="font-size:9px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:8px;font-weight:700">สูงสุด</span>':''}</span><span style="white-space:nowrap"><span style="font-family:var(--disp);font-weight:600;font-size:14px">฿${totals[i].toLocaleString()}</span> <span style="font-size:10.5px;color:var(--text3)">${share}%</span></span></div><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${Math.round(totals[i]/mx*100)}%;height:100%;background:${BCOLORS[i]};border-radius:3px;transition:width .4s"></div></div></div>`;
+      return `<div onclick="goto('cash')" style="margin-bottom:14px;cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px"><span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[i]}"></span>${b}${grand&&i===top?' <span style="font-size:9px;background:var(--green-l);color:var(--green-d);padding:1px 6px;border-radius:8px;font-weight:700">สูงสุด</span>':''}</span><span style="white-space:nowrap"><span style="font-family:var(--disp);font-weight:600;font-size:14px">฿${totals[i].toLocaleString()}</span> <span style="font-size:10.5px;color:var(--text3)">${share}%</span></span></div><div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="width:${Math.round(totals[i]/mx*100)}%;height:100%;background:${BCOLORS[i]};border-radius:3px;transition:width .4s"></div></div></div>`;
     }).join('')+`<div style="margin-top:16px;padding:12px;border-radius:13px;background:var(--green-ll);color:var(--green-d);font-size:12px;font-weight:600;text-align:center">ยอดรวม${mode==='range'?'ช่วงที่เลือก':(mode==='month'?'เดือนนี้':'วันนี้')}ทุกสาขา ฿${grand.toLocaleString()}</div>`;
     document.querySelectorAll('.home-bview-btn').forEach(x=>{const on=x.dataset.m===mode;x.style.background=on?'var(--green-l)':'transparent';x.style.color=on?'var(--green-d)':'var(--text3)';x.style.fontWeight=on?'700':'500';});
   };
@@ -9505,7 +9620,7 @@ async function checkNotifications(){
       const ystStr=dateStr(yst);
       const missing=BRANCHES.map((b,i)=>({b,i})).filter(({i})=>!salesEntries.find(e=>e.date===ystStr&&e.branch===i));
       if(missing.length){
-        alerts.push({color:'blue',icon:'💰',text:`เมื่อวานยังไม่บันทึกยอดขาย: ${missing.map(x=>x.b).join(', ')}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('sales')" style="margin-left:auto">บันทึก</button>`});
+        alerts.push({color:'blue',icon:'💰',text:`เมื่อวานยังไม่บันทึกยอดขาย: ${missing.map(x=>x.b).join(', ')}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('sales-history')" style="margin-left:auto">บันทึก</button>`});
       }
       try{
         const snap=await getDocs(collection(db,'leaves'));
@@ -11182,7 +11297,7 @@ function todoHero(pct,done,total,rem){
   </div>`;
 }
 function todoAutoIcon(t){return ({sales:'💰',cash_open:'☀️',cash_close:'🌙',purse:'🔒',checkin:'📍',reservecount:'🪙'})[t.autoCheck]||'📲';}
-function todoLink(t){return t.linkedPage||({sales:'sales',cash_open:'cash',cash_close:'cash',purse:'cash',checkin:'checkin',reservecount:'cash'})[t.autoCheck]||'';}
+function todoLink(t){const l=t.linkedPage||({sales:'cash',cash_open:'cash',cash_close:'cash',purse:'cash',checkin:'checkin',reservecount:'cash'})[t.autoCheck]||'';return l==='sales'?'cash':l;} // งานเก่าที่ผูกหน้า sales เดิม → พาไปหน้าเงินสด
 function todoAutoRow(t,i,data,branch,opts){
   const ic=todoAutoIcon(t),link=todoLink(t),cur=opts.current;
   const when=t.done?`✓ เรียบร้อย${t.isAuto?' (ระบบตรวจให้)':(t.doneBy?' · '+memberName(t.doneBy):'')}${t.doneAt?' · '+new Date(t.doneAt).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})+' น.':''}`:(cur?'👉 ทำขั้นนี้ต่อเลย':'⏳ ยังไม่ได้ทำ');
@@ -11216,7 +11331,7 @@ function todoOrderAuto(auto){
 }
 // กระโดดเข้าฟีเจอร์/เปิด modal ของงานนั้นทันที
 window.todoGo=function(autoCheck,branch,link){
-  const act=({cash_open:'open',cash_close:'close',purse:'deposit',reservecount:'reservecount'})[autoCheck];
+  const act=({cash_open:'open',cash_close:'close',purse:'deposit',reservecount:'reservecount',sales:'sales'})[autoCheck];
   if(act){window._cashPendingAction={branch,act};goto('cash');return;}
   goto(link||({sales:'sales',checkin:'checkin'})[autoCheck]||'home');
 };
