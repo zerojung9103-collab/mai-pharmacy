@@ -569,6 +569,7 @@ input,select,textarea{border-radius:14px}
   <div class="page" id="page-dashboard">
     <div class="topbar">
       <div><div class="page-title">ยอดขาย &amp; รายงาน</div><div class="page-sub">ภาพรวม · สรุปเดือน · ส่งออกเก็บเป็น Excel</div></div>
+      <button class="btn btn-sm" onclick="openWeeklySummary(1)" style="flex-shrink:0">🗓 สรุปสัปดาห์</button>
     </div>
     <div class="tabs" id="dash-outer-tabs" style="margin-bottom:1.1rem">
       <button class="tab active" onclick="dashSetTab('overview',this)">📈 ภาพรวม</button>
@@ -919,6 +920,14 @@ input,select,textarea{border-radius:14px}
         <div class="field-row">
           <div class="field"><label class="fl">เตือนเมื่อเงินในตู้เซฟเกิน (บาท)</label><input type="number" id="as-safe" min="0" placeholder="20000"></div>
           <div class="field"><label class="fl">เตือนเมื่อพนักงานสายเกิน (ครั้ง/เดือน)</label><input type="number" id="as-late" min="0" placeholder="3"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label class="fl">🧠 ยอดขายผิดปกติ เมื่อต่างจากค่าเฉลี่ยเกิน (%)</label><input type="number" id="as-anomaly" min="0" placeholder="30"></div>
+          <div class="field"><label class="fl">🧠 เตือนเงินปิดร้านไม่ตรงซ้ำ (ครั้ง/30 วัน)</label><input type="number" id="as-diffrepeat" min="0" placeholder="3"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label class="fl">🪙 แบงค์ 20 ขั้นต่ำในเงินสำรอง (ใบ)</label><input type="number" id="as-d20" min="0" placeholder="15"></div>
+          <div class="field"><label class="fl">🪙 แบงค์ 100 ขั้นต่ำในเงินสำรอง (ใบ)</label><input type="number" id="as-d100" min="0" placeholder="10"></div>
         </div>
         <button class="btn btn-primary" onclick="saveAlertSettings()">บันทึกเกณฑ์</button>
       </div>
@@ -1608,8 +1617,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.88.0';
+const APP_VERSION='3.90.0';
 const CHANGELOG=[
+  {v:'3.90.0',date:'2026-07-03',changes:['🧠 ผู้ช่วยอัจฉริยะ: (1) เตือนอัตโนมัติสำหรับคนที่กำลังเข้าเวร — อย่าลืมเปิดร้าน · ถึงเวลาปิดร้าน (ล้อตามเวลาออกเวรในตารางของแต่ละคน) · เมื่อวานยังไม่ลงยอดขาย · แบงค์ 20/100 ในเงินสำรองใกล้หมด · EDC โค้งสุดท้ายยังห่างเป้า พร้อมปุ่มกดแล้วพาไปทำได้เลย (2) ผู้ดูแลจับความผิดปกติอัตโนมัติ — ยอดขายสูง/ต่ำผิดปกติ (เทียบวันเดียวกันย้อนหลัง 6 สัปดาห์) · บิลเฉลี่ยเพี้ยน · เงินปิดร้านไม่ตรงซ้ำๆ ใน 30 วัน · ค้างนับเงินสำรอง (3) สรุปสัปดาห์อัตโนมัติ — การ์ดเด้งเช้าวันจันทร์ + ปุ่ม 🗓 สรุปสัปดาห์ ในหน้ายอดขาย & รายงาน เลื่อนดูย้อนหลังได้ทุกสัปดาห์ · เกณฑ์ทุกตัวปรับได้ในตั้งค่า → เกณฑ์แจ้งเตือนผู้ดูแล']},
+  {v:'3.89.0',date:'2026-07-03',changes:['ผู้ดูแลแก้ไข/ลบได้ทุกระบบ: (1) รายการเงินสด — ปุ่ม “✎ แก้ไข” แก้จำนวนเงิน/วันที่/โน้ตได้ (ระบบปรับยอดกองเงินให้อัตโนมัติ) และ “↩ ยกเลิก” ลบได้ทุกรายการทั้งประวัติรายวันและรายเดือน (รายการเก่าประเภทเปิด/ปิด/นับ/ปรับยอด จะลบเฉพาะบันทึก ไม่ย้อนยอด กันยอดปัจจุบันเพี้ยน) (2) ลงเวลา — เพิ่มปุ่ม “🗑 ลบ” ในหน้าต่างแก้เวลา ลบรายการที่ลงผิด/ซ้ำได้ (3) เงินเดือน — ลบรอบที่บันทึก/จ่ายแล้วได้จากหน้าคำนวณ · ที่มีอยู่แล้ว: ยอดขาย แก้/ลบได้ที่ประวัติยอดขาย · วันลา อนุมัติใหม่/ลบได้ · ตารางเวร งานวันนี้ จัดการได้เต็มที่ · ทุกการแก้/ลบถูกบันทึกลงประวัติการใช้งานเสมอ']},
   {v:'3.88.0',date:'2026-07-02',changes:['ยุบหน้า "บันทึกยอดขาย" — ทุกอย่างกรอกจบที่หน้า "เงินสด & ตู้เซฟ" ที่เดียว: เพิ่มปุ่ม "📊 ลงยอดขายวันนี้" (ฟอร์มเดียวจบ 3 ช่อง: เงินสด/รับชำระอื่นๆ/บิล — กติกาแก้ใน 5 นาทีเหมือนเดิม) + ปุ่ม "🔍 เช็ค EDC" แยก (แก้ได้เสมอ พร้อมแถบสะสมเดือนเทียบเป้าค่าเช่าเครื่อง) · ทางลัดเดิมทุกจุด (งานวันนี้/การ์ดไกด์/ปุ่มช่วยเหลือ/หน้าต่างลอย) พามาหน้าเงินสดให้อัตโนมัติ · เมนูล่างของคนมีสิทธิ์ขายเปลี่ยนเป็น "เงินสด" · ประวัติการขาย (แอดมิน) ยังอยู่เหมือนเดิม']},
   {v:'3.87.1',date:'2026-07-02',changes:['ถอดเมนู "สนามฝึก" ออก — ไม่จำเป็นแล้ว เพราะบทบาทผู้ทดสอบ (tester) ใช้ระบบเงินแบบจำลองได้เหมือนใช้งานจริงทุกอย่าง (ปลอดภัยกว่าและครบกว่า)']},
   {v:'3.87.0',date:'2026-07-02',changes:['อัปเดตบทบาท "ผู้ทดสอบ (tester)" ให้ทดสอบระบบเงินใหม่ได้เต็มรูปแบบ: หน้าเงินสด & ตู้เซฟของผู้ทดสอบเป็น 🧪 โหมดจำลองทั้งหมด (เงิน 3 กอง/เปิด-ปิดร้าน/ตัดเข้าเซฟ/เบิกซื้อของ/นับสำรอง/ลงยอดใน flow ปิดร้าน) — เก็บในเครื่องคนเดียว ไม่บันทึกเข้าระบบจริงแม้แต่บาทเดียว · มีแบนเนอร์บอกชัด + ปุ่ม "รีเซ็ตทดสอบ" เริ่มใหม่ได้ตลอด · รายการจำลองติดป้าย 🧪 · หน้าลงยอดขายปกติผู้ทดสอบกดบันทึกไม่ได้ (กันข้อมูลปลอมปนของจริง)']},
@@ -4306,7 +4317,7 @@ window.scCopyWeekApply=function(){
 let cashState={};   // {branch:{reserve,drawer,safe,openDrawer,openDate,openBy}}
 let cashEvents=[];  // ใหม่สุดก่อน
 let editRequests=[];                                   // คำขอแก้ไขจากพนักงาน (sales ฯลฯ) ที่ยัง pending
-let alertSettings={safeThreshold:20000,lateThreshold:3}; // เกณฑ์แจ้งเตือนผู้ดูแล (โหลดทับจาก config/alertSettings)
+let alertSettings={safeThreshold:20000,lateThreshold:3,anomalyPct:30,diffRepeat:3,denomMin:{'20':15,'100':10}}; // เกณฑ์แจ้งเตือนผู้ดูแล (โหลดทับจาก config/alertSettings)
 let myCheckinBranchToday=null;                         // สาขาที่ผู้ใช้เช็คอินวันนี้ (ใช้เตือนตอนลงเงินสดผิดสาขา)
 let _cashBusy=false;                                   // กันกดบันทึกซ้ำ (double-submit) ในรายการเงินสด
 let _cashHistDate=null;                                // วันที่ของประวัติที่กำลังดู (null=วันนี้) — user ย้อนได้ 3 วัน, admin อิสระ
@@ -4325,11 +4336,18 @@ window.renderAlertSettings=function(){
   card.style.display=isAdmin?'':'none';
   const s1=document.getElementById('as-safe');if(s1)s1.value=alertSettings.safeThreshold||0;
   const s2=document.getElementById('as-late');if(s2)s2.value=alertSettings.lateThreshold||0;
+  const s3=document.getElementById('as-anomaly');if(s3)s3.value=alertSettings.anomalyPct??30;
+  const s4=document.getElementById('as-diffrepeat');if(s4)s4.value=alertSettings.diffRepeat??3;
+  const s5=document.getElementById('as-d20');if(s5)s5.value=(alertSettings.denomMin?.['20'])??15;
+  const s6=document.getElementById('as-d100');if(s6)s6.value=(alertSettings.denomMin?.['100'])??10;
 };
 window.saveAlertSettings=async function(){
   const safeThreshold=parseFloat(document.getElementById('as-safe')?.value)||0;
   const lateThreshold=parseInt(document.getElementById('as-late')?.value)||0;
-  alertSettings={...alertSettings,safeThreshold,lateThreshold};
+  const anomalyPct=parseInt(document.getElementById('as-anomaly')?.value)||0;
+  const diffRepeat=parseInt(document.getElementById('as-diffrepeat')?.value)||0;
+  const denomMin={'20':parseInt(document.getElementById('as-d20')?.value)||0,'100':parseInt(document.getElementById('as-d100')?.value)||0};
+  alertSettings={...alertSettings,safeThreshold,lateThreshold,anomalyPct,diffRepeat,denomMin};
   try{await setDoc(doc(db,'config','alertSettings'),alertSettings);showToast('บันทึกเกณฑ์แจ้งเตือนแล้ว');checkNotifications();}
   catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
 };
@@ -4555,6 +4573,8 @@ function cashEventRow(ev,voidable){
   const _canUndo=voidable&&(isAdmin||_selfWindow);
   const _needAdmin=voidable&&!isAdmin&&!_selfWindow&&ev.byUid===currentUser?.uid;
   const undo=_canUndo?`<button class="btn btn-sm" style="padding:2px 9px;font-size:11px;margin-top:4px;color:var(--rose-d);border-color:var(--rose-l)" onclick="cashVoidEvent('${ev.id}')">↩ ยกเลิกรายการนี้${(!isAdmin&&_selfWindow)?` (ภายใน ${Math.max(1,Math.ceil(5-_mins))} นาที)`:''}</button>`:(_needAdmin?`<div style="font-size:10.5px;color:var(--amber-t);margin-top:3px">⚠️ เกิน 5 นาทีแล้ว — แจ้งแอดมินให้ยกเลิกให้</div>`:'');
+  const edit=isAdmin?`<button class="btn btn-sm" style="padding:2px 9px;font-size:11px;margin-top:4px;margin-right:6px" onclick="cashEditEventPrompt('${ev.id}')">✎ แก้ไข</button>`:'';
+  const _edInfo=ev.editedAt?`<div style="font-size:10px;color:var(--text3);margin-top:2px">✎ แก้ไขล่าสุดโดย ${ev.editedBy||'—'} · ${new Date(ev.editedAt).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</div>`:'';
   const _bd=(ev.backdated?`<span style="font-size:9.5px;font-weight:700;color:var(--amber-t);background:var(--amber-l);padding:1px 6px;border-radius:10px;margin-left:5px">ย้อนหลัง</span>`:'')+(ev.isTest?`<span style="font-size:9.5px;font-weight:700;color:var(--amber-t);background:var(--amber-l);padding:1px 6px;border-radius:10px;margin-left:5px">🧪 ทดสอบ</span>`:'');
   const _bdInfo=ev.backdated?`<div style="font-size:10px;color:var(--text3)">ลงย้อนหลังโดย ${ev.recordedBy||'—'} · ${ev.recordedAt?new Date(ev.recordedAt).toLocaleDateString('th-TH',{day:'numeric',month:'short'}):''}</div>`:'';
   const _dn=cashDenomSummary(ev.denoms);
@@ -4565,7 +4585,7 @@ function cashEventRow(ev,voidable){
   return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
     <div style="display:flex;align-items:flex-start;gap:10px;min-width:0">
       <span style="width:30px;height:30px;border-radius:9px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${meta.i}</span>
-      <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:${meta.c}">${meta.t}${_bd}</div><div style="font-size:11px;color:var(--text3)">${ev.by} · ${dStr}</div>${_expInfo}${_adjInfo}${_topupInfo}${_dnInfo}${_bdInfo}${review}${undo}</div>
+      <div style="min-width:0"><div style="font-size:13px;font-weight:600;color:${meta.c}">${meta.t}${_bd}</div><div style="font-size:11px;color:var(--text3)">${ev.by} · ${dStr}</div>${_expInfo}${_adjInfo}${_topupInfo}${_dnInfo}${_bdInfo}${_edInfo}${review}${edit}${undo}</div>
     </div>
     <div style="text-align:right;white-space:nowrap;font-size:13.5px;font-weight:600;font-family:var(--mono)">${right}</div>
   </div>`;
@@ -4578,7 +4598,15 @@ window.cashVoidEvent=async function(evId){
   if(!isAdmin&&!_selfWindow){showToast('เกิน 5 นาที — แจ้งแอดมินให้ยกเลิกรายการนี้','err');return;}
   const b=ev.branch, st=cashGet(b), amt=ev.amount||0;
   const names={open:'เปิดร้าน',r2d:'เบิกสำรอง→ลิ้นชัก',topup:'เติมเงินเข้า',close:'ปิดร้าน',deposit:'ดึงเข้าตู้เซฟ',safeout:'นำออกตู้เซฟ',expense:'เบิกซื้อของ/ค่าใช้จ่าย',adjust:'ปรับยอดเงิน',reservecount:'นับเงินสำรอง',safecount:'นับเงินตู้เซฟ'};
-  if(!await capsuleConfirm(`ยกเลิกรายการ “${names[ev.type]||ev.type}” ฿${fmt(amt)}?\nระบบจะย้อนยอดเงินกลับ และลบรายการนี้`))return;
+  // ประเภท "ตั้งยอด" (เปิด/ปิด/ปรับ/นับ) ถ้ามีรายการใหม่กว่าแล้ว การคืนยอดเดิมจะทำให้ยอดปัจจุบันเพี้ยน → ลบเฉพาะบันทึก ไม่แตะยอด
+  const _stateTypes=['open','close','adjust','reservecount','safecount'];
+  const _hasNewer=cashEvents.some(e=>+e.branch===+b&&e.id!==evId&&(e.ts||0)>(ev.ts||0));
+  const _skipPatch=_stateTypes.includes(ev.type)&&_hasNewer;
+  const _fromHist=!!document.getElementById('cash-hist-marker');
+  const _cfMsg=_skipPatch
+    ?`ลบรายการ “${names[ev.type]||ev.type}”?\nมีรายการใหม่กว่าแล้ว — ระบบจะลบเฉพาะบันทึก ไม่ย้อนยอดเงิน\n(ถ้ายอดกองเงินคลาดเคลื่อน ใช้ “ปรับยอด” แก้ได้)`
+    :`ยกเลิกรายการ “${names[ev.type]||ev.type}” ฿${fmt(amt)}?\nระบบจะย้อนยอดเงินกลับ และลบรายการนี้`;
+  if(!await capsuleConfirm(_cfMsg))return;
   let patch={};
   if(ev.type==='r2d')patch={reserve:st.reserve+amt,drawer:st.drawer-amt};
   else if(ev.type==='topup'){const _p=ev.pool||'reserve';patch={[_p]:(st[_p]||0)-amt};}
@@ -4590,6 +4618,7 @@ window.cashVoidEvent=async function(evId){
   else if(ev.type==='safecount'&&ev.prevValue!=null)patch={safe:ev.prevValue}; // คืนยอดเซฟก่อนนับ
   else if(ev.type==='open')patch={drawer:0,openDrawer:null,openDate:null,openBy:''};
   else if(ev.type==='close')patch=(ev.prevDrawer!=null)?{drawer:ev.prevDrawer}:{}; // คืนยอดลิ้นชักก่อนปิด (ถ้าบันทึกไว้) เพื่อให้ปิดใหม่ได้ถูกต้อง
+  if(_skipPatch)patch={};
   if(_cashBusy)return;_cashBusy=true;
   try{
     if(!cashEvents.find(e=>e.id===evId)){return;} // กันยกเลิกซ้ำ (รายการถูกลบไปแล้ว)
@@ -4598,10 +4627,65 @@ window.cashVoidEvent=async function(evId){
     cashEvents=cashEvents.filter(e=>e.id!==evId);
     if(isTester)testerCashPersist();
     renderCashPage();
-    showToast('ยกเลิกรายการแล้ว · ย้อนยอดเรียบร้อย');
+    if(_fromHist)cashHistRender();
+    showToast(_skipPatch?'ลบบันทึกแล้ว (ไม่ย้อนยอด)':'ยกเลิกรายการแล้ว · ย้อนยอดเรียบร้อย');
     logActivity('cash_void',`ยกเลิก ${names[ev.type]||ev.type} ${BRANCHES[b]} ฿${fmt(amt)}`);
   }catch(e){showToast('ยกเลิกไม่สำเร็จ','err');console.error(e);}
   finally{_cashBusy=false;}
+};
+
+// ✎ แก้ไขรายการเงินสด (admin) — โน้ตแก้ได้ทุกประเภท · จำนวนเงิน/วันที่แก้ได้เฉพาะประเภทเคลื่อนเงิน
+const CASH_MOVE_TYPES=['r2d','topup','deposit','safeout','expense'];
+window.cashEditEventPrompt=function(evId){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  const ev=cashEvents.find(e=>e.id===evId);if(!ev)return;
+  window._cashEditFromHist=!!document.getElementById('cash-hist-marker');
+  const meta=CASH_TYPES[ev.type]||{t:ev.type,i:'•'};
+  const canAmt=CASH_MOVE_TYPES.includes(ev.type);
+  openModal(`<div class="modal-title">✎ แก้ไขรายการ — ${meta.i} ${meta.t}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">${BRANCHES[ev.branch]} · โดย ${ev.by||'—'} · ${new Date(ev.ts||Date.now()).toLocaleString('th-TH')}</div>
+    ${canAmt?`<div class="field"><label class="fl">จำนวนเงิน (บาท)</label><input type="number" id="cev-amt" inputmode="decimal" value="${ev.amount||0}"></div>
+    <div class="field"><label class="fl">วันที่ของรายการ</label><input type="date" id="cev-date" max="${todayStr()}" value="${ev.date||todayStr()}"></div>
+    <div style="font-size:11px;color:var(--text3);margin:-4px 0 10px">แก้จำนวนเงินแล้ว ระบบจะปรับยอดกองเงินให้อัตโนมัติ · ถ้าเปลี่ยนเป็นวันอื่น รายการจะติดป้าย “ย้อนหลัง”</div>`
+    :`<div style="background:var(--amber-l);border-radius:10px;padding:9px 12px;font-size:12px;color:var(--amber-t);margin-bottom:10px">ประเภทนี้แก้ตัวเลข/วันที่ไม่ได้ (ผูกกับการนับเงินจริง) — ถ้าลงผิดให้กด “↩ ยกเลิกรายการ” แล้วทำใหม่ · ตรงนี้แก้ได้เฉพาะโน้ต</div>`}
+    <div class="field"><label class="fl">โน้ต</label><input type="text" id="cev-note" value="${(ev.note||'').replace(/"/g,'&quot;')}" placeholder="เช่น เหตุผล/รายละเอียด"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashEditEventSave('${ev.id}')">บันทึกการแก้ไข</button></div>`);
+};
+window.cashEditEventSave=async function(evId){
+  const ev=cashEvents.find(e=>e.id===evId);if(!ev||!isAdmin)return;
+  const canAmt=CASH_MOVE_TYPES.includes(ev.type);
+  const note=(document.getElementById('cev-note')?.value||'').trim();
+  const patch={note,editedBy:memberName(currentUser.uid)||profile?.nickname||'Admin',editedAt:new Date().toISOString()};
+  let statePatch=null;
+  if(canAmt){
+    const newAmt=Math.round((parseFloat(document.getElementById('cev-amt')?.value)||0)*100)/100;
+    const newDate=document.getElementById('cev-date')?.value||ev.date;
+    if(newAmt<=0){showToast('จำนวนเงินต้องมากกว่า 0','err');return;}
+    const delta=newAmt-(ev.amount||0);
+    if(delta!==0){
+      const st=cashGet(ev.branch);
+      if(ev.type==='r2d')statePatch={reserve:st.reserve-delta,drawer:st.drawer+delta};
+      else if(ev.type==='topup'){const _p=ev.pool||'reserve';statePatch={[_p]:(st[_p]||0)+delta};}
+      else if(ev.type==='deposit')statePatch={drawer:st.drawer-delta,safe:st.safe+delta};
+      else if(ev.type==='safeout')statePatch={safe:st.safe-delta};
+      else if(ev.type==='expense')statePatch=(ev.from==='reserve')?{reserve:st.reserve-delta}:{drawer:st.drawer-delta};
+      patch.amount=newAmt;
+    }
+    if(newDate&&newDate!==ev.date){patch.date=newDate;if(newDate!==todayStr()){patch.backdated=true;patch.recordedBy=patch.editedBy;patch.recordedAt=patch.editedAt;}}
+  }
+  if(_cashBusy)return;_cashBusy=true;
+  loading(true);
+  try{
+    if(statePatch)await cashSaveState(ev.branch,statePatch);
+    if(!isTester)await updateDoc(doc(db,'cashEvents',evId),patch); // 🧪 รายการจำลองไม่อยู่บน cloud
+    Object.assign(ev,patch);
+    if(isTester)testerCashPersist();
+    closeMD();renderCashPage();
+    if(window._cashEditFromHist)cashHistRender();
+    showToast('บันทึกการแก้ไขแล้ว ✓');
+    logActivity('cash_edit',`แก้ไขรายการ ${CASH_TYPES[ev.type]?.t||ev.type} ${BRANCHES[ev.branch]}${patch.amount!=null?` เป็น ฿${fmt(patch.amount)}`:''}`);
+  }catch(e){showToast('แก้ไขไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;loading(false);}
 };
 
 // หา event นับเงินสำรองล่าสุดของสาขา — ใช้เป็น "ฐาน" ขององค์ประกอบเงินทอน
@@ -5087,7 +5171,7 @@ function renderCashPage(){
     </div>`;
   if(!isAdmin&&histDate<=minDate)html+=`<div style="font-size:10.5px;color:var(--text3);text-align:center;margin-bottom:6px">ดูย้อนหลังได้ ${CASH_HIST_BACK_DAYS} วัน · ต้องการเก่ากว่านี้แจ้งแอดมิน</div>`;
   if(!dayEvs.length)html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem 0">ไม่มีรายการในวันนี้</div>`;
-  else dayEvs.forEach((ev,i)=>{html+=cashEventRow(ev,histDate===today&&i===0);});
+  else dayEvs.forEach((ev,i)=>{html+=cashEventRow(ev,isAdmin||(histDate===today&&i===0));});
   html+=`</div>`;
 
   // ตรวจเงิน (ผู้ดูแล) — ทุกสาขา
@@ -5837,9 +5921,9 @@ function cashHistRender(){
     const closeEv=byDay[d].find(e=>e.type==='close');
     let dayTag='';
     if(closeEv){const df=cashCloseCalc(b,closeEv).diff;dayTag=df===0?`<span style="color:#0F8A63;font-weight:700;font-size:11.5px">✓ ตรง</span>`:(df>0?`<span style="color:#1E3A8A;font-weight:700;font-size:11.5px">เกิน ฿${fmt(Math.abs(df))}</span>`:`<span style="color:#C2410C;font-weight:700;font-size:11.5px">ขาด ฿${fmt(Math.abs(df))}</span>`);}
-    body+=`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)"><span style="font-family:var(--disp);font-weight:600;font-size:14px">${dLbl}</span>${dayTag}</div>${byDay[d].sort((a,c)=>(a.ts||0)-(c.ts||0)).map(ev=>cashEventRow(ev,false)).join('')}</div>`;
+    body+=`<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)"><span style="font-family:var(--disp);font-weight:600;font-size:14px">${dLbl}</span>${dayTag}</div>${byDay[d].sort((a,c)=>(a.ts||0)-(c.ts||0)).map(ev=>cashEventRow(ev,isAdmin)).join('')}</div>`;
   });
-  openModal(`<div class="modal-title">📜 ประวัติเงินสด</div>
+  openModal(`<div class="modal-title">📜 ประวัติเงินสด</div><span id="cash-hist-marker" style="display:none"></span>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${segB}</div>
     <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px">
       <button class="btn btn-sm" onclick="cashHistMonth(-1)">‹</button>
@@ -7017,7 +7101,7 @@ function renderPRCalc(){
       <span class="${d.status==='paid'?'sta-on':'sta-off'}">${d.status==='paid'?'จ่ายแล้ว':'รอดำเนินการ'}</span>
     </div>
 
-    ${d.status==='paid'?`<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:10px 13px;margin-bottom:1rem;font-size:12.5px;color:var(--blue-t)">✏️ <b>รอบนี้จ่ายแล้ว — แก้ไขได้</b> · ปรับตัวเลขด้านล่างแล้วกด “บันทึกการแก้ไข” ระบบจะทับยอดเดิมให้</div>`:''}
+    ${d.status==='paid'?`<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:10px 13px;margin-bottom:1rem;font-size:12.5px;color:var(--blue-t)">✏️ <b>รอบนี้จ่ายแล้ว — แก้ไขได้</b> · ปรับตัวเลขด้านล่างแล้วกด “บันทึกการแก้ไข” ระบบจะทับยอดเดิมให้<div style="margin-top:8px;text-align:right"><button class="btn btn-sm btn-danger" onclick="prDeleteSaved()">🗑 ลบรอบเงินเดือนนี้</button></div></div>`:''}
 
     <div class="pr-line">
       <span class="pr-line-label">🗓️ งวดเงินเดือน (บนสลิป)</span>
@@ -7223,6 +7307,23 @@ window.savePRPerson=async function(){
     showToast(`บันทึกเงินเดือน ${d.name} เรียบร้อย`);
     renderPRCalc();renderPRPersonSelect();
   }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
+  loading(false);
+};
+
+// admin ลบรอบเงินเดือนที่บันทึก/จ่ายแล้ว (เช่น บันทึกผิดคน/ผิดเดือน)
+window.prDeleteSaved=async function(){
+  if(!prCurrentPerson||!isAdmin)return;
+  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+  if(!await capsuleConfirm(`ลบรอบเงินเดือน ${prData?.name||''} ${MONTHS_TH[prMonth-1]} ${prYear}?\nสลิปของรอบนี้จะหายไป — พนักงานจะไม่เห็นในประวัติอีก`))return;
+  loading(true);
+  try{
+    await deleteDoc(doc(db,'payroll',`${prCurrentPerson}_${monthStr}`));
+    if(prData)prData.status='pending';
+    delete prMonthRecords[prCurrentPerson];
+    showToast('ลบรอบเงินเดือนแล้ว');
+    logActivity('payroll_delete',`ลบรอบเงินเดือน ${prData?.name||''} ${monthStr}`);
+    renderPRCalc();renderPRPersonSelect();
+  }catch(e){showToast('ลบไม่สำเร็จ: '+e.message,'err');}
   loading(false);
 };
 
@@ -9301,7 +9402,22 @@ window.editCheckin=async function(id){
     ${rec.editHistory?.length?`<div style="background:#FFF8E6;border-radius:8px;padding:10px;margin-bottom:1rem;font-size:11px;color:#7A4E06">
       <b>ประวัติการแก้ไขก่อนหน้า:</b>${rec.editHistory.map(h=>`<div style="margin-top:4px">• ${new Date(h.at).toLocaleString('th-TH')} โดย ${h.by}${h.reason?' — '+h.reason:''}</div>`).join('')}
     </div>`:''}
-    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveCheckinEdit('${id}')">บันทึกการแก้ไข</button></div>`);
+    <div class="modal-footer"><button class="btn btn-danger" style="margin-right:auto" onclick="deleteCheckinAdmin('${id}','${(rec.name||'').replace(/'/g,'')}','${rec.date}')">🗑 ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveCheckinEdit('${id}')">บันทึกการแก้ไข</button></div>`);
+};
+
+// admin ลบรายการลงเวลาทั้งรายการ (เช่น ลงผิดวัน/รายการซ้ำ)
+window.deleteCheckinAdmin=async function(id,name,date){
+  if(!isAdmin)return;
+  if(!await capsuleConfirm(`ลบรายการลงเวลา ${name||''} วันที่ ${date||''}?\nชั่วโมงงานของวันนั้นจะหายไป (มีผลกับการคำนวณเงินเดือน)`))return;
+  loading(true);
+  try{
+    await deleteDoc(doc(db,'checkins',id));
+    closeMD();
+    showToast('ลบรายการลงเวลาแล้ว');
+    logActivity('checkin_delete',`ลบรายการลงเวลา ${name||id} วันที่ ${date||''}`);
+    loadCheckinHistory();
+  }catch(e){showToast('ลบไม่สำเร็จ: '+e.message,'err');}
+  loading(false);
 };
 
 window.saveCheckinEdit=async function(id){
@@ -9542,6 +9658,79 @@ window.updateNotifBell=function(){
   const n=(window._currentAlerts||[]).length;
   document.querySelectorAll('.notif-badge').forEach(b=>{if(n>0){b.textContent=n>9?'9+':n;b.style.display='flex';}else{b.style.display='none';}});
 };
+// ===== 🗓 สรุปสัปดาห์อัตโนมัติ (ผู้ดูแล) — คำนวณสดจากยอดขาย/เงินสด/ลงเวลา ไม่เก็บอะไรเพิ่ม =====
+function weekStartStr(offset){ // วันจันทร์ของสัปดาห์ (offset=1 คือสัปดาห์ที่แล้ว)
+  const d=new Date();const dw=(d.getDay()+6)%7;d.setDate(d.getDate()-dw-7*(offset||0));
+  return dateStr(d);
+}
+window.openWeeklySummary=async function(offset){
+  if(!isAdmin&&!hasPerm('dashboard_admin')){showToast('เฉพาะผู้ดูแล','err');return;}
+  offset=Math.max(1,+offset||1);
+  const ws=weekStartStr(offset);
+  const _plus6=x=>{const d=new Date(x+'T12:00:00');d.setDate(d.getDate()+6);return dateStr(d);};
+  const we=_plus6(ws), pws=weekStartStr(offset+1), pwe=_plus6(pws);
+  try{localStorage.setItem('nm_wk_seen_'+currentUser.uid,weekStartStr(1));}catch(e){} // เปิดดูแล้ว การ์ดหน้าแรกหายจนกว่าจะถึงสัปดาห์ใหม่
+  loading(true);
+  try{if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData();}catch(e){}
+  // ยอดขาย
+  const wEnts=salesEntries.filter(e=>e.date>=ws&&e.date<=we), pEnts=salesEntries.filter(e=>e.date>=pws&&e.date<=pwe);
+  const total=wEnts.reduce((a,e)=>a+(e.total||0),0), pTotal=pEnts.reduce((a,e)=>a+(e.total||0),0);
+  const pct=pTotal>0?Math.round((total-pTotal)/pTotal*100):null;
+  const byB=[0,1,2].map(b=>wEnts.filter(e=>+e.branch===b).reduce((a,e)=>a+(e.total||0),0));
+  const pByB=[0,1,2].map(b=>pEnts.filter(e=>+e.branch===b).reduce((a,e)=>a+(e.total||0),0));
+  const topB=byB.indexOf(Math.max(...byB));
+  const byDay={};wEnts.forEach(e=>{byDay[e.date]=(byDay[e.date]||0)+(e.total||0);});
+  const bestDay=Object.entries(byDay).sort((a,b)=>b[1]-a[1])[0];
+  const cashAmt=wEnts.reduce((a,e)=>a+(+(e.amounts?.['เงินสด'])||0),0);
+  const bills=wEnts.reduce((a,e)=>a+(+e.billCount||0),0), pBills=pEnts.reduce((a,e)=>a+(+e.billCount||0),0);
+  const perBill=bills>0?Math.round(total/bills):0, pPerBill=pBills>0?Math.round(pTotal/pBills):0;
+  // เงินปิดร้าน
+  const cds=cashEvents.filter(e=>e.type==='close'&&(e.date||'')>=ws&&e.date<=we&&!e.isTest).map(e=>cashCloseCalc(+e.branch,e).diff);
+  const okDays=cds.filter(d=>d===0).length;
+  const missSum=cds.filter(d=>d<0).reduce((a,v)=>a+v,0), overSum=cds.filter(d=>d>0).reduce((a,v)=>a+v,0);
+  // มาสาย
+  let lateN=0,lateNames='';
+  try{
+    const snap=await getDocs(query(collection(db,'checkins'),where('date','>=',ws),where('date','<=',we)));
+    const lb={};snap.docs.forEach(d=>{const x=d.data();if(x.isLate){lateN++;lb[x.uid]=(lb[x.uid]||0)+1;}});
+    lateNames=Object.entries(lb).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([u,n])=>`${memberName(u)||'—'} ${n} ครั้ง`).join(' · ');
+  }catch(e){}
+  // EDC สะสมเดือนปัจจุบัน
+  const mo=todayStr().slice(0,7);
+  const edcSum=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+((+(e.edcCheck?.black)||0)+(+(e.edcCheck?.white)||0)),0);
+  const edcTgt=+(cashCfg.edcTarget)||0;
+  loading(false);
+  const dLbl=d=>new Date(d+'T12:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+  const stat=(k,v,sub,sc)=>`<div style="background:var(--bg);border-radius:13px;padding:10px 12px"><div style="font-size:10.5px;color:var(--text3)">${k}</div><div style="font-family:var(--disp);font-weight:700;font-size:15px;margin-top:1px">${v}</div>${sub?`<div style="font-size:10px;font-weight:600;margin-top:1px;color:${sc||'var(--text3)'}">${sub}</div>`:''}</div>`;
+  const row=(t,sub,r,rc)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:13px;padding:9px 12px;margin-bottom:7px;font-size:12.5px;font-weight:600;gap:8px"><span style="min-width:0">${t}${sub?`<div style="font-size:10.5px;color:var(--text3);font-weight:400">${sub}</div>`:''}</span><span style="color:${rc||'var(--text)'};white-space:nowrap">${r}</span></div>`;
+  const bLines=BRANCHES.map((bn,i)=>{
+    const p=pByB[i]>0?Math.round((byB[i]-pByB[i])/pByB[i]*100):null;
+    return row(`${i===topB&&byB[i]>0?'🏆 ':''}${bn}`,'',`฿${fmt(byB[i])}${p!=null?` <small style="color:${p>=0?'#0F8A63':'#C2410C'}">(${p>=0?'+':''}${p}%)</small>`:''}`);
+  }).join('');
+  openModal(`<div class="modal-title">🗓 สรุปสัปดาห์</div>
+    <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:12px">
+      <button class="btn btn-sm" onclick="openWeeklySummary(${offset+1})">‹</button>
+      <div style="font-family:var(--disp);font-size:14px;min-width:168px;text-align:center">จ. ${dLbl(ws)} – อา. ${dLbl(we)}</div>
+      <button class="btn btn-sm" ${offset<=1?'disabled style="opacity:.4"':''} onclick="openWeeklySummary(${offset-1})">›</button>
+    </div>
+    <div style="background:var(--grad-green);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px">
+      <div style="font-size:11.5px;opacity:.9">ยอดขายรวมทุกสาขา</div>
+      <div style="font-family:var(--disp);font-weight:700;font-size:27px">฿${fmt(total)}</div>
+      ${pct!=null?`<div style="display:inline-block;font-size:10.5px;font-weight:700;background:rgba(255,255,255,.22);border-radius:16px;padding:3px 10px;margin-top:4px">${pct>=0?'▲ +':'▼ '}${pct}% จากสัปดาห์ก่อน</div>`:''}
+    </div>
+    ${bLines}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0">
+      ${stat('📅 วันขายดีสุด',bestDay?dLbl(bestDay[0]):'—',bestDay?'฿'+fmt(Math.round(bestDay[1])):'')}
+      ${stat('🧾 บิลเฉลี่ย',perBill?'฿'+fmt(perBill):'—',pPerBill?`สัปดาห์ก่อน ฿${fmt(pPerBill)}`:'')}
+      ${stat('💵 เงินสด : อื่นๆ',total?`${Math.round(cashAmt/total*100)} : ${100-Math.round(cashAmt/total*100)}`:'—','สัดส่วนช่องทางชำระ')}
+      ${stat('🧾 จำนวนบิล',bills?fmt(bills)+' บิล':'—',pBills?`สัปดาห์ก่อน ${fmt(pBills)} บิล`:'')}
+    </div>
+    ${row('💰 เงินปิดร้าน',`ตรง ${okDays} จาก ${cds.length} ครั้งที่ปิด${missSum?` · ขาดรวม ฿${fmt(Math.abs(missSum))}`:''}${overSum?` · เกินรวม ฿${fmt(overSum)}`:''}`,cds.length===0?'—':(missSum||overSum?`${missSum?'-฿'+fmt(Math.abs(missSum)):'+฿'+fmt(overSum)}`:'✓ ตรงหมด'),missSum?'#C2410C':'#0F8A63')}
+    ${row('⏰ มาสาย',lateNames||'ไม่มีใครสายสัปดาห์นี้ 🎉',`${lateN} ครั้ง`,lateN?'var(--amber-t)':'#0F8A63')}
+    ${edcTgt?row('💳 EDC สะสมเดือนนี้',`฿${fmt(edcSum)} / ฿${fmt(edcTgt)}`,`${Math.min(Math.round(edcSum/edcTgt*100),999)}%`,edcSum>=edcTgt?'#0F8A63':'var(--amber-t)'):''}
+    <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD();if(typeof checkNotifications==='function')checkNotifications()">ปิด</button></div>`);
+};
+
 async function checkNotifications(){
   const banner=document.getElementById('alert-banner');
   if(!banner)return;
@@ -9614,6 +9803,62 @@ async function checkNotifications(){
       });
     }catch(e){}
 
+    // ===== 🧠 ผู้ช่วยแนะนำ — เตือนคนที่กำลังเข้าเวรอยู่ (เวลาล้อตามตารางเวรของแต่ละคน) =====
+    try{
+      if(!window._myCheckinToday){try{const d=await getDoc(doc(db,'checkins',`${currentUser.uid}_${today}`));window._myCheckinToday=d.exists()?d.data():{};}catch(e){}}
+      const _ck=window._myCheckinToday||{};
+      const _onDuty=!!_ck.checkIn&&!_ck.checkOut&&_ck.date===today;
+      if(_onDuty){
+        try{if(!cashEvents.length&&!Object.keys(cashState).length)await loadCashData();}catch(e){}
+        const _mySh=(shifts||[]).find(x=>x.staffId===currentUser.uid&&x.date===today);
+        const _b=_ck.branchIn!=null?+_ck.branchIn:(_mySh?+_mySh.branch:null);
+        if(_b!=null&&BRANCHES[_b]!=null){
+          const _st=cashGet(_b);
+          const _nw=new Date();const _nowMin=_nw.getHours()*60+_nw.getMinutes();
+          const _tm=t=>{if(!t)return null;const p=String(t).split(':').map(Number);return isNaN(p[0])?null:p[0]*60+(p[1]||0);};
+          const _shEnd=_tm(_mySh?.end);
+          const _opened=_st.openDate===today;
+          const _closed=cashEvents.some(e=>+e.branch===_b&&e.type==='close'&&e.date===today);
+          // (1) เช็คอินแล้วแต่ร้านยังไม่เปิด — ยืนยันเงินแคชเชียร์ก่อนเริ่มขาย
+          if(!_opened&&!_closed)
+            alerts.push({color:'amber',icon:'☀️',text:`อย่าลืมกดเปิดร้าน${BRANCHES[_b]} — ยืนยันเงินแคชเชียร์ก่อนเริ่มขาย`,action:`<button class="btn btn-sm btn-primary" onclick="window._cashPendingAction={branch:${_b},act:'open'};goto('cash')" style="margin-left:auto">เปิดร้าน</button>`});
+          // (2) เลยเวลาออกเวรตามตารางของเราแล้ว แต่ยังไม่ปิดร้าน
+          if(_opened&&!_closed&&_shEnd!=null&&_nowMin>=_shEnd)
+            alerts.push({color:'red',icon:'🌙',text:`ถึงเวลาปิดร้านแล้ว (เวรของคุณถึง ${_mySh.end}) — ${BRANCHES[_b]}ยังไม่ได้ปิดร้านวันนี้`,action:`<button class="btn btn-sm btn-danger" onclick="window._cashPendingAction={branch:${_b},act:'close'};goto('cash')" style="margin-left:auto">ปิดร้าน</button>`});
+          // (3) เมื่อวานสาขานี้ยังไม่ได้ลงยอดขาย (เช็คจาก cloud ตรงๆ กันข้อมูลในเครื่องเก่า)
+          if(!isAdmin){
+            try{
+              const _y=new Date();_y.setDate(_y.getDate()-1);const _ys=dateStr(_y);
+              const _sd=await getDoc(doc(db,'sales',`${_ys}_${_b}`));
+              if(!_sd.exists())alerts.push({color:'blue',icon:'📊',text:`เมื่อวาน${BRANCHES[_b]}ยังไม่ได้ลงยอดขาย — แจ้งผู้ดูแลให้ลงย้อนหลังให้ด้วย`,action:`<button class="btn btn-sm btn-blue" onclick="goto('cash')" style="margin-left:auto">ดู</button>`});
+            }catch(e){}
+          }
+          // (4) แบงค์/เหรียญเงินทอนใกล้หมด (เทียบเกณฑ์ขั้นต่ำในหน้าตั้งค่า)
+          try{
+            const _dm=alertSettings.denomMin||{'20':15,'100':10};
+            const _pd=cashPoolDenoms(_b,'reserve');
+            if(_pd&&_pd.hasData){
+              const _low=Object.entries(_dm).filter(([d,min])=>+min>0&&(+_pd.denoms[d]||0)<+min);
+              if(_low.length)alerts.push({color:'amber',icon:'🪙',text:`เงินทอน${BRANCHES[_b]}ใกล้หมด: ${_low.map(([d,min])=>`${+d>=20?'แบงค์':'เหรียญ'} ${d} เหลือ ${+_pd.denoms[d]||0} (ขั้นต่ำ ${min})`).join(' · ')} — หาแลกด้วยนะ`,action:`<button class="btn btn-sm" onclick="goto('cash')" style="margin-left:auto">ดู</button>`});
+            }
+          }catch(e){}
+        }
+      }
+      // (5) EDC โค้งสุดท้ายของเดือนยังห่างเป้า — เห็นทั้งคนที่เข้าเวรอยู่และผู้ดูแล
+      try{
+        const _tgt=+(cashCfg.edcTarget)||0;
+        if(_tgt>0&&(_onDuty||isAdmin)){
+          const _mo=today.slice(0,7);
+          const _sum=salesEntries.filter(e=>(e.date||'').startsWith(_mo)).reduce((a,e)=>a+((+(e.edcCheck?.black)||0)+(+(e.edcCheck?.white)||0)),0);
+          const _nd=new Date();const _left=new Date(_nd.getFullYear(),_nd.getMonth()+1,0).getDate()-_nd.getDate();
+          if(_sum<_tgt&&_left<=10){
+            const _need=_tgt-_sum;
+            alerts.push({color:'blue',icon:'💳',text:`EDC เดือนนี้สะสม ฿${fmt(_sum)} จากเป้า ฿${fmt(_tgt)} — ${_left>0?`เหลือ ${_left} วัน ต้องรูดเฉลี่ยวันละ ฿${fmt(Math.ceil(_need/_left))}`:`วันนี้วันสุดท้าย ยังขาดอีก ฿${fmt(_need)}`}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('cash')" style="margin-left:auto">ดู</button>`});
+          }
+        }
+      }catch(e){}
+    }catch(e){console.error('smart nudges',e);}
+
     // ===== แจ้งเตือนสำหรับ admin =====
     if(isAdmin){
       const yst=new Date();yst.setDate(yst.getDate()-1);
@@ -9661,6 +9906,54 @@ async function checkNotifications(){
           const nm=_fr.map(([u,n])=>`${memberName(u)||'—'} (${n} ครั้ง)`).slice(0,3).join(', ');
           alerts.push({color:'amber',icon:'🐢',text:`สายบ่อยเดือนนี้: ${nm}`,action:`<button class="btn btn-sm" onclick="goto('checkin-history')" style="margin-left:auto">ดู</button>`});
         }
+      }catch(e){}
+      // (5) 🧠 ยอดขาย/บิลเฉลี่ยเมื่อวานผิดปกติ — เทียบวันเดียวกันของสัปดาห์ ย้อนหลัง 6 สัปดาห์
+      try{
+        const _pct=+alertSettings.anomalyPct||0;
+        if(_pct>0&&salesEntries.length){
+          const _wkAgo=(w)=>{const d=new Date(ystStr+'T12:00:00');d.setDate(d.getDate()-7*w);return dateStr(d);};
+          BRANCHES.forEach((bn,bi)=>{
+            const yEnt=salesEntries.find(e=>e.date===ystStr&&+e.branch===bi);
+            if(!yEnt||!yEnt.total)return; // ไม่มียอด → มีเตือน "ยังไม่บันทึก" อยู่แล้ว
+            const hist=[];for(let w=1;w<=6;w++){const en=salesEntries.find(e=>e.date===_wkAgo(w)&&+e.branch===bi);if(en&&en.total)hist.push(en);}
+            if(hist.length<3)return; // ข้อมูลย้อนหลังไม่พอเทียบ
+            const avg=hist.reduce((a,e)=>a+e.total,0)/hist.length;
+            const dev=Math.round((yEnt.total-avg)/avg*100);
+            if(Math.abs(dev)>=_pct)
+              alerts.push({color:dev<0?'red':'green',icon:dev<0?'📉':'📈',text:`ยอดขาย${bn}เมื่อวาน${dev<0?'ต่ำ':'สูง'}ผิดปกติ: ฿${fmt(yEnt.total)} (ปกติวันเดียวกัน ~฿${fmt(Math.round(avg))} · ${dev>0?'+':''}${dev}%)`,action:`<button class="btn btn-sm" onclick="goto('sales-history')" style="margin-left:auto">ดูยอด</button>`});
+            // บิลเฉลี่ยเพี้ยนมาก (>2 เท่า หรือ <ครึ่ง) — มักเกิดจากคีย์จำนวนบิลคลาดเคลื่อน
+            const pb=hist.filter(e=>+e.billCount>0).map(e=>e.total/e.billCount);
+            if(yEnt.billCount>0&&pb.length>=3){
+              const pa=pb.reduce((a,v)=>a+v,0)/pb.length, per=yEnt.total/yEnt.billCount;
+              if(per>pa*2||per<pa*0.5)
+                alerts.push({color:'amber',icon:'🧾',text:`บิลเฉลี่ย${bn}เมื่อวานผิดปกติ: ฿${fmt(Math.round(per))}/บิล (ปกติ ~฿${fmt(Math.round(pa))}/บิล) — ลองตรวจจำนวนบิลที่คีย์`,action:`<button class="btn btn-sm" onclick="goto('sales-history')" style="margin-left:auto">ตรวจ</button>`});
+            }
+          });
+        }
+      }catch(e){}
+      // (6) 🧠 เงินปิดร้านไม่ตรงซ้ำๆ ใน 30 วัน — จับแพทเทิร์นรายสาขา
+      try{
+        const _rep=+alertSettings.diffRepeat||0;
+        if(_rep>0){
+          const _d30=new Date();_d30.setDate(_d30.getDate()-30);const _d30s=dateStr(_d30);
+          BRANCHES.forEach((bn,bi)=>{
+            const diffs=cashEvents.filter(e=>+e.branch===bi&&e.type==='close'&&(e.date||'')>=_d30s&&!e.isTest).map(e=>cashCloseCalc(bi,e).diff).filter(d=>d!==0);
+            if(diffs.length>=_rep){
+              const miss=diffs.filter(d=>d<0).reduce((a,v)=>a+v,0), over=diffs.filter(d=>d>0).reduce((a,v)=>a+v,0);
+              alerts.push({color:'red',icon:'⚠️',text:`${bn} เงินปิดร้านไม่ตรง ${diffs.length} ครั้งใน 30 วัน (${miss?`ขาดรวม ฿${fmt(Math.abs(miss))}`:''}${miss&&over?' · ':''}${over?`เกินรวม ฿${fmt(over)}`:''})`,action:`<button class="btn btn-sm" onclick="cashHistoryPrompt(${bi})" style="margin-left:auto">ดูประวัติ</button>`});
+            }
+          });
+        }
+      }catch(e){}
+      // (7) ค้างนับเงินสำรองรอบนี้
+      try{
+        const _due=BRANCHES.map((bn,bi)=>({bn,bi})).filter(x=>typeof cashReserveDue==='function'&&cashReserveDue(x.bi));
+        if(_due.length)alerts.push({color:'purple',icon:'🧮',text:`ค้างนับเงินสำรองรอบนี้: ${_due.map(x=>x.bn).join(', ')}`,action:`<button class="btn btn-sm" onclick="window._cashPendingAction={branch:${_due[0].bi},act:'reservecount'};goto('cash')" style="margin-left:auto">นับเลย</button>`});
+      }catch(e){}
+      // (8) 🗓 สรุปสัปดาห์ที่แล้ว — เด้งวันจันทร์/อังคาร จนกว่าจะเปิดดู
+      try{
+        if(dow<=1&&localStorage.getItem('nm_wk_seen_'+currentUser.uid)!==weekStartStr(1))
+          alerts.push({color:'green',icon:'🗓',text:'สรุปสัปดาห์ที่แล้วพร้อมแล้ว — ยอดขาย · เงินปิดร้าน · การมาสาย ครบในหน้าเดียว',action:`<button class="btn btn-sm btn-primary" onclick="openWeeklySummary(1)" style="margin-left:auto">เปิดดู</button>`});
       }catch(e){}
     }
 
