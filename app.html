@@ -1617,8 +1617,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.91.0';
+const APP_VERSION='3.92.0';
 const CHANGELOG=[
+  {v:'3.92.0',date:'2026-07-03',changes:['แก้บั๊กตัดเงินเข้าเซฟไม่ได้: ระบบคิดยอดตัดให้แต่กดแล้วเจอ "ลิ้นชักมีแค่ ฿5,000 — ตัดเกินไม่ได้" — สาเหตุคือด่านตรวจเทียบกับยอดลิ้นชักดิบในระบบ (ที่ยังไม่รวมยอดขายเงินสดของวัน) ตอนนี้ทุกจุดเทียบกับ "ลิ้นชักควรมีตอนนี้" ตามสูตรแล้ว (ต้นลิ้นชัก + ขายเงินสด − ที่เก็บเซฟ − เบิกซื้อของ) ครอบคลุมทั้งตัดเข้าเซฟตอนปิดร้าน ดึงเข้าเซฟระหว่างวัน และเบิกซื้อของจากลิ้นชัก']},
   {v:'3.91.0',date:'2026-07-03',changes:['จัดระเบียบสิทธิ์เงินสำรองตามกติการ้าน: (1) พนักงานนับเงินสำรองประจำสัปดาห์ได้แล้ว (เดิมกดแล้วติด "เฉพาะผู้ดูแล") — นับแล้วยอดอัปเดตตามจริง ประวัติแสดง "ยอดในระบบ → นับได้ · ตรง/ขาด/เกิน" ให้ผู้ดูแลเห็นทุกครั้ง (2) เงินสำรองพนักงานแก้ไม่ได้แล้ว: เบิกซื้อของหยิบได้เฉพาะลิ้นชัก และปุ่มเบิกสำรอง→ลิ้นชักเหลือเฉพาะผู้ดูแล — ต้องการแบงค์ย่อยให้ใช้วิธีแลกกับลิ้นชัก (ไม่ต้องบันทึก)']},
   {v:'3.90.0',date:'2026-07-03',changes:['🧠 ผู้ช่วยอัจฉริยะ: (1) เตือนอัตโนมัติสำหรับคนที่กำลังเข้าเวร — อย่าลืมเปิดร้าน · ถึงเวลาปิดร้าน (ล้อตามเวลาออกเวรในตารางของแต่ละคน) · เมื่อวานยังไม่ลงยอดขาย · แบงค์ 20/100 ในเงินสำรองใกล้หมด · EDC โค้งสุดท้ายยังห่างเป้า พร้อมปุ่มกดแล้วพาไปทำได้เลย (2) ผู้ดูแลจับความผิดปกติอัตโนมัติ — ยอดขายสูง/ต่ำผิดปกติ (เทียบวันเดียวกันย้อนหลัง 6 สัปดาห์) · บิลเฉลี่ยเพี้ยน · เงินปิดร้านไม่ตรงซ้ำๆ ใน 30 วัน · ค้างนับเงินสำรอง (3) สรุปสัปดาห์อัตโนมัติ — การ์ดเด้งเช้าวันจันทร์ + ปุ่ม 🗓 สรุปสัปดาห์ ในหน้ายอดขาย & รายงาน เลื่อนดูย้อนหลังได้ทุกสัปดาห์ · เกณฑ์ทุกตัวปรับได้ในตั้งค่า → เกณฑ์แจ้งเตือนผู้ดูแล']},
   {v:'3.89.0',date:'2026-07-03',changes:['ผู้ดูแลแก้ไข/ลบได้ทุกระบบ: (1) รายการเงินสด — ปุ่ม “✎ แก้ไข” แก้จำนวนเงิน/วันที่/โน้ตได้ (ระบบปรับยอดกองเงินให้อัตโนมัติ) และ “↩ ยกเลิก” ลบได้ทุกรายการทั้งประวัติรายวันและรายเดือน (รายการเก่าประเภทเปิด/ปิด/นับ/ปรับยอด จะลบเฉพาะบันทึก ไม่ย้อนยอด กันยอดปัจจุบันเพี้ยน) (2) ลงเวลา — เพิ่มปุ่ม “🗑 ลบ” ในหน้าต่างแก้เวลา ลบรายการที่ลงผิด/ซ้ำได้ (3) เงินเดือน — ลบรอบที่บันทึก/จ่ายแล้วได้จากหน้าคำนวณ · ที่มีอยู่แล้ว: ยอดขาย แก้/ลบได้ที่ประวัติยอดขาย · วันลา อนุมัติใหม่/ลบได้ · ตารางเวร งานวันนี้ จัดการได้เต็มที่ · ทุกการแก้/ลบถูกบันทึกลงประวัติการใช้งานเสมอ']},
@@ -4444,6 +4445,9 @@ function cashExpenseDrawerToday(b){return cashEvents.filter(ev=>+ev.branch===+b&
 function cashOpenedToday(b){return cashGet(b).openDate===todayStr();}
 function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===todayStr()?(st.openDrawer||0):0;return open+cashSumToday(b,'r2d')+cashSalesToday(b)-cashSumToday(b,'deposit')-cashExpenseDrawerToday(b);}
 function cashTodayClose(b){return cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='close');}
+// เงินจริงที่ควรอยู่ในลิ้นชักตอนนี้ — ยอดขายสดไม่ได้บวกเข้า cashState.drawer เรียลไทม์
+// วันนี้เปิดร้านแล้วให้คิดตามสูตร (ต้นลิ้นชัก+เบิกสำรอง+ขายสด−เก็บเซฟ−เบิกซื้อของ) แทนยอดดิบในระบบ
+function cashDrawerNow(b){const st=cashGet(b);return st.openDate===todayStr()?Math.round(cashExpectedClose(b)*100)/100:st.drawer;}
 // คำนวณ "ควรมี/ผลต่าง" ของรายการปิดร้าน — ถ้าเป็นของวันนี้ คิดสดตามยอดขายล่าสุด (เผื่อแก้ยอดขายทีหลัง),
 // ถ้าเป็นวันก่อน ใช้ค่าที่บันทึกไว้ (ยอดขายอ้างอิงเฉพาะวันนี้)
 function cashCloseCalc(branch,ev){
@@ -5337,13 +5341,13 @@ window.cashDoExpense=async function(branch){
     let from=(document.getElementById('exp-src')?.value==='reserve')?'reserve':'drawer';
     if(from==='reserve'&&!isAdmin){showToast('เบิกจากเงินสำรองได้เฉพาะผู้ดูแล — พนักงานเบิกจากลิ้นชัก','err');return;}
     const st=cashGet(branch);
-    const bal=from==='reserve'?st.reserve:st.drawer;
+    const bal=from==='reserve'?st.reserve:cashDrawerNow(branch); // ลิ้นชักรวมยอดขายสดวันนี้แล้ว
     const poolName=from==='reserve'?'กองสำรอง':'ลิ้นชัก';
     if(amt>bal){
       if(!isAdmin){showToast(`${poolName}มีแค่ ฿${fmt(bal)} — แจ้งแอดมินเติม/ปรับยอดก่อน`,'err');return;}
       if(!await capsuleConfirm(`${poolName}มีแค่ ฿${fmt(bal)} — เบิก ฿${fmt(amt)} จะทำให้${poolName}ติดลบ ยืนยันไหม?`))return;
     }
-    const patch=from==='reserve'?{reserve:st.reserve-amt}:{drawer:st.drawer-amt};
+    const patch=from==='reserve'?{reserve:st.reserve-amt}:{drawer:Math.round((bal-amt)*100)/100};
     await cashSaveState(branch,patch);
     await cashAddEvent({branch,type:'expense',amount:amt,from,note,denoms:cashGetDenoms()});
     const _rc=window._cashReturnToClose;window._cashReturnToClose=null;
@@ -5649,8 +5653,9 @@ window.cashCWDeposit=async function(amt){
     amt=Math.round((parseFloat(amt)||0)*100)/100;
     if(!amt||amt<=0){showToast('กรอกยอดให้ถูกต้อง','err');return;}
     const st=cashGet(branch);
-    if(amt>st.drawer&&!isAdmin){showToast(`ลิ้นชักมีแค่ ฿${fmt(st.drawer)} — ตัดเกินไม่ได้`,'err');return;}
-    await cashSaveState(branch,{drawer:st.drawer-amt,safe:st.safe+amt});
+    const cap=cashDrawerNow(branch); // รวมยอดขายสดวันนี้แล้ว = เงินจริงในลิ้นชัก
+    if(amt>cap+0.01&&!isAdmin){showToast(`ลิ้นชักตอนนี้ควรมี ฿${fmt(cap)} — ตัดเกินไม่ได้`,'err');return;}
+    await cashSaveState(branch,{drawer:Math.round((cap-amt)*100)/100,safe:st.safe+amt});
     await cashAddEvent({branch,type:'deposit',amount:amt,note:'ตัดเข้าเซฟตอนปิดร้าน'});
     logActivity('cash_deposit',`ดึงเข้าตู้เซฟ ${BRANCHES[branch]} ฿${fmt(amt)} (ปิดร้าน)`);
     showToast('เก็บเข้าเซฟ ฿'+fmt(amt)+' แล้ว');
@@ -5817,11 +5822,12 @@ window.cashDoDeposit=async function(branch){
     const amt=parseFloat(document.getElementById('cash-in').value);
     if(!amt||amt<=0){showToast('กรอกจำนวนให้ถูกต้อง','err');return;}
     const st=cashGet(branch);
-    if(amt>st.drawer){
-      if(!isAdmin){showToast(`ลิ้นชักมีแค่ ฿${fmt(st.drawer)} — ดึงเข้าเซฟเกินยอดไม่ได้`,'err');return;}
-      if(!await capsuleConfirm(`ลิ้นชักมีแค่ ฿${fmt(st.drawer)} — ดึง ฿${fmt(amt)} จะทำให้ลิ้นชักติดลบ ยืนยันไหม?`))return;
+    const cap=cashDrawerNow(branch); // รวมยอดขายสดวันนี้แล้ว
+    if(amt>cap+0.01){
+      if(!isAdmin){showToast(`ลิ้นชักตอนนี้ควรมี ฿${fmt(cap)} — ดึงเข้าเซฟเกินยอดไม่ได้`,'err');return;}
+      if(!await capsuleConfirm(`ลิ้นชักตอนนี้ควรมี ฿${fmt(cap)} — ดึง ฿${fmt(amt)} จะทำให้ลิ้นชักติดลบ ยืนยันไหม?`))return;
     }
-    await cashSaveState(branch,{drawer:st.drawer-amt,safe:st.safe+amt});
+    await cashSaveState(branch,{drawer:Math.round((cap-amt)*100)/100,safe:st.safe+amt});
     await cashAddEvent({branch,type:'deposit',amount:amt,denoms:cashGetDenoms()});
     closeMD();renderCashPage();showToast('ดึงเข้าตู้เซฟ ฿'+fmt(amt));
     logActivity('cash_deposit',`ดึงเข้าตู้เซฟ ${BRANCHES[branch]} ฿${fmt(amt)}`);
