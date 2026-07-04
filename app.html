@@ -1617,8 +1617,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.97.0';
+const APP_VERSION='3.98.0';
 const CHANGELOG=[
+  {v:'3.98.0',date:'2026-07-04',changes:['ของใหม่ 3 อย่าง: (1) 💾 สำรองข้อมูลทั้งร้าน — ปุ่มใน "บัญชีของฉัน" (เฉพาะผู้ดูแล) ดาวน์โหลดข้อมูลทุกอย่างเป็นไฟล์เดียวเก็บไว้นอกระบบ กันข้อมูลหายถาวร + ถ้าเกิน 30 วันไม่ได้สำรอง ระบบเตือนเองพร้อมปุ่มกดสำรองทันที (2) 🔄 มีเวอร์ชันใหม่ = แถบเขียวขึ้นบนจออัตโนมัติ แตะทีเดียวอัปเดต — เลิกปัญหาบางเครื่องค้างเวอร์ชันเก่า (3) 🎯 เป้ายอดขายรายเดือนต่อสาขา — ตั้งในตั้งค่า แล้วบรีฟรายวันโชว์แถบความคืบหน้า บอกว่าต้องขายวันละเท่าไหร่ให้ถึงเป้า']},
   {v:'3.97.0',date:'2026-07-04',changes:['🌅 เปิดร้านฉลาดขึ้น — ปิดช่องโหว่กรณีเงินลิ้นชักไม่เท่ามาตรฐาน: (1) ถ้าเมื่อวานปิดร้านเหลือไม่ถึง ฿5,000 (เช่นขายน้อยจนตัดเข้าเซฟไม่ได้) หน้าเปิดร้านจะขึ้นป้ายเตือนและปุ่มยืนยันเปลี่ยนเป็นยอดคงเหลือจริง ไม่ใช่ ฿5,000 ดื้อๆ — เลิกปัญหา "ตอนเย็นขึ้นว่าขาดทั้งที่เป็นของตกค้างเมื่อวาน" (2) ผู้ดูแลได้แจ้งเตือน 🧰 "เงินต้นลิ้นชักต่ำกว่ามาตรฐาน" พร้อมปุ่มเบิกสำรองเติมทันที ทั้งบนหน้าแรกและเรื่องด่วนในบรีฟรายวัน (3) ข้อความขั้นยืนยันจบตอนปิดร้านบอกสาเหตุที่ยอดต่างจากมาตรฐานถูกต้องแล้ว (เปิดต่ำ vs ตัด/เบิกวันนี้)']},
   {v:'3.96.0',date:'2026-07-04',changes:['🛡️ ยกระดับความปลอดภัย+ความเร็ว: (1) กฎฐานข้อมูลชุดใหม่ (ต้องเอาไฟล์ firestore-rules-ใหม่.txt ไปวางใน Firebase Console) — ล็อกการแก้ยอดขาย/เวลาลงเวลาย้อนหลังจากนอกแอป กันอนุมัติใบลาตัวเอง จำกัดเวลายกเลิกรายการเงินไว้ 30 นาที และตัดกฎของระบบเก่าที่เลิกใช้ (2) แอปโหลดเบาลงมาก — ประวัติเงินสดดึงแค่ 7 เดือนหลัง เช็คอิน 6 เดือนหลัง ของเก่ากว่านั้นระบบดึงเพิ่มให้เองเมื่อกดดูประวัติเดือนเก่า/ทำเงินเดือนย้อนหลัง (3) 🐞 ตัวดักข้อผิดพลาดอัตโนมัติ — แอปมีปัญหาจะบันทึกลง "ประวัติการใช้งาน" ให้ผู้ดูแลเห็นทันที ไม่ต้องรอพนักงานแจ้ง (4) แก้บั๊ก: สถิติ "มาสายเดือนนี้" ในประวัติสมาชิกแสดง 0 ตลอด']},
   {v:'3.95.0',date:'2026-07-04',changes:['📰 สรุปเงินภาพรวมโฉมใหม่ "บรีฟรายวัน": จัดหน้าอัตโนมัติตามช่วงเวลา (เช้าโฟกัสเปิดร้าน · กลางวันโฟกัสยอดขาย+เทียบวันปกติ · ค่ำโฟกัสผลปิดร้าน) เรื่องด่วนขึ้นกรอบบนสุดพร้อมปุ่มจัดการ (ตรวจ/นับ/เติม/นำออก) เรื่องปกติยุบเหลือบรรทัดเดียว · ปุ่ม ⚙️ เลือกส่วนเสริมเองได้ (EDC/มอนิเตอร์สำรอง/ตาราง/เงินแยกชนิด — บันทึกติดบัญชี) · 💳 EDC เปลี่ยนเป็นรายเครื่อง สาขาละ 2 เครื่อง (⬛ ดำ/⬜ ขาว) เป้าเครื่องละ ฿50,000/เดือน แถบแยกเครื่องบอกต้องรูดวันละเท่าไหร่ + อินดี้ยังไม่มีเครื่อง (เปิดใช้ในตั้งค่าเมื่อเครื่องมา) · แจ้งเตือน/สรุปสัปดาห์เช็ค EDC รายเครื่องแล้ว']},
@@ -2587,6 +2588,7 @@ window.openAccountMenu=function(){
     <button class="assist-chip" onclick="closeMD();goto('settings')"><span class="ic">⚙️</span><span>ตั้งค่าระบบ</span></button>
     <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION}${isAdmin?' — ดูประวัติอัปเดต':''}</span></button>
     <button class="assist-chip" onclick="checkAppUpdate()"><span class="ic">🔄</span><span>อัปเดตโปรแกรม / ตรวจรุ่นล่าสุด</span></button>
+    ${isAdmin?`<button class="assist-chip" onclick="backupDownload()"><span class="ic">💾</span><span>สำรองข้อมูลทั้งร้าน (ดาวน์โหลดไฟล์)</span></button>`:''}
     <button class="assist-chip" onclick="openMiniWindow()"><span class="ic">📌</span><span>หน้าต่างลอยมินิ (บนคอม) — งานวันนี้</span></button>
     <button class="assist-chip" onclick="closeMD();goto('theme')"><span class="ic">🎨</span><span>ธีมของฉัน</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
@@ -2633,6 +2635,56 @@ window.doAppUpdate=async function(){
   }catch(e){}
   location.reload(true);
 };
+
+// ===== 💾 สำรองข้อมูลทั้งร้าน — ดาวน์โหลดเป็นไฟล์ JSON เก็บไว้นอกระบบ (กันข้อมูลหาย) =====
+window.backupDownload=async function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  showToast('💾 กำลังรวบรวมข้อมูลทั้งร้าน... รอสักครู่');
+  try{
+    const cols=['members','sales','cashState','cashEvents','checkins','schedules','leaves','payroll','todos','todoTemplates','editRequests','config','activityLogs'];
+    const out={_meta:{app:'ใหม่เภสัช',version:APP_VERSION,at:new Date().toISOString(),by:profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():''}};
+    let total=0;
+    for(const c of cols){
+      const snap=await getDocs(collection(db,c));
+      const o={};snap.docs.forEach(d=>{o[d.id]=d.data();});
+      out[c]=o;total+=snap.docs.length;
+    }
+    const blob=new Blob([JSON.stringify(out)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`backup-maipharmacy-${todayStr()}.json`;
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+    try{await setDoc(doc(db,'config','backupInfo'),{lastAt:new Date().toISOString(),by:out._meta.by,docs:total});}catch(e){}
+    showToast(`ดาวน์โหลดไฟล์สำรองแล้ว ✓ (${fmt(total)} รายการ) — เก็บไฟล์ไว้ในที่ปลอดภัยนอกเครื่องด้วยยิ่งดี`);
+    logActivity('backup',`สำรองข้อมูลทั้งร้าน ${fmt(total)} รายการ`);
+  }catch(e){showToast('สำรองข้อมูลไม่สำเร็จ: '+(e?.message||e),'err');}
+};
+
+// ===== 🔄 เช็คเวอร์ชันใหม่อัตโนมัติ — มีของใหม่ขึ้นแถบบนจอ แตะเพื่ออัปเดต =====
+function _verNewer(a,b){ // a ใหม่กว่า b ไหม (เทียบเลขเวอร์ชันทีละหลัก)
+  const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);
+  for(let i=0;i<3;i++){const d=(x[i]||0)-(y[i]||0);if(d>0)return true;if(d<0)return false;}
+  return false;
+}
+let _updLastCheck=0;
+async function autoCheckUpdate(){
+  if(Date.now()-_updLastCheck<3*3600000)return; // ไม่เช็คถี่เกิน 3 ชั่วโมง
+  _updLastCheck=Date.now();
+  try{
+    const res=await fetch('./app.html?_nmupd='+Date.now(),{cache:'no-store'});
+    const m=(await res.text()).match(/APP_VERSION\s*=\s*['"]([\d.]+)['"]/);
+    if(!m||!_verNewer(m[1],APP_VERSION))return;
+    if(sessionStorage.getItem('nm_upd_dismiss')===m[1])return; // กด ✕ ไปแล้วรอบนี้
+    let bar=document.getElementById('upd-banner');
+    if(!bar){bar=document.createElement('div');bar.id='upd-banner';document.body.appendChild(bar);}
+    bar.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;font-family:var(--font);font-size:13px;font-weight:700;padding:11px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.18)';
+    bar.innerHTML=`<span style="flex:1;cursor:pointer" onclick="doAppUpdate()">🔄 มีเวอร์ชันใหม่ ${m[1]} — แตะที่นี่เพื่ออัปเดต (แป๊บเดียวเสร็จ)</span><span style="cursor:pointer;padding:2px 9px;opacity:.85" onclick="sessionStorage.setItem('nm_upd_dismiss','${m[1]}');document.getElementById('upd-banner').remove()">✕</span>`;
+  }catch(e){}
+}
+setTimeout(autoCheckUpdate,8000);
+setInterval(autoCheckUpdate,4*3600000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoCheckUpdate();});
 
 // ===== 📌 หน้าต่างลอยมินิ (Document Picture-in-Picture) — หน้าต่างเล็กลอยเหนือทุกโปรแกรมบนคอม =====
 window._miniPip=null; window._miniTimer=null;
@@ -5069,6 +5121,28 @@ function cashAdminSummary(){
     BRANCHES.forEach((bn,bi)=>{if(!edcBranchHas(bi))return;EDC_MACHINES.forEach(m=>{const t=edcMachineSum(bi,m.k,moB);const p=Math.min(100,Math.round(t/edcTgtB*100));const pShow=Math.min(999,Math.round(t/edcTgtB*100));const col=pShow>=100?'var(--green)':(pShow>=60?'var(--amber)':'#D96B6B');bars.push(`<div style="display:flex;align-items:center;gap:8px;font-size:11px;padding:2.5px 0"><span style="width:96px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bn} ${m.i}</span><span style="flex:1;height:7px;border-radius:5px;background:var(--border);overflow:hidden"><i style="display:block;height:100%;width:${p}%;background:${col}"></i></span><b style="width:40px;text-align:right;flex-shrink:0">${pShow}%</b></div>`);});});
     if(bars.length)edcSec=`<div style="border-top:1px solid var(--border2);padding-top:8px;margin-top:9px"><div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">💳 EDC เดือนนี้ (เป้า ฿${fmt(edcTgtB)}/เครื่อง)</div>${bars.join('')}</div>`;
   }
+  // 🎯 เป้ายอดขายรายเดือน — แถบความคืบหน้า + ต้องขายวันละเท่าไหร่
+  let targetSec='';
+  {
+    const _tgs=cashCfg.salesTargets||{};
+    const _moT=todayStr().slice(0,7);
+    const _dNow=new Date();
+    const _dim=new Date(_dNow.getFullYear(),_dNow.getMonth()+1,0).getDate();
+    const _daysLeft=_dim-_dNow.getDate()+1;
+    const _expPct=Math.round(_dNow.getDate()/_dim*100); // ผ่านเดือนมากี่ % แล้ว (ไว้เทียบว่าตามเป้าไหม)
+    const _rows=[];
+    BRANCHES.forEach((bn,bi)=>{
+      const tg=+_tgs[String(bi)]||0;if(!tg)return;
+      const sum=salesEntries.filter(e=>+e.branch===+bi&&(e.date||'').startsWith(_moT)).reduce((a,e)=>a+(+e.total||0),0);
+      const pctShow=Math.min(999,Math.round(sum/tg*100));
+      const p=Math.min(100,pctShow);
+      const col=pctShow>=100?'var(--green)':(pctShow>=_expPct-5?'var(--green)':(pctShow>=_expPct-25?'var(--amber)':'#D96B6B'));
+      const remain=Math.round((tg-sum)*100)/100;
+      const sub=pctShow>=100?`ถึงเป้าแล้ว 🎉 เกินมา ฿${fmt(Math.round(sum-tg))}`:`ได้ ฿${fmt(Math.round(sum))} จากเป้า ฿${fmt(tg)} · เหลือ ${_daysLeft} วัน ~วันละ ฿${fmt(Math.ceil(remain/Math.max(1,_daysLeft)))}`;
+      _rows.push(`<div style="display:flex;align-items:center;gap:8px;font-size:11px;padding:2.5px 0"><span style="width:96px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bn}</span><span style="flex:1;height:7px;border-radius:5px;background:var(--border);overflow:hidden"><i style="display:block;height:100%;width:${p}%;background:${col}"></i></span><b style="width:40px;text-align:right;flex-shrink:0">${pctShow}%</b></div><div style="font-size:10px;color:var(--text3);margin:-1px 0 3px 104px">${sub}</div>`);
+    });
+    if(_rows.length)targetSec=`<div style="border-top:1px solid var(--border2);padding-top:8px;margin-top:9px"><div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">🎯 เป้ายอดขายเดือนนี้</div>${_rows.join('')}</div>`;
+  }
   // ส่วนเสริม: ตารางรายสาขาเต็ม (ของเดิม)
   const tableSec=cfg.secTable?`<div style="overflow-x:auto;margin-top:10px;border-top:1px solid var(--border2);padding-top:9px">
       <div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">📋 ตารางรายสาขา</div>
@@ -5095,6 +5169,7 @@ function cashAdminSummary(){
     ${urgentBox}
     ${headline}
     ${cols}
+    ${targetSec}
     ${edcSec}
     ${cfg.secReserve?resSection:''}
     ${tableSec}
@@ -8328,6 +8403,11 @@ function renderPayTypeSettings(){
     </div>
     <div style="font-size:10.5px;color:var(--text3);margin-top:4px">สาขาที่ไม่ติ๊ก = ไม่โชว์แถบ/ไม่เตือน EDC (เช่น ยังไม่ได้ติดตั้งเครื่อง)</div>
     <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px">🎯 เป้ายอดขายรายเดือน (ต่อสาขา)</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:8px">ตั้งไว้แล้ว "บรีฟรายวัน" จะโชว์แถบความคืบหน้า + บอกว่าต้องขายวันละเท่าไหร่ให้ถึงเป้า — ใส่ 0 = ไม่ใช้เป้าสาขานั้น</div>
+    ${BRANCHES.map((bn,bi)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="width:86px;font-size:12.5px;flex-shrink:0">${bn}</span><input type="number" id="starget-${bi}" min="0" value="${(cashCfg.salesTargets||{})[String(bi)]||''}" style="flex:1" placeholder="0"></div>`).join('')}
+    <button class="btn btn-primary btn-sm" style="width:100%" onclick="saveSalesTargets()">บันทึกเป้ายอดขาย</button>
+    <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
     <div style="font-size:13px;font-weight:700;margin-bottom:4px">💼 เงินสำรองขั้นต่ำ (ต่อสาขา)</div>
     <div style="font-size:11.5px;color:var(--text3);margin-bottom:8px">ถ้าเงินสำรองของสาขาไหนต่ำกว่ายอดนี้ หน้าสรุปเงิน (แอดมิน) จะเตือนให้เติม — กันเงินทอนหมดจนพนักงานเบิกไม่ได้</div>
     <div style="display:flex;align-items:center;gap:8px">
@@ -8348,6 +8428,13 @@ window.saveReserveCountDay=async function(v){
   delete cashCfg.reserveCountSkipUntil; // เปลี่ยนวันประจำ = ล้างการโยกรอบเก่า
   localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
   try{await setDoc(doc(db,'config','cashSettings'),cashCfg);showToast('ตั้งวันนับเงินสำรอง: ทุกวัน'+['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'][n]);}
+  catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว)','err');}
+};
+window.saveSalesTargets=async function(){
+  const t={};BRANCHES.forEach((_,bi)=>{t[String(bi)]=Math.max(0,parseFloat(document.getElementById('starget-'+bi)?.value)||0);});
+  cashCfg.salesTargets=t;
+  localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
+  try{await setDoc(doc(db,'config','cashSettings'),cashCfg);showToast('บันทึกเป้ายอดขายแล้ว 🎯');}
   catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว)','err');}
 };
 window.saveEdcBranch=async function(b,on){
@@ -10163,6 +10250,15 @@ async function checkNotifications(){
             return{b,i,base};
           }).filter(x=>x.base>0&&x.base<_ft-0.01);
           if(_lowDr.length)alerts.push({color:'amber',icon:'🧰',text:`เงินต้นลิ้นชักต่ำกว่ามาตรฐาน ฿${fmt(_ft)}: ${_lowDr.map(x=>`${x.b} ฿${fmt(x.base)} (ขาด ฿${fmt(Math.round((_ft-x.base)*100)/100)})`).join(' · ')} — เบิกสำรองมาเติมให้ครบ`,action:`<button class="btn btn-sm btn-primary" onclick="cashR2DPrompt(${_lowDr[0].i})" style="margin-left:auto">💼→🧰 เติม</button><button class="btn btn-sm" onclick="muteAlert('float')" title="ปิดเสียง 7 วัน">🔕</button>`});
+        }
+      }catch(e){}
+      // (3.3) เตือนสำรองข้อมูล — ไม่เคยทำ/เกิน 30 วัน
+      try{
+        if(!alertMuted('backup')){
+          const _bk=await getDoc(doc(db,'config','backupInfo'));
+          const _last=_bk.exists()?_bk.data().lastAt:null;
+          const _days=_last?Math.floor((Date.now()-new Date(_last).getTime())/86400000):null;
+          if(_days==null||_days>=30)alerts.push({color:'amber',icon:'💾',text:_days==null?'ยังไม่เคยสำรองข้อมูลร้านเลย — ดาวน์โหลดไฟล์สำรองเก็บไว้ กันข้อมูลหายถาวร':`ไม่ได้สำรองข้อมูลมา ${_days} วันแล้ว — ดาวน์โหลดไฟล์สำรองรอบใหม่เก็บไว้`,action:`<button class="btn btn-sm btn-primary" onclick="backupDownload()" style="margin-left:auto">💾 สำรองเลย</button><button class="btn btn-sm" onclick="muteAlert('backup')" title="ปิดเสียง 7 วัน">🔕</button>`});
         }
       }catch(e){}
       // (4) พนักงานสายบ่อยเดือนนี้
@@ -12701,6 +12797,7 @@ const ACTION_LABELS={
   purse_collect:['เก็บเงินขาย','#1E3A8A','💵'],
   purse_deposit:['ถอนไปฝากธนาคาร','#C2410C','🏦'],
   js_error:['ข้อผิดพลาดของแอป','#A32D2D','🐞'],
+  backup:['สำรองข้อมูล','#0F8A63','💾'],
   cash_clear:['ล้างข้อมูลเงินสด','#A32D2D','🧹']
 };
 
