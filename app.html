@@ -1617,8 +1617,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.94.0';
+const APP_VERSION='3.95.0';
 const CHANGELOG=[
+  {v:'3.95.0',date:'2026-07-04',changes:['📰 สรุปเงินภาพรวมโฉมใหม่ "บรีฟรายวัน": จัดหน้าอัตโนมัติตามช่วงเวลา (เช้าโฟกัสเปิดร้าน · กลางวันโฟกัสยอดขาย+เทียบวันปกติ · ค่ำโฟกัสผลปิดร้าน) เรื่องด่วนขึ้นกรอบบนสุดพร้อมปุ่มจัดการ (ตรวจ/นับ/เติม/นำออก) เรื่องปกติยุบเหลือบรรทัดเดียว · ปุ่ม ⚙️ เลือกส่วนเสริมเองได้ (EDC/มอนิเตอร์สำรอง/ตาราง/เงินแยกชนิด — บันทึกติดบัญชี) · 💳 EDC เปลี่ยนเป็นรายเครื่อง สาขาละ 2 เครื่อง (⬛ ดำ/⬜ ขาว) เป้าเครื่องละ ฿50,000/เดือน แถบแยกเครื่องบอกต้องรูดวันละเท่าไหร่ + อินดี้ยังไม่มีเครื่อง (เปิดใช้ในตั้งค่าเมื่อเครื่องมา) · แจ้งเตือน/สรุปสัปดาห์เช็ค EDC รายเครื่องแล้ว']},
   {v:'3.94.0',date:'2026-07-04',changes:['จัดการแจ้งเตือนอัจฉริยะได้แล้ว: (1) "เงินปิดร้านไม่ตรงซ้ำ" นับเฉพาะรายการที่ยังไม่กด ✔ ตรวจแล้ว + ปุ่ม "✔ รับทราบทั้งหมด" กดครั้งเดียวเคลียร์รายการค้างทั้งสาขา (ซากจากบั๊กเวอร์ชันเก่าหายไป — มีไม่ตรงครั้งใหม่ค่อยเด้งอีก) (2) ปุ่ม 🔕 ปิดเสียง 7 วัน ที่แจ้งเตือนตู้เซฟเกิน/ยอดขายผิดปกติ/บิลเฉลี่ยเพี้ยน/เงินไม่ตรงซ้ำ — ปิดครั้งเดียวเงียบทุกเครื่อง ครบกำหนดเด้งกลับเอง']},
   {v:'3.93.0',date:'2026-07-04',changes:['เช็คอินของ role ผู้ทดสอบ (🧪) ไม่ปนกับข้อมูลจริงแล้ว — ไม่แสดงในหน้าประวัติลงเวลา ไม่นับในสถิติเข้างาน/มาสายบนหน้าแรก ตารางเวร สรุปสัปดาห์ และแจ้งเตือนสายบ่อย (ตัวผู้ทดสอบเองยังเช็คอิน/รีเซ็ตทดสอบได้ตามปกติ)']},
   {v:'3.92.0',date:'2026-07-03',changes:['แก้บั๊กตัดเงินเข้าเซฟไม่ได้: ระบบคิดยอดตัดให้แต่กดแล้วเจอ "ลิ้นชักมีแค่ ฿5,000 — ตัดเกินไม่ได้" — สาเหตุคือด่านตรวจเทียบกับยอดลิ้นชักดิบในระบบ (ที่ยังไม่รวมยอดขายเงินสดของวัน) ตอนนี้ทุกจุดเทียบกับ "ลิ้นชักควรมีตอนนี้" ตามสูตรแล้ว (ต้นลิ้นชัก + ขายเงินสด − ที่เก็บเซฟ − เบิกซื้อของ) ครอบคลุมทั้งตัดเข้าเซฟตอนปิดร้าน ดึงเข้าเซฟระหว่างวัน และเบิกซื้อของจากลิ้นชัก']},
@@ -4928,27 +4929,81 @@ function cashAdminSummary(){
       :`<div style="font-size:12px;color:var(--text3);padding:8px 0;line-height:1.6">${denomEmpty}</div>`}
     </div>
   </details>`;
-  const flow=(ic,label,val,col)=>`<div style="flex:1;min-width:80px;background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:9px 11px">
-    <div style="font-size:10.5px;color:var(--text3);font-weight:600">${ic} ${label}</div>
-    <div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${col||'var(--text)'};margin-top:2px">฿${fmt(val)}</div></div>`;
-  const diffColor=diffTot===0?'var(--green-d)':(diffTot>0?'#1E3A8A':'var(--red-t)');
-  const diffLabel=!hasClose?'ยังไม่มีสาขาปิดร้าน':(diffTot===0?'ตรงพอดี ✓':(diffTot>0?`เกินรวม +฿${fmt(diffTot)}`:`ขาดรวม −฿${fmt(-diffTot)}`));
-  return `<div class="card" style="margin-bottom:1.1rem;border:1.5px solid var(--green-l)">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:12px">
-      <div style="font-size:15px;font-weight:800;color:var(--green-dd)">🔎 สรุปเงินภาพรวม <span style="font-size:11px;font-weight:600;color:var(--text3)">แอดมิน · ทุกสาขา</span></div>
-      <button class="btn btn-sm" onclick="loadCashPage();showToast('รีเฟรชแล้ว')" style="padding:4px 11px">↻ รีเฟรช</button>
-    </div>
-    <div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:14px;padding:15px 17px;color:#fff;margin-bottom:12px">
-      <div style="font-size:12px;opacity:.9;font-weight:600">💰 เงินสดในระบบทั้งหมด (ทุกสาขา)</div>
-      <div style="font-size:30px;font-weight:800;font-family:var(--disp);letter-spacing:-.5px;margin:1px 0">฿${fmt(grand)}</div>
-      <div style="display:flex;gap:14px;margin-top:6px;font-size:11.5px;flex-wrap:wrap">
-        <span>💼 สำรอง ฿${fmt(totR)}</span><span>🧰 ลิ้นชัก ฿${fmt(totD)}</span><span>🔒 เซฟ ฿${fmt(totS)}</span>
-      </div>
-    </div>
-    ${resSection}
-    <div style="overflow-x:auto;margin-bottom:13px">
-      <table style="width:100%;border-collapse:collapse;font-size:12.5px;min-width:420px">
-        <thead><tr style="color:var(--text3);font-size:11px;text-align:left">
+  // ===== 📰 บรีฟรายวัน (ทรง B) — เรื่องด่วนขึ้นก่อน · พาดหัวตามช่วงเวลา · ส่วนเสริมเลือกได้ใน ⚙️ =====
+  const cfg=Object.assign({secEdc:true,secReserve:false,secTable:false,secDenoms:false},profile?.briefCfg||{});
+  const now=new Date(), hrB=now.getHours();
+  const slot=hrB<11?'morning':(hrB<17?'day':'evening');
+  const slotTitle=slot==='morning'?'🌅 บรีฟเช้านี้':(slot==='day'?'☀️ บรีฟบ่ายนี้':'🌙 บรีฟค่ำนี้');
+  const _pd2=n=>String(n).padStart(2,'0');
+  // เรื่องด่วน (พร้อมปุ่มจัดการ)
+  const urgent=[];
+  BRANCHES.forEach((bn,b)=>{
+    const st=cashGet(b), opened=cashOpenedToday(b), closeEv=cashTodayClose(b);
+    if(closeEv){const d=cashCloseCalc(b,closeEv).diff;if(d!==0&&!closeEv.reviewed)urgent.push({lv:'red',t:`${bn} ปิดร้าน${d>0?'เกิน':'ขาด'} <b>฿${fmt(Math.abs(d))}</b>${closeEv.by?` (${closeEv.by})`:''}`,act:`<button class="btn btn-sm" style="background:#C2410C;color:#fff;border:none;padding:3px 11px" onclick="cashMarkReviewed('${closeEv.id}')">✔ ตรวจ</button>`});}
+    if(opened&&!closeEv){
+      const ends=(shifts||[]).filter(x=>+x.branch===b&&x.date===todayStr()&&x.end).map(x=>{const p=String(x.end).split(':').map(Number);return isNaN(p[0])?null:p[0]*60+(p[1]||0);}).filter(v=>v!=null);
+      if(ends.length&&(now.getHours()*60+now.getMinutes())>Math.max(...ends))urgent.push({lv:'red',t:`${bn} <b>ยังไม่ปิดร้าน</b> — เวรจบแล้ว`,act:''});
+    }
+    ['reserve','drawer','safe'].forEach(k=>{if(st[k]<0)urgent.push({lv:'red',t:`${bn}: ${CASH_POOLS[k].t}ติดลบ ฿${fmt(st[k])}`,act:`<button class="btn btn-sm" style="padding:3px 11px" onclick="cashAdjustPrompt(${b})">⚖️ ปรับยอด</button>`});});
+    const _rmin=cashCfg.reserveMin||0;
+    if(st.reserve>=0&&_rmin>0&&st.reserve<_rmin)urgent.push({lv:'amber',t:`${bn}: เงินสำรองเหลือ ฿${fmt(st.reserve)} (ขั้นต่ำ ฿${fmt(_rmin)})`,act:`<button class="btn btn-sm" style="padding:3px 11px" onclick="cashTopupPrompt(${b},'reserve')">💼 เติม</button>`});
+    if(typeof cashReserveDue==='function'&&cashReserveDue(b))urgent.push({lv:'amber',t:`${bn}: ค้างนับเงินสำรองรอบนี้`,act:`<button class="btn btn-sm" style="padding:3px 11px" onclick="cashReserveCountPrompt(${b})">🪙 นับ</button>`});
+    if((alertSettings.safeThreshold||0)>0&&st.safe>(alertSettings.safeThreshold||0))urgent.push({lv:'amber',t:`${bn}: เซฟ ฿${fmt(st.safe)} เกินเกณฑ์ — ควรนำฝากธนาคาร`,act:`<button class="btn btn-sm" style="padding:3px 11px" onclick="cashSafeOutPrompt(${b})">🏦 นำออก</button>`});
+  });
+  const _hasRed=urgent.some(u=>u.lv==='red');
+  const urgentBox=urgent.length?`<div style="border:2px solid ${_hasRed?'#C2410C':'var(--amber)'};border-radius:8px;padding:10px 13px;margin-bottom:11px;background:${_hasRed?'var(--red-l)':'var(--amber-l)'}">
+      <div style="font-size:11px;font-weight:800;color:${_hasRed?'var(--red-t)':'var(--amber-t)'};letter-spacing:1px;margin-bottom:4px">⚠ ต้องจัดการ — ${urgent.length} เรื่อง</div>
+      ${urgent.map(u=>`<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;padding:3.5px 0;color:${u.lv==='red'?'var(--red-t)':'var(--amber-t)'}"><span style="flex:1;min-width:0">${u.t}</span>${u.act}</div>`).join('')}
+    </div>`:'';
+  // สิ่งที่ปกติ (บรรทัดเดียวท้ายบรีฟ)
+  const okList=[];
+  if(!urgent.some(u=>u.t.includes('เซฟ')))okList.push('เซฟไม่เกินเกณฑ์');
+  if(!urgent.some(u=>u.t.includes('ค้างนับ')))okList.push('นับสำรองครบรอบ');
+  if(!urgent.some(u=>u.t.includes('ปิดร้าน')))okList.push('เงินปิดร้านไม่มีค้างตรวจ');
+  if(!urgent.some(u=>u.t.includes('ติดลบ')))okList.push('ไม่มียอดติดลบ');
+  // พาดหัวตามช่วงเวลา
+  let headline='';
+  if(slot==='morning'&&openedCount<BRANCHES.length){
+    const notOpen=BRANCHES.filter((bn,b)=>!cashOpenedToday(b));
+    headline=`<div style="text-align:center;margin:10px 0 4px"><div style="font-size:11px;color:var(--text2)">สถานะเปิดร้านเช้านี้</div><div style="font-family:var(--disp);font-size:31px;font-weight:800;letter-spacing:-1px">เปิดแล้ว ${openedCount}/${BRANCHES.length} สาขา</div><div style="font-size:11px;color:var(--amber-t);font-weight:600;margin-top:2px">รอเปิด: ${notOpen.join(' · ')}</div></div>`;
+  }else{
+    const hist=[];for(let w=1;w<=6;w++){const d=new Date();d.setDate(d.getDate()-7*w);const ds=`${d.getFullYear()}-${_pd2(d.getMonth()+1)}-${_pd2(d.getDate())}`;const t=salesEntries.filter(e=>e.date===ds).reduce((a,e)=>a+(parseFloat(e.amounts?.['เงินสด'])||0),0);if(t>0)hist.push(t);}
+    const avg=hist.length>=3?Math.round(hist.reduce((a,v)=>a+v,0)/hist.length):null;
+    const wdName=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'][now.getDay()];
+    let subLine='';
+    if(avg){
+      if(slot==='evening'){const pctB=Math.round((salesCash-avg)/avg*100);subLine=`<div style="display:inline-block;font-size:11px;font-weight:800;border-radius:12px;padding:2px 10px;margin-top:4px;background:${pctB>=0?'var(--green-l)':'var(--red-l)'};color:${pctB>=0?'var(--green-d)':'var(--red-t)'}">${pctB>=0?'▲ +':'▼ '}${pctB}% จากวัน${wdName}ปกติ</div>`;}
+      else subLine=`<div style="font-size:10.5px;color:var(--text3);margin-top:3px">วัน${wdName}ปกติทั้งวัน ~฿${fmt(avg)}</div>`;
+    }
+    headline=`<div style="text-align:center;margin:10px 0 4px"><div style="font-size:11px;color:var(--text2)">ยอดขายเงินสดวันนี้ (${BRANCHES.length} สาขา)</div><div style="font-family:var(--disp);font-size:34px;font-weight:800;letter-spacing:-1px">฿${fmt(salesCash)}</div>${subLine}</div>`;
+  }
+  // 3 คอลัมน์
+  const colB=BRANCHES.map((bn,b)=>{
+    const closeEv=cashTodayClose(b), opened=cashOpenedToday(b);
+    let stTxt;
+    if(closeEv){const d=cashCloseCalc(b,closeEv).diff;stTxt=d===0?'<b style="color:var(--green-d)">✓ ตรง</b>':(d>0?`<b style="color:#1E3A8A">เกิน ${fmt(d)}</b>`:`<b style="color:var(--red-t)">ขาด ${fmt(-d)}</b>`);}
+    else stTxt=opened?'<span style="color:var(--green-d)">เปิดอยู่</span>':'<span style="color:var(--text3)">รอเปิด</span>';
+    return `<div style="display:flex;align-items:center;gap:6px;white-space:nowrap"><span style="width:8px;height:8px;border-radius:3px;background:${BCOLORS[b]};flex-shrink:0"></span><span style="overflow:hidden;text-overflow:ellipsis">${bn}</span><b>฿${fmt(cashSalesToday(b))}</b><span>· ${stTxt}</span></div>`;
+  }).join('');
+  const cols=`<div style="display:flex;border-top:1.5px solid var(--text);border-bottom:1px solid var(--border2);margin-top:9px;flex-wrap:wrap">
+    <div style="flex:1.3;min-width:170px;padding:9px 11px;font-size:11px;line-height:2.1;border-right:1px solid var(--border2)"><div style="font-weight:800;font-size:10px;color:var(--text2);margin-bottom:2px">รายสาขา (ขายสด · สถานะ)</div>${colB}</div>
+    <div style="flex:1;min-width:130px;padding:9px 11px;font-size:11px;line-height:2.1;border-right:1px solid var(--border2)"><div style="font-weight:800;font-size:10px;color:var(--text2);margin-bottom:2px">เงินในระบบ</div>รวม <b>฿${fmt(grand)}</b><br>💼 ${fmt(totR)} · 🧰 ${fmt(totD)}<br>🔒 เซฟ ${fmt(totS)}</div>
+    <div style="flex:1;min-width:130px;padding:9px 11px;font-size:11px;line-height:2.1"><div style="font-weight:800;font-size:10px;color:var(--text2);margin-bottom:2px">วันนี้เกิดอะไร</div>เข้าเซฟ <b>฿${fmt(depTot)}</b><br>เบิกซื้อของ ฿${fmt(expTot)}<br>เติม ฿${fmt(topupTot)}${safeoutTot?` · ออกเซฟ ฿${fmt(safeoutTot)}`:''}</div>
+  </div>`;
+  // ส่วนเสริม: EDC รายเครื่อง
+  let edcSec='';
+  const edcTgtB=+(cashCfg.edcTarget)||0;
+  if(cfg.secEdc&&edcTgtB>0){
+    const moB=todayStr().slice(0,7);
+    const bars=[];
+    BRANCHES.forEach((bn,bi)=>{if(!edcBranchHas(bi))return;EDC_MACHINES.forEach(m=>{const t=edcMachineSum(bi,m.k,moB);const p=Math.min(100,Math.round(t/edcTgtB*100));const pShow=Math.min(999,Math.round(t/edcTgtB*100));const col=pShow>=100?'var(--green)':(pShow>=60?'var(--amber)':'#D96B6B');bars.push(`<div style="display:flex;align-items:center;gap:8px;font-size:11px;padding:2.5px 0"><span style="width:96px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bn} ${m.i}</span><span style="flex:1;height:7px;border-radius:5px;background:var(--border);overflow:hidden"><i style="display:block;height:100%;width:${p}%;background:${col}"></i></span><b style="width:40px;text-align:right;flex-shrink:0">${pShow}%</b></div>`);});});
+    if(bars.length)edcSec=`<div style="border-top:1px solid var(--border2);padding-top:8px;margin-top:9px"><div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">💳 EDC เดือนนี้ (เป้า ฿${fmt(edcTgtB)}/เครื่อง)</div>${bars.join('')}</div>`;
+  }
+  // ส่วนเสริม: ตารางรายสาขาเต็ม (ของเดิม)
+  const tableSec=cfg.secTable?`<div style="overflow-x:auto;margin-top:10px;border-top:1px solid var(--border2);padding-top:9px">
+      <div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">📋 ตารางรายสาขา</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:420px">
+        <thead><tr style="color:var(--text3);font-size:10.5px;text-align:left">
           <th style="padding:4px 6px;font-weight:700">สาขา</th>
           <th style="padding:4px 6px;text-align:right;font-weight:700">💼 สำรอง</th>
           <th style="padding:4px 6px;text-align:right;font-weight:700">🧰 ลิ้นชัก</th>
@@ -4959,25 +5014,42 @@ function cashAdminSummary(){
         </tr></thead>
         <tbody>${rows}</tbody>
       </table>
+    </div>`:'';
+  const okFoot=okList.length?`<div style="margin-top:9px;font-size:11px;color:var(--text3);text-align:center">✓ <b style="color:var(--green-d)">ปกติ:</b> ${okList.join(' · ')}</div>`:'';
+  return `<div class="card" style="margin-bottom:1.1rem;border:1.5px solid var(--green-l)">
+    <div style="text-align:center;border-bottom:2.5px solid var(--text);padding-bottom:8px;margin-bottom:11px;position:relative">
+      <div style="font-family:var(--disp);font-weight:800;font-size:17px;letter-spacing:.5px">— ${slotTitle} —</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">ใหม่เภสัช · ${now.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'})} · ${_pd2(now.getHours())}:${_pd2(now.getMinutes())} น. · จัดหน้าอัตโนมัติตามช่วงเวลา</div>
+      <div style="position:absolute;right:0;top:-2px;display:flex;gap:5px"><button class="btn btn-sm" style="padding:3px 9px" title="ปรับแต่งบรีฟ" onclick="briefCfgPrompt()">⚙️</button><button class="btn btn-sm" style="padding:3px 9px" title="รีเฟรช" onclick="loadCashPage();showToast('รีเฟรชแล้ว')">↻</button></div>
     </div>
-    ${denomDetails}
-    <div style="font-size:11.5px;font-weight:700;color:var(--text3);margin-bottom:7px">📊 ความเคลื่อนไหววันนี้ (ทุกสาขา)</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-      ${flow('💵','ขายเงินสด',salesCash,'var(--green-d)')}
-      ${flow('💸','เบิกซื้อของ',expTot,'var(--amber-t)')}
-      ${flow('🔒','ดึงเข้าเซฟ',depTot)}
-      ${flow('➕','เติมเข้าระบบ',topupTot)}
-    </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:11px;padding:11px 14px;${diffTot!==0&&hasClose?`border:1px solid ${diffColor}`:''}">
-      <span style="font-size:12.5px;font-weight:600">⚖️ ขาด/เกิน จากปิดร้านวันนี้ <span style="color:var(--text3);font-weight:500">(${closedCount}/${BRANCHES.length} สาขาปิดแล้ว)</span></span>
-      <span style="font-size:14px;font-weight:800;color:${diffColor}">${diffLabel}</span>
-    </div>
-    ${warns.length?`<div style="margin-top:12px;background:var(--red-l);border:1px solid var(--red);border-radius:11px;padding:11px 13px">
-      <div style="font-size:12.5px;font-weight:700;color:var(--red-t);margin-bottom:5px">⚠️ ต้องดู (${warns.length})</div>
-      ${warns.map(w=>`<div style="font-size:12px;color:var(--red-t);padding:2px 0">• ${w}</div>`).join('')}
-    </div>`:`<div style="margin-top:12px;font-size:12px;color:var(--green-d);text-align:center">✓ ไม่มีรายการที่ต้องตรวจสอบ</div>`}
+    ${urgentBox}
+    ${headline}
+    ${cols}
+    ${edcSec}
+    ${cfg.secReserve?resSection:''}
+    ${tableSec}
+    ${cfg.secDenoms?denomDetails:''}
+    ${okFoot}
   </div>`;
 }
+// ⚙️ ปรับแต่งบรีฟ — เลือกส่วนเสริมที่อยากเห็น (บันทึกติดบัญชี)
+window.briefCfgPrompt=function(){
+  const cfg=Object.assign({secEdc:true,secReserve:false,secTable:false,secDenoms:false},profile?.briefCfg||{});
+  const item=(id,ic,t,sub,on)=>`<label style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:11px;padding:10px 12px;margin-bottom:7px;cursor:pointer"><input type="checkbox" id="bc-${id}" ${on?'checked':''} style="width:18px;height:18px;flex-shrink:0"><span style="flex:1;font-size:13px;font-weight:700">${ic} ${t}<span style="display:block;font-size:10.5px;color:var(--text3);font-weight:400">${sub}</span></span></label>`;
+  openModal(`<div class="modal-title">⚙️ ปรับแต่งบรีฟ</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px;line-height:1.6">เรื่องด่วน · พาดหัว · 3 คอลัมน์หลัก แสดงเสมอ (ระบบจัดตามช่วงเวลาให้เอง) — เลือกส่วนเสริมที่อยากเห็นเพิ่ม · บันทึกติดบัญชีคุณ ใช้ได้ทุกเครื่อง</div>
+    ${item('edc','💳','EDC เดือนนี้','ครบเป้าไหม รายเครื่อง ⬛⬜',cfg.secEdc)}
+    ${item('reserve','💼','มอนิเตอร์เงินสำรอง','แถบระดับ + นับล่าสุด รายสาขา',cfg.secReserve)}
+    ${item('table','📋','ตารางรายสาขาเต็ม','สำรอง/ลิ้นชัก/เซฟ/รวม แบบตาราง',cfg.secTable)}
+    ${item('denoms','🪙','เงินแยกชนิด','แบงค์/เหรียญคงเหลือตามนับล่าสุด',cfg.secDenoms)}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="briefCfgSave()">บันทึก</button></div>`);
+};
+window.briefCfgSave=async function(){
+  const briefCfg={secEdc:!!document.getElementById('bc-edc')?.checked,secReserve:!!document.getElementById('bc-reserve')?.checked,secTable:!!document.getElementById('bc-table')?.checked,secDenoms:!!document.getElementById('bc-denoms')?.checked};
+  try{await updateDoc(doc(db,'members',currentUser.uid),{briefCfg});}catch(e){}
+  if(profile)profile.briefCfg=briefCfg;
+  closeMD();renderCashPage();showToast('บันทึกการแสดงผลแล้ว ✓');
+};
 // ===== นับเงินสำรองประจำสัปดาห์ (validate เงินทอน — แลกเงินไม่บันทึก เลยต้องนับจริงสัปดาห์ละครั้ง) =====
 // วันครบกำหนดรอบปัจจุบัน (YYYY-MM-DD) — admin ตั้งวันได้ (reserveCountDay 0=อา…6=ส) + โยกรอบได้ (reserveCountSkipUntil)
 function cashReserveDueDate(){
@@ -5771,25 +5843,56 @@ window.cashSalesSave=async function(branch){
   finally{_cashBusy=false;}
 };
 // ===== เช็ค EDC ดำ/ขาว — แก้ได้เสมอ + สะสมทั้งเดือนเทียบเป้าค่าเช่าเครื่อง =====
+// ===== EDC รายเครื่อง — สาขาละ 2 เครื่อง (⬛ ดำ / ⬜ ขาว) เป้า cashCfg.edcTarget ต่อเครื่อง/เดือน =====
+const EDC_MACHINES=[{k:'black',t:'เครื่องดำ',i:'⬛'},{k:'white',t:'เครื่องขาว',i:'⬜'}];
+function edcBranchHas(b){const eb=cashCfg.edcBranches||{'0':true,'1':true,'2':false};const v=eb[String(b)];return v==null?false:!!v;}
+function edcMachineSum(b,mkey,mo){let t=0;salesEntries.forEach(x=>{if(+x.branch===+b&&(x.date||'').startsWith(mo))t+=(parseFloat(x.edcCheck?.[mkey])||0);});return t;}
+function _edcOthersHTML(branch,mo,tgt){
+  const rows=BRANCHES.map((bn,bi)=>{
+    if(bi===+branch)return '';
+    if(!edcBranchHas(bi))return `<div style="display:flex;align-items:center;gap:7px;font-size:11.5px;padding:3px 0"><span style="width:8px;height:8px;border-radius:3px;background:${BCOLORS[bi]};flex-shrink:0"></span>${bn}<span style="margin-left:auto;font-size:10.5px;color:var(--text3)">ยังไม่มีเครื่อง EDC</span></div>`;
+    const pills=EDC_MACHINES.map(m=>{
+      const t=edcMachineSum(bi,m.k,mo);const p=tgt?Math.min(999,Math.round(t/tgt*100)):0;
+      const c=p>=100?['var(--green-l)','var(--green-d)']:(p>=60?['var(--amber-l)','var(--amber-t)']:['var(--red-l)','var(--red-t)']);
+      return `<span style="font-size:10px;font-weight:800;border-radius:8px;padding:2px 8px;background:${c[0]};color:${c[1]}">${m.i} ${p}%</span>`;
+    }).join('');
+    return `<div style="display:flex;align-items:center;gap:7px;font-size:11.5px;padding:3px 0"><span style="width:8px;height:8px;border-radius:3px;background:${BCOLORS[bi]};flex-shrink:0"></span>${bn}<span style="margin-left:auto;display:flex;gap:5px">${pills}</span></div>`;
+  }).join('');
+  return `<div style="border-top:1px solid var(--border);padding-top:9px;margin-top:8px"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">สาขาอื่นเดือนนี้ (ต่อเครื่อง)</div>${rows}</div>`;
+}
 window.cashEdcPrompt=function(branch){
   const date=todayStr();
   const e=salesEntries.find(x=>x.date===date&&+x.branch===+branch);
   const mo=date.slice(0,7);
-  let sum=0;salesEntries.forEach(x=>{if((x.date||'').startsWith(mo))sum+=(parseFloat(x.edcCheck?.black)||0)+(parseFloat(x.edcCheck?.white)||0);});
   const tgt=cashCfg.edcTarget||0;
-  const left=Math.max(0,tgt-sum);
-  const pct=tgt?Math.min(100,Math.round(sum/tgt*100)):0;
+  if(!edcBranchHas(branch)){
+    openModal(`<div class="modal-title">🔍 เช็ค EDC · ${BRANCHES[branch]}</div>
+      <div style="background:var(--amber-l);border-radius:12px;padding:13px 15px;font-size:13px;color:var(--amber-t);line-height:1.7;margin-bottom:4px">สาขานี้ยังไม่มีเครื่อง EDC<br><span style="font-size:11.5px">เมื่อติดตั้งเครื่องแล้ว ผู้ดูแลเปิดใช้ได้ที่ ตั้งค่า → ระบบเงินสด (ติ๊ก "มีเครื่อง EDC")</span></div>
+      ${_edcOthersHTML(branch,mo,tgt)}
+      <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+    return;
+  }
+  const _nd=new Date();const _left=new Date(_nd.getFullYear(),_nd.getMonth()+1,0).getDate()-_nd.getDate();
+  const mBar=m=>{
+    const sum=edcMachineSum(branch,m.k,mo);
+    const left=Math.max(0,tgt-sum);
+    const pct=tgt?Math.min(100,Math.round(sum/tgt*100)):0;
+    const col=left===0?'var(--green)':(pct>=60?'var(--amber)':'#D96B6B');
+    const tcol=left===0?'var(--green-d)':(pct>=60?'var(--amber-t)':'var(--red-t)');
+    return `<div style="background:var(--bg);border-radius:11px;padding:10px 13px;margin-bottom:9px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700"><span>${m.i} ${m.t} · เดือนนี้</span><span style="font-family:var(--mono);color:${tcol}">฿${fmt(sum)} / ฿${fmt(tgt)}</span></div>
+      <div style="height:7px;border-radius:4px;background:rgba(0,0,0,.08);margin-top:6px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${col}"></i></div>
+      <div style="font-size:10.5px;font-weight:600;margin-top:4px;color:${tcol}">${left===0?'✓ ครบเป้าแล้ว ไม่เสียค่าเช่า 🎉':`เหลืออีก ฿${fmt(left)}${_left>0?` · เหลือ ${_left} วัน ≈ วันละ ฿${fmt(Math.ceil(left/_left))}`:' · วันนี้วันสุดท้ายของเดือน'}`}</div>
+    </div>`;
+  };
   openModal(`<div class="modal-title">🔍 เช็ค EDC (ยอดรูดบัตร) · ${BRANCHES[branch]}</div>
-    <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">ตัวเลขเช็คค่าเช่าเครื่อง — ไม่รวมในยอดขาย · แก้ได้เสมอไม่ล็อก</div>
-    ${tgt?`<div style="background:${left===0?'var(--green-ll)':'var(--amber-l)'};border-radius:11px;padding:10px 13px;margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:${left===0?'var(--green-dd)':'var(--amber-t)'}"><span>สะสมเดือนนี้ (ทุกสาขา)</span><span style="font-family:var(--mono)">฿${fmt(sum)} / ฿${fmt(tgt)}</span></div>
-      <div style="height:7px;border-radius:4px;background:rgba(0,0,0,.08);margin-top:6px;overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${left===0?'var(--green)':'var(--amber)'}"></i></div>
-      <div style="font-size:11px;font-weight:700;margin-top:5px;color:${left===0?'var(--green-d)':'var(--amber-t)'}">${left===0?'✓ ครบเป้าแล้ว ไม่เสียค่าเช่า 🎉':'เหลืออีก ฿'+fmt(left)}</div>
-    </div>`:''}
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">ขั้นต่ำค่าเช่า <b>เครื่องละ ฿${fmt(tgt)}/เดือน</b> — ไม่รวมในยอดขาย · แก้ได้เสมอไม่ล็อก</div>
+    ${tgt?EDC_MACHINES.map(mBar).join(''):''}
     <div style="display:flex;gap:8px">
-      <div class="field" style="flex:1"><label class="fl">EDC เครื่องดำ (วันนี้)</label><input type="number" id="edc-b" min="0" placeholder="0" value="${e?.edcCheck?.black||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
-      <div class="field" style="flex:1"><label class="fl">EDC เครื่องขาว (วันนี้)</label><input type="number" id="edc-w" min="0" placeholder="0" value="${e?.edcCheck?.white||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
+      <div class="field" style="flex:1"><label class="fl">⬛ เครื่องดำ (วันนี้)</label><input type="number" id="edc-b" min="0" placeholder="0" value="${e?.edcCheck?.black||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
+      <div class="field" style="flex:1"><label class="fl">⬜ เครื่องขาว (วันนี้)</label><input type="number" id="edc-w" min="0" placeholder="0" value="${e?.edcCheck?.white||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
     </div>
+    ${_edcOthersHTML(branch,mo,tgt)}
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="cashEdcSave(${branch})">บันทึก EDC</button></div>`);
 };
 window.cashEdcSave=async function(branch){
@@ -8136,6 +8239,10 @@ function renderPayTypeSettings(){
       <input type="number" id="edc-target" min="0" value="${cashCfg.edcTarget||0}" style="flex:1" placeholder="50000">
       <button class="btn btn-primary btn-sm" onclick="saveEdcTarget(document.getElementById('edc-target').value)">บันทึก</button>
     </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:9px;font-size:12.5px">
+      ${BRANCHES.map((bn,bi)=>`<label style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" ${edcBranchHas(bi)?'checked':''} onchange="saveEdcBranch(${bi},this.checked)" style="width:17px;height:17px">${bn} มีเครื่อง EDC</label>`).join('')}
+    </div>
+    <div style="font-size:10.5px;color:var(--text3);margin-top:4px">สาขาที่ไม่ติ๊ก = ไม่โชว์แถบ/ไม่เตือน EDC (เช่น ยังไม่ได้ติดตั้งเครื่อง)</div>
     <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
     <div style="font-size:13px;font-weight:700;margin-bottom:4px">💼 เงินสำรองขั้นต่ำ (ต่อสาขา)</div>
     <div style="font-size:11.5px;color:var(--text3);margin-bottom:8px">ถ้าเงินสำรองของสาขาไหนต่ำกว่ายอดนี้ หน้าสรุปเงิน (แอดมิน) จะเตือนให้เติม — กันเงินทอนหมดจนพนักงานเบิกไม่ได้</div>
@@ -8157,6 +8264,14 @@ window.saveReserveCountDay=async function(v){
   delete cashCfg.reserveCountSkipUntil; // เปลี่ยนวันประจำ = ล้างการโยกรอบเก่า
   localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
   try{await setDoc(doc(db,'config','cashSettings'),cashCfg);showToast('ตั้งวันนับเงินสำรอง: ทุกวัน'+['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'][n]);}
+  catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว)','err');}
+};
+window.saveEdcBranch=async function(b,on){
+  const eb=Object.assign({'0':true,'1':true,'2':false},cashCfg.edcBranches||{});
+  eb[String(b)]=!!on;
+  cashCfg.edcBranches=eb;
+  localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
+  try{await setDoc(doc(db,'config','cashSettings'),cashCfg);showToast(`${BRANCHES[b]}: ${on?'เปิดใช้':'ปิด'} EDC แล้ว`);}
   catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว)','err');}
 };
 window.saveEdcTarget=async function(v){
@@ -9741,10 +9856,11 @@ window.openWeeklySummary=async function(offset){
     const lb={};snap.docs.forEach(d=>{const x=d.data();if(x.isLate&&!isTestCheckin(x)){lateN++;lb[x.uid]=(lb[x.uid]||0)+1;}});
     lateNames=Object.entries(lb).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([u,n])=>`${memberName(u)||'—'} ${n} ครั้ง`).join(' · ');
   }catch(e){}
-  // EDC สะสมเดือนปัจจุบัน
+  // EDC สะสมเดือนปัจจุบัน — รายเครื่อง
   const mo=todayStr().slice(0,7);
-  const edcSum=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+((+(e.edcCheck?.black)||0)+(+(e.edcCheck?.white)||0)),0);
   const edcTgt=+(cashCfg.edcTarget)||0;
+  const edcMach=[];
+  if(edcTgt>0)BRANCHES.forEach((bn,bi)=>{if(edcBranchHas(bi))EDC_MACHINES.forEach(m=>{const t=edcMachineSum(bi,m.k,mo);edcMach.push({bn,i:m.i,p:Math.min(999,Math.round(t/edcTgt*100))});});});
   loading(false);
   const dLbl=d=>new Date(d+'T12:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short'});
   const stat=(k,v,sub,sc)=>`<div style="background:var(--bg);border-radius:13px;padding:10px 12px"><div style="font-size:10.5px;color:var(--text3)">${k}</div><div style="font-family:var(--disp);font-weight:700;font-size:15px;margin-top:1px">${v}</div>${sub?`<div style="font-size:10px;font-weight:600;margin-top:1px;color:${sc||'var(--text3)'}">${sub}</div>`:''}</div>`;
@@ -9773,7 +9889,7 @@ window.openWeeklySummary=async function(offset){
     </div>
     ${row('💰 เงินปิดร้าน',`ตรง ${okDays} จาก ${cds.length} ครั้งที่ปิด${missSum?` · ขาดรวม ฿${fmt(Math.abs(missSum))}`:''}${overSum?` · เกินรวม ฿${fmt(overSum)}`:''}`,cds.length===0?'—':(missSum||overSum?`${missSum?'-฿'+fmt(Math.abs(missSum)):'+฿'+fmt(overSum)}`:'✓ ตรงหมด'),missSum?'#C2410C':'#0F8A63')}
     ${row('⏰ มาสาย',lateNames||'ไม่มีใครสายสัปดาห์นี้ 🎉',`${lateN} ครั้ง`,lateN?'var(--amber-t)':'#0F8A63')}
-    ${edcTgt?row('💳 EDC สะสมเดือนนี้',`฿${fmt(edcSum)} / ฿${fmt(edcTgt)}`,`${Math.min(Math.round(edcSum/edcTgt*100),999)}%`,edcSum>=edcTgt?'#0F8A63':'var(--amber-t)'):''}
+    ${edcTgt&&edcMach.length?row('💳 EDC เดือนนี้ (เป้า ฿'+fmt(edcTgt)+'/เครื่อง)',edcMach.map(x=>`${x.bn} ${x.i} ${x.p}%`).join(' · '),`ครบ ${edcMach.filter(x=>x.p>=100).length}/${edcMach.length} เครื่อง`,edcMach.every(x=>x.p>=100)?'#0F8A63':'var(--amber-t)'):''}
     <div class="modal-footer"><button class="btn btn-primary" onclick="closeMD();if(typeof checkNotifications==='function')checkNotifications()">ปิด</button></div>`);
 };
 
@@ -9897,16 +10013,20 @@ async function checkNotifications(){
           }catch(e){}
         }
       }
-      // (5) EDC โค้งสุดท้ายของเดือนยังห่างเป้า — เห็นทั้งคนที่เข้าเวรอยู่และผู้ดูแล
+      // (5) EDC โค้งสุดท้ายของเดือน — เช็ครายเครื่อง (สาขาละ 2 เครื่อง เป้าต่อเครื่อง)
       try{
         const _tgt=+(cashCfg.edcTarget)||0;
         if(_tgt>0&&(_onDuty||isAdmin)){
           const _mo=today.slice(0,7);
-          const _sum=salesEntries.filter(e=>(e.date||'').startsWith(_mo)).reduce((a,e)=>a+((+(e.edcCheck?.black)||0)+(+(e.edcCheck?.white)||0)),0);
           const _nd=new Date();const _left=new Date(_nd.getFullYear(),_nd.getMonth()+1,0).getDate()-_nd.getDate();
-          if(_sum<_tgt&&_left<=10){
-            const _need=_tgt-_sum;
-            alerts.push({color:'blue',icon:'💳',text:`EDC เดือนนี้สะสม ฿${fmt(_sum)} จากเป้า ฿${fmt(_tgt)} — ${_left>0?`เหลือ ${_left} วัน ต้องรูดเฉลี่ยวันละ ฿${fmt(Math.ceil(_need/_left))}`:`วันนี้วันสุดท้าย ยังขาดอีก ฿${fmt(_need)}`}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('cash')" style="margin-left:auto">ดู</button>`});
+          if(_left<=10){
+            const _lag=[];
+            BRANCHES.forEach((bn,bi)=>{
+              if(!edcBranchHas(bi))return;
+              EDC_MACHINES.forEach(m=>{const t=edcMachineSum(bi,m.k,_mo);if(t<_tgt)_lag.push(`${bn} ${m.i} ฿${fmt(t)}`);});
+            });
+            if(_lag.length)
+              alerts.push({color:'blue',icon:'💳',text:`EDC ยังไม่ถึงเป้า ฿${fmt(_tgt)}/เครื่อง (${_left>0?`เหลือ ${_left} วัน`:'วันสุดท้ายของเดือน'}): ${_lag.slice(0,4).join(' · ')}${_lag.length>4?` และอีก ${_lag.length-4} เครื่อง`:''}`,action:`<button class="btn btn-sm btn-blue" onclick="goto('cash')" style="margin-left:auto">ดู</button>`});
           }
         }
       }catch(e){}
