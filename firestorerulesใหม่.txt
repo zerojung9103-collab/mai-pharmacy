@@ -1,0 +1,224 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== ฟังก์ชันช่วยตรวจสอบ =====
+    // ล็อกอินแล้วหรือยัง
+    function signedIn() {
+      return request.auth != null;
+    }
+    // เป็น admin ไหม (อ่าน role จาก members/{uid})
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+        && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.role == 'admin';
+    }
+    // เป็นเจ้าของ document นี้ไหม (doc id ขึ้นต้นด้วย uid ของตัวเอง)
+    function ownsDoc(docId) {
+      return signedIn() && docId.split('_')[0] == request.auth.uid;
+    }
+    // แปลงวันที่ 'YYYY-MM-DD' เป็น timestamp (UTC เที่ยงคืน)
+    function docDate(ds) {
+      return timestamp.date(int(ds.split('-')[0]), int(ds.split('-')[1]), int(ds.split('-')[2]));
+    }
+    // วันที่ในเอกสารอยู่ในช่วง "เร็วๆ นี้" ไหม — ไม่เก่ากว่า n วัน และไม่ล่วงหน้าเกิน 2 วัน
+    // ใช้ล็อกไม่ให้พนักงานย้อนไปแก้ข้อมูลเก่า/สร้างข้อมูลล่วงหน้าจากนอกแอป (admin ไม่ติดกฎนี้)
+    function withinDays(ds, n) {
+      return request.time < docDate(ds) + duration.value(n, 'd')
+        && request.time > docDate(ds) - duration.value(2, 'd');
+    }
+
+    // ===== members (ข้อมูลพนักงาน — มีบัตรปชช/บัญชีธนาคาร/เงินเดือน) =====
+    match /members/{uid} {
+      // อ่าน: ตัวเองอ่านได้ / admin อ่านได้ทุกคน
+      // (จำเป็นต้องให้ทุกคนอ่านชื่อ-ชื่อเล่นเพื่อแสดงในตารางเวร จึงเปิด read ให้ผู้ล็อกอิน
+      //  ⚠️ แปลว่าพนักงานที่รู้เทคนิคอ่านเงินเดือนกันเองได้ — จะแก้ถาวรต้องย้ายข้อมูลอ่อนไหว
+      //  ไปเก็บแยกใน collection ใหม่ ซึ่งต้องแก้แอปด้วย — วางแผนไว้เป็นงานรอบถัดไป)
+      allow read: if signedIn();
+      // สมัครสมาชิกครั้งแรก: สร้าง doc ของตัวเองได้
+      allow create: if signedIn() && request.auth.uid == uid;
+      // แก้ไข: admin แก้ได้ทุกอย่าง / พนักงานแก้ได้เฉพาะธีม+ตั้งค่าบรีฟ+การแจ้งเตือนของตัวเอง
+      // (fcmTokens = ที่อยู่เครื่องสำหรับแจ้งเตือนเด้ง · notifCfg = เปิด/ปิดหัวข้อแจ้งเตือน)
+      allow update: if isAdmin()
+        || (request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['userTheme','briefCfg','fcmTokens','notifCfg']));
+    }
+
+    // ===== payroll (เงินเดือน — อ่อนไหวมาก) =====
+    match /payroll/{docId} {
+      // อ่าน: admin (ทุกคน) หรือ เจ้าของ (ดูสลิปตัวเอง)
+      // ใช้ resource.data.uid (field-based) ไม่ใช่ docId — เพราะ ownsDoc(docId) ใช้กับ
+      // query/list ไม่ได้ (พนักงาน query เงินเดือนตัวเอง where('uid','==',uid) จะถูกปฏิเสธ)
+      allow read: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid);
+      // เขียน: เฉพาะ admin (พนักงานแก้เงินเดือนตัวเองไม่ได้)
+      allow write: if isAdmin();
+    }
+
+    // ===== sales (ยอดขาย) — docId = {วันที่}_{สาขา} =====
+    match /sales/{docId} {
+      allow read: if signedIn();
+      // สร้าง/แก้: พนักงานทำได้เฉพาะยอดของ "ช่วง 3 วันหลัง" (กันย้อนแก้ยอดเก่าจากนอกแอป
+      // — ในแอปเองล็อก 5 นาทีอยู่แล้ว เกินนั้นต้องส่งคำขอแก้ให้ admin)
+      allow create: if isAdmin()
+        || (signedIn() && withinDays(docId.split('_')[0], 3));
+      // ยกเว้น: ยอด EDC (เช็คขั้นต่ำค่าเช่าเครื่อง) แก้ย้อนหลังได้เสมอ ถ้าแตะแค่ช่อง edcCheck
+      allow update: if isAdmin()
+        || (signedIn() && withinDays(docId.split('_')[0], 3))
+        || (signedIn() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['edcCheck']));
+      allow delete: if isAdmin();
+    }
+
+    // ===== checkins (การลงเวลา) — docId = {uid}_{วันที่} =====
+    match /checkins/{docId} {
+      // อ่าน: ทุกคนที่ล็อกอิน (เพื่อแสดงในตารางเวร)
+      allow read: if signedIn();
+      // สร้าง/แก้: เจ้าของลงเวลาตัวเองได้เฉพาะของวันนี้/เมื่อวาน (กันย้อนไปลบประวัติสาย
+      // จากนอกแอป) / admin แก้ได้ทุกคนทุกวัน
+      allow create, update: if isAdmin()
+        || (ownsDoc(docId) && withinDays(docId.split('_')[1], 2));
+      // ลบ: เฉพาะ admin
+      allow delete: if isAdmin();
+    }
+
+    // ===== leaves (การลา) =====
+    match /leaves/{docId} {
+      // อ่าน: ทุกคนที่ล็อกอิน (แสดงในตารางเวร)
+      allow read: if signedIn();
+      // สร้าง: ล็อกอินแล้วสร้างคำขอลาได้ (ต้องเป็น uid ตัวเอง)
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      // แก้: admin แก้ได้ทุกอย่าง / เจ้าของแก้รายละเอียดได้ แต่ห้ามแตะผลอนุมัติ
+      // (กันพนักงานอนุมัติใบลาตัวเองจากนอกแอป)
+      allow update: if isAdmin()
+        || (signedIn() && resource.data.uid == request.auth.uid
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status','decidedAt','decidedBy']));
+      // ลบ: เจ้าของ (ยกเลิกคำขอ) หรือ admin
+      allow delete: if (signedIn() && resource.data.uid == request.auth.uid) || isAdmin();
+    }
+
+    // ===== schedules (ตารางเวร) =====
+    match /schedules/{docId} {
+      // อ่าน: ทุกคน (ดูเวรตัวเอง+เพื่อน)
+      allow read: if signedIn();
+      // เขียน: เฉพาะ admin (จัดเวร)
+      allow write: if isAdmin();
+    }
+
+    // ===== scheduleConfig (ตั้งค่าสร้างตารางอัตโนมัติ) =====
+    match /scheduleConfig/{uid} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== articles (บทความวิชาการ) =====
+    match /articles/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== doseFormulas (สูตรคำนวณยา) =====
+    match /doseFormulas/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== drugWarnings (คำเตือนยา) =====
+    match /drugWarnings/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== config (พิกัด GPS สาขา, ข้อความน้องแคปซูล, labelTemplates ฯลฯ) =====
+    match /config/{docId} {
+      allow read: if signedIn();
+      // ข้อความน้องแคปซูล: admin หรือคนมีสิทธิ์ประกาศแก้ได้ / config อื่น: admin เท่านั้น
+      allow write: if isAdmin()
+        || (docId == 'capsuleMessages' && signedIn()
+            && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+            && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.permissions.announce == true);
+    }
+
+    // ===== announcements (ประกาศจากร้าน) =====
+    match /announcements/{docId} {
+      // อ่าน: ทุกคนที่ล็อกอิน (เห็นประกาศ)
+      allow read: if signedIn();
+      // เขียน/ลบ: admin หรือคนที่มีสิทธิ์ประกาศ (permissions.announce==true)
+      allow write: if isAdmin()
+        || (signedIn()
+            && exists(/databases/$(database)/documents/members/$(request.auth.uid))
+            && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.permissions.announce == true);
+    }
+
+    // ===== activityLogs (บันทึกการใช้งาน + ข้อผิดพลาดของแอป) =====
+    match /activityLogs/{docId} {
+      // อ่าน: เฉพาะ admin (ดูว่าใครทำอะไร)
+      allow read: if isAdmin();
+      // สร้าง: ผู้ล็อกอินสร้าง log ของตัวเองได้ (ต้องเป็น uid ตัวเอง)
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      // แก้/ลบ: ห้ามทุกคน (log ต้องแก้ไม่ได้ เพื่อความน่าเชื่อถือ)
+      allow update, delete: if false;
+    }
+
+    // ===== labelMaster =====
+    match /labelMaster/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== todoTemplates (template งานประจำวัน — admin สร้าง) =====
+    match /todoTemplates/{docId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    // ===== todos (งานรายวันต่อสาขา — ทุกคน toggle ได้) =====
+    match /todos/{docId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn();
+      allow delete: if isAdmin();
+    }
+
+    // ===== cashState (ยอดเงินสดปัจจุบันแต่ละสาขา: สำรอง/ลิ้นชัก/ตู้เซฟ) =====
+    match /cashState/{branch} {
+      // อ่าน: ทุกคนที่ล็อกอิน (ดูยอดเงินในร้าน)
+      allow read: if signedIn();
+      // เขียน: ทุกคนที่ล็อกอิน — จำเป็น เพราะงานประจำวันของพนักงานแตะครบทุกกอง
+      // (เปิด/ปิดร้าน แตะลิ้นชัก+เซฟ · นับสำรองอัปเดตยอดสำรอง) — สิทธิ์ละเอียดคุมในแอป
+      // และทุกการเคลื่อนไหวมีร่องรอยใน cashEvents ที่แก้ไม่ได้ให้ admin ตรวจย้อนหลัง
+      allow write: if signedIn();
+    }
+
+    // ===== cashEvents (ประวัติรายการเงินสด: เปิด/ปิด/เบิก/ดึง/เติม/นำออก/นับ) =====
+    match /cashEvents/{docId} {
+      allow read: if signedIn();
+      // สร้าง: ทุกคนที่ล็อกอินบันทึกรายการได้
+      allow create: if signedIn();
+      // แก้: เฉพาะ admin (เช่น ทำเครื่องหมาย "ตรวจแล้ว", แก้รายการ)
+      allow update: if isAdmin();
+      // ลบ (ยกเลิกรายการ): admin ทำได้เสมอ / เจ้าของรายการทำได้ภายใน 30 นาทีเท่านั้น
+      // (ในแอปให้ยกเลิกได้ 5 นาที — เผื่อเวลาไว้กันนาฬิกาเครื่องคลาดเคลื่อน)
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.byUid == request.auth.uid
+            && request.time.toMillis() - resource.data.ts < 1800000);
+    }
+
+    // ===== editRequests (คำขอแก้ไขจากพนักงาน เช่น ขอแก้ยอดขายเมื่อเกิน 5 นาที) =====
+    match /editRequests/{docId} {
+      // อ่าน: เฉพาะ admin (ดู/จัดการคำขอ)
+      allow read: if isAdmin();
+      // สร้าง: พนักงานที่ล็อกอินสร้างคำขอของตัวเองได้ (byUid ต้องเป็น uid ตัวเอง)
+      allow create: if signedIn() && request.resource.data.byUid == request.auth.uid;
+      // แก้/ลบ: เฉพาะ admin (อนุมัติ/ปฏิเสธ)
+      allow update, delete: if isAdmin();
+    }
+
+    // หมายเหตุ: กฎของระบบเงินสดรุ่นเก่า (cashbox, cashlogs, cashcounts, purse, purselogs)
+    // ถูกตัดออกแล้ว — แอปเลิกใช้ collection พวกนี้ตั้งแต่ระบบเงินสดใหม่ (v3.6x)
+    // ข้อมูลเก่ายังอยู่ใน Firestore ดูได้จาก Firebase Console แต่แอป/คนนอกเข้าถึงไม่ได้แล้ว
+
+    // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
