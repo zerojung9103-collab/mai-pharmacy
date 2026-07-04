@@ -1617,8 +1617,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.95.0';
+const APP_VERSION='3.96.0';
 const CHANGELOG=[
+  {v:'3.96.0',date:'2026-07-04',changes:['🛡️ ยกระดับความปลอดภัย+ความเร็ว: (1) กฎฐานข้อมูลชุดใหม่ (ต้องเอาไฟล์ firestore-rules-ใหม่.txt ไปวางใน Firebase Console) — ล็อกการแก้ยอดขาย/เวลาลงเวลาย้อนหลังจากนอกแอป กันอนุมัติใบลาตัวเอง จำกัดเวลายกเลิกรายการเงินไว้ 30 นาที และตัดกฎของระบบเก่าที่เลิกใช้ (2) แอปโหลดเบาลงมาก — ประวัติเงินสดดึงแค่ 7 เดือนหลัง เช็คอิน 6 เดือนหลัง ของเก่ากว่านั้นระบบดึงเพิ่มให้เองเมื่อกดดูประวัติเดือนเก่า/ทำเงินเดือนย้อนหลัง (3) 🐞 ตัวดักข้อผิดพลาดอัตโนมัติ — แอปมีปัญหาจะบันทึกลง "ประวัติการใช้งาน" ให้ผู้ดูแลเห็นทันที ไม่ต้องรอพนักงานแจ้ง (4) แก้บั๊ก: สถิติ "มาสายเดือนนี้" ในประวัติสมาชิกแสดง 0 ตลอด']},
   {v:'3.95.0',date:'2026-07-04',changes:['📰 สรุปเงินภาพรวมโฉมใหม่ "บรีฟรายวัน": จัดหน้าอัตโนมัติตามช่วงเวลา (เช้าโฟกัสเปิดร้าน · กลางวันโฟกัสยอดขาย+เทียบวันปกติ · ค่ำโฟกัสผลปิดร้าน) เรื่องด่วนขึ้นกรอบบนสุดพร้อมปุ่มจัดการ (ตรวจ/นับ/เติม/นำออก) เรื่องปกติยุบเหลือบรรทัดเดียว · ปุ่ม ⚙️ เลือกส่วนเสริมเองได้ (EDC/มอนิเตอร์สำรอง/ตาราง/เงินแยกชนิด — บันทึกติดบัญชี) · 💳 EDC เปลี่ยนเป็นรายเครื่อง สาขาละ 2 เครื่อง (⬛ ดำ/⬜ ขาว) เป้าเครื่องละ ฿50,000/เดือน แถบแยกเครื่องบอกต้องรูดวันละเท่าไหร่ + อินดี้ยังไม่มีเครื่อง (เปิดใช้ในตั้งค่าเมื่อเครื่องมา) · แจ้งเตือน/สรุปสัปดาห์เช็ค EDC รายเครื่องแล้ว']},
   {v:'3.94.0',date:'2026-07-04',changes:['จัดการแจ้งเตือนอัจฉริยะได้แล้ว: (1) "เงินปิดร้านไม่ตรงซ้ำ" นับเฉพาะรายการที่ยังไม่กด ✔ ตรวจแล้ว + ปุ่ม "✔ รับทราบทั้งหมด" กดครั้งเดียวเคลียร์รายการค้างทั้งสาขา (ซากจากบั๊กเวอร์ชันเก่าหายไป — มีไม่ตรงครั้งใหม่ค่อยเด้งอีก) (2) ปุ่ม 🔕 ปิดเสียง 7 วัน ที่แจ้งเตือนตู้เซฟเกิน/ยอดขายผิดปกติ/บิลเฉลี่ยเพี้ยน/เงินไม่ตรงซ้ำ — ปิดครั้งเดียวเงียบทุกเครื่อง ครบกำหนดเด้งกลับเอง']},
   {v:'3.93.0',date:'2026-07-04',changes:['เช็คอินของ role ผู้ทดสอบ (🧪) ไม่ปนกับข้อมูลจริงแล้ว — ไม่แสดงในหน้าประวัติลงเวลา ไม่นับในสถิติเข้างาน/มาสายบนหน้าแรก ตารางเวร สรุปสัปดาห์ และแจ้งเตือนสายบ่อย (ตัวผู้ทดสอบเองยังเช็คอิน/รีเซ็ตทดสอบได้ตามปกติ)']},
@@ -2296,8 +2297,8 @@ function startCashLive(){
     try{
       const stSnap=await getDocs(collection(db,'cashState'));
       cashState={};stSnap.docs.forEach(d=>{cashState[d.id]=d.data();});
-      const evSnap=await getDocs(query(collection(db,'cashEvents'),orderBy('ts','desc')));
-      cashEvents=evSnap.docs.map(d=>({id:d.id,...d.data()}));
+      cashEvents=await _cashFetchEvents();
+      _cashHistMonths.clear();
       if(document.getElementById('page-cash')?.classList.contains('active')&&typeof renderCashPage==='function')renderCashPage();
     }catch(e){}
   };
@@ -2330,6 +2331,17 @@ async function logActivity(action, detail){
     });
   }catch(e){/* log ไม่สำเร็จไม่ควรขัดการทำงานหลัก */}
 }
+
+// ===== ดักข้อผิดพลาดของแอปอัตโนมัติ — เก็บลง "ประวัติการใช้งาน" ให้ผู้ดูแล/ผู้พัฒนาเห็น =====
+const _jsErrSeen=new Set();
+function _logJsError(msg,src){
+  if(!currentUser||!msg)return;
+  if(_jsErrSeen.size>=5||_jsErrSeen.has(msg))return; // กันสแปม: เรื่องซ้ำไม่ลงซ้ำ และไม่เกิน 5 เรื่อง/การเปิดแอป
+  _jsErrSeen.add(msg);
+  try{logActivity('js_error','v'+APP_VERSION+' · '+msg+(src?' · '+src:'')+' · '+(navigator.userAgent||'').slice(0,70));}catch(e){}
+}
+window.addEventListener('error',e=>{try{_logJsError(e.message,((e.filename||'').split('/').pop())+':'+(e.lineno||0));}catch(_){}});
+window.addEventListener('unhandledrejection',e=>{try{const r=e.reason;_logJsError(String((r&&r.message)||r||'promise ล้มเหลว'),'promise');}catch(_){}});
 
 // ===== HELPERS =====
 // สร้าง dropdown เลือกเวลาแบบ 24 ชั่วโมง (กัน iPhone แสดง AM/PM)
@@ -3420,12 +3432,26 @@ async function loadLeavesForSchedule(){
   }catch(e){allLeaves=[];}
 }
 
-// โหลดการเช็คอินทั้งหมดจาก Firestore
+// โหลดการเช็คอินจาก Firestore — จำกัด 6 เดือนหลัง (เดือนเก่ากว่านั้นดึงเพิ่มผ่าน ensureCheckinsMonth)
+const CI_WIN_DAYS=185;
+function _ciCutoffStr(){return new Date(Date.now()-CI_WIN_DAYS*86400000).toISOString().slice(0,10);}
+const _ciMonthsLoaded=new Set();
 async function loadCheckinsForSchedule(){
   try{
-    const snap=await getDocs(collection(db,'checkins'));
+    const snap=await getDocs(query(collection(db,'checkins'),where('date','>=',_ciCutoffStr())));
     allCheckins=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>!isTestCheckin(c));
+    _ciMonthsLoaded.clear();
   }catch(e){allCheckins=[];}
+}
+// ใช้ตอนดู/คำนวณข้อมูลเดือนเก่า (เช่น ทำเงินเดือนย้อนหลัง) — ดึงเช็คอินเดือนนั้นมาเติม
+async function ensureCheckinsMonth(moStr){
+  if(!moStr||moStr>_ciCutoffStr().slice(0,7))return; // เดือนอยู่ในช่วงที่โหลดแล้ว
+  if(_ciMonthsLoaded.has(moStr))return;
+  _ciMonthsLoaded.add(moStr);
+  try{
+    const snap=await getDocs(query(collection(db,'checkins'),where('date','>=',moStr+'-01'),where('date','<=',moStr+'-31')));
+    snap.docs.forEach(d=>{const c={id:d.id,...d.data()};if(!isTestCheckin(c)&&!allCheckins.find(x=>x.id===c.id))allCheckins.push(c);});
+  }catch(e){}
 }
 
 // คืนรายการคนที่ลาในวันนั้น [{uid, name, type}]
@@ -4424,6 +4450,46 @@ window.testerCashReset=async function(){
   renderCashPage();
   showToast('🧪 รีเซ็ตข้อมูลทดสอบแล้ว — เริ่มวันใหม่ได้เลย');
 };
+// ===== โหลดรายการเงินสดแบบจำกัดช่วง (ลดปริมาณอ่านข้อมูล/ค่าใช้จ่าย Firestore) =====
+// ปกติดึงย้อนหลัง 7 เดือน ซึ่งพอสำหรับทุกหน้าจอ — แต่ถ้าสาขาไหนยังไม่มีรอบนับเต็ม
+// (นับสำรอง/นับเซฟ) อยู่ในช่วงนี้ จะถอยไปโหลดทั้งหมดแทน เพื่อให้ยอดแยกชนิดเงินไม่เพี้ยน
+const CASH_WIN_DAYS=210;
+let _cashFullMode=false,_cashFullChecked=false;
+const _cashHistMonths=new Set(); // เดือนเก่าที่ดึงเพิ่มแล้ว (สำหรับดูประวัติย้อนหลัง)
+async function _cashFetchEvents(){
+  if(_cashFullMode){
+    const sAll=await getDocs(query(collection(db,'cashEvents'),orderBy('ts','desc')));
+    return sAll.docs.map(d=>({id:d.id,...d.data()}));
+  }
+  const cut=Date.now()-CASH_WIN_DAYS*86400000;
+  const snap=await getDocs(query(collection(db,'cashEvents'),where('ts','>=',cut),orderBy('ts','desc')));
+  let evs=snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(!_cashFullChecked){
+    _cashFullChecked=true;
+    const hasBase=(b,t)=>evs.some(e=>+e.branch===+b&&e.type===t&&e.denoms&&Object.keys(e.denoms).length);
+    const missing=BRANCHES.some((_,b)=>!hasBase(b,'reservecount')||!hasBase(b,'safecount'));
+    if(missing){
+      try{
+        const all=await getDocs(query(collection(db,'cashEvents'),orderBy('ts','desc')));
+        if(all.docs.length>evs.length){_cashFullMode=true;evs=all.docs.map(d=>({id:d.id,...d.data()}));}
+      }catch(e){}
+    }
+  }
+  return evs;
+}
+// เปิดดูประวัติเดือนที่เก่ากว่าช่วงที่โหลดไว้ → ดึงเดือนนั้นมาเติมอัตโนมัติ
+async function cashHistEnsure(y,m){
+  if(_cashFullMode||isTester)return;
+  const key=y+'-'+m;
+  if(_cashHistMonths.has(key))return;
+  const start=new Date(y,m,1).getTime(), end=new Date(y,m+1,1).getTime();
+  if(start>=Date.now()-CASH_WIN_DAYS*86400000)return; // เดือนนี้อยู่ในช่วงที่โหลดแล้ว
+  _cashHistMonths.add(key);
+  try{
+    const snap=await getDocs(query(collection(db,'cashEvents'),where('ts','>=',start),where('ts','<',end)));
+    snap.docs.forEach(d=>{if(!cashEvents.find(e=>e.id===d.id))cashEvents.push({id:d.id,...d.data()});});
+  }catch(e){}
+}
 async function loadCashData(){
   // ผู้ทดสอบ: ใช้ข้อมูลจำลองในเครื่อง ไม่โหลด/ไม่เขียนของจริง
   if(isTester){
@@ -4435,8 +4501,8 @@ async function loadCashData(){
     const stSnap=await getDocs(collection(db,'cashState'));
     cashState={};
     stSnap.docs.forEach(d=>{cashState[d.id]=d.data();});
-    const evSnap=await getDocs(query(collection(db,'cashEvents'),orderBy('ts','desc')));
-    cashEvents=evSnap.docs.map(d=>({id:d.id,...d.data()}));
+    cashEvents=await _cashFetchEvents();
+    _cashHistMonths.clear();
   }catch(e){console.error('loadCashData',e);}
 }
 function cashGet(b){const s=cashState[String(b)]||{};return{reserve:+s.reserve||0,drawer:+s.drawer||0,safe:+s.safe||0,openDrawer:(s.openDrawer==null?null:+s.openDrawer),openDate:s.openDate||null,openBy:s.openBy||''};}
@@ -6019,8 +6085,8 @@ window.cashHistoryPrompt=function(branch){
   window._cashHistB=branch; window._cashHistY=now.getFullYear(); window._cashHistM=now.getMonth();
   cashHistRender();
 };
-window.cashHistMonth=function(d){let m=window._cashHistM+d,y=window._cashHistY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}const n=new Date();if(y>n.getFullYear()||(y===n.getFullYear()&&m>n.getMonth()))return;window._cashHistM=m;window._cashHistY=y;cashHistRender();};
-window.cashHistB=function(b){window._cashHistB=b;cashHistRender();};
+window.cashHistMonth=async function(d){let m=window._cashHistM+d,y=window._cashHistY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}const n=new Date();if(y>n.getFullYear()||(y===n.getFullYear()&&m>n.getMonth()))return;window._cashHistM=m;window._cashHistY=y;await cashHistEnsure(y,m);cashHistRender();};
+window.cashHistB=async function(b){window._cashHistB=b;await cashHistEnsure(window._cashHistY,window._cashHistM);cashHistRender();};
 function cashHistRender(){
   const b=window._cashHistB, y=window._cashHistY, m=window._cashHistM;
   const moStr=`${y}-${String(m+1).padStart(2,'0')}`;
@@ -6838,7 +6904,7 @@ function renderMemberHistory(uid){
   const moStr=todayStr().slice(0,7);
   // สถิติเดือนนี้จากข้อมูลจริง
   const myShifts=(shifts||[]).filter(s=>s.staffId===uid&&(s.date||'').startsWith(moStr));
-  const myCheckins=(window._allCheckinsCache||[]).filter(c=>c.uid===uid&&(c.date||'').startsWith(moStr));
+  const myCheckins=(allCheckins||[]).filter(c=>c.uid===uid&&(c.date||'').startsWith(moStr));
   const lateCount=myCheckins.filter(c=>c.isLate).length;
   const notes=(m.notes||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
   const stat=(lbl,val,sub)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px"><div style="font-size:11px;color:var(--text3)">${lbl}</div><div style="font-size:20px;font-weight:700;font-family:var(--disp);margin-top:2px">${val}</div><div style="font-size:10.5px;color:var(--text3)">${sub||''}</div></div>`;
@@ -7093,6 +7159,7 @@ function renderPRPersonSelect(){
 // กฎ 2: สาย 1-30 นาที → ไม่หักทันที แต่ทบสะสมไว้ พอครบ 60 นาที (1 ชม.) ค่อยหัก 1 ชม. (เรียงตามวันที่จริง)
 async function _prComputeHours(uid, monthStr){
   if(!allCheckins.length)await loadCheckinsForSchedule();
+  await ensureCheckinsMonth(monthStr);
   const myShifts=[...shifts.filter(s=>s.staffId===uid&&s.date?.startsWith(monthStr))].sort((a,b)=>a.date.localeCompare(b.date));
   let rawHours=0, lateDeduction=0, lateCount=0, minorLateAccum=0, minorLateEvents=0, accumDeductCount=0;
   myShifts.forEach(s=>{
@@ -12604,6 +12671,7 @@ const ACTION_LABELS={
   cash_count:['นับเงินสด','#1E63B5','🧮'],
   purse_collect:['เก็บเงินขาย','#1E3A8A','💵'],
   purse_deposit:['ถอนไปฝากธนาคาร','#C2410C','🏦'],
+  js_error:['ข้อผิดพลาดของแอป','#A32D2D','🐞'],
   cash_clear:['ล้างข้อมูลเงินสด','#A32D2D','🧹']
 };
 
