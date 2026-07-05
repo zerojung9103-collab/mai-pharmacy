@@ -541,7 +541,7 @@ input,select,textarea{border-radius:14px}
 <main class="main">
   <button id="home-back-btn" onclick="goto('home')" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);margin-bottom:1rem;box-shadow:var(--shadow)">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-    หน้าแรก
+    <span id="hb-label">หน้าแรก</span>
   </button>
   <div id="alert-banner" style="display:none"></div>
   <!-- HOME (เมนูรวม) -->
@@ -564,6 +564,11 @@ input,select,textarea{border-radius:14px}
   <div class="page" id="page-cat-more">
     <div class="topbar"><div><div class="page-title">เพิ่มเติม</div><div class="page-sub">ความรู้วิชาการและตั้งค่าระบบ</div></div></div>
     <div id="cat-grid-more"></div>
+  </div>
+  <!-- REPORT HUB — รายงานรวม 1 เมนู แตกย่อยข้างใน -->
+  <div class="page" id="page-report">
+    <div class="topbar"><div><div class="page-title">📊 รายงาน</div><div class="page-sub">เลือกสิ่งที่อยากดู</div></div></div>
+    <div id="report-hub-grid"></div>
   </div>
   <!-- DASHBOARD -->
   <div class="page" id="page-dashboard">
@@ -1617,8 +1622,13 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.99.0';
+const APP_VERSION='3.99.5';
 const CHANGELOG=[
+  {v:'3.99.5',date:'2026-07-05',changes:['📊 รวมรายงานทั้งหมดเป็นเมนูเดียว "รายงาน" แล้วแตกย่อยข้างในเป็นการ์ด — แตะเข้าอันไหนเห็นเต็มจอ มีปุ่มย้อนกลับ: (1) ยอดขาย & กราฟ (2) รายงานรายเดือน + ส่งออก Excel/CSV (3) ประวัติการขาย (4) ประวัติลงเวลา (5) ประวัติใช้งาน · เมนูโล่งขึ้น ไม่ต้องหาว่ารายงานอยู่ตรงไหน (ข้อมูล/ตัวเลขทุกอย่างเหมือนเดิม แค่จัดที่ใหม่)']},
+  {v:'3.99.4',date:'2026-07-05',changes:['🧹 จัดหน้า "เงินสด & ตู้เซฟ" ให้สะอาดขึ้น — ปุ่มหลัก (เปิด/ปิดร้าน) เด่นปุ่มเดียวชัดเจน · งานรอง (ลงยอดขาย/เบิกซื้อของ/เช็ค EDC) รวมเป็นแถวไอคอนเล็กแถวเดียว · เครื่องมือผู้ดูแล (เติมเงิน/นำออกเซฟ/นับเซฟ/ปรับยอด) ยุบเป็นกล่อง "🛠 เครื่องมือผู้ดูแล" พับเปิด-ปิดได้ · ประวัติพับเก็บ แตะเพื่อดู — หน้าสั้นลง เห็นสิ่งที่ต้องทำทันที (ตัวเลข/สูตรเงินเหมือนเดิมทุกบาท)']},
+  {v:'3.99.3',date:'2026-07-05',changes:['ถอดระบบแจ้งเตือนเด้ง (Push) ออกจากแอปทั้งหมด — พักฟีเจอร์นี้ไว้ก่อน โฟกัสพัฒนาของที่มีให้ดีก่อน (ปุ่ม/หน้าตั้งค่าแจ้งเตือน + โค้ดเบื้องหลังถูกนำออก · ไม่กระทบข้อมูลหรือฟีเจอร์อื่น)']},
+  {v:'3.99.2',date:'2026-07-04',changes:['🆓 ปรับระบบแจ้งเตือนเป็นแบบฟรี 100% — ตัวส่งย้ายไป Cloudflare Workers (ไม่ต้องผูกบัตร ไม่ต้องอัปเกรดแผนอะไรทั้งนั้น): ผู้ดูแลวาง "ที่อยู่ตัวส่ง" ในหน้า 🔔 การแจ้งเตือนเด้ง (ช่องใหม่ ข้างช่องกุญแจ Web Push) ตามไฟล์ "วิธีเปิดแจ้งเตือนแบบฟรี.md" · เว็บยังอยู่ Firebase Hosting (ฟรีเช่นกัน)']},
+  {v:'3.99.1',date:'2026-07-04',changes:['🏠 ย้ายบ้านจาก Netlify ไป Firebase Hosting (เครดิต Netlify หมด) — ที่อยู่เว็บใหม่: naimaphat-pharmacy.web.app · ตัวส่งแจ้งเตือนย้ายไปรันบน Firebase Functions ที่เดียวกับข้อมูล · การอัปเดตยังเหมือนเดิม (ลากไฟล์ขึ้น GitHub แล้วระบบ deploy ให้เอง) · ทุกคนต้องเพิ่มแอปลงหน้าจอโฮมใหม่จากที่อยู่ใหม่ + เปิดรับแจ้งเตือนอีกครั้ง']},
   {v:'3.99.0',date:'2026-07-04',changes:['🔔 การแจ้งเตือนเด้งเข้ามือถือ (Push) ครบ 13 หัวข้อ — เด้งถึงเครื่องแม้ไม่ได้เปิดแอป: พนักงาน = เตือนก่อนเวร 30 นาที · เลยเวลาเปิดร้าน · หมดเวรยังไม่ปิดร้าน · รอบนับเงินสำรอง · สลิปออก · ผลคำขอลา · ประกาศจากร้าน / ผู้ดูแล = เงินปิดร้านไม่ตรง (ทันที) · สาขายังไม่ปิดร้าน · บรีฟค่ำ 21:00 · เงินผิดปกติ · คำขอรออนุมัติ · ระบบ/สำรองข้อมูล — ตั้งเปิด/ปิดรายหัวข้อได้ที่ 🔔 ในบัญชีของฉัน + ช่วงห้ามกวน 22:00–07:00 (ปรับได้) + ปุ่มทดสอบส่งหาตัวเอง · ⚙️ ครั้งแรกผู้ดูแลต้องติดตั้งกุญแจระบบตามไฟล์ "วิธีเปิดการแจ้งเตือน.md" (ครั้งเดียว) และวางกฎ Firestore ใหม่']},
   {v:'3.98.0',date:'2026-07-04',changes:['ของใหม่ 3 อย่าง: (1) 💾 สำรองข้อมูลทั้งร้าน — ปุ่มใน "บัญชีของฉัน" (เฉพาะผู้ดูแล) ดาวน์โหลดข้อมูลทุกอย่างเป็นไฟล์เดียวเก็บไว้นอกระบบ กันข้อมูลหายถาวร + ถ้าเกิน 30 วันไม่ได้สำรอง ระบบเตือนเองพร้อมปุ่มกดสำรองทันที (2) 🔄 มีเวอร์ชันใหม่ = แถบเขียวขึ้นบนจออัตโนมัติ แตะทีเดียวอัปเดต — เลิกปัญหาบางเครื่องค้างเวอร์ชันเก่า (3) 🎯 เป้ายอดขายรายเดือนต่อสาขา — ตั้งในตั้งค่า แล้วบรีฟรายวันโชว์แถบความคืบหน้า บอกว่าต้องขายวันละเท่าไหร่ให้ถึงเป้า']},
   {v:'3.97.0',date:'2026-07-04',changes:['🌅 เปิดร้านฉลาดขึ้น — ปิดช่องโหว่กรณีเงินลิ้นชักไม่เท่ามาตรฐาน: (1) ถ้าเมื่อวานปิดร้านเหลือไม่ถึง ฿5,000 (เช่นขายน้อยจนตัดเข้าเซฟไม่ได้) หน้าเปิดร้านจะขึ้นป้ายเตือนและปุ่มยืนยันเปลี่ยนเป็นยอดคงเหลือจริง ไม่ใช่ ฿5,000 ดื้อๆ — เลิกปัญหา "ตอนเย็นขึ้นว่าขาดทั้งที่เป็นของตกค้างเมื่อวาน" (2) ผู้ดูแลได้แจ้งเตือน 🧰 "เงินต้นลิ้นชักต่ำกว่ามาตรฐาน" พร้อมปุ่มเบิกสำรองเติมทันที ทั้งบนหน้าแรกและเรื่องด่วนในบรีฟรายวัน (3) ข้อความขั้นยืนยันจบตอนปิดร้านบอกสาเหตุที่ยอดต่างจากมาตรฐานถูกต้องแล้ว (เปิดต่ำ vs ตัด/เบิกวันนี้)']},
@@ -1848,19 +1858,16 @@ const FEATURE_DEFS=[
   {page:'cash',icon:'💰',label:'เงินสด & ตู้เซฟ',color:'#F7901E',cat:'mywork',zone:'daily',perm:null},
   {page:'leave',icon:'🌴',label:'ขอลา',color:'#14B8C4',cat:'mywork',zone:'more',perm:null},
   {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'mywork',zone:'more',perm:'payroll_self'},
-  {page:'dashboard',icon:'📊',label:'ยอดขาย & รายงาน',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
-  {page:'sales-history',icon:'📋',label:'ประวัติการขาย',color:'#534AB7',cat:'sales',zone:'admin',perm:null},
+  {page:'report',icon:'📊',label:'รายงาน',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
   {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',zone:'admin',perm:'members'},
   {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',zone:'admin',perm:'payroll_all'},
-  {page:'checkin-history',icon:'🕐',label:'ประวัติลงเวลา',color:'#534AB7',cat:'admin',zone:'admin',perm:'checkin_all'},
   {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',cat:'admin',zone:'admin',perm:'leave_admin'},
-  {page:'activity',icon:'📜',label:'ประวัติใช้งาน',color:'#888780',cat:'admin',zone:'admin',perm:'activity_admin'},
   {page:'dosecalc',icon:'💊',label:'คำนวณยา',color:'#639922',cat:'more',zone:'tool',perm:null},
   {page:'foreignlabel',icon:'🌏',label:'ฉลากยาต่างชาติ',color:'#3B8EEA',cat:'sales',zone:'tool',perm:null},
   {page:'settings',icon:'⚙️',label:'ตั้งค่า',color:'#5F5E5A',cat:'more',zone:'more',perm:null},
 ];
 const ZONE_PAL=[['var(--green-l)','var(--green-d)'],['var(--blue-l)','var(--blue-t)'],['var(--amber-l)','var(--amber-t)'],['var(--purple-l)','var(--purple-t)'],['var(--rose-l)','var(--rose-d)']];
-const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'กราฟ · สรุปเดือน · ส่งออก Excel','sales-history':'ดู/แก้ยอดย้อนหลัง',foreignlabel:'แปลฉลาก/วิธีใช้',members:'พนักงาน/สิทธิ์/เงินเดือน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณตามน้ำหนัก/อายุ',drugwarn:'ข้อควรระวัง/ปฏิกิริยา',training:'ฝึกใช้งานแบบจำลอง (ไม่กระทบจริง)',report:'สรุปรายเดือน + ส่งออก Excel',settings:'สาขา/GPS/ประเภทจ่าย'};
+const FEAT_DESC={checkin:'ลงเวลาเข้างาน',todo:'งานของฉันวันนี้',schedule:'ดูเวรของฉัน',cash:'ตู้เซฟ & เงินทอน',leave:'แจ้งวันลา','my-payroll':'สลิป & ประวัติ',sales:'บันทึกยอดขาย',dashboard:'กราฟ · สรุปเดือน · ส่งออก Excel','sales-history':'ดู/แก้ยอดย้อนหลัง',foreignlabel:'แปลฉลาก/วิธีใช้',members:'พนักงาน/สิทธิ์/เงินเดือน',payroll:'คำนวณเงินเดือน','checkin-history':'ประวัติลงเวลา','leave-admin':'อนุมัติวันลา',activity:'ประวัติใช้งาน',articles:'ความรู้วิชาการ',dosecalc:'คำนวณตามน้ำหนัก/อายุ',drugwarn:'ข้อควรระวัง/ปฏิกิริยา',training:'ฝึกใช้งานแบบจำลอง (ไม่กระทบจริง)',report:'ยอดขาย · รายเดือน · ประวัติต่างๆ',settings:'สาขา/GPS/ประเภทจ่าย'};
 function zoneFeatures(z){return FEATURE_DEFS.filter(f=>f.zone===z&&featureShow(f));}
 // แถวเมนูแบบรายการ (ไอคอนชิป + ชื่อ + คำบรรยาย)
 function featRowBtn(f,i){const pal=ZONE_PAL[i%ZONE_PAL.length];return `<button onclick="goto('${f.page}')" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;width:100%;cursor:pointer;font-family:var(--font);text-align:left;box-shadow:var(--shadow);margin-bottom:9px">
@@ -1881,13 +1888,14 @@ function renderMoreGrouped(){
   let h='<div style="max-width:680px;margin:0 auto">';
   h+=grp('งานของฉัน',['schedule','leave','my-payroll']);
   h+=grp('เครื่องมือเภสัช',['dosecalc','foreignlabel']);
-  if(isAdmin||zoneFeatures('admin').length) h+=grp('จัดการร้าน',['dashboard','sales-history','members','payroll','checkin-history','leave-admin','activity']);
+  if(isAdmin||zoneFeatures('admin').length) h+=grp('จัดการร้าน',['report','members','payroll','leave-admin']);
   h+=grp('บัญชี & ตั้งค่า',['settings']);
   h+='</div>';
   return h;
 }
 function featureShow(f){
   if(f.page==='sales-history')return isAdmin; // เฉพาะแอดมิน
+  if(f.page==='report')return isAdmin||hasPerm('dashboard_admin')||hasPerm('checkin_all')||hasPerm('activity_admin');
   return isAdmin||f.perm===null||hasPerm(f.perm);
 }
 function catFeatures(catId){return FEATURE_DEFS.filter(f=>f.cat===catId&&featureShow(f));}
@@ -1906,6 +1914,49 @@ function renderCatPage(catId){
   if(!feats.length){el.innerHTML='<div style="text-align:center;padding:3rem;color:var(--text3);font-size:13px">ยังไม่มีเมนูในหมวดนี้สำหรับคุณ</div>';return;}
   el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">${feats.map(featureCardBtn).join('')}</div>`;
 }
+
+// ===== หน้ารวม "รายงาน" — แตกย่อยเป็นการ์ด =====
+function _rhCard(icon,bg,name,desc,stat,statColor,onclick){
+  return `<button onclick="${onclick}" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px;width:100%;cursor:pointer;font-family:var(--font);text-align:left;box-shadow:var(--shadow);margin-bottom:11px">
+    <span style="width:48px;height:48px;border-radius:14px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:23px;flex-shrink:0">${icon}</span>
+    <span style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;color:var(--text)">${name}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5">${desc}</div>${stat?`<div style="font-size:12px;font-weight:700;color:${statColor||'var(--green-d)'};margin-top:3px">${stat}</div>`:''}</span>
+    <span style="color:var(--text3);font-size:18px;flex-shrink:0">›</span>
+  </button>`;
+}
+function renderReportHub(){
+  const el=document.getElementById('report-hub-grid');if(!el)return;
+  const canSales=isAdmin||hasPerm('dashboard_admin');
+  const _mo=todayStr().slice(0,7);
+  const todayT=(salesEntries||[]).filter(e=>e.date===todayStr()).reduce((a,e)=>a+(parseFloat(e.total)||0),0);
+  const moT=(salesEntries||[]).filter(e=>(e.date||'').startsWith(_mo)).reduce((a,e)=>a+(parseFloat(e.total)||0),0);
+  let h='<div style="max-width:680px;margin:0 auto">';
+  if(canSales){
+    h+=_rhCard('📈','#E3F5EF','ยอดขาย & กราฟ','กราฟรายวัน/สัปดาห์ · เทียบสาขา · ช่องทางชำระ',todayT?`วันนี้ ฿${fmt(todayT)}`:'','var(--green-d)',"reportGo('sales')");
+    h+=_rhCard('🗓️','#E7F0FB','รายงานรายเดือน','สรุปทั้งเดือนทุกสาขา + ส่งออก Excel/CSV',moT?`${MONTHS_TH[new Date().getMonth()]} ฿${fmt(moT)}`:'','var(--blue-t)',"reportGo('monthly')");
+  }
+  if(isAdmin) h+=_rhCard('🧾','#F8EFDD','ประวัติการขาย','ดู/แก้ยอดขายย้อนหลัง รายวันแต่ละสาขา','','',"goto('sales-history')");
+  if(isAdmin||hasPerm('checkin_all')) h+=_rhCard('📍','#FBE9EE','ประวัติลงเวลา','ใครเข้า-ออกงานเมื่อไหร่ + สถิติมาสาย','','',"goto('checkin-history')");
+  if(isAdmin||hasPerm('activity_admin')) h+=_rhCard('📋','#EEEAFB','ประวัติใช้งาน','ใครทำอะไรในระบบบ้าง (บันทึกทุกการกระทำ)','','',"goto('activity')");
+  h+='</div>';
+  el.innerHTML=h;
+}
+// เข้าหน้าย่อยของรายงานยอดขาย — ซ่อนแท็บด้านบนให้เหลือมุมมองเดียว (ไม่มีแท็บซ้อนแท็บ)
+window.reportGo=function(which){
+  goto('dashboard');
+  setTimeout(()=>{
+    const bar=document.getElementById('dash-outer-tabs');
+    const tabs=bar?[...bar.querySelectorAll('.tab')]:[];
+    if(which==='sales'){
+      if(bar)bar.style.display='none';
+      if(tabs[0])dashSetTab('overview',tabs[0]);
+    }else{ // monthly: โชว์เฉพาะแท็บ สรุปเดือน + ส่งออก (ซ่อน ภาพรวม)
+      if(bar)bar.style.display='flex';
+      if(tabs[0])tabs[0].style.display='none';
+      if(tabs[1]){tabs[1].style.display='';dashSetTab('summary',tabs[1]);}
+      if(tabs[2])tabs[2].style.display='';
+    }
+  },70);
+};
 
 // ===== สีประจำวัน (ความเชื่อไทย) — สำหรับน้องแคปซูล =====
 // index = getDay() : 0=อาทิตย์ ... 6=เสาร์
@@ -2342,7 +2393,6 @@ function _logJsError(msg,src){
   if(_jsErrSeen.size>=5||_jsErrSeen.has(msg))return; // กันสแปม: เรื่องซ้ำไม่ลงซ้ำ และไม่เกิน 5 เรื่อง/การเปิดแอป
   _jsErrSeen.add(msg);
   try{logActivity('js_error','v'+APP_VERSION+' · '+msg+(src?' · '+src:'')+' · '+(navigator.userAgent||'').slice(0,70));}catch(e){}
-  try{if(typeof notifyEvent==='function')notifyEvent('js_error',{msg:String(msg).slice(0,120)});}catch(e){}
 }
 window.addEventListener('error',e=>{try{_logJsError(e.message,((e.filename||'').split('/').pop())+':'+(e.lineno||0));}catch(_){}});
 window.addEventListener('unhandledrejection',e=>{try{const r=e.reason;_logJsError(String((r&&r.message)||r||'promise ล้มเหลว'),'promise');}catch(_){}});
@@ -2465,7 +2515,7 @@ function buildBottomNav(){
   const nav=document.getElementById('bottom-nav');
   if(!nav)return;
   // ปุ่มที่ 2 ปรับตาม role: admin→แดชบอร์ด, มีสิทธิ์ขาย→ยอดขาย, อื่นๆ→ตารางเวร
-  const secondary=(isAdmin||hasPerm('dashboard_admin'))?{page:'dashboard',ic:'chart-bar',lbl:'ยอดขาย & รายงาน'}
+  const secondary=(isAdmin||hasPerm('dashboard_admin'))?{page:'report',ic:'chart-bar',lbl:'รายงาน'}
     :(hasPerm('sales'))?{page:'cash',ic:'cash',lbl:'เงินสด'}
     :{page:'schedule',ic:'calendar-event',lbl:'ตารางเวร'};
   const slots=[
@@ -2591,7 +2641,6 @@ window.openAccountMenu=function(){
     <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION}${isAdmin?' — ดูประวัติอัปเดต':''}</span></button>
     <button class="assist-chip" onclick="checkAppUpdate()"><span class="ic">🔄</span><span>อัปเดตโปรแกรม / ตรวจรุ่นล่าสุด</span></button>
     ${isAdmin?`<button class="assist-chip" onclick="backupDownload()"><span class="ic">💾</span><span>สำรองข้อมูลทั้งร้าน (ดาวน์โหลดไฟล์)</span></button>`:''}
-    <button class="assist-chip" onclick="notifPrompt()"><span class="ic">🔔</span><span>การแจ้งเตือนเด้ง</span></button>
     <button class="assist-chip" onclick="openMiniWindow()"><span class="ic">📌</span><span>หน้าต่างลอยมินิ (บนคอม) — งานวันนี้</span></button>
     <button class="assist-chip" onclick="closeMD();goto('theme')"><span class="ic">🎨</span><span>ธีมของฉัน</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
@@ -2688,136 +2737,6 @@ async function autoCheckUpdate(){
 setTimeout(autoCheckUpdate,8000);
 setInterval(autoCheckUpdate,4*3600000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoCheckUpdate();});
-
-// ===== 🔔 การแจ้งเตือนเด้ง (Push Notifications ผ่าน Firebase Cloud Messaging) =====
-// หัวข้อทั้งหมด — ผู้ใช้เปิด/ปิดเองได้รายหัวข้อ (ค่าเริ่มต้น: เปิดทุกอัน)
-const NOTIF_TOPICS=[
-  {k:'shift_pre',ic:'⏰',t:'ก่อนเวรเริ่ม 30 นาที',d:'เตือนเช็คอินก่อนถึงเวรของคุณ'},
-  {k:'open_late',ic:'☀️',t:'เลยเวลาเปิดร้าน',d:'ร้านยังไม่เปิดหลังเวลาเวรเช้า 15 นาที'},
-  {k:'close_forgot',ic:'🌙',t:'หมดเวรยังไม่ปิดร้าน',d:'เตือนลงยอดขาย + ปิดร้านหลังหมดเวร'},
-  {k:'reservecount',ic:'🪙',t:'ถึงรอบนับเงินสำรอง',d:'วันนับประจำสัปดาห์ของสาขาที่คุณอยู่เวร'},
-  {k:'slip',ic:'🧾',t:'สลิปเงินเดือนออก',d:'เด้งทันทีเมื่อผู้ดูแลจ่ายเงินเดือน'},
-  {k:'leave_result',ic:'🌴',t:'ผลคำขอลา',d:'อนุมัติ / ไม่อนุมัติ'},
-  {k:'announce',ic:'📢',t:'ประกาศจากร้าน',d:'ข้อความประกาศถึงทุกคน'},
-  {k:'adm_close_diff',ic:'💸',t:'เงินปิดร้านไม่ตรง',d:'เด้งทันทีพร้อมยอดขาด/เกิน (ไม่ติดช่วงห้ามกวน)',adm:1},
-  {k:'adm_not_closed',ic:'🚨',t:'สาขายังไม่ปิดร้าน',d:'เลยเวลาปิด 40 นาทีแล้วยังไม่ปิด',adm:1},
-  {k:'adm_brief',ic:'📰',t:'บรีฟค่ำ ~21:00',d:'สรุปยอดวันนี้ทุกสาขาวันละครั้ง',adm:1},
-  {k:'adm_money',ic:'🧰',t:'เงินผิดปกติ (เช้า ~9:00)',d:'เซฟเกินเกณฑ์ / สำรอง-ลิ้นชักต่ำกว่ามาตรฐาน',adm:1},
-  {k:'adm_requests',ic:'✏️',t:'คำขอรออนุมัติ',d:'คำขอแก้ยอดขาย / คำขอลาใหม่',adm:1},
-  {k:'adm_sys',ic:'🐞',t:'ระบบ / สำรองข้อมูล',d:'แอปมีข้อผิดพลาด + เตือนรอบสำรองข้อมูล',adm:1},
-];
-async function notifSupported(){
-  try{
-    if(!('Notification'in window)||!('serviceWorker'in navigator))return false;
-    const{isSupported}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
-    return await isSupported();
-  }catch(e){return false;}
-}
-async function notifVapid(){ // กุญแจ Web Push (admin วางครั้งเดียวใน 🔔 การแจ้งเตือน)
-  try{
-    if(window._vapidKey!==undefined)return window._vapidKey;
-    const s=await getDoc(doc(db,'config','notifSettings'));
-    window._vapidKey=s.exists()?(s.data().vapidKey||''):'';
-    return window._vapidKey;
-  }catch(e){return '';}
-}
-// เปิดรับแจ้งเตือนที่เครื่องนี้ — ขอสิทธิ์ + ลงทะเบียน token เก็บในโปรไฟล์
-window.notifEnable=async function(){
-  if(isTester){showToast('🧪 โหมดผู้ทดสอบไม่รับแจ้งเตือนจริง');return;}
-  if(!await notifSupported()){showToast('เครื่องนี้ยังไม่รองรับ — iPhone ต้องเปิดแอปจากไอคอนหน้าจอโฮม (iOS 16.4 ขึ้นไป)','err');return;}
-  const vapid=await notifVapid();
-  if(!vapid){showToast(isAdmin?'ยังไม่ได้ติดตั้งกุญแจระบบ — เปิด 🔔 การแจ้งเตือนเด้ง ในบัญชีของฉัน':'ระบบแจ้งเตือนยังไม่เปิดใช้ — แจ้งผู้ดูแลร้าน','err');return;}
-  try{
-    const perm=await Notification.requestPermission();
-    if(perm!=='granted'){showToast('ไม่ได้รับอนุญาต — เปิดได้ในตั้งค่าแจ้งเตือนของเครื่อง','err');return;}
-    const {getMessaging,getToken}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
-    window._msging=window._msging||getMessaging(app);
-    const reg=await navigator.serviceWorker.ready;
-    const tk=await getToken(window._msging,{vapidKey:vapid,serviceWorkerRegistration:reg});
-    if(!tk){showToast('ลงทะเบียนไม่สำเร็จ ลองใหม่อีกครั้ง','err');return;}
-    let h=5381;for(let i=0;i<tk.length;i++)h=((h*33)^tk.charCodeAt(i))>>>0;
-    await updateDoc(doc(db,'members',currentUser.uid),{['fcmTokens.tk_'+h.toString(36)]:{t:tk,ua:(navigator.userAgent||'').slice(0,60),at:new Date().toISOString()}});
-    localStorage.setItem('nm_push_on','1');
-    showToast('เปิดการแจ้งเตือนแล้ว 🔔 เครื่องนี้จะได้รับแจ้งเตือนจากร้าน');
-    logActivity('notif_on','เปิดการแจ้งเตือนเด้งบนเครื่องนี้');
-    if(typeof checkNotifications==='function')checkNotifications();
-  }catch(e){showToast('เปิดไม่สำเร็จ: '+(e?.message||e),'err');}
-};
-// ยิงเหตุการณ์ไปตัวส่งบน Netlify — เงียบๆ พลาดก็ไม่กวนงานหลัก
-window.notifyEvent=function(type,data){
-  if(isTester)return;
-  try{
-    auth.currentUser?.getIdToken().then(t=>
-      fetch('/.netlify/functions/notify',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+t},body:JSON.stringify({type,data:data||{}})})
-    ).catch(()=>{});
-  }catch(e){}
-};
-// หน้าตั้งค่าการแจ้งเตือน (เปิดจาก 🔔 ในบัญชีของฉัน)
-window.notifPrompt=async function(){
-  const cfg=profile?.notifCfg||{};
-  const t=cfg.topics||{};
-  const q=cfg.quiet||{};
-  const vapid=await notifVapid();
-  const perm=('Notification'in window)?Notification.permission:'unsupported';
-  const stTxt=perm==='granted'?(localStorage.getItem('nm_push_on')?'🔔 เครื่องนี้เปิดรับแล้ว':'อนุญาตแล้ว — กด "เปิดรับ" อีกครั้งเพื่อลงทะเบียน'):(perm==='denied'?'🔕 เครื่องนี้เคยปฏิเสธ — ต้องไปเปิดในตั้งค่าเบราว์เซอร์/เครื่อง':'ยังไม่ได้เปิดรับที่เครื่องนี้');
-  const rows=NOTIF_TOPICS.filter(x=>!x.adm||isAdmin).map(x=>`
-    <label style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:11px;padding:9px 12px;margin-bottom:6px;cursor:pointer">
-      <span style="font-size:16px">${x.ic}</span>
-      <span style="flex:1;font-size:12.5px;font-weight:700">${x.t}${x.adm?' <span style="font-size:9px;background:var(--blue-l);color:var(--blue-t);border-radius:8px;padding:1px 6px">ผู้ดูแล</span>':''}<small style="display:block;font-size:10px;color:var(--text3);font-weight:400">${x.d}</small></span>
-      <input type="checkbox" id="ntf-${x.k}" ${t[x.k]!==false?'checked':''} style="width:18px;height:18px">
-    </label>`).join('');
-  openModal(`<div class="modal-title">🔔 การแจ้งเตือนเด้ง</div>
-    ${!vapid&&isAdmin?`<div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:12px;padding:11px 13px;font-size:12px;line-height:1.8;margin-bottom:11px;color:var(--amber-t)">⚠️ <b>ติดตั้งครั้งแรก (ทำครั้งเดียว)</b> — ดูขั้นตอนเต็มในไฟล์ "วิธีเปิดการแจ้งเตือน.md"<br>1) Firebase Console → Project settings → Cloud Messaging → Web Push certificates → <b>Generate key pair</b> แล้วคัดลอกมาวางที่นี่:
-      <input id="ntf-vapid" placeholder="วางกุญแจ (ตัวอักษรยาว ขึ้นต้น B...)" style="width:100%;margin:6px 0;padding:8px;border:1px solid var(--border2);border-radius:9px;font-size:11px">
-      <button class="btn btn-sm btn-primary" style="width:100%" onclick="notifSaveVapid()">บันทึกกุญแจ</button>
-      <div style="margin-top:5px">2) อย่าลืมวางกุญแจเซิร์ฟเวอร์ใน Netlify ด้วย (ตามไฟล์ขั้นตอน)</div></div>`:''}
-    ${!vapid&&!isAdmin?`<div style="background:var(--amber-l);border-radius:11px;padding:10px 13px;font-size:12px;color:var(--amber-t);margin-bottom:11px">ระบบแจ้งเตือนยังไม่เปิดใช้ — แจ้งผู้ดูแลร้านให้ติดตั้งก่อน</div>`:''}
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:12px">
-      <div style="font-size:12px;font-weight:700;margin-bottom:7px">${stTxt}</div>
-      <div style="display:flex;gap:7px">
-        <button class="btn btn-sm btn-primary" style="flex:1" onclick="notifEnable()">🔔 เปิดรับที่เครื่องนี้</button>
-        <button class="btn btn-sm" style="flex:1" onclick="notifTest()">📨 ทดสอบส่งหาฉัน</button>
-      </div>
-    </div>
-    <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px">เลือกหัวข้อที่อยากได้</div>
-    ${rows}
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-top:10px;font-size:12px">
-      <div style="font-weight:700;margin-bottom:6px">😴 ช่วงห้ามกวน (ไม่เด้งช่วงนี้)</div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <input type="time" id="ntf-qf" value="${q.from||'22:00'}" style="flex:1"> ถึง <input type="time" id="ntf-qt" value="${q.to||'07:00'}" style="flex:1">
-      </div>
-      <label style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="ntf-qoff" ${q.off?'checked':''} style="width:16px;height:16px">ไม่ต้องมีช่วงห้ามกวน (รับได้ตลอด 24 ชม.)</label>
-      <div style="font-size:10px;color:var(--text3);margin-top:5px">* เรื่องด่วน (เงินปิดร้านไม่ตรง/ยังไม่ปิดร้าน) เด้งเสมอแม้อยู่ในช่วงห้ามกวน</div>
-    </div>
-    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="notifSave()">💾 บันทึก</button></div>`);
-};
-window.notifSaveVapid=async function(){
-  const v=(document.getElementById('ntf-vapid')?.value||'').trim();
-  if(!v){showToast('วางกุญแจก่อนนะ','err');return;}
-  try{await setDoc(doc(db,'config','notifSettings'),{vapidKey:v},{merge:true});window._vapidKey=v;showToast('บันทึกกุญแจแล้ว ✓');notifPrompt();}
-  catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
-};
-window.notifSave=async function(){
-  const topics={};NOTIF_TOPICS.forEach(x=>{const el=document.getElementById('ntf-'+x.k);if(el)topics[x.k]=el.checked;});
-  const quiet={from:document.getElementById('ntf-qf')?.value||'22:00',to:document.getElementById('ntf-qt')?.value||'07:00',off:!!document.getElementById('ntf-qoff')?.checked};
-  const notifCfg={...(profile?.notifCfg||{}),topics:{...(profile?.notifCfg?.topics||{}),...topics},quiet};
-  try{
-    await updateDoc(doc(db,'members',currentUser.uid),{notifCfg});
-    if(profile)profile.notifCfg=notifCfg;
-    closeMD();showToast('บันทึกการตั้งค่าแจ้งเตือนแล้ว 🔔');
-  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
-};
-window.notifTest=async function(){
-  showToast('📨 กำลังส่งทดสอบ... รอเด้งสักครู่');
-  try{
-    const t=await auth.currentUser.getIdToken();
-    const r=await fetch('/.netlify/functions/notify',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+t},body:JSON.stringify({type:'test'})});
-    const j=await r.json().catch(()=>({}));
-    if(j.sent)showToast(`ส่งแล้ว ${j.sent} เครื่อง ✓ — ถ้าไม่เด้ง ลองพับแอปไว้แล้วรอ 5 วินาที`);
-    else if(r.ok)showToast('ยังไม่มีเครื่องลงทะเบียน — กด "เปิดรับที่เครื่องนี้" ก่อน','err');
-    else showToast('ตัวส่งยังไม่พร้อม — เช็คว่าตั้งค่า Netlify ตามไฟล์ขั้นตอนแล้ว','err');
-  }catch(e){showToast('ส่งไม่ได้: '+(e?.message||e),'err');}
-};
 
 // ===== 📌 หน้าต่างลอยมินิ (Document Picture-in-Picture) — หน้าต่างเล็กลอยเหนือทุกโปรแกรมบนคอม =====
 window._miniPip=null; window._miniTimer=null;
@@ -2920,6 +2839,7 @@ window.openMiniWindow=async function(){
 const PAGE_PERM={
   'home':null,
   'dashboard':'dashboard_admin',
+  'report':'dashboard_admin',
   'schedule':'schedule',
   'sales':'sales',
   'sales-history':'sales',
@@ -2947,6 +2867,7 @@ const PAGE_PERM={
 function canAccessPage(page){
   if(!currentUser)return false;
   if(isAdmin)return true;
+  if(page==='report')return hasPerm('dashboard_admin')||hasPerm('checkin_all')||hasPerm('activity_admin');
   const perm=PAGE_PERM[page];
   if(perm===null)return true;
   // สิทธิ์ทุกอย่างมอบให้สมาชิกได้ (admin กำหนดในหน้าจัดการสมาชิก)
@@ -2982,7 +2903,6 @@ function startRealtimeAll(){
   });
 }
 window.goto=function(page){
-  if(page==='report')page='dashboard'; // รวมหน้ารายงานเข้ากับ "ยอดขาย & รายงาน" แล้ว
   if(!canAccessPage(page)){
     document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
     document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('active'));
@@ -3012,9 +2932,15 @@ window.goto=function(page){
   // ปุ่มย้อนกลับหน้าแรก (แสดงทุกหน้ายกเว้นหน้าแรกและหน้าหมวดหมู่ระดับบนสุด)
   const backBtn=document.getElementById('home-back-btn');
   const topLevel=page==='home'||page.startsWith('cat-');
-  if(backBtn)backBtn.style.display=topLevel?'none':'inline-flex';
+  const _rptSub=['dashboard','sales-history','checkin-history','activity'].includes(page);
+  if(backBtn){
+    backBtn.style.display=topLevel?'none':'inline-flex';
+    backBtn.setAttribute('onclick',_rptSub?"goto('report')":"goto('home')");
+    const _lb=document.getElementById('hb-label');if(_lb)_lb.textContent=_rptSub?'รายงาน':'หน้าแรก';
+  }
   if(page==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
   if(page.startsWith('cat-'))renderCatPage(page.slice(4));
+  if(page==='report'){renderReportHub();loadSalesFromCloud().then(()=>{if(currentPage==='report')renderReportHub();}).catch(()=>{});}
   if(page==='dashboard')dashInit();
   if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
@@ -5460,21 +5386,17 @@ function renderCashPage(){
       <div style="font-family:var(--disp);font-weight:600;font-size:16px">รอบวันนี้ · ${BRANCHES[branch]}</div>
       <div style="font-size:11.5px;color:var(--text3)">${dlabel}</div>
     </div>`;
+  // ปุ่มงานรอง = แถวไอคอนเล็ก (ให้ปุ่มหลักเด่นปุ่มเดียว)
+  const _ib=(oc,ic,lb)=>`<button onclick="${oc}" style="flex:1;text-align:center;padding:11px 4px;border-radius:11px;background:var(--bg);border:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--text2);cursor:pointer;font-family:var(--font)"><span style="font-size:17px;display:block;margin-bottom:3px">${ic}</span>${lb}</button>`;
   if(!opened){
     html+=`<button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="cashOpenPrompt(${branch})">🌅 เปิดร้าน — ยืนยันเงินแคชเชียร์</button>
-      <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:8px">เงินแคชเชียร์คงที่ทุกวัน — เช็คแล้วกดยืนยัน จบใน 3 วินาที</div>`;
+      <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:8px">เงินแคชเชียร์คงที่ทุกวัน — เช็คแล้วกดยืนยัน จบใน 3 วินาที</div>
+      <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'📊','ลงยอดขาย')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>`;
   }else{
-    html+=`${closeEv?'':`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px;margin-bottom:9px" onclick="cashCloseWizard(${branch})">🌙 ปิดร้าน — ระบบคิดยอดตัดเข้าเซฟให้</button>`}
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-sm" style="flex:1" onclick="cashExpensePrompt(${branch})">💸 เบิกซื้อของ/ค่าใช้จ่าย</button>
-    </div>
-    <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก — ระบบตรวจด้วยการนับสำรองประจำสัปดาห์</div>`;
+    html+=`${closeEv?'':`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="cashCloseWizard(${branch})">🌙 ปิดร้าน — ระบบคิดยอดตัดเข้าเซฟให้</button>`}
+    <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'📊','ลงยอดขาย')}${_ib(`cashExpensePrompt(${branch})`,'💸','เบิกซื้อของ')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
+    <div style="font-size:11px;color:var(--text3);margin-top:9px;text-align:center">🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก — ระบบตรวจด้วยการนับสำรองประจำสัปดาห์</div>`;
   }
-  // ลงยอดขาย / เช็ค EDC — ย้ายมาจากหน้า "บันทึกยอดขาย" เดิม (ทุกอย่างจบที่หน้านี้)
-  html+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
-    <button class="btn btn-sm" style="flex:1" onclick="cashSalesPrompt(${branch})">📊 ลงยอดขายวันนี้</button>
-    <button class="btn btn-sm" style="flex:1" onclick="cashEdcPrompt(${branch})">🔍 เช็ค EDC</button>
-  </div>`;
   // สรุปวันนี้
   const _openDn=cashDenomSummary(_openEv?.denoms);
   html+=`<div style="margin-top:13px;border-top:1px solid var(--border);padding-top:11px">
@@ -5497,13 +5419,16 @@ function renderCashPage(){
   }
   html+=`${cashRow('ดึงเข้าตู้เซฟวันนี้',`฿${fmt(depT)}`)}</div></div>`;
 
-  // ปุ่มผู้ดูแล
+  // ปุ่มผู้ดูแล — ยุบเป็นกล่องพับได้ (ไม่เกะกะงานประจำวัน)
   if(isAdmin){
-    html+=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.1rem">
-      <button class="btn btn-sm" onclick="cashTopupPrompt(${branch})">➕ เติมเงินเข้า (เลือกกอง)</button>
-      <button class="btn btn-sm" onclick="cashSafeOutPrompt(${branch})">🏦 นำเงินออกจากตู้เซฟ</button>
-      <button class="btn btn-sm" onclick="cashSafeCountPrompt(${branch})">🔒 นับเงินตู้เซฟ</button>
-      <button class="btn btn-sm" onclick="cashAdjustPrompt(${branch})">⚖️ ปรับยอดเงิน</button>
+    html+=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:1.1rem;border:1px dashed var(--border2);box-shadow:none">
+      <div onclick="var b=this.nextElementSibling;var o=b.style.display==='none';b.style.display=o?'block':'none';this.querySelector('.fc').textContent=o?'▴':'▾'" style="display:flex;align-items:center;gap:7px;padding:13px 15px;cursor:pointer;font-size:12.5px;font-weight:700;color:var(--text2)">🛠 เครื่องมือผู้ดูแล<span class="fc" style="margin-left:auto;font-weight:400;color:var(--text3)">▾</span></div>
+      <div style="display:none;padding:0 13px 13px"><div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        <button class="btn btn-sm" onclick="cashTopupPrompt(${branch})">➕ เติมเงินเข้า</button>
+        <button class="btn btn-sm" onclick="cashSafeOutPrompt(${branch})">🏦 นำออกจากเซฟ</button>
+        <button class="btn btn-sm" onclick="cashSafeCountPrompt(${branch})">🔒 นับเงินตู้เซฟ</button>
+        <button class="btn btn-sm" onclick="cashAdjustPrompt(${branch})">⚖️ ปรับยอดเงิน</button>
+      </div></div>
     </div>`;
   }
 
@@ -5517,11 +5442,11 @@ function renderCashPage(){
   const canNext=histDate<today;
   const navBtn=(dir,enabled,txt)=>`<button class="btn btn-sm" ${enabled?'':'disabled'} onclick="cashHistShift(${branch},${dir})" style="padding:6px 11px;${enabled?'':'opacity:.4;cursor:not-allowed'}">${txt}</button>`;
   const dayEvs=cashEvents.filter(e=>e.branch===branch&&e.date===histDate).sort((a,b)=>(b.ts||0)-(a.ts||0));
-  html+=`<div class="card" style="margin-bottom:1.1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-      <div style="font-family:var(--disp);font-weight:600;font-size:15px">📜 ประวัติ</div>
-      ${isAdmin?`<input type="date" max="${today}" value="${histDate}" onchange="cashHistPick(${branch},this.value)" style="border:1px solid var(--border2);border-radius:9px;padding:5px 8px;font-family:var(--font);font-size:12px;color:var(--text2)">`:''}
-    </div>
+  const _histOpen=histDate!==today; // ถ้ากำลังดูวันอื่น (แอดมินเลือก) ให้กางไว้
+  html+=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:1.1rem">
+    <div onclick="var b=this.nextElementSibling;var o=b.style.display==='none';b.style.display=o?'block':'none';this.querySelector('.fc').textContent=o?'▴':'▾'" style="display:flex;align-items:center;gap:7px;padding:14px 15px;cursor:pointer;font-family:var(--disp);font-weight:600;font-size:15px">📜 ประวัติ<span style="margin-left:auto;font-size:12px;font-weight:400;color:var(--text3);font-family:var(--font)">${dayEvs.length} รายการ <span class="fc">${_histOpen?'▴':'▾'}</span></span></div>
+    <div style="display:${_histOpen?'block':'none'};padding:0 15px 15px">
+    ${isAdmin?`<div style="text-align:right;margin-bottom:8px"><input type="date" max="${today}" value="${histDate}" onchange="cashHistPick(${branch},this.value)" style="border:1px solid var(--border2);border-radius:9px;padding:5px 8px;font-family:var(--font);font-size:12px;color:var(--text2)"></div>`:''}
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);border-radius:11px;padding:6px 8px;margin-bottom:10px">
       ${navBtn(-1,canPrev,'◀ ก่อนหน้า')}
       <div style="font-weight:700;font-size:13.5px;text-align:center;flex:1">${cashDateLabel(histDate)}<div style="font-size:10.5px;color:var(--text3);font-weight:400">${new Date(histDate+'T12:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'})}</div></div>
@@ -5530,7 +5455,7 @@ function renderCashPage(){
   if(!isAdmin&&histDate<=minDate)html+=`<div style="font-size:10.5px;color:var(--text3);text-align:center;margin-bottom:6px">ดูย้อนหลังได้ ${CASH_HIST_BACK_DAYS} วัน · ต้องการเก่ากว่านี้แจ้งแอดมิน</div>`;
   if(!dayEvs.length)html+=`<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem 0">ไม่มีรายการในวันนี้</div>`;
   else dayEvs.forEach((ev,i)=>{html+=cashEventRow(ev,isAdmin||(histDate===today&&i===0));});
-  html+=`</div>`;
+  html+=`</div></div>`;
 
   // ตรวจเงิน (ผู้ดูแล) — ทุกสาขา
   if(isAdmin){
@@ -5886,7 +5811,6 @@ window.cashDoClose=async function(branch){
     closeMD();renderCashPage();
     showToast(diff===0?'ปิดร้าน · เงินตรงพอดี ✓':(diff>0?`ปิดร้าน · เกิน ฿${fmt(Math.abs(diff))}`:`ปิดร้าน · ขาด ฿${fmt(Math.abs(diff))}`));
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับ ฿${fmt(counted)} (${diff===0?'ตรง':diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))})`);
-    if(!isTester&&diff!==0)notifyEvent('close_diff',{branch,diff,by:cashWho()});
     if(window.refreshTodoStatus)refreshTodoStatus();
     setTimeout(()=>showNextStep('close',branch),280);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
@@ -6059,7 +5983,6 @@ window.cashDoCloseAmt=async function(branch,counted){
     closeMD();renderCashPage();
     showToast('ปิดร้านเรียบร้อย 🌙 เงินตรงพอดี ✓');
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} ยืนยันคงเหลือ ฿${fmt(counted)}`);
-    if(!isTester&&diff!==0)notifyEvent('close_diff',{branch,diff,by:cashWho()});
     if(window.refreshTodoStatus)refreshTodoStatus();
     setTimeout(()=>showNextStep('close',branch),280);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
@@ -6708,7 +6631,6 @@ window.submitSalesEditRequest=async function(date,branch){
   const id='req_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
   try{
     await setDoc(doc(db,'editRequests',id),{type:'sales',date,branch,by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,ts:Date.now(),at:new Date().toISOString(),status:'pending',reason,proposed:{amounts,total,billCount}});
-    notifyEvent('edit_request',{branch,date});
     closeMD();showToast('ส่งคำขอให้แอดมินแล้ว — รอผู้ดูแลแก้ให้');
     logActivity('edit_request',`ขอแก้ยอดขาย ${BRANCHES[branch]} ${date} (ใหม่ ฿${fmt(total)})`);
   }catch(e){showToast('ส่งคำขอไม่สำเร็จ: '+e.message,'err');}
@@ -7714,7 +7636,6 @@ window.savePRPerson=async function(){
       updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
     });
     prData.status='paid';
-    notifyEvent('slip',{uid:prCurrentPerson,month:'เดือน'+MONTHS_TH[prMonth-1]+' '+(prYear+543),net:d.computedNet});
     prMonthRecords[prCurrentPerson]={net:d.computedNet,status:'paid'};
     showToast(`บันทึกเงินเดือน ${d.name} เรียบร้อย`);
     renderPRCalc();renderPRPersonSelect();
@@ -7863,7 +7784,6 @@ window.prBatchSave=async function(){
         updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
       });
       prMonthRecords[uid]={net:calc.net,status:'paid'};
-      notifyEvent('slip',{uid,month:'เดือน'+MONTHS_TH[prMonth-1]+' '+(prYear+543),net:calc.net});
       ok++;grand+=calc.net;
     }
   }catch(e){loading(false);showToast('บันทึกบางส่วนไม่สำเร็จ: '+e.message,'err');return;}
@@ -10206,12 +10126,6 @@ async function checkNotifications(){
   const banner=document.getElementById('alert-banner');
   if(!banner)return;
   const alerts=[];
-  // ชวนเปิดการแจ้งเตือนเด้ง — เฉพาะเครื่องที่ยังไม่เคยตอบ
-  try{
-    if('Notification'in window&&Notification.permission==='default'&&!localStorage.getItem('nm_push_dismiss')&&!isTester){
-      alerts.push({color:'green',icon:'🔔',text:'เปิดการแจ้งเตือนเด้งไหม? เตือนก่อนเวร/ปิดร้าน/สลิปออก/ประกาศ ถึงเครื่องนี้แม้ไม่ได้เปิดแอป',action:`<button class="btn btn-sm btn-primary" onclick="notifEnable()" style="margin-left:auto">เปิดเลย</button><button class="btn btn-sm" onclick="localStorage.setItem('nm_push_dismiss','1');checkNotifications()">ไว้ทีหลัง</button>`});
-    }
-  }catch(e){}
   const today=todayStr();
   const dow=(new Date().getDay()+6)%7; // 0=จันทร์
 
@@ -10661,7 +10575,6 @@ window.postAnnouncement=async function(){
     const id='ann_'+Date.now();
     const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin';
     await setDoc(doc(db,'announcements',id),{text,targets,startAt,endAt,at:new Date().toISOString(),by:name,byUid:currentUser.uid,active:true});
-    notifyEvent('announce',{text});
     logActivity('announce',`ประกาศ${targets.length?` (เฉพาะ ${targets.length} คน)`:' (ทุกคน)'}: ${text}`);
     inp.value='';
     document.querySelectorAll('.ann-person:checked').forEach(c=>c.checked=false);
@@ -12798,7 +12711,6 @@ window.submitLeave=async function(){
   try{
     const id='leave_'+Date.now();
     await setDoc(doc(db,'leaves',id),{uid:currentUser.uid,name,from,to,reason,type:'',createdAt:new Date().toISOString()});
-    notifyEvent('leave_request',{from,to});
     // ตัดเวรในช่วงวันลาออกจากตาราง
     const removed=await removeShiftsForLeave(currentUser.uid,from,to);
     await loadLeavesForSchedule();
@@ -12905,9 +12817,7 @@ window.laApplyFilter=function(){
 // admin อนุมัติ/ปฏิเสธคำขอลา → พนักงานจะได้รับแจ้งเตือน
 window.decideLeave=async function(id,status){
   try{
-    let _lvd={};try{const _ls=await getDoc(doc(db,'leaves',id));_lvd=_ls.exists()?_ls.data():{};}catch(e){}
     await updateDoc(doc(db,'leaves',id),{status,decidedAt:new Date().toISOString(),decidedBy:currentUser.uid});
-    notifyEvent('leave_result',{uid:_lvd.uid,ok:status==='approved',from:_lvd.from,to:_lvd.to});
     logActivity('leave_decide',`${status==='approved'?'อนุมัติ':'ปฏิเสธ'}คำขอลา`);
     showToast(status==='approved'?'อนุมัติคำขอลาแล้ว':'ปฏิเสธคำขอลาแล้ว');
     loadLeaveAdmin();

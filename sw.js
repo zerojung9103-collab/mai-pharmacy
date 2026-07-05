@@ -1,6 +1,6 @@
 // Service Worker — ใหม่เภสัช PWA
 // เวอร์ชัน cache (เปลี่ยนเลขนี้ทุกครั้งที่อัปเดตแอพ เพื่อให้ผู้ใช้ได้ของใหม่)
-const CACHE = 'maipharmacy-v255';
+const CACHE = 'maipharmacy-v260';
 const ASSETS = [
   './app.html',
   './index.html',
@@ -49,35 +49,4 @@ self.addEventListener('fetch', e => {
       })
       .catch(() => caches.match(e.request))
   );
-});
-
-// ===== 🔔 การแจ้งเตือนเด้ง (Push Notifications) =====
-// รับข้อความจากเซิร์ฟเวอร์ (Netlify Functions → FCM) แล้วแสดงเป็นแจ้งเตือนบนเครื่อง
-self.addEventListener('push', e => {
-  let d = {};
-  try {
-    const j = e.data ? e.data.json() : {};
-    d = j.data || j.notification || j; // รองรับหลายรูปแบบ payload
-  } catch (err) {
-    d = { title: 'ใหม่เภสัช', body: e.data ? e.data.text() : '' };
-  }
-  e.waitUntil(self.registration.showNotification(d.title || 'ใหม่เภสัช', {
-    body: d.body || '',
-    icon: './icon-192.png',
-    badge: './icon-192.png',
-    tag: d.tag || 'nm',   // เรื่องเดียวกันทับข้อความเก่า ไม่กองซ้อน
-    data: { url: d.url || './app.html' }
-  }));
-});
-
-// แตะแจ้งเตือน → เปิด/สลับไปที่แอป
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  const url = (e.notification.data && e.notification.data.url) || './app.html';
-  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
-    for (const c of list) {
-      if (c.url.includes('app.html') && 'focus' in c) return c.focus();
-    }
-    return clients.openWindow(url);
-  }));
 });
