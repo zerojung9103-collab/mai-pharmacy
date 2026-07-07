@@ -113,7 +113,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .mcard-sub{font-size:11px;color:var(--text3);margin-top:3px;position:relative}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);transition:all .15s ease;font-family:var(--font);white-space:nowrap}
 .btn:hover{background:var(--bg);transform:translateY(-1px)}.btn:active{transform:scale(.96)}
-.btn-primary{background:var(--green);border-color:transparent;color:#fff;box-shadow:0 2px 8px rgba(22,185,129,.25)}.btn-primary:hover{box-shadow:0 4px 14px rgba(22,185,129,.35);background:var(--green-d)}
+.btn-primary{background:var(--grad-green);border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(18,124,98,.28)}.btn-primary:hover{box-shadow:0 10px 22px rgba(18,124,98,.36);filter:brightness(1.03);transform:translateY(-1px)}
 .btn-danger{background:var(--red-l);border-color:#F09595;color:var(--red-t)}.btn-danger:hover{background:#F7C1C1}
 .btn-blue{background:var(--grad-blue);border-color:transparent;color:#fff;box-shadow:0 2px 8px rgba(59,142,234,.3)}.btn-blue:hover{box-shadow:0 4px 14px rgba(59,142,234,.4)}
 .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
@@ -126,8 +126,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .branch-tab.active{background:var(--green-l);border-color:var(--green);color:var(--green-dd);font-weight:600}
 .field{margin-bottom:1rem}
 .fl{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:5px;letter-spacing:.02em}
-input,select,textarea{width:100%;font-family:var(--font);font-size:13px;padding:9px 12px;border:1.5px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--text);outline:none;transition:.15s}
-input:focus,select:focus,textarea:focus{border-color:var(--green);background:var(--surface);box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+input,select,textarea{width:100%;font-family:var(--font);font-size:13px;padding:9px 12px;border:1.5px solid var(--green-l);border-radius:11px;background:var(--green-ll);color:var(--text);outline:none;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:var(--green);background:var(--surface);box-shadow:0 0 0 3.5px rgba(31,174,139,.14)}
 input:read-only{background:var(--bg);color:var(--text3);cursor:default}
 input:read-only:focus{border-color:var(--border2);box-shadow:none}
 textarea{resize:vertical;min-height:64px}
@@ -630,6 +630,8 @@ input,select,textarea{border-radius:14px}
         <button class="btn btn-sm" id="sc-bulk-btn" style="display:none" onclick="scBulkAssign()">📋 จัดเวรหลายวัน</button>
         <button class="btn btn-sm" id="sc-copyweek-btn" style="display:none" onclick="scCopyWeek()">🔁 ก๊อปสัปดาห์</button>
         <button class="btn btn-sm btn-primary" id="sc-auto-btn" style="display:none" onclick="toggleAutoPanel()">⚙️ สร้างตารางอัตโนมัติ</button>
+        <button class="btn btn-sm" id="sc-import-btn" style="display:none" onclick="schedImportPrompt()">📥 นำเข้าจากชีต</button>
+        <button class="btn btn-sm" id="sc-opensheet-btn" style="display:none" onclick="schedOpenSheet()">🔗 เปิดชีต</button>
         <button class="btn btn-sm btn-danger" id="sc-clear-btn" style="display:none" onclick="scClearMonth()">🗑️ เคลียร์ตาราง</button>
       </div>
     </div>
@@ -1622,8 +1624,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.100.1';
+const APP_VERSION='3.103.0';
 const CHANGELOG=[
+  {v:'3.103.0',date:'2026-07-06',changes:['🎨 ยกเครื่องหน้าแรกเป็นดีไซน์ใหม่ (แบบรายการ) — (1) แถบ "ถึงคิวทำ" บางๆ ด้านบน บอกว่าต้องทำอะไรต่อ + ปุ่มทำเลย (2) เมนู "ใช้บ่อย" เปลี่ยนจากการ์ดใหญ่เป็นรายการแถว (ไอคอน + ชื่อ + คำอธิบาย + ลูกศร) กดง่าย สแกนไว (3) เพิ่มป้ายสาขาบนหัวหน้าแรก · ฟังก์ชัน/เมนูเหมือนเดิมทุกอย่าง แค่จัดหน้าใหม่ให้ดูทันสมัยขึ้น']},
+  {v:'3.102.1',date:'2026-07-06',changes:['✨ ยกเครื่องหน้าตา v4.0 (เฟส 1) — (1) หน้า "เข้าสู่ระบบ" ดีไซน์ใหม่โทนอุ่นพรีเมียม (ไล่เฉดเขียวสมุนไพร + การ์ดนุ่ม + ฟอนต์หัวข้อ Noto Serif Thai) (2) ปุ่มหลักทั้งแอปเป็นไล่เฉดเขียวมีมิติ เงานุ่มขึ้น (3) ช่องกรอกทุกหน้า (input/select) โทนเขียวอ่อนนุ่มขึ้นให้เข้าชุดกัน มุมมนขึ้น · ทั้งหมดเป็นแค่หน้าตา ฟังก์ชันเดิมครบ · หน้าจอส่วนที่เหลือ (หน้าแรก/เงินสด ฯลฯ) จะทยอยปรับเฟสถัดไปตอนทดสอบจริง']},
+  {v:'3.101.0',date:'2026-07-06',changes:['📥 นำเข้าตารางเวรจาก Google Sheet — จัดเวรทั้งเดือนในชีต (สาขา/พนักงาน/วันที่ · ช่อง=เวลา 7-21) แล้วกดนำเข้าทีเดียวขึ้นแอป · ที่หน้า "ตารางเวร" ปุ่ม 📥 นำเข้าจากชีต: วางลิงก์ CSV → เลือกเดือน → ระบบจับคู่ชื่อพนักงานอัตโนมัติ (ไม่ตรงเลือกเองได้) → บอกจำนวนเวร+แถวที่ข้าม → ยืนยันทับเวรเดือนนั้น · รองรับชื่อสาขาย่อ/เต็ม + เวลาแบบ 7-21 / 7.00-21.00 / 07:00-21:00 · มีปุ่ม 🔗 เปิดชีต ไว้ดูตารางใหญ่ · เวรเดือนก่อนๆ เก็บไว้ให้ในแอป']},
   {v:'3.100.1',date:'2026-07-05',changes:['🔍 เพิ่มช่อง EDC ดำ/ขาว ในหน้าแก้ไขยอดขายย้อนหลัง (รายงาน › ประวัติการขาย) — และ 🐞 แก้บั๊กสำคัญ: เดิมพอแก้ยอดขายย้อนหลัง ตัวเลข EDC ของวันนั้นจะถูกลบหาย (เพราะบันทึกทับทั้งก้อน) ตอนนี้เก็บ EDC ไว้ครบและลิงก์ไป "รายงาน EDC สะสมทั้งเดือน" ให้ถูกต้องเหมือนเดิม']},
   {v:'3.100.0',date:'2026-07-05',changes:[
     '🪙 หน้า "เงินแยกชนิด" เหลือเฉพาะ "เงินสำรอง (เงินทอน)" — เอาแท็บลิ้นชัก/ตู้เซฟออก (เป็นข้อมูลเก่าค้างจากตอนก่อนเลิกนับแยกชนิด v3.99.8) ตอนนี้เราเช็คแยกแบงค์แค่เงินทอนพอ',
@@ -3662,6 +3667,10 @@ function scRender(){
   if(cwBtn)cwBtn.style.display=isAdmin?'':'none';
   const clrBtn=document.getElementById('sc-clear-btn');
   if(clrBtn)clrBtn.style.display=isAdmin?'':'none';
+  const impBtn=document.getElementById('sc-import-btn');
+  if(impBtn)impBtn.style.display=isAdmin?'':'none';
+  const osBtn=document.getElementById('sc-opensheet-btn');
+  if(osBtn)osBtn.style.display=(localStorage.getItem('nm_schedSheetView')||localStorage.getItem('nm_schedCsvUrl'))?'':'none';
   // ถ้าไม่ใช่ admin ปิด panel วันเกิดไว้เสมอ
   if(!isAdmin){const bp=document.getElementById('sc-bday-panel');if(bp)bp.style.display='none';}
 
@@ -3838,6 +3847,204 @@ window.scClearMonth=async function(){
   showToast(`ล้างเวรเดือนนี้แล้ว (${cnt} เวร)`);
   if(typeof logActivity==='function')logActivity('schedule_clear',`ล้างเวร ${monthName} (${cnt} เวร)`);
 };
+
+// ===== 📥 นำเข้าตารางเวรจาก Google Sheet (CSV) — v3.101 =====
+// รูปแบบชีต: คอลัมน์ สาขา | พนักงาน | วันที่ 1..31 · ช่อง = เวลา "7-21" · ว่าง/off/หยุด/ลา = ไม่มีเวร
+const SCHED_MONTHS_TH=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const SCHED_OFF_WORDS=['off','หยุด','ลา','พักร้อน','ว่าง','x','-','–','—','ปิด'];
+const SCHED_BRANCH_KEYS=[
+  {i:0,keys:['ทรัพย์พัฒนา','ทรัพย์','ท']},
+  {i:1,keys:['บางปู','บ']},
+  {i:2,keys:['อินดี้','อินดี','อ']},
+];
+function schedMatchBranch(token){
+  if(token==null)return null;
+  const t=String(token).replace(/[🟢🔵🟡⬛⬜\s]/g,'').trim();
+  if(!t)return null;
+  if(/^[012]$/.test(t))return +t;
+  for(const b of SCHED_BRANCH_KEYS)for(const k of b.keys){if(t===k||t.startsWith(k))return b.i;}
+  return null;
+}
+function schedParseTime(cell){
+  const m=String(cell).match(/(\d{1,2})(?:[.:](\d{1,2}))?\s*[-–—]\s*(\d{1,2})(?:[.:](\d{1,2}))?/);
+  if(!m)return null;
+  const h1=+m[1],m1=m[2]!=null?+m[2]:0,h2=+m[3],m2=m[4]!=null?+m[4]:0;
+  if(h1>23||h2>23||m1>59||m2>59)return null;
+  const p=n=>String(n).padStart(2,'0');
+  return {start:`${p(h1)}:${p(m1)}`,end:`${p(h2)}:${p(m2)}`};
+}
+function schedParseCsv(text){
+  const rows=[];let row=[],field='',i=0,q=false;
+  text=String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n');
+  while(i<text.length){
+    const c=text[i];
+    if(q){ if(c==='"'){if(text[i+1]==='"'){field+='"';i+=2;continue;}q=false;i++;continue;} field+=c;i++;continue; }
+    if(c==='"'){q=true;i++;continue;}
+    if(c===','){row.push(field);field='';i++;continue;}
+    if(c==='\n'){row.push(field);rows.push(row);row=[];field='';i++;continue;}
+    field+=c;i++;
+  }
+  row.push(field);rows.push(row);
+  return rows.filter(r=>r.some(x=>String(x).trim()!==''));
+}
+function schedParseSheet(rows,year,month){
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  let hidx=-1;
+  for(let r=0;r<Math.min(rows.length,8);r++){if(rows[r].some(c=>['พนักงาน','ชื่อ'].includes(String(c).trim()))){hidx=r;break;}}
+  if(hidx<0)hidx=0;
+  const header=rows[hidx].map(c=>String(c).trim());
+  const branchCol=header.findIndex(c=>c==='สาขา');
+  let nameCol=header.findIndex(c=>c==='พนักงาน'||c==='ชื่อ');
+  if(nameCol<0)nameCol=(branchCol>=0?branchCol+1:0);
+  const dayCols={};
+  header.forEach((c,ci)=>{ if(ci===branchCol||ci===nameCol)return; const mm=String(c).match(/\d{1,2}/); if(mm){const d=+mm[0];if(d>=1&&d<=daysInMonth)dayCols[ci]=d;} });
+  const p2=n=>String(n).padStart(2,'0');
+  const outShifts=[],errors=[],names=[];const nameSet=new Set();
+  let curBranch=null;
+  for(let r=hidx+1;r<rows.length;r++){
+    const row=rows[r];
+    if(branchCol>=0){const bt=String(row[branchCol]||'').trim();if(bt){const bi=schedMatchBranch(bt);if(bi!=null)curBranch=bi;else errors.push(`สาขา "${bt}" ไม่รู้จัก (แถว ${r+1})`);}}
+    const name=String(row[nameCol]||'').trim();
+    if(!name)continue;
+    if(!nameSet.has(name)){nameSet.add(name);names.push(name);}
+    for(const ci in dayCols){
+      const day=dayCols[ci];
+      const raw=String(row[ci]||'').trim();
+      if(!raw||SCHED_OFF_WORDS.includes(raw.toLowerCase()))continue;
+      let cellBranch=curBranch;
+      const tok=raw.match(/^([^\d]+?)\s*(\d.*)$/);
+      if(tok){const bi=schedMatchBranch(tok[1]);if(bi!=null)cellBranch=bi;}
+      const tm=schedParseTime(raw);
+      if(!tm){errors.push(`${name} วันที่ ${day}: "${raw}" อ่านเวลาไม่ได้`);continue;}
+      if(cellBranch==null){errors.push(`${name} วันที่ ${day}: ไม่รู้สาขา ("${raw}")`);continue;}
+      outShifts.push({name,branch:cellBranch,date:`${year}-${p2(month+1)}-${p2(day)}`,start:tm.start,end:tm.end});
+    }
+  }
+  return {shifts:outShifts,errors,names,daysInMonth,dayCount:Object.keys(dayCols).length,branchCol};
+}
+function schedMatchMember(name){
+  const n=String(name).trim();const mem=allMembers||[];
+  let m=mem.find(x=>(x.nickname||'').trim()===n);
+  if(!m)m=mem.find(x=>(x.firstName||'').trim()===n);
+  if(!m&&n.length>=2)m=mem.find(x=>{const nk=(x.nickname||'').trim();return nk&&(nk.startsWith(n)||n.startsWith(nk));});
+  return m?m.uid:null;
+}
+// แปลงลิงก์ CSV → ลิงก์เปิดดูชีต (best-effort)
+function schedCsvToView(url){
+  if(!url)return '';
+  let u=url.replace(/\/pub\?([^#]*&)?output=csv/,'/pubhtml').replace(/([?&])output=csv/,'').replace(/\/export\?([^#]*&)?format=csv/,'/edit');
+  return u;
+}
+window.schedOpenSheet=function(){
+  const v=localStorage.getItem('nm_schedSheetView')||schedCsvToView(localStorage.getItem('nm_schedCsvUrl')||'');
+  if(!v){showToast('ยังไม่มีลิงก์ชีต — กด "นำเข้าจากชีต" แล้ววางลิงก์ก่อน','err');return;}
+  window.open(v,'_blank');
+};
+window.schedImportPrompt=function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const savedUrl=localStorage.getItem('nm_schedCsvUrl')||'';
+  const now=new Date();
+  const yOpts=[];for(let y=now.getFullYear()-1;y<=now.getFullYear()+1;y++)yOpts.push(y);
+  window._schedImp={year:scYear,month:scMonth};
+  openModal(`<div class="modal-title">📥 นำเข้าตารางเวรจาก Google Sheet</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">วางลิงก์ CSV ที่เผยแพร่จากชีต → เลือกเดือน → อ่าน → ตรวจ → ยืนยัน (ทับเวรของเดือนที่เลือก)</div>
+    <div class="field-row">
+      <div class="field"><label class="fl">เดือน</label><select id="simp-month">${SCHED_MONTHS_TH.map((m,i)=>`<option value="${i}"${i===scMonth?' selected':''}>${m}</option>`).join('')}</select></div>
+      <div class="field"><label class="fl">ปี (ค.ศ.)</label><select id="simp-year">${yOpts.map(y=>`<option value="${y}"${y===scYear?' selected':''}>${y} (${y+543})</option>`).join('')}</select></div>
+    </div>
+    <div class="field"><label class="fl">ลิงก์ CSV จากชีต</label><input type="text" id="simp-url" placeholder="https://docs.google.com/…/pub?output=csv" value="${savedUrl.replace(/"/g,'&quot;')}"></div>
+    <details style="margin-bottom:10px"><summary style="font-size:12px;color:var(--green-d);cursor:pointer;font-weight:700">หรือวางข้อความ CSV ตรงๆ (ถ้าลิงก์อ่านไม่ได้)</summary>
+      <textarea id="simp-paste" rows="4" placeholder="วางเนื้อหา CSV ทั้งหมดที่นี่" style="width:100%;margin-top:7px;font-family:var(--mono);font-size:11px;border:1px solid var(--border2);border-radius:9px;padding:8px"></textarea></details>
+    <button class="btn btn-primary" style="width:100%" onclick="schedImportRead()">🔍 อ่านชีต</button>
+    <div id="simp-result" style="margin-top:13px"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+};
+window.schedImportRead=async function(){
+  const month=+document.getElementById('simp-month').value, year=+document.getElementById('simp-year').value;
+  const url=document.getElementById('simp-url').value.trim();
+  const paste=document.getElementById('simp-paste')?.value.trim()||'';
+  const box=document.getElementById('simp-result');
+  box.innerHTML='<div style="text-align:center;color:var(--text3);font-size:13px;padding:1rem">กำลังอ่าน...</div>';
+  let text=paste;
+  if(!text){
+    if(!url){box.innerHTML='<div style="color:var(--red-t);font-size:12.5px">ใส่ลิงก์ หรือวางข้อความ CSV</div>';return;}
+    try{ const res=await fetch(url); if(!res.ok)throw new Error('HTTP '+res.status); text=await res.text(); }
+    catch(e){ box.innerHTML=`<div style="background:var(--red-l);color:var(--red-t);border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.7">อ่านลิงก์ไม่ได้ (${e.message})<br>• เช็คว่าเผยแพร่เป็น <b>CSV</b> แล้ว (ไฟล์›แชร์›เผยแพร่ไปยังเว็บ)<br>• หรือก๊อปข้อมูลในชีตมาวางในช่อง "วางข้อความ CSV ตรงๆ" ด้านบน</div>`; return; }
+  }
+  let rows;try{rows=schedParseCsv(text);}catch(e){box.innerHTML='<div style="color:var(--red-t);font-size:12.5px">อ่าน CSV ไม่ได้</div>';return;}
+  if(!rows.length){box.innerHTML='<div style="color:var(--red-t);font-size:12.5px">ไม่พบข้อมูลในชีต</div>';return;}
+  const parsed=schedParseSheet(rows,year,month);
+  if(!parsed.dayCount){box.innerHTML='<div style="background:var(--amber-l);color:var(--amber-t);border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.7">ไม่พบคอลัมน์วันที่ (1–31) ในหัวตาราง — เช็คว่าแถวหัวมีเลขวัน และมีคอลัมน์ "พนักงาน"</div>';return;}
+  // จับคู่ชื่ออัตโนมัติ
+  const mapping={};parsed.names.forEach(n=>{mapping[n]=schedMatchMember(n);});
+  window._schedImp={year,month,url,parsed,mapping};
+  if(url)localStorage.setItem('nm_schedCsvUrl',url);
+  schedImportRenderPreview();
+};
+function schedImportRenderPreview(){
+  const S=window._schedImp;if(!S||!S.parsed)return;
+  const {parsed,mapping,year,month}=S;
+  const memOpts=(sel)=>`<option value="">— ข้าม —</option>`+(allMembers||[]).map(m=>`<option value="${m.uid}"${sel===m.uid?' selected':''}>${(m.nickname||m.firstName||m.uid)}</option>`).join('');
+  const mapRows=parsed.names.map(n=>{
+    const uid=mapping[n];const ok=!!uid;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12.5px">
+      <span style="font-weight:700;min-width:64px">${n}</span><span style="color:var(--text3)">→</span>
+      <select data-name="${n.replace(/"/g,'&quot;')}" onchange="schedImportRemap(this)" style="flex:1;padding:5px 8px;font-size:12px;${ok?'':'border-color:var(--amber);background:var(--amber-l)'}">${memOpts(uid)}</select>
+      ${ok?'<span style="color:var(--green-d)">✓</span>':'<span style="color:var(--amber-t);font-size:11px">เลือกคน</span>'}
+    </div>`;
+  }).join('');
+  const matched=parsed.shifts.filter(s=>mapping[s.name]);
+  const uniq=new Set(matched.map(s=>mapping[s.name]+'|'+s.date));
+  const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
+  const existing=shifts.filter(s=>(s.date||'').startsWith(monthStr));
+  const errBox=parsed.errors.length?`<div style="background:var(--amber-l);color:var(--amber-t);border-radius:10px;padding:9px 12px;font-size:11.5px;line-height:1.7;margin-top:9px;max-height:120px;overflow:auto">⚠️ ข้าม ${parsed.errors.length} จุด:<br>${parsed.errors.slice(0,12).map(e=>'• '+e).join('<br>')}${parsed.errors.length>12?'<br>…':''}</div>`:'';
+  document.getElementById('simp-result').innerHTML=`
+    <div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:12px;padding:11px 13px;margin-bottom:11px;font-size:12.5px;line-height:1.9">
+      <div style="display:flex;justify-content:space-between"><span>👥 พนักงานในชีต</span><b>${parsed.names.length} คน</b></div>
+      <div style="display:flex;justify-content:space-between"><span>🗓️ เวรที่อ่านได้</span><b>${parsed.shifts.length} เวร</b></div>
+      <div style="display:flex;justify-content:space-between"><span>📅 เดือนที่จะลง</span><b>${SCHED_MONTHS_TH[month]} ${year+543}</b></div>
+    </div>
+    <div style="font-size:12px;font-weight:800;color:var(--text2);margin-bottom:5px">จับคู่ชื่อ ↔ พนักงานในระบบ</div>
+    ${mapRows}
+    ${errBox}
+    <div style="background:var(--bg);border-radius:11px;padding:11px 13px;margin-top:11px;font-size:12.5px;line-height:1.8">
+      <div>✅ พร้อมนำเข้า <b style="color:var(--green-dd)">${uniq.size} เวร</b> (จับคู่ชื่อได้ ${parsed.names.filter(n=>mapping[n]).length}/${parsed.names.length} คน)</div>
+      <div style="color:var(--amber-t)">⚠️ จะ<b>ลบเวรเดิมของเดือนนี้ทั้งหมด ${existing.length} เวร</b> แล้วแทนด้วยชีต</div>
+    </div>
+    <button class="btn btn-primary" style="width:100%;margin-top:11px" onclick="schedImportConfirm()">✅ นำเข้า (ทับเวรเดือน ${SCHED_MONTHS_TH[month]})</button>`;
+}
+window.schedImportRemap=function(sel){
+  const S=window._schedImp;if(!S)return;
+  S.mapping[sel.dataset.name]=sel.value||null;
+  schedImportRenderPreview();
+};
+window.schedImportConfirm=async function(){
+  const S=window._schedImp;if(!S||!S.parsed){showToast('อ่านชีตก่อน','err');return;}
+  const {parsed,mapping,year,month}=S;
+  const monthStr=`${year}-${String(month+1).padStart(2,'0')}`;
+  // สร้างเวรใหม่ (dedup 1 คน/วัน — ตัวหลังทับ)
+  const byKey={};
+  parsed.shifts.forEach(s=>{const uid=mapping[s.name];if(!uid)return;byKey[uid+'|'+s.date]={uid,branch:s.branch,date:s.date,start:s.start,end:s.end};});
+  const newShifts=Object.values(byKey).map((s,idx)=>({id:'s_'+Date.now()+'_'+idx+'_'+Math.random().toString(36).slice(2,6),staffId:s.uid,branch:s.branch,date:s.date,start:s.start,end:s.end}));
+  const existing=shifts.filter(s=>(s.date||'').startsWith(monthStr));
+  // เตือนคนที่มีเวรเดิมแต่ไม่อยู่ในชีต (จะโดนลบ)
+  const sheetUids=new Set(newShifts.map(s=>s.staffId));
+  const lostUids=[...new Set(existing.filter(s=>s.staffId&&!sheetUids.has(s.staffId)).map(s=>s.staffId))];
+  const lostNames=lostUids.map(u=>memberShort(u)).filter(Boolean);
+  const tempLost=existing.filter(s=>s.tempName).length;
+  let warn='';
+  if(lostNames.length)warn+=`\n⚠️ คนที่มีเวรเดือนนี้แต่ไม่อยู่ในชีต จะถูกลบด้วย: ${lostNames.join(', ')}`;
+  if(tempLost)warn+=`\n⚠️ เวรพนักงานชั่วคราว ${tempLost} เวร จะถูกลบ`;
+  if(!await capsuleConfirm(`นำเข้า ${newShifts.length} เวร เข้าเดือน ${SCHED_MONTHS_TH[month]} ${year+543}?\nจะลบเวรเดิมของเดือนนี้ ${existing.length} เวร แล้วแทนด้วยชีต${warn}`))return;
+  shifts=shifts.filter(s=>!(s.date||'').startsWith(monthStr)).concat(newShifts);
+  if(S.url){localStorage.setItem('nm_schedCsvUrl',S.url);localStorage.setItem('nm_schedSheetView',schedCsvToView(S.url));}
+  saveLocal();syncShiftsToCloud();
+  scYear=year;scMonth=month;
+  closeMD();scRender();
+  showToast(`นำเข้าแล้ว ${newShifts.length} เวร ✓`);
+  if(typeof logActivity==='function')logActivity('schedule_import',`นำเข้าตารางเวร ${SCHED_MONTHS_TH[month]} ${year+543} (${newShifts.length} เวร)`);
+};
+
 function scDropStaff(ds,d){
   if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   let staffId=null,tempName=null,branch=0;
@@ -8785,23 +8992,22 @@ async function renderHomeGuide(){
   const salesLogged=!!(se&&se.total>0);
   const steps=[{k:'เช็คอิน',done:checkedIn},{k:'เปิดร้าน',done:opened},{k:'ลงยอด',done:salesLogged},{k:'ปิดร้าน',done:closed},{k:'เช็คเอาท์',done:checkedOut}];
   const nowIdx=steps.findIndex(s=>!s.done);
-  const track=`<div style="display:flex;gap:5px;margin-top:16px">`+steps.map((s,i)=>{
-    const bg=s.done?'#fff':(i===nowIdx?'#fff':'rgba(255,255,255,.3)');
-    return `<div style="flex:1;text-align:center"><div style="height:5px;border-radius:3px;background:${bg};${i===nowIdx&&!s.done?'box-shadow:0 0 0 2px rgba(255,255,255,.4)':''};margin-bottom:5px"></div><div style="font-size:9.5px;font-weight:600;opacity:${s.done||i===nowIdx?'1':'.8'}">${s.k}</div></div>`;
-  }).join('')+`</div>`;
-  const wrap=(inner)=>`<div style="background:linear-gradient(140deg,#23B895,#127C62);border-radius:22px;padding:20px;color:#fff;margin-bottom:1.1rem;box-shadow:0 10px 26px rgba(31,174,139,.28)">${inner}</div>`;
-  const cta=(label,act)=>`<button onclick="guideGo('${act}',${branch})" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:15px;background:#fff;color:var(--green-dd);border:none;border-radius:14px;padding:15px;font-family:var(--font);font-weight:800;font-size:15.5px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.12)">${label}</button>`;
-  const lbl=(t)=>`<div style="font-size:11.5px;font-weight:700;letter-spacing:1px;opacity:.9">${t}</div>`;
-  let inner;
-  if(!checkedIn) inner=lbl('ขั้นต่อไปของคุณ')+`<div style="font-size:38px;margin:6px 0 2px">📍</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">เช็คอินเข้างาน</div><div style="font-size:13px;opacity:.94;margin-top:4px">เริ่มต้นวันด้วยการลงเวลาเข้างาน</div>${cta('เช็คอินเลย →','checkin')}${track}`;
-  else if(!opened) inner=lbl('ขั้นต่อไปของคุณ')+`<div style="font-size:38px;margin:6px 0 2px">☀️</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">เปิดร้าน — นับเงินลิ้นชัก</div><div style="font-size:13px;opacity:.94;margin-top:4px">เช็คอินแล้ว · นับเงินตั้งต้นในลิ้นชัก</div>${cta('เปิดร้านเลย →','open')}${track}`;
-  else if(!closed){
-    const dual=`<div style="display:flex;gap:9px;margin-top:15px">${salesLogged?'':`<button onclick="guideGo('sales',${branch})" style="flex:1;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:13px;padding:13px;font-family:var(--font);font-weight:700;font-size:13.5px;cursor:pointer">💰 ลงยอดขาย</button>`}<button onclick="guideGo('close',${branch})" style="flex:1;background:#fff;color:var(--green-dd);border:none;border-radius:13px;padding:13px;font-family:var(--font);font-weight:800;font-size:13.5px;cursor:pointer">🌙 ปิดร้าน</button></div>`;
-    inner=lbl('เปิดร้านแล้ว · กำลังขายของ 🛒')+`<div style="font-size:38px;margin:6px 0 2px">🧰</div><div style="font-size:20px;font-weight:800;font-family:var(--disp)">${salesLogged?'ตอนเลิกงาน มาปิดร้าน':'ตอนเลิกงาน: ลงยอด แล้วปิดร้าน'}</div><div style="font-size:13px;opacity:.94;margin-top:4px">นับเงินจริงเทียบยอด ระบบเช็คให้ว่าตรงไหม</div>${dual}${track}`;
+  // v4.0 layout B — แถบ "ถึงคิวทำ" แบบบาง (แทนการ์ดใหญ่)
+  let st;
+  if(!checkedIn) st={em:'📍',lbl:'ถึงคิวทำ · เช็คอิน',title:'เช็คอินเข้างาน',cta:'เช็คอิน',act:'checkin'};
+  else if(!opened) st={em:'☀️',lbl:'ถึงคิวทำ · เปิดร้าน',title:'เปิดร้าน — นับเงินลิ้นชัก',cta:'เปิดร้าน',act:'open'};
+  else if(!closed) st=salesLogged?{em:'🌙',lbl:'เปิดร้านแล้ว · กำลังขาย',title:'ตอนเลิกงาน มาปิดร้าน',cta:'ปิดร้าน',act:'close'}:{em:'💰',lbl:'เปิดร้านแล้ว · กำลังขาย',title:'ลงยอดขายวันนี้',cta:'ลงยอด',act:'sales'};
+  else if(!checkedOut) st={em:'📍',lbl:'ขั้นสุดท้าย',title:'เช็คเอาท์ออกงาน',cta:'เช็คเอาท์',act:'checkout'};
+  else st=null;
+  if(!st){
+    box.innerHTML=`<div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:16px;padding:14px 15px;margin-bottom:1.1rem;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🎉</span><div><div style="font-size:15px;font-weight:800;font-family:var(--disp);color:var(--green-dd)">วันนี้เรียบร้อยแล้ว!</div><div style="font-size:12px;color:var(--green-d)">ทำครบทุกอย่างแล้ว เก่งมาก ขอบคุณนะ 💚</div></div></div>`;
+    return;
   }
-  else if(!checkedOut) inner=lbl('ขั้นสุดท้าย')+`<div style="font-size:38px;margin:6px 0 2px">📍</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">เช็คเอาท์ออกงาน</div><div style="font-size:13px;opacity:.94;margin-top:4px">ปิดร้านแล้ว · ลงเวลาออกงานก่อนกลับบ้าน</div>${cta('เช็คเอาท์เลย →','checkout')}${track}`;
-  else inner=`<div style="text-align:center;padding:6px 0"><div style="font-size:46px">🎉</div><div style="font-size:22px;font-weight:800;font-family:var(--disp)">วันนี้เรียบร้อยแล้ว!</div><div style="font-size:13px;opacity:.94;margin-top:4px">ทำครบทุกอย่างแล้ว เก่งมาก ขอบคุณนะ 💚</div></div>`;
-  box.innerHTML=wrap(inner);
+  box.innerHTML=`<div onclick="guideGo('${st.act}',${branch})" style="background:linear-gradient(140deg,#26C29D,#0F6E56);border-radius:16px;padding:14px 15px;color:#fff;margin-bottom:1.1rem;box-shadow:0 10px 24px rgba(15,110,86,.26);display:flex;align-items:center;gap:12px;cursor:pointer">
+    <span style="font-size:26px;flex-shrink:0">${st.em}</span>
+    <div style="flex:1;min-width:0"><div style="font-size:10.5px;font-weight:700;letter-spacing:.4px;opacity:.9">● ${st.lbl}</div><div style="font-size:16px;font-weight:800;font-family:var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${st.title}</div></div>
+    <span style="background:#fff;color:var(--green-dd);border-radius:11px;padding:9px 14px;font-weight:800;font-size:13px;white-space:nowrap;flex-shrink:0">${st.cta} →</span>
+  </div>`;
 }
 window.guideGo=function(act,branch){
   // โหมดแอดมิน "ดูระบบแบบพนักงาน" = ดูเฉยๆ ไม่ทำงานจริง (กันบันทึกข้อมูลจริงโดยไม่ตั้งใจ)
@@ -8939,9 +9145,12 @@ function renderHome(){
       <div style="font-size:25px;font-weight:600;font-family:var(--disp);color:var(--text)">${myName}</div>
       <div style="font-size:12px;color:var(--text3);margin-top:2px">${isAdmin?'ผู้ดูแลระบบ':'พนักงาน'} · วัน${dc.name}</div>
     </div>
-    <div style="width:46px;height:46px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;position:relative">
-      ${myName.charAt(0).toUpperCase()}
-      <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
+    <div style="display:flex;align-items:center;gap:10px">
+      ${(profile&&profile.branch!=null&&BRANCHES[profile.branch])?`<span style="font-size:11px;font-weight:700;color:${BCOLORS[profile.branch]};background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:5px 11px;white-space:nowrap">● ${BRANCHES[profile.branch]}</span>`:''}
+      <div style="width:46px;height:46px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;position:relative">
+        ${myName.charAt(0).toUpperCase()}
+        <span style="position:absolute;bottom:1px;right:1px;width:12px;height:12px;background:#22C55E;border-radius:50%;border:2px solid var(--surface)"></span>
+      </div>
     </div>
   </div>`;
   html+=`<div id="home-guide"></div>`;
@@ -9069,7 +9278,7 @@ function renderHome(){
   const daily=inOrder('daily'),tools=inOrder('tool'),adminF=inOrder('admin');
   const secHead=(t,extra='')=>`<div style="display:flex;align-items:center;justify-content:space-between;margin:1.5rem 2px .85rem"><div style="font-family:var(--disp);font-weight:600;font-size:16px;color:var(--text)">${t}</div>${extra}</div>`;
   let menuHtml='';
-  if(daily.length){menuHtml+=secHead('ใช้บ่อย');menuHtml+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:11px">${daily.map((f,i)=>featBigTile(f,i)).join('')}</div>`;}
+  if(daily.length){menuHtml+=secHead('ใช้บ่อย');menuHtml+=daily.map((f,i)=>featRowBtn(f,i)).join('');}
   if(tools.length){menuHtml+=secHead('เครื่องมือเภสัช');menuHtml+=tools.map((f,i)=>featRowBtn(f,i)).join('');}
   if(adminF.length){menuHtml+=secHead('จัดการร้าน','<span style="font-size:12px;color:var(--rose-d);font-weight:600">admin</span>');menuHtml+=adminF.map((f,i)=>featRowBtn(f,i)).join('');}
   menuHtml+=`<button onclick="goto('cat-more')" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:1.1rem;padding:13px;border-radius:16px;border:1px dashed var(--border2);background:transparent;color:var(--text2);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">ดูเมนูทั้งหมด · เพิ่มเติม ›</button>`;
