@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.109.0';
+const APP_VERSION='3.110.0';
 const CHANGELOG=[
+  {v:'3.110.0',date:'2026-07-08',changes:['🌙 ปรับ flow "ปิดร้าน" ใหม่ตามที่คุยกัน — สลับลำดับให้ "นับเงินลิ้นชักก่อน แล้วค่อยเก็บเข้าเซฟ": (ขั้น 2) นับเงินในลิ้นชักได้จริงเท่าไหร่ ระบบเทียบกับที่ควรมี บอก ตรง/ขาด/เกิน ทันที → (ขั้น 3) ระบบแนะนำยอดที่ควรเก็บเข้าเซฟ (ให้ลิ้นชักเหลือเท่าเงินแคชเชียร์มาตรฐาน) แก้ได้/ข้ามได้ แล้วปิดร้าน · ผลต่าง (ขาด/เกิน) อิงยอดที่นับจริง ไม่ใช่ยอดที่ระบบเดา · ⚠️ เป็นเรื่องเงิน — ทดสอบเปิด/ปิดร้านจริงสัก 1 รอบก่อนใช้เต็มตัว (ตรวจสูตรด้วยการจำลอง 6 กรณีผ่านหมดแล้ว)']},
   {v:'3.109.0',date:'2026-07-07',changes:['🐞 แก้บั๊กหน้า "จัดการสมาชิก" — คอลัมน์ "อีเมล" เดิมแสดงวันเกิดผิด (วันเกิดโผล่ 2 ช่อง) ตอนนี้แสดงอีเมลถูกต้องตามหัวตาราง']},
   {v:'3.108.0',date:'2026-07-07',changes:['🏖️ หน้า "ขอลา" — ประวัติการลาแสดงเป็นการ์ดพร้อม "ป้ายสถานะ" ชัดเจน (🟡 รออนุมัติ · 🟢 อนุมัติแล้ว · 🔴 ไม่อนุมัติ) เห็นทันทีว่าคำขอไหนผ่านแล้ว · ข้อมูลและปุ่มยกเลิกเหมือนเดิม']},
   {v:'3.107.0',date:'2026-07-07',changes:['💳 ปรับหน้าตาการ์ด 3 กองเงิน (สำรอง/ลิ้นชัก/ตู้เซฟ) ให้ดูพรีเมียมขึ้น — มีแถบสีซ้ายบอกกองชัดเจน ตัวเลขใหญ่อ่านง่าย · เป็นแค่การเปลี่ยนหน้าตา ยอดเงินและการคำนวณเหมือนเดิมทุกอย่าง']},
@@ -6190,43 +6191,48 @@ window.cashCWSaveSales=async function(){
   }catch(e){showToast('บันทึกยอดไม่สำเร็จ: '+(e?.message||e),'err');}
   finally{_cashBusy=false;}
 };
-// ขั้น 2 — ระบบคิดยอดตัดเข้าเซฟให้เอง → พนักงาน verify หรือกรอกเอง
+// ขั้น 2 — นับเงินลิ้นชักจริงก่อน (นับได้เท่าไหร่ → เทียบ ตรง/ขาด/เกิน) แล้วค่อยเก็บเข้าเซฟในขั้น 3
 window.cashCWStep2=function(){
   const branch=window._ccwB;
   const st=cashGet(branch);
-  const exp=cashExpectedClose(branch);          // ลิ้นชักควรมีตอนนี้
-  const tgt=cashCfg.floatTarget||0;
-  const cut=Math.max(0,Math.round((exp-tgt)*100)/100);
+  const exp=Math.round(cashExpectedClose(branch)*100)/100;   // ลิ้นชักควรมีตอนนี้ (ก่อนเก็บเข้าเซฟรอบนี้)
   const dep=cashSumToday(branch,'deposit');
+  window._ccwExp=exp;
   const rows=`<div style="background:var(--bg);border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:12.5px;line-height:1.95">
       <div style="display:flex;justify-content:space-between"><span>เงินแคชเชียร์ (เปิดร้าน)</span><b style="font-family:var(--mono)">฿${fmt(st.openDrawer||0)}</b></div>
+      ${cashSumToday(branch,'r2d')>0?`<div style="display:flex;justify-content:space-between"><span>+ เบิกจากสำรอง</span><b style="font-family:var(--mono)">฿${fmt(cashSumToday(branch,'r2d'))}</b></div>`:''}
       <div style="display:flex;justify-content:space-between"><span>+ ขายเงินสดวันนี้</span><b style="font-family:var(--mono)">฿${fmt(cashSalesToday(branch))}</b></div>
       ${cashExpenseDrawerToday(branch)>0?`<div style="display:flex;justify-content:space-between"><span>− เบิกซื้อของ (ลิ้นชัก)</span><b style="font-family:var(--mono)">฿${fmt(cashExpenseDrawerToday(branch))}</b></div>`:''}
       ${dep>0?`<div style="display:flex;justify-content:space-between"><span>− เก็บเข้าเซฟไปแล้ว</span><b style="font-family:var(--mono)">฿${fmt(dep)}</b></div>`:''}
-      <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);padding-top:5px;margin-top:4px"><span style="font-weight:700">ลิ้นชักตอนนี้ควรมี</span><b style="font-family:var(--mono);color:var(--green-d)">฿${fmt(exp)}</b></div>
+      <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);padding-top:5px;margin-top:4px"><span style="font-weight:700">ลิ้นชักควรมี</span><b style="font-family:var(--mono);color:var(--green-d)">฿${fmt(exp)}</b></div>
     </div>`;
-  if(cut<=0){
-    openModal(`${_ccwHead(2,'ตัดเงินเข้าเซฟ')}${rows}
-      <div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:12px;padding:13px;text-align:center;font-size:13px;color:var(--green-dd);font-weight:600;margin-bottom:12px">✓ ลิ้นชักไม่เกินมาตรฐาน ฿${fmt(tgt)} — วันนี้ไม่ต้องตัดเข้าเซฟ</div>
-      <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px" onclick="cashCWStep3()">ถัดไป →</button>
-      <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button></div>`);
-    return;
-  }
-  openModal(`${_ccwHead(2,'ตัดเงินเข้าเซฟ')}${rows}
-    <div style="background:var(--blue-l);border:1.5px solid var(--blue);border-radius:14px;padding:15px;text-align:center;margin-bottom:12px">
-      <div style="font-size:12px;color:var(--blue-t);font-weight:600">🤖 ระบบคิดให้: ต้องตัดเข้าตู้เซฟ (ให้ลิ้นชักเหลือ ฿${fmt(tgt)})</div>
-      <div style="font-size:32px;font-weight:800;font-family:var(--disp);color:var(--blue-t);margin:3px 0">฿${fmt(cut)}</div>
-    </div>
-    <button class="btn btn-blue" style="width:100%;padding:13px;font-size:15px" onclick="cashCWDeposit(${cut})">✓ เก็บเข้าเซฟตามนี้</button>
-    <div style="display:flex;gap:8px;margin-top:8px">
-      <button class="btn" style="flex:1" onclick="document.getElementById('ccw-cut-box').style.display='block';this.style.display='none'">✏️ กรอกยอดเอง</button>
-      <button class="btn" style="flex:1" onclick="cashCWStep3()">ข้าม (ไม่ตัดวันนี้)</button>
-    </div>
-    <div id="ccw-cut-box" style="display:none;margin-top:10px">
-      <div class="field"><label class="fl">ยอดที่จะเก็บเข้าเซฟ (บาท)</label><input type="number" id="ccw-cut" min="0" inputmode="decimal" value="${cut}" style="font-size:19px;font-weight:700;background:var(--blue-l);border:1.5px solid var(--blue);border-radius:11px;padding:11px"></div>
-      <button class="btn btn-blue" style="width:100%" onclick="cashCWDeposit(parseFloat(document.getElementById('ccw-cut').value))">เก็บเข้าเซฟยอดนี้</button>
-    </div>
+  openModal(`${_ccwHead(2,'นับเงินลิ้นชัก')}${rows}
+    <div class="field"><label class="fl">🧮 นับเงินในลิ้นชักได้จริงทั้งหมด (บาท)</label>
+      <input type="number" id="ccw-count" min="0" inputmode="decimal" value="${exp}" oninput="cashCWCountDiff()" style="font-size:23px;font-weight:800;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:12px;padding:12px;text-align:center;width:100%"></div>
+    <div id="ccw-diff" style="text-align:center;font-size:13px;font-weight:700;margin:-2px 0 12px;min-height:20px"></div>
+    <button class="btn btn-primary" style="width:100%;padding:13px;font-size:15px" onclick="cashCWToStep3()">ถัดไป → เก็บเข้าเซฟ</button>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button></div>`);
+  setTimeout(()=>{cashCWCountDiff();const el=document.getElementById('ccw-count');if(el){el.focus();el.select();}},80);
+};
+// อัปเดตข้อความ ตรง/ขาด/เกิน สดๆ ตอนพิมพ์ยอดนับ
+window.cashCWCountDiff=function(){
+  const el=document.getElementById('ccw-diff');if(!el)return;
+  const exp=window._ccwExp||0;
+  const raw=document.getElementById('ccw-count')?.value;
+  if(raw===''||raw==null){el.textContent='';return;}
+  const d=Math.round((parseFloat(raw)-exp)*100)/100;
+  if(isNaN(d)){el.textContent='';return;}
+  if(d===0)el.innerHTML='<span style="color:#0F8A63">✓ ตรงกับที่ควรมีพอดี</span>';
+  else if(d>0)el.innerHTML=`<span style="color:#1E3A8A">เกิน ฿${fmt(Math.abs(d))} · ควรมี ฿${fmt(exp)}</span>`;
+  else el.innerHTML=`<span style="color:#C2410C">ขาด ฿${fmt(Math.abs(d))} · ควรมี ฿${fmt(exp)}</span>`;
+};
+window.cashCWToStep3=function(){
+  const raw=document.getElementById('ccw-count')?.value;
+  const c=parseFloat(raw);
+  if(raw===''||raw==null||isNaN(c)||c<0){showToast('กรอกยอดที่นับได้ก่อนนะ','err');return;}
+  window._ccwCounted=Math.round(c*100)/100;
+  window._ccwSkipDep=false;
+  cashCWStep3();
 };
 window.cashCWDeposit=async function(amt){
   if(_cashBusy)return;_cashBusy=true;
@@ -6245,21 +6251,75 @@ window.cashCWDeposit=async function(amt){
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
   finally{_cashBusy=false;}
 };
-// ขั้น 3 — ยืนยันลิ้นชักเหลือตามมาตรฐาน ปุ่มเดียวจบ (ไม่ตรง → นับจริง)
+// ขั้น 3 — เก็บส่วนเกินเข้าเซฟ (อิงยอดที่นับได้จริงในขั้น 2) แล้วปิดร้าน
 window.cashCWStep3=function(){
   const branch=window._ccwB;
-  const exp=cashExpectedClose(branch);
+  const counted=Math.round((window._ccwCounted||0)*100)/100;
   const tgt=cashCfg.floatTarget||0;
-  const match=Math.abs(exp-tgt)<0.01;
-  openModal(`${_ccwHead(3,'ยืนยันจบวัน')}
-    <div style="text-align:center;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:16px;padding:18px 14px;margin-bottom:12px">
-      <div style="font-size:12.5px;color:var(--text2);font-weight:600">ลิ้นชักตอนนี้ควรเหลือ</div>
-      <div style="font-size:36px;font-weight:800;font-family:var(--disp);color:var(--green-dd);margin:2px 0">฿${fmt(exp)}</div>
-      <div style="font-size:11.5px;color:var(--text3)">${match?`ตรงกับเงินแคชเชียร์มาตรฐาน ฿${fmt(tgt)} — พร้อมเปิดพรุ่งนี้ทันที`:`(มาตรฐาน ฿${fmt(tgt)} — ${((cashGet(branch).openDrawer||0)+cashSumToday(branch,'r2d'))<tgt-0.01?`เพราะเปิดร้านวันนี้ด้วยยอด ฿${fmt(cashGet(branch).openDrawer||0)} ต่ำกว่ามาตรฐาน`:'ต่างเพราะยอดที่ตัด/เบิกวันนี้'})`}</div>
+  const suggest=Math.max(0,Math.round((counted-tgt)*100)/100);
+  const head=`${_ccwHead(3,'เก็บเข้าเซฟ')}
+    <div style="background:var(--bg);border-radius:12px;padding:11px 13px;margin-bottom:12px;font-size:13px;display:flex;justify-content:space-between"><span>🧮 นับเงินลิ้นชักได้</span><b style="font-family:var(--mono);color:var(--green-dd)">฿${fmt(counted)}</b></div>`;
+  if(suggest<=0){
+    openModal(`${head}
+      <div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:12px;padding:13px;text-align:center;font-size:13px;color:var(--green-dd);font-weight:600;margin-bottom:12px">✓ ลิ้นชักไม่เกินมาตรฐาน ฿${fmt(tgt)} — วันนี้ไม่ต้องเก็บเข้าเซฟ</div>
+      <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;border-radius:14px" onclick="window._ccwSkipDep=true;cashCWDone()">🌙 ปิดร้าน (คงเหลือ ฿${fmt(counted)})</button>
+      <div class="modal-footer"><button class="btn" onclick="cashCWStep2()">‹ กลับไปนับใหม่</button></div>`);
+    return;
+  }
+  openModal(`${head}
+    <div style="background:var(--blue-l);border:1.5px solid var(--blue);border-radius:14px;padding:15px;text-align:center;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--blue-t);font-weight:600">🤖 แนะนำ: เก็บส่วนเกินเข้าตู้เซฟ (ให้ลิ้นชักเหลือ ฿${fmt(tgt)})</div>
+      <div style="font-size:32px;font-weight:800;font-family:var(--disp);color:var(--blue-t);margin:3px 0">฿${fmt(suggest)}</div>
     </div>
-    <button class="btn btn-primary" style="width:100%;padding:15px;font-size:16px;border-radius:14px" onclick="cashDoCloseAmt(${branch},${exp})">✓ เหลือ ฿${fmt(exp)} ครบ — ปิดร้าน</button>
-    <button class="btn" style="width:100%;margin-top:8px" onclick="cashClosePrompt(${branch})">🪙 ไม่ตรง? นับจริงแยกชนิด</button>
+    <div class="field"><label class="fl">ยอดที่จะเก็บเข้าเซฟ (แก้ได้)</label><input type="number" id="ccw-dep" min="0" inputmode="decimal" value="${suggest}" oninput="cashCWDepLeft()" style="font-size:19px;font-weight:700;background:var(--blue-l);border:1.5px solid var(--blue);border-radius:11px;padding:11px;text-align:center;width:100%"></div>
+    <div id="ccw-dep-left" style="text-align:center;font-size:12px;color:var(--text3);margin:-2px 0 12px"></div>
+    <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px;border-radius:14px" onclick="window._ccwSkipDep=false;cashCWDone()">✓ เก็บเข้าเซฟ + ปิดร้าน 🌙</button>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn" style="flex:1" onclick="cashCWStep2()">‹ นับใหม่</button>
+      <button class="btn" style="flex:1" onclick="window._ccwSkipDep=true;cashCWDone()">ข้าม (ไม่เก็บ)</button>
+    </div>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button></div>`);
+  setTimeout(()=>cashCWDepLeft(),60);
+};
+window.cashCWDepLeft=function(){
+  const el=document.getElementById('ccw-dep-left');if(!el)return;
+  const counted=window._ccwCounted||0;
+  const dep=parseFloat(document.getElementById('ccw-dep')?.value)||0;
+  el.textContent=`ลิ้นชักจะเหลือ ฿${fmt(Math.round((counted-dep)*100)/100)}`;
+};
+// ปิดร้านจริง — บันทึก close (ยอดที่นับได้) ก่อน แล้วค่อยบันทึก deposit (เก็บเข้าเซฟ)
+// สำคัญ: บันทึก deposit "หลัง" close เสมอ → cashCloseCalc หัก deposit ก่อนหน้า close เท่านั้น ผลต่างจึงตรง (counted − ควรมี) ไม่ว่า ts จะชนกัน
+window.cashCWDone=async function(){
+  if(_cashBusy)return;
+  const branch=window._ccwB;
+  const counted=Math.round((window._ccwCounted||0)*100)/100;
+  let dep=window._ccwSkipDep?0:(parseFloat(document.getElementById('ccw-dep')?.value)||0);
+  dep=Math.max(0,Math.round(dep*100)/100);
+  if(dep>counted+0.01){showToast(`เก็บเข้าเซฟ ฿${fmt(dep)} เกินยอดที่นับได้ ฿${fmt(counted)} ไม่ได้`,'err');return;}
+  _cashBusy=true;
+  try{
+    const st=cashGet(branch);
+    const cashSales=cashSalesToday(branch);
+    const expected=Math.round(cashExpectedClose(branch)*100)/100;   // ยอดควรมี (ก่อนเก็บเข้าเซฟรอบนี้)
+    const diff=Math.round((counted-expected)*100)/100;
+    // 1) ปิดร้าน — บันทึกยอดที่นับได้จริง + ตั้งลิ้นชัก = counted
+    await cashSaveState(branch,{drawer:counted});
+    await cashAddEvent({branch,type:'close',amount:counted,counted,expected,diff,prevDrawer:st.drawer,cashSales,note:'นับลิ้นชักปิดร้าน'});
+    // 2) เก็บส่วนเกินเข้าเซฟ (บันทึกหลัง close)
+    if(dep>0){
+      const st2=cashGet(branch);
+      await cashSaveState(branch,{drawer:Math.round((counted-dep)*100)/100,safe:Math.round((st2.safe+dep)*100)/100});
+      await cashAddEvent({branch,type:'deposit',amount:dep,note:'ตัดเข้าเซฟตอนปิดร้าน'});
+    }
+    window._ccwSkipDep=false;
+    closeMD();renderCashPage();
+    const dt=diff===0?'เงินตรงพอดี ✓':(diff>0?`เกิน ฿${fmt(Math.abs(diff))}`:`ขาด ฿${fmt(Math.abs(diff))}`);
+    showToast(`ปิดร้านเรียบร้อย 🌙 ${dt}`);
+    logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับได้ ฿${fmt(counted)}${dep>0?` · เก็บเข้าเซฟ ฿${fmt(dep)}`:''} · คงเหลือ ฿${fmt(Math.round((counted-dep)*100)/100)}`);
+    if(window.refreshTodoStatus)refreshTodoStatus();
+    setTimeout(()=>showNextStep('close',branch),280);
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashDoCloseAmt=async function(branch,counted){
   if(_cashBusy)return;_cashBusy=true;
