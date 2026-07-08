@@ -1,0 +1,6 @@
+name = "mai-pharmacy"
+compatibility_date = "2025-06-01"
+
+# เว็บนี้เป็นไฟล์ static ล้วน (ไม่มี build) — บอก Cloudflare Workers ให้เสิร์ฟไฟล์ทั้งโฟลเดอร์
+[assets]
+directory = "."
