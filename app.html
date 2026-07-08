@@ -16,7 +16,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --green:#1FAE8B;--green-d:#147A60;--green-dd:#0C5544;--green-l:#E3F5EF;--green-ll:#F1FAF6;
+  --green:#4FBE8A;--green-d:#2E9E6D;--green-dd:#217A54;--green-l:#E3F6EC;--green-ll:#F0FAF4;
   --blue:#5B91D6;--blue-d:#3A6CB0;--blue-l:#E7F0FB;--blue-t:#274C82;
   --amber:#D8A657;--amber-l:#F8EFDD;--amber-t:#8A6418;
   --purple:#8B7FF0;--purple-l:#EFEDFE;--purple-t:#3C3489;
@@ -25,12 +25,12 @@
   --rose:#E07A93;--rose-d:#C85A75;--rose-l:#FBEAEF;
   --gold:#D8A657;--gold-l:#F8EFDD;
   --teal:#14B8C4;--teal-l:#D7F6F8;--teal-t:#0B5E66;
-  --bg:#FAF6F1;--surface:#FFFFFF;--border:#EFE9E1;--border2:#E3DACE;
-  --text:#3A332C;--text2:#857B6E;--text3:#B3A99B;--ink:#2A2520;
-  --r:18px;--rl:22px;--font:'IBM Plex Sans Thai','Noto Sans Thai',-apple-system,system-ui,sans-serif;--disp:'Noto Serif Thai',serif;
-  --shadow:0 2px 8px rgba(80,60,40,.04),0 8px 22px rgba(80,60,40,.06);
-  --shadow-md:0 8px 22px rgba(80,60,40,.08),0 20px 46px rgba(80,60,40,.10);
-  --grad-green:linear-gradient(140deg,#23B895,#127C62);
+  --bg:#EDF4EF;--surface:#FFFFFF;--border:#E4EAE6;--border2:#D6DED8;
+  --text:#37423C;--text2:#79837C;--text3:#A7AEA8;--ink:#2A322C;
+  --r:16px;--rl:20px;--font:'IBM Plex Sans Thai','Noto Sans Thai',-apple-system,system-ui,sans-serif;--disp:'Noto Serif Thai',serif;
+  --shadow:0 1px 2px rgba(60,80,68,.04),0 6px 16px rgba(60,80,68,.05);
+  --shadow-md:0 8px 22px rgba(60,80,68,.08),0 20px 46px rgba(60,80,68,.10);
+  --grad-green:linear-gradient(140deg,#5FD3A0,#3FA877);
   --grad-blue:linear-gradient(135deg,#5B91D6,#3A6CB0);
   --grad-amber:linear-gradient(135deg,#E0B36A,#D8A657);
   --grad-purple:linear-gradient(135deg,#8B7FF0,#6F5FE6);
@@ -66,26 +66,26 @@ body.dark .drag-row{background:var(--bg)}
 .fl-lang-btn{opacity:.55}
 .fl-lang-btn.active{opacity:1;background:var(--green);color:#fff;border-color:var(--green)}
 body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
-.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--sidebar-grad,linear-gradient(180deg,#0E5544,#0A3D31));display:flex;flex-direction:column;z-index:100;border-right:1px solid rgba(255,255,255,.08)}
-.sb-brand{padding:1.4rem 1.1rem;padding-top:calc(1.4rem + env(safe-area-inset-top));border-bottom:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:11px}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:240px;background:var(--sidebar-grad,var(--surface));display:flex;flex-direction:column;z-index:100;border-right:1px solid var(--border)}
+.sb-brand{padding:1.4rem 1.1rem;padding-top:calc(1.4rem + env(safe-area-inset-top));border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px}
 .sb-brand h1{font-family:var(--disp)}
 .sb-icon{width:40px;height:40px;background:var(--grad-green);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;box-shadow:0 4px 14px rgba(31,174,139,.35)}
-.sb-brand h1{font-size:16px;font-weight:700;color:#fff}
-.sb-brand p{font-size:11px;color:rgba(255,255,255,.35);margin-top:2px}
+.sb-brand h1{font-size:16px;font-weight:700;color:var(--text)}
+.sb-brand p{font-size:11px;color:var(--text3);margin-top:2px}
 .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
-.sb-sec{font-size:10px;font-weight:700;color:rgba(255,255,255,.22);letter-spacing:.1em;text-transform:uppercase;padding:.75rem .75rem .35rem;margin-top:.25rem}
-.sb-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;cursor:pointer;color:rgba(255,255,255,.45);font-size:13px;font-weight:500;transition:.12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
-.sb-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.8)}
-.sb-item.active{background:#fff;color:#0C5544;font-weight:600;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+.sb-sec{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;padding:.75rem .75rem .35rem;margin-top:.25rem}
+.sb-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.sb-item:hover{background:var(--green-ll);color:var(--text)}
+.sb-item.active{background:var(--green-l);color:var(--green-dd);font-weight:700}
 .sb-item.hidden{display:none}
 .sb-item svg{width:17px;height:17px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
-.sb-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,.07)}
+.sb-footer{padding:1rem .75rem;border-top:1px solid var(--border)}
 .sb-user{display:flex;align-items:center;gap:10px;padding:.5rem .75rem;border-radius:10px}
 .sb-avatar{width:36px;height:36px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
-.sb-uname{font-size:13px;font-weight:600;color:#fff;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sb-urole{font-size:11px;color:rgba(255,255,255,.35)}
-.sb-logout{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.3);padding:5px;border-radius:7px;transition:.12s}
-.sb-logout:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
+.sb-uname{font-size:13px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sb-urole{font-size:11px;color:var(--text3)}
+.sb-logout{background:none;border:none;cursor:pointer;color:var(--text3);padding:5px;border-radius:7px;transition:.12s}
+.sb-logout:hover{color:var(--text2);background:var(--green-ll)}
 .sb-logout svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block}
 .home-menu{display:none}
 .main{margin-left:0;padding:2rem;min-height:100vh}
@@ -1548,7 +1548,7 @@ const BRANCHES=['ทรัพย์พัฒนา','บางปู','อิน
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
 // ===== ระบบธีมส่วนตัว (per-user: mode + accent + size) =====
-const USER_THEME_DEFAULT={mode:'light',accent:'#1FAE8B',size:'normal'};
+const USER_THEME_DEFAULT={mode:'light',accent:'#4FBE8A',size:'normal'};
 let userThemeCfg={...USER_THEME_DEFAULT};
 let _systemDarkMQ=window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -1557,7 +1557,7 @@ function applyUserThemeCfg(cfg){
   const isDark=mode==='dark'||(mode==='system'&&_systemDarkMQ.matches);
   document.body.classList.toggle('dark',isDark);
   // accent color — override --green และ derived vars
-  const accent=cfg.accent||'#16B981';
+  const accent=cfg.accent||'#4FBE8A';
   const root=document.documentElement.style;
   root.setProperty('--green',accent);
   root.setProperty('--green-d',shadeColor(accent,-15));
@@ -1574,8 +1574,8 @@ function applyUserThemeCfg(cfg){
     else if(tone==='gray'){root.setProperty('--bg','#EEF0F2');root.setProperty('--surface','#FBFBFC');}
     else{root.setProperty('--bg',shadeColor(accent,93));root.setProperty('--surface',shadeColor(accent,98));}
   }
-  // ===== ตกแต่งตามธีม: แถบข้าง/หัวมือถือ/พื้นหลังนวล ใช้สีจาก accent =====
-  root.setProperty('--sidebar-grad',`linear-gradient(180deg,${shadeColor(accent,-42)},${shadeColor(accent,-60)})`);
+  // ===== ตกแต่งตามธีม: แถบเมนูซ้ายเป็นสีขาวสะอาด (v4) — ไม่ตั้ง --sidebar-grad ให้ใช้ค่าพื้นผิว (ขาว) =====
+  root.removeProperty('--sidebar-grad');
   root.setProperty('--accent-tint',shadeColor(accent,90));   // พื้นนวลโทนสีอ่อนมาก
   root.setProperty('--accent-soft',shadeColor(accent,80));   // ขอบ/แถบบางๆ
   // อัปเดตสี theme-color ของเบราว์เซอร์ (แถบ status มือถือ)
@@ -1624,8 +1624,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.112.0';
+const APP_VERSION='4.1.0';
 const CHANGELOG=[
+  {v:'4.1.0',date:'2026-07-08',changes:['🌿 เปลี่ยนโทนหน้าตา v4 เป็น "เขียวมิ้นต์ เรียบ สบายตา" (ตามที่เลือกจาก mockup) — เขียวสดอ่อนลง สบายตาขึ้น · พื้นหลังมิ้นต์จางๆ · แถบเมนูซ้าย (จอคอม) เปลี่ยนจากเขียวเข้มเป็น "ขาวสะอาด" เมนูที่เลือกไฮไลต์มิ้นต์ · การ์ด/ปุ่ม/เงา นุ่มสบายตา · เปลี่ยนพร้อมกันทุกหน้า (แก้ที่โทนสีกลาง) — หน้าตาล้วน ทุกฟังก์ชัน/ตัวเลข/การคำนวณเหมือนเดิม 100% · ปรับสีเองได้ในตั้งค่า (accent/สีพื้น/โหมดมืด)']},
+  {v:'4.0.0',date:'2026-07-08',changes:['🎉 ยกเครื่องหน้าตาทั้งแอปเป็น v4.0 — โทน "ขาวสะอาด มินิมอล" สไตล์แอปสมัยใหม่: พื้นเปลี่ยนจากครีมเป็นขาว-เทาเย็นสบายตา · แถบเมนูซ้าย (จอคอม) เป็นสีขาวสะอาด เมนูที่เลือกไฮไลต์เขียวอ่อน · การ์ด/ปุ่ม/เงา เนียนขึ้นทั้งแอป · ยังคงสีเขียวเป็นสีแบรนด์ · เปลี่ยนพร้อมกันทุกหน้า (แก้ที่โทนสีกลางทีเดียว) — ⚠️ เป็นการเปลี่ยน "หน้าตา" ล้วน ทุกฟังก์ชัน ปุ่ม ตัวเลข การคำนวณ เหมือนเดิมทุกอย่าง 100% · โหมดมืดยังใช้ได้ปกติ']},
   {v:'3.112.0',date:'2026-07-08',changes:['💸 เพิ่มปุ่ม "ทำรายการเงิน" (เมนู "เงินไปไหน") บนหน้าเงินสด — เลือกเป็นภาพว่าเงินจะไปไหน แทนการจำศัพท์เทคนิค: 🧰→🔒 เก็บเข้าตู้เซฟ · 🛒 เบิกซื้อของ · (แอดมิน) 💼→🧰 เบิกเงินทอนเข้าลิ้นชัก · 🏪→💼 เติมเข้าสำรอง · 🔒→🏦 นำออกจากเซฟ · แตะแล้วระบบพาทำต่อ (ใช้ระบบเดิมทั้งหมด ยอด/การคำนวณเหมือนเดิม) · ปุ่ม "เบิกซื้อของ" เดิมย้ายมารวมในเมนูนี้']},
   {v:'3.111.0',date:'2026-07-08',changes:['🌅 ปรับหน้า "เปิดร้าน" ให้เข้าชุดกับปิดร้าน — หน้าเดียวจบ: นับเงินในลิ้นชักตอนนี้ (ระบบเติมยอดที่คาดว่าจะมีให้ก่อน) → เทียบกับเงินเปิดร้านมาตรฐาน บอก ตรง/เกิน/ต่ำกว่า สดๆ → กดเปิดร้าน · ถ้าเงินเหลือจากวันก่อนไม่ตรงมาตรฐานมีคำเตือนให้ · ยอด/ส่วนต่างบันทึกเหมือนเดิม (แค่รวมปุ่มยืนยัน+นับจริงเป็นจอเดียว ใช้ง่ายขึ้น)']},
   {v:'3.110.0',date:'2026-07-08',changes:['🌙 ปรับ flow "ปิดร้าน" ใหม่ตามที่คุยกัน — สลับลำดับให้ "นับเงินลิ้นชักก่อน แล้วค่อยเก็บเข้าเซฟ": (ขั้น 2) นับเงินในลิ้นชักได้จริงเท่าไหร่ ระบบเทียบกับที่ควรมี บอก ตรง/ขาด/เกิน ทันที → (ขั้น 3) ระบบแนะนำยอดที่ควรเก็บเข้าเซฟ (ให้ลิ้นชักเหลือเท่าเงินแคชเชียร์มาตรฐาน) แก้ได้/ข้ามได้ แล้วปิดร้าน · ผลต่าง (ขาด/เกิน) อิงยอดที่นับจริง ไม่ใช่ยอดที่ระบบเดา · ⚠️ เป็นเรื่องเงิน — ทดสอบเปิด/ปิดร้านจริงสัก 1 รอบก่อนใช้เต็มตัว (ตรวจสูตรด้วยการจำลอง 6 กรณีผ่านหมดแล้ว)']},
@@ -2813,7 +2815,7 @@ function _miniHTML(st){
     : `<div style="background:#E3F5EF;border:1.5px solid #1FAE8B;border-radius:16px;padding:18px;text-align:center;color:#147A60">
          <div style="font-size:34px">🎉</div><div style="font-size:16px;font-weight:800;margin-top:3px">วันนี้เรียบร้อยแล้ว!</div>
          <div style="font-size:11.5px;color:#6E6458;margin-top:2px">ทำครบทุกอย่างแล้ว เก่งมาก 💚</div></div>`;
-  const qbtn=(id,ic,t)=>`<button id="${id}" style="background:#fff;border:1px solid #E3DACE;border-radius:11px;padding:10px 4px;font-weight:700;color:#3A332C;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px"><span style="font-size:18px">${ic}</span>${t}</button>`;
+  const qbtn=(id,ic,t)=>`<button id="${id}" style="background:var(--surface);border:1px solid var(--border2);border-radius:11px;padding:10px 4px;font-weight:700;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11.5px"><span style="font-size:18px">${ic}</span>${t}</button>`;
   return `
   <div style="background:linear-gradient(140deg,#23B895,#127C62);color:#fff;padding:13px 15px;display:flex;align-items:center;justify-content:space-between">
     <div style="display:flex;align-items:center;gap:8px"><span style="font-size:20px">💊</span><b style="font-size:15px">ใหม่เภสัช</b></div>
