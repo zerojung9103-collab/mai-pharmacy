@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.1.1';
+const APP_VERSION='4.2.0';
 const CHANGELOG=[
+  {v:'4.2.0',date:'2026-07-08',changes:['📅 เพิ่ม "รายงานรายวัน" (หน้ารายงาน — เฉพาะแอดมิน/ผู้มีสิทธิ์ดูยอด) — สรุปทั้ง 3 สาขาในหน้าเดียว: 💰 ยอดขายรวมวันนี้ + เทียบ %กับเมื่อวาน + แยกเงินสด/ช่องทางอื่น/จำนวนบิล · 📊 แยกยอดรายสาขาเป็นแถบ · 🌙 สถานะปิดร้านแต่ละสาขา (ตรง/ขาด/เกิน/ยังไม่ปิด) + เวลาปิด + เก็บเข้าเซฟ/เงินในเซฟรวม · 👥 ใครเข้างานวันนี้ (เวลาเข้า-ออก) + ใครลา · ⚠️ กล่อง "ต้องดู" เตือนสาขาที่ยังไม่ปิด/เงินขาด-เกิน · เลื่อนดูย้อนหลังได้ (‹ ก่อนหน้า / ถัดไป › หรือเลือกวันที่) · กด "ออก PDF" พิมพ์/บันทึกเป็นไฟล์ได้ · เป็นรายงาน "อ่านอย่างเดียว" ไม่แตะเงิน/ยอดใดๆ']},
   {v:'4.1.1',date:'2026-07-08',changes:['🖼️ แก้ปัญหา "อัปโลโก้แล้วไม่เปลี่ยน" — เดิมระบบอัปโลโก้ขึ้น Firebase Storage ซึ่งบนแผนฟรีมักยังไม่ได้เปิด ทำให้อัปไม่ขึ้นจริง · เปลี่ยนเป็น "ย่อรูปแล้วฝังลงข้อมูลโดยตรง" (ไม่ต้องใช้ Storage) — ฟรี ทำงานทันที · วิธีใส่: ตั้งค่า › ปรับแต่งหน้าตา › อัปโหลดรูปโลโก้ › กดบันทึกการปรับแต่ง → โลโก้ขึ้นบนแถบเมนู+แถบบนทุกที่']},
   {v:'4.1.0',date:'2026-07-08',changes:['🌿 เปลี่ยนโทนหน้าตา v4 เป็น "เขียวมิ้นต์ เรียบ สบายตา" (ตามที่เลือกจาก mockup) — เขียวสดอ่อนลง สบายตาขึ้น · พื้นหลังมิ้นต์จางๆ · แถบเมนูซ้าย (จอคอม) เปลี่ยนจากเขียวเข้มเป็น "ขาวสะอาด" เมนูที่เลือกไฮไลต์มิ้นต์ · การ์ด/ปุ่ม/เงา นุ่มสบายตา · เปลี่ยนพร้อมกันทุกหน้า (แก้ที่โทนสีกลาง) — หน้าตาล้วน ทุกฟังก์ชัน/ตัวเลข/การคำนวณเหมือนเดิม 100% · ปรับสีเองได้ในตั้งค่า (accent/สีพื้น/โหมดมืด)']},
   {v:'4.0.0',date:'2026-07-08',changes:['🎉 ยกเครื่องหน้าตาทั้งแอปเป็น v4.0 — โทน "ขาวสะอาด มินิมอล" สไตล์แอปสมัยใหม่: พื้นเปลี่ยนจากครีมเป็นขาว-เทาเย็นสบายตา · แถบเมนูซ้าย (จอคอม) เป็นสีขาวสะอาด เมนูที่เลือกไฮไลต์เขียวอ่อน · การ์ด/ปุ่ม/เงา เนียนขึ้นทั้งแอป · ยังคงสีเขียวเป็นสีแบรนด์ · เปลี่ยนพร้อมกันทุกหน้า (แก้ที่โทนสีกลางทีเดียว) — ⚠️ เป็นการเปลี่ยน "หน้าตา" ล้วน ทุกฟังก์ชัน ปุ่ม ตัวเลข การคำนวณ เหมือนเดิมทุกอย่าง 100% · โหมดมืดยังใช้ได้ปกติ']},
@@ -1959,6 +1960,7 @@ function renderReportHub(){
   const moT=(salesEntries||[]).filter(e=>(e.date||'').startsWith(_mo)).reduce((a,e)=>a+(parseFloat(e.total)||0),0);
   let h='<div style="max-width:680px;margin:0 auto">';
   if(canSales){
+    h+=_rhCard('📅','var(--green-l)','รายงานรายวัน','สรุปทั้ง 3 สาขาในหน้าเดียว — ยอดขาย · ปิดร้าน · เข้างาน · ออก PDF',todayT?`วันนี้ ฿${fmt(todayT)}`:'','var(--green-d)',"dailyReportPrompt()");
     h+=_rhCard('📈','#E3F5EF','ยอดขาย & กราฟ','กราฟรายวัน/สัปดาห์ · เทียบสาขา · ช่องทางชำระ',todayT?`วันนี้ ฿${fmt(todayT)}`:'','var(--green-d)',"reportGo('sales')");
     h+=_rhCard('🗓️','#E7F0FB','รายงานรายเดือน','สรุปทั้งเดือนทุกสาขา + ส่งออก Excel/CSV',moT?`${MONTHS_TH[new Date().getMonth()]} ฿${fmt(moT)}`:'','var(--blue-t)',"reportGo('monthly')");
   }
@@ -1984,6 +1986,136 @@ window.reportGo=function(which){
       if(tabs[2])tabs[2].style.display='';
     }
   },70);
+};
+
+// ===== รายงานรายวัน (อ่านอย่างเดียว — สรุป 3 สาขา) =====
+function _drShift(d,delta){const dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+delta);return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;}
+function _drName(uid){const m=(allMembers||[]).find(x=>x.uid===uid);return m?(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email||'—'):'—';}
+function _drCompute(d){
+  const rows=BRANCHES.map((bn,b)=>{
+    const se=(salesEntries||[]).find(e=>e.date===d&&+e.branch===+b);
+    const cash=se?(parseFloat(se.amounts?.[SALES_CASH])||0):0;
+    const other=se?(parseFloat(se.amounts?.[SALES_OTHER])||0):0;
+    const bills=se?(parseInt(se.billCount)||0):0;
+    const closeEv=cashEvents.find(e=>+e.branch===+b&&e.date===d&&e.type==='close');
+    const openEv=cashEvents.find(e=>+e.branch===+b&&e.date===d&&e.type==='open');
+    const dep=cashEvents.filter(e=>+e.branch===+b&&e.date===d&&e.type==='deposit').reduce((a,e)=>a+(e.amount||0),0);
+    let status,scolor,sbg,ctime='',diff=null;
+    if(closeEv){diff=cashCloseCalc(b,closeEv).diff;ctime=new Date(closeEv.ts||0).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+      if(diff===0){status='✓ ตรง';scolor='var(--green-d)';sbg='var(--green-l)';}
+      else if(diff>0){status='เกิน ฿'+fmt(diff);scolor='#2F6FB0';sbg='var(--blue-l)';}
+      else {status='ขาด ฿'+fmt(Math.abs(diff));scolor='#C2410C';sbg='var(--amber-l)';}
+    }else if(openEv){status='ยังไม่ปิด';scolor='var(--amber-t)';sbg='var(--amber-l)';}
+    else{status='ไม่ได้เปิด';scolor='var(--text3)';sbg='var(--bg)';}
+    const st=cashGet(b);
+    return {b,bn,cash,other,total:cash+other,bills,dep,status,scolor,sbg,ctime,closed:!!closeEv,opened:!!openEv,diff,safe:st.safe};
+  });
+  const sum=k=>rows.reduce((a,r)=>a+r[k],0);
+  const prevD=_drShift(d,-1);
+  const prevTotal=(salesEntries||[]).filter(e=>e.date===prevD).reduce((a,e)=>a+((parseFloat(e.amounts?.[SALES_CASH])||0)+(parseFloat(e.amounts?.[SALES_OTHER])||0)),0);
+  const total=sum('total');
+  const pct=prevTotal>0?Math.round((total-prevTotal)/prevTotal*100):null;
+  const alerts=[];
+  rows.forEach(r=>{if(r.opened&&!r.closed)alerts.push(`${r.bn}ยังไม่ปิดร้าน`);if(r.diff<0)alerts.push(`${r.bn}เงินขาด ฿${fmt(Math.abs(r.diff))}`);if(r.diff>0)alerts.push(`${r.bn}เงินเกิน ฿${fmt(r.diff)}`);});
+  return {d,rows,total,cash:sum('cash'),other:sum('other'),bills:sum('bills'),dep:sum('dep'),safeTotal:sum('safe'),prevTotal,pct,alerts};
+}
+window._drDate=null;
+window.dailyReportPrompt=async function(dateStr){
+  const d=dateStr||window._drDate||todayStr();
+  window._drDate=d;
+  openModal(`<div style="text-align:center;padding:3rem 1rem;color:var(--text3);font-size:13px">กำลังโหลดรายงาน...</div>`);
+  let cis=[];
+  try{const snap=await getDocs(query(collection(db,'checkins'),where('date','==',d)));cis=snap.docs.map(x=>x.data());}catch(e){}
+  const att=(cis||[]).filter(c=>c.checkIn).map(c=>({name:_drName(c.uid),ci:c.checkIn,co:c.checkOut||''})).sort((a,b)=>a.ci.localeCompare(b.ci));
+  const lv=(allLeaves||[]).filter(l=>l.from&&l.to&&l.from<=d&&l.to>=d&&l.status!=='rejected').map(l=>({name:l.name||_drName(l.uid),type:l.type||'ลา'}));
+  const R=_drCompute(d);
+  window._drLast={R,att,lv};
+  dailyReportRender(R,att,lv);
+};
+window.dailyReportShift=function(delta){const t=todayStr();let d=_drShift(window._drDate||t,delta);if(d>t)d=t;dailyReportPrompt(d);};
+window.dailyReportPick=function(v){if(!v)return;const t=todayStr();dailyReportPrompt(v>t?t:v);};
+function dailyReportRender(R,att,lv){
+  const d=R.d, today=todayStr();
+  const dObj=new Date(d+'T12:00:00');
+  const dLbl=dObj.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const cmp=R.pct==null?`<span style="font-size:12px;color:var(--text3)">ไม่มีข้อมูลเทียบ</span>`
+    :`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:${R.pct>=0?'var(--green-d)':'#C2410C'};background:${R.pct>=0?'var(--green-l)':'var(--amber-l)'};border-radius:10px;padding:3px 10px">${R.pct>=0?'▲':'▼'} ${Math.abs(R.pct)}% จากเมื่อวาน (฿${fmt(R.prevTotal)})</span>`;
+  const maxT=Math.max(1,...R.rows.map(r=>r.total));
+  const bcol=['var(--green)','var(--blue,#5B9BD5)','var(--amber,#E8A63C)'];
+  const branchBars=R.rows.map(r=>`<div style="display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow)">
+      <span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[r.b]};flex-shrink:0"></span>
+      <span style="flex:1;font-size:13px;font-weight:700;color:var(--text)">${r.bn}</span>
+      <span style="width:66px;height:6px;border-radius:4px;background:var(--bg);overflow:hidden"><i style="display:block;height:100%;width:${Math.round(r.total/maxT*100)}%;background:${BCOLORS[r.b]};border-radius:4px"></i></span>
+      <span style="font-family:var(--disp);font-size:14px;font-weight:600;color:var(--text);min-width:62px;text-align:right">฿${fmt(r.total)}</span>
+    </div>`).join('');
+  const closeRows=R.rows.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[r.b]};flex-shrink:0"></span>
+      <span style="flex:1;font-size:13px;font-weight:700;color:var(--text)">${r.bn}${r.ctime?`<span style="font-weight:400;color:var(--text3);font-size:11px"> · ปิด ${r.ctime}</span>`:''}</span>
+      <span style="font-size:10.5px;font-weight:800;border-radius:9px;padding:3px 10px;background:${r.sbg};color:${r.scolor}">${r.status}</span>
+    </div>`).join('');
+  const attRows=att.length?att.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${a.name}</span><span style="font-size:12px;color:var(--text2);font-weight:600">${a.ci}${a.co?' – '+a.co:' –'}</span></div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px 0">ยังไม่มีข้อมูลลงเวลาวันนี้</div>`;
+  const lvRows=lv.length?lv.map(l=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><span style="width:8px;height:8px;border-radius:50%;background:var(--rose,#E27A72);flex-shrink:0"></span><span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${l.name}</span><span style="font-size:10.5px;font-weight:800;border-radius:9px;padding:3px 10px;background:var(--red-l);color:var(--red-t)">${l.type}</span></div>`).join(''):'';
+  const alertBox=R.alerts.length?`<div style="display:flex;align-items:flex-start;gap:9px;background:var(--amber-l);border:1px solid var(--amber);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--amber-t);line-height:1.6;font-weight:600"><span>⚠️</span><span><b>ต้องดู:</b> ${R.alerts.join(' · ')}</span></div>`:`<div style="display:flex;align-items:center;gap:9px;background:var(--green-l);border:1px solid var(--green-l);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--green-dd);font-weight:600"><span>✅</span> วันนี้เรียบร้อย ปิดร้านครบ เงินตรงทุกสาขา</div>`;
+  const seclabel=t=>`<div style="font-size:11.5px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin:14px 2px 10px;display:flex;align-items:center;gap:8px"><span style="width:15px;height:2px;border-radius:2px;background:var(--green)"></span>${t}</div>`;
+  openModal(`<div class="modal-title" style="display:flex;align-items:center;gap:8px">📅 รายงานรายวัน</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-6px 0 12px">
+      <button class="btn btn-sm" onclick="dailyReportShift(-1)">‹ ก่อนหน้า</button>
+      <div style="text-align:center;flex:1"><div style="font-family:var(--disp);font-weight:600;font-size:14.5px">${dLbl}</div><div style="font-size:10.5px;color:var(--text3)">รวม 3 สาขา${d===today?' · วันนี้':''}</div></div>
+      <button class="btn btn-sm" ${d>=today?'disabled style="opacity:.4"':''} onclick="dailyReportShift(1)">ถัดไป ›</button>
+    </div>
+    ${isAdmin?`<div style="text-align:center;margin-bottom:12px"><input type="date" max="${today}" value="${d}" onchange="dailyReportPick(this.value)" style="border:1px solid var(--border2);border-radius:9px;padding:5px 9px;font-family:var(--font);font-size:12px;color:var(--text2)"></div>`:''}
+    <div style="max-height:62vh;overflow:auto">
+      ${alertBox}
+      ${seclabel('ยอดขาย')}
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:15px 16px;box-shadow:var(--shadow);margin-bottom:6px">
+        <div style="font-size:11.5px;color:var(--text3)">ยอดขายรวมวันนี้</div>
+        <div style="font-family:var(--disp);font-size:30px;font-weight:600;color:var(--text);margin:2px 0 5px">฿${fmt(R.total)}</div>
+        ${cmp}
+        <div style="display:flex;border-top:1px solid var(--border);margin-top:12px;padding-top:11px">
+          <div style="flex:1;text-align:center"><div style="font-size:10.5px;color:var(--text3)">💵 เงินสด</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.cash)}</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">💳 อื่นๆ</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.other)}</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">🧾 บิล</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">${R.bills}</div></div>
+        </div>
+      </div>
+      ${seclabel('แยกสาขา')}${branchBars}
+      ${seclabel('ปิดร้าน & เงินสด')}
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 15px;box-shadow:var(--shadow)">${closeRows}</div>
+      <div style="display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 8px;margin-top:10px;box-shadow:var(--shadow)">
+        <div style="flex:1;text-align:center"><div style="font-size:10.5px;color:var(--text3)">เก็บเข้าเซฟวันนี้</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.dep)}</div></div>
+        <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">เงินในเซฟรวม</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.safeTotal)}</div></div>
+      </div>
+      ${seclabel('เข้างานวันนี้ · '+att.length+' คน')}
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 15px;box-shadow:var(--shadow)">${attRows}${lvRows}</div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="dailyReportPrint()">📄 ออก PDF</button></div>`);
+}
+// พิมพ์/บันทึก PDF — เปิดหน้าต่างพิมพ์แบบกระดาษ
+window.dailyReportPrint=function(){
+  const L=window._drLast; if(!L){showToast('ยังไม่มีรายงาน','err');return;}
+  const R=L.R, att=L.att, lv=L.lv;
+  const dLbl=new Date(R.d+'T12:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const shop=(appearanceCfg?.shopName)||'ใหม่เภสัช';
+  const kv=(a,b,c)=>`<div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0"><span>${a}</span><b style="${c||''}">${b}</b></div>`;
+  const branchKv=R.rows.map(r=>kv(`● ${r.bn}`,`฿${fmt(r.total)}`)).join('');
+  const closeKv=R.rows.map(r=>kv(`${r.bn}${r.ctime?' (ปิด '+r.ctime+')':''}`,r.status,`color:${r.scolor.replace('var(--green-d)','#2E9E6D').replace('var(--amber-t)','#B5852A').replace('var(--text3)','#999')}`)).join('');
+  const attKv=att.map(a=>kv(a.name,`${a.ci}${a.co?' – '+a.co:' –'}`)).join('')+lv.map(l=>kv(l.name,l.type,'color:#B5443A')).join('');
+  const cmpTxt=R.pct==null?'—':`${R.pct>=0?'▲':'▼'} ${Math.abs(R.pct)}%`;
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>รายงานประจำวัน ${R.d}</title>
+    <style>*{box-sizing:border-box;margin:0;font-family:'Sarabun','Noto Sans Thai',sans-serif}body{padding:26px;color:#2C332E;max-width:620px;margin:0 auto}
+    h1{font-size:20px;color:#2E9E6D}.d{font-size:13px;color:#777;margin:2px 0 18px}
+    h4{font-size:12px;font-weight:700;letter-spacing:.05em;color:#8A948C;margin:16px 0 7px;padding-bottom:4px;border-bottom:1px solid #E5E7E2}
+    .big{font-size:26px;font-weight:700;color:#2E9E6D}@media print{body{padding:0}}</style></head>
+    <body><h1>รายงานประจำวัน — ${shop}</h1><div class="d">${dLbl} · รวม 3 สาขา</div>
+    <h4>ยอดขาย</h4><div class="big">฿${fmt(R.total)} <span style="font-size:13px;color:#2E9E6D">${cmpTxt} จากเมื่อวาน</span></div>
+    ${kv('เงินสด','฿'+fmt(R.cash))}${kv('รับชำระอื่นๆ (บัตร/โอน)','฿'+fmt(R.other))}${kv('จำนวนบิล',R.bills+' บิล')}
+    <h4>แยกตามสาขา</h4>${branchKv}
+    <h4>ปิดร้าน & เงินสด</h4>${closeKv}${kv('เก็บเข้าเซฟวันนี้ / เซฟรวม','฿'+fmt(R.dep)+' / ฿'+fmt(R.safeTotal))}
+    <h4>เข้างาน (${att.length} คน)</h4>${attKv||'<div style="font-size:13px;color:#999">—</div>'}
+    <div style="text-align:center;font-size:11px;color:#aaa;margin-top:24px">พิมพ์จากแอป${shop} · ${new Date().toLocaleString('th-TH')}</div>
+    <script>window.onload=function(){setTimeout(function(){window.print();},350)}<\/script></body></html>`;
+  const w=window.open('','_blank');
+  if(!w){showToast('เบราว์เซอร์บล็อกหน้าต่าง — อนุญาต popup แล้วลองใหม่','err');return;}
+  w.document.write(html);w.document.close();
 };
 
 // ===== สีประจำวัน (ความเชื่อไทย) — สำหรับน้องแคปซูล =====
