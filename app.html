@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.1.0';
+const APP_VERSION='4.1.1';
 const CHANGELOG=[
+  {v:'4.1.1',date:'2026-07-08',changes:['🖼️ แก้ปัญหา "อัปโลโก้แล้วไม่เปลี่ยน" — เดิมระบบอัปโลโก้ขึ้น Firebase Storage ซึ่งบนแผนฟรีมักยังไม่ได้เปิด ทำให้อัปไม่ขึ้นจริง · เปลี่ยนเป็น "ย่อรูปแล้วฝังลงข้อมูลโดยตรง" (ไม่ต้องใช้ Storage) — ฟรี ทำงานทันที · วิธีใส่: ตั้งค่า › ปรับแต่งหน้าตา › อัปโหลดรูปโลโก้ › กดบันทึกการปรับแต่ง → โลโก้ขึ้นบนแถบเมนู+แถบบนทุกที่']},
   {v:'4.1.0',date:'2026-07-08',changes:['🌿 เปลี่ยนโทนหน้าตา v4 เป็น "เขียวมิ้นต์ เรียบ สบายตา" (ตามที่เลือกจาก mockup) — เขียวสดอ่อนลง สบายตาขึ้น · พื้นหลังมิ้นต์จางๆ · แถบเมนูซ้าย (จอคอม) เปลี่ยนจากเขียวเข้มเป็น "ขาวสะอาด" เมนูที่เลือกไฮไลต์มิ้นต์ · การ์ด/ปุ่ม/เงา นุ่มสบายตา · เปลี่ยนพร้อมกันทุกหน้า (แก้ที่โทนสีกลาง) — หน้าตาล้วน ทุกฟังก์ชัน/ตัวเลข/การคำนวณเหมือนเดิม 100% · ปรับสีเองได้ในตั้งค่า (accent/สีพื้น/โหมดมืด)']},
   {v:'4.0.0',date:'2026-07-08',changes:['🎉 ยกเครื่องหน้าตาทั้งแอปเป็น v4.0 — โทน "ขาวสะอาด มินิมอล" สไตล์แอปสมัยใหม่: พื้นเปลี่ยนจากครีมเป็นขาว-เทาเย็นสบายตา · แถบเมนูซ้าย (จอคอม) เป็นสีขาวสะอาด เมนูที่เลือกไฮไลต์เขียวอ่อน · การ์ด/ปุ่ม/เงา เนียนขึ้นทั้งแอป · ยังคงสีเขียวเป็นสีแบรนด์ · เปลี่ยนพร้อมกันทุกหน้า (แก้ที่โทนสีกลางทีเดียว) — ⚠️ เป็นการเปลี่ยน "หน้าตา" ล้วน ทุกฟังก์ชัน ปุ่ม ตัวเลข การคำนวณ เหมือนเดิมทุกอย่าง 100% · โหมดมืดยังใช้ได้ปกติ']},
   {v:'3.112.0',date:'2026-07-08',changes:['💸 เพิ่มปุ่ม "ทำรายการเงิน" (เมนู "เงินไปไหน") บนหน้าเงินสด — เลือกเป็นภาพว่าเงินจะไปไหน แทนการจำศัพท์เทคนิค: 🧰→🔒 เก็บเข้าตู้เซฟ · 🛒 เบิกซื้อของ · (แอดมิน) 💼→🧰 เบิกเงินทอนเข้าลิ้นชัก · 🏪→💼 เติมเข้าสำรอง · 🔒→🏦 นำออกจากเซฟ · แตะแล้วระบบพาทำต่อ (ใช้ระบบเดิมทั้งหมด ยอด/การคำนวณเหมือนเดิม) · ปุ่ม "เบิกซื้อของ" เดิมย้ายมารวมในเมนูนี้']},
@@ -2129,17 +2130,32 @@ window.onLogoFileChange=async function(){
   const inp=document.getElementById('ap-logo-file');
   const file=inp.files?.[0];
   if(!file)return;
-  if(file.size>1024*1024){showToast('ไฟล์ใหญ่เกิน 1MB กรุณาเลือกไฟล์เล็กกว่านี้','err');inp.value='';return;}
+  if(file.size>4*1024*1024){showToast('ไฟล์ใหญ่เกิน 4MB เลือกไฟล์เล็กกว่านี้','err');inp.value='';return;}
   loading(true);
   try{
-    const ext=file.name.split('.').pop().toLowerCase();
-    const sref=storageRef(storage,`branding/logo_${Date.now()}.${ext}`);
-    await uploadBytes(sref,file);
-    const url=await getDownloadURL(sref);
-    appearanceCfg.logoUrl=url;
+    // ย่อรูป + ฝังเป็น data URL เก็บใน Firestore โดยตรง — ไม่ต้องใช้ Firebase Storage (ฟรี ทำงานทันที)
+    const dataUrl=await new Promise((resolve,reject)=>{
+      const fr=new FileReader();
+      fr.onerror=()=>reject(new Error('อ่านไฟล์ไม่ได้'));
+      fr.onload=()=>{
+        if(file.type==='image/svg+xml'){resolve(fr.result);return;} // svg เก็บตรงๆ
+        const img=new Image();
+        img.onerror=()=>reject(new Error('รูปเสียหรือไม่รองรับ'));
+        img.onload=()=>{
+          const max=256; let w=img.width||max, h=img.height||max;
+          if(w>max||h>max){ if(w>=h){h=Math.round(h*max/w);w=max;} else {w=Math.round(w*max/h);h=max;} }
+          const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+          cv.getContext('2d').drawImage(img,0,0,w,h);
+          resolve(cv.toDataURL('image/png'));
+        };
+        img.src=fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+    appearanceCfg.logoUrl=dataUrl;
     renderLogoPreview();
-    showToast('อัปโหลดโลโก้สำเร็จ — กด "บันทึกการปรับแต่ง" เพื่อใช้งานจริง');
-  }catch(e){showToast('อัปโหลดไม่สำเร็จ: '+e.message,'err');}
+    showToast('เพิ่มโลโก้แล้ว — กด "บันทึกการปรับแต่ง" เพื่อใช้งานจริง');
+  }catch(e){showToast('เพิ่มโลโก้ไม่สำเร็จ: '+(e?.message||e),'err');}
   loading(false);
   inp.value='';
 };
