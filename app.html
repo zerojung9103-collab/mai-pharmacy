@@ -1624,8 +1624,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='3.110.0';
+const APP_VERSION='3.112.0';
 const CHANGELOG=[
+  {v:'3.112.0',date:'2026-07-08',changes:['💸 เพิ่มปุ่ม "ทำรายการเงิน" (เมนู "เงินไปไหน") บนหน้าเงินสด — เลือกเป็นภาพว่าเงินจะไปไหน แทนการจำศัพท์เทคนิค: 🧰→🔒 เก็บเข้าตู้เซฟ · 🛒 เบิกซื้อของ · (แอดมิน) 💼→🧰 เบิกเงินทอนเข้าลิ้นชัก · 🏪→💼 เติมเข้าสำรอง · 🔒→🏦 นำออกจากเซฟ · แตะแล้วระบบพาทำต่อ (ใช้ระบบเดิมทั้งหมด ยอด/การคำนวณเหมือนเดิม) · ปุ่ม "เบิกซื้อของ" เดิมย้ายมารวมในเมนูนี้']},
+  {v:'3.111.0',date:'2026-07-08',changes:['🌅 ปรับหน้า "เปิดร้าน" ให้เข้าชุดกับปิดร้าน — หน้าเดียวจบ: นับเงินในลิ้นชักตอนนี้ (ระบบเติมยอดที่คาดว่าจะมีให้ก่อน) → เทียบกับเงินเปิดร้านมาตรฐาน บอก ตรง/เกิน/ต่ำกว่า สดๆ → กดเปิดร้าน · ถ้าเงินเหลือจากวันก่อนไม่ตรงมาตรฐานมีคำเตือนให้ · ยอด/ส่วนต่างบันทึกเหมือนเดิม (แค่รวมปุ่มยืนยัน+นับจริงเป็นจอเดียว ใช้ง่ายขึ้น)']},
   {v:'3.110.0',date:'2026-07-08',changes:['🌙 ปรับ flow "ปิดร้าน" ใหม่ตามที่คุยกัน — สลับลำดับให้ "นับเงินลิ้นชักก่อน แล้วค่อยเก็บเข้าเซฟ": (ขั้น 2) นับเงินในลิ้นชักได้จริงเท่าไหร่ ระบบเทียบกับที่ควรมี บอก ตรง/ขาด/เกิน ทันที → (ขั้น 3) ระบบแนะนำยอดที่ควรเก็บเข้าเซฟ (ให้ลิ้นชักเหลือเท่าเงินแคชเชียร์มาตรฐาน) แก้ได้/ข้ามได้ แล้วปิดร้าน · ผลต่าง (ขาด/เกิน) อิงยอดที่นับจริง ไม่ใช่ยอดที่ระบบเดา · ⚠️ เป็นเรื่องเงิน — ทดสอบเปิด/ปิดร้านจริงสัก 1 รอบก่อนใช้เต็มตัว (ตรวจสูตรด้วยการจำลอง 6 กรณีผ่านหมดแล้ว)']},
   {v:'3.109.0',date:'2026-07-07',changes:['🐞 แก้บั๊กหน้า "จัดการสมาชิก" — คอลัมน์ "อีเมล" เดิมแสดงวันเกิดผิด (วันเกิดโผล่ 2 ช่อง) ตอนนี้แสดงอีเมลถูกต้องตามหัวตาราง']},
   {v:'3.108.0',date:'2026-07-07',changes:['🏖️ หน้า "ขอลา" — ประวัติการลาแสดงเป็นการ์ดพร้อม "ป้ายสถานะ" ชัดเจน (🟡 รออนุมัติ · 🟢 อนุมัติแล้ว · 🔴 ไม่อนุมัติ) เห็นทันทีว่าคำขอไหนผ่านแล้ว · ข้อมูลและปุ่มยกเลิกเหมือนเดิม']},
@@ -5690,7 +5692,7 @@ function renderCashPage(){
       <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'📊','ลงยอดขาย')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>`;
   }else{
     html+=`${closeEv?'':`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="cashCloseWizard(${branch})">🌙 ปิดร้าน — ระบบคิดยอดตัดเข้าเซฟให้</button>`}
-    <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'📊','ลงยอดขาย')}${_ib(`cashExpensePrompt(${branch})`,'💸','เบิกซื้อของ')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
+    <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'📊','ลงยอดขาย')}${_ib(`cashMovePrompt(${branch})`,'💸','ทำรายการเงิน')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
     <div style="font-size:11px;color:var(--text3);margin-top:9px;text-align:center">🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก — ระบบตรวจด้วยการนับสำรองประจำสัปดาห์</div>`;
   }
   // สรุปวันนี้
@@ -5789,20 +5791,58 @@ window.cashOpenPrompt=function(branch){
   const st=cashGet(branch);
   // ยอดที่ระบบรู้ว่าค้างอยู่ในลิ้นชัก (จากการปิดร้านครั้งก่อน / ที่เปิดไว้วันนี้)
   const cur=re?(st.openDrawer||0):(st.drawer||0);
-  const smart=tgt>0&&cur>0&&Math.abs(cur-tgt)>=0.01; // ไม่เท่ามาตรฐาน → เปิดด้วยยอดจริงแทน
-  const confirmAmt=smart?cur:tgt;
+  const smart=tgt>0&&cur>0&&Math.abs(cur-tgt)>=0.01; // ยอดค้างไม่เท่ามาตรฐาน → เตือน + เปิดด้วยยอดจริง
+  const prefill=smart?cur:(tgt||cur);
   const shortBy=Math.round((tgt-cur)*100)/100;
+  window._coTgt=tgt;
   openModal(`<div class="modal-title">🌅 เปิดร้าน · ${BRANCHES[branch]}</div>
     ${re?`<div style="background:var(--amber-l);color:var(--amber-t);border-radius:9px;padding:9px 12px;font-size:12px;margin-bottom:11px">วันนี้เปิดร้านไปแล้ว — บันทึกซ้ำจะทับยอดต้นลิ้นชักเดิม</div>`:''}
-    ${smart?`<div style="background:var(--amber-l);color:var(--amber-t);border-radius:11px;padding:10px 13px;font-size:12px;line-height:1.7;margin-bottom:11px">⚠️ เงินลิ้นชักที่เหลือจากวันก่อนคือ <b>฿${fmt(cur)}</b> — ${shortBy>0?`ไม่ถึงมาตรฐาน ฿${fmt(tgt)} (ขาด ฿${fmt(shortBy)})<br>แจ้งผู้ดูแลเบิกสำรองมาเติม หรือเปิดร้านด้วยยอดนี้ไปก่อนก็ได้ ระบบจะคิดยอดปิดร้านจากยอดจริงให้`:`เกินมาตรฐาน ฿${fmt(tgt)} (เกิน ฿${fmt(Math.abs(shortBy))}) — ตอนปิดร้านระบบจะคิดยอดตัดเข้าเซฟให้เอง`}</div>`:''}
-    <div style="text-align:center;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:16px;padding:20px 14px;margin-bottom:12px">
-      <div style="font-size:12.5px;color:var(--text2);font-weight:600">${smart?'เงินที่ควรอยู่ในลิ้นชักตอนนี้':'เงินแคชเชียร์มาตรฐานของร้าน'}</div>
-      <div style="font-size:38px;font-weight:800;font-family:var(--disp);color:var(--green-dd);margin:2px 0">฿${fmt(confirmAmt)}</div>
-      <div style="font-size:11.5px;color:var(--text3)">เช็คแวบเดียวว่าเงินในลิ้นชักครบตามนี้ แล้วกดยืนยันได้เลย</div>
+    ${smart?`<div style="background:var(--amber-l);color:var(--amber-t);border-radius:11px;padding:10px 13px;font-size:12px;line-height:1.7;margin-bottom:11px">⚠️ เงินลิ้นชักที่เหลือจากวันก่อนคือ <b>฿${fmt(cur)}</b> — ${shortBy>0?`ไม่ถึงมาตรฐาน ฿${fmt(tgt)} (ขาด ฿${fmt(shortBy)}) · แจ้งผู้ดูแลเบิกสำรองมาเติม หรือเปิดด้วยยอดนี้ไปก่อนก็ได้`:`เกินมาตรฐาน ฿${fmt(tgt)} (เกิน ฿${fmt(Math.abs(shortBy))}) · ตอนปิดร้านระบบจะคิดยอดตัดเข้าเซฟให้`}</div>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--green-ll);border:1px solid var(--green-l);border-radius:11px;padding:10px 13px;margin-bottom:12px">
+      <span style="font-size:12.5px;color:var(--green-dd);font-weight:600">🎯 เงินเปิดร้านมาตรฐาน</span>
+      <span style="font-size:16px;font-weight:800;color:var(--green-dd);font-family:var(--mono)">฿${fmt(tgt)}</span>
     </div>
-    <button class="btn btn-primary" style="width:100%;padding:15px;font-size:16px;border-radius:14px" onclick="cashDoOpenConfirm(${branch},${smart?1:0})">✓ แคชเชียร์ครบ ฿${fmt(confirmAmt)} — เปิดร้าน</button>
-    <button class="btn" style="width:100%;margin-top:8px" onclick="cashOpenCountPrompt(${branch})">🪙 ไม่ตรง? นับจริงแยกชนิด</button>
+    <div class="field"><label class="fl">🧮 นับเงินในลิ้นชักตอนนี้ (บาท)</label>
+      <input type="number" id="co-count" min="0" inputmode="decimal" value="${prefill}" oninput="cashOpenDiff()" style="font-size:23px;font-weight:800;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:12px;padding:12px;text-align:center;width:100%"></div>
+    <div id="co-diff" style="text-align:center;font-size:13px;font-weight:700;margin:-2px 0 12px;min-height:20px"></div>
+    <button class="btn btn-primary" style="width:100%;padding:15px;font-size:16px;border-radius:14px" onclick="cashOpenSave(${branch})">☀️ เปิดร้าน</button>
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button></div>`);
+  setTimeout(()=>{cashOpenDiff();const el=document.getElementById('co-count');if(el){el.focus();el.select();}},80);
+};
+// อัปเดต ตรง/เกิน/ขาด เทียบมาตรฐาน สดๆ ตอนพิมพ์
+window.cashOpenDiff=function(){
+  const el=document.getElementById('co-diff');if(!el)return;
+  const tgt=window._coTgt||0;
+  const raw=document.getElementById('co-count')?.value;
+  if(raw===''||raw==null){el.textContent='';return;}
+  const v=parseFloat(raw);if(isNaN(v)){el.textContent='';return;}
+  if(!tgt){el.innerHTML=`<span style="color:var(--text3)">เปิดด้วยยอด ฿${fmt(v)}</span>`;return;}
+  const d=Math.round((v-tgt)*100)/100;
+  if(d===0)el.innerHTML='<span style="color:#0F8A63">✓ ตรงกับมาตรฐานพอดี</span>';
+  else if(d>0)el.innerHTML=`<span style="color:#1E3A8A">เกินมาตรฐาน ฿${fmt(Math.abs(d))}</span>`;
+  else el.innerHTML=`<span style="color:#C2410C">ต่ำกว่ามาตรฐาน ฿${fmt(Math.abs(d))}</span>`;
+};
+// บันทึกเปิดร้าน (อิงยอดที่นับจริง) — เก็บส่วนต่างจากมาตรฐานไว้ให้แอดมินเห็น
+window.cashOpenSave=async function(branch){
+  if(_cashBusy)return;
+  const raw=document.getElementById('co-count')?.value;
+  const amt=Math.round(parseFloat(raw)*100)/100;
+  if(raw===''||raw==null||isNaN(amt)||amt<0){showToast('กรอกยอดเงินในลิ้นชักก่อนนะ','err');return;}
+  _cashBusy=true;
+  try{
+    const tgt=cashCfg.floatTarget||0;
+    const _od=tgt?Math.round((amt-tgt)*100)/100:0;
+    const ev={branch,type:'open',amount:amt};
+    if(tgt&&_od!==0){ev.openDiff=_od;ev.note=`เปิดด้วยยอดนับจริง — ${_od>0?'เกิน':'ขาด'}จากมาตรฐาน ฿${fmt(Math.abs(_od))}`;}
+    await cashSaveState(branch,{drawer:amt,openDrawer:amt,openDate:todayStr(),openBy:cashWho()});
+    await cashAddEvent(ev);
+    closeMD();renderCashPage();
+    showToast('เปิดร้านแล้ว ☀️ แคชเชียร์ ฿'+fmt(amt));
+    logActivity('cash_open',`เปิดร้าน ${BRANCHES[branch]} ลิ้นชัก ฿${fmt(amt)}`);
+    if(window.refreshTodoStatus)refreshTodoStatus();
+    setTimeout(()=>showNextStep('open',branch),280);
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 // ยืนยันยอดมาตรฐาน — จบใน 1 ปุ่ม
 window.cashDoOpenConfirm=async function(branch,useCur){
@@ -5886,6 +5926,27 @@ window.cashDoR2D=async function(branch){
     if(_rc!=null)setTimeout(()=>cashClosePrompt(+_rc),120);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
   finally{_cashBusy=false;}
+};
+// 💸 ทำรายการเงิน "เงินไปไหน" — เมนูภาพ จากไหน→ไปไหน แล้วส่งต่อไปฟังก์ชันเดิม (ไม่มีตรรกะเงินใหม่)
+window.cashMovePrompt=function(branch){
+  const tile=(oc,fromIco,toIco,name,desc)=>`<button onclick="${oc}" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px 14px;width:100%;cursor:pointer;font-family:var(--font);text-align:left;box-shadow:var(--shadow);margin-bottom:9px">
+    <span style="display:flex;align-items:center;gap:4px;flex-shrink:0;width:56px;justify-content:center;font-size:19px">${fromIco}${toIco?`<span style="color:var(--text3);font-size:12px;font-weight:700">→</span>${toIco}`:''}</span>
+    <span style="flex:1;min-width:0"><div style="font-size:13.5px;font-weight:700;color:var(--text)">${name}</div><div style="font-size:11px;color:var(--text3);margin-top:1px">${desc}</div></span>
+    <span style="color:var(--text3);font-size:18px">›</span>
+  </button>`;
+  let tiles='';
+  tiles+=tile(`cashDepositPrompt(${branch})`,'🧰','🔒','เก็บเงินเข้าตู้เซฟ','ย้ายเงินจากลิ้นชัก → ตู้เซฟ');
+  tiles+=tile(`cashExpensePrompt(${branch})`,'🛒','','เบิกซื้อของ / ค่าใช้จ่าย','จ่ายออกจากลิ้นชัก หรือ เงินสำรอง');
+  if(isAdmin){
+    tiles+=tile(`cashR2DPrompt(${branch})`,'💼','🧰','เบิกเงินทอนเข้าลิ้นชัก','ย้ายเงินสำรอง → ลิ้นชัก');
+    tiles+=tile(`cashTopupPrompt(${branch},'reserve')`,'🏪','💼','เติมเงินเข้าสำรอง','เอาเงินจากนอกร้านเข้ากองสำรอง');
+    tiles+=tile(`cashSafeOutPrompt(${branch})`,'🔒','🏦','นำเงินออกจากตู้เซฟ','เอาเงินออก (ฝากธนาคาร ฯลฯ)');
+  }
+  openModal(`<div class="modal-title">💸 ทำรายการเงิน · ${BRANCHES[branch]}</div>
+    <div style="font-size:11.5px;color:var(--text3);margin:-6px 0 12px">เลือกว่าเงินจะไปไหน — ระบบพาทำให้</div>
+    ${tiles}
+    <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:4px">💡 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
 };
 // 💸 เบิกเงินซื้อของ/ค่าใช้จ่าย — เงินออกจากลิ้นชักหรือสำรอง (พนักงานทำเองได้)
 window.cashExpSetSrc=function(src){
