@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.0';
+const APP_VERSION='4.2.1';
 const CHANGELOG=[
+  {v:'4.2.1',date:'2026-07-08',changes:['📐 ปรับ "รายงานรายวัน" ให้กระชับพอดีจอมือถือ — เดิมตัวเลข/ปุ่ม/การ์ดใหญ่ไป (วันที่+ปุ่มเลื่อนวันตัดบรรทัด) · ย่อขนาดหัวข้อ ยอดรวม แถบสาขา และระยะห่างลง เห็นครบในจอเดียวไม่ต้องเลื่อนเยอะ']},
   {v:'4.2.0',date:'2026-07-08',changes:['📅 เพิ่ม "รายงานรายวัน" (หน้ารายงาน — เฉพาะแอดมิน/ผู้มีสิทธิ์ดูยอด) — สรุปทั้ง 3 สาขาในหน้าเดียว: 💰 ยอดขายรวมวันนี้ + เทียบ %กับเมื่อวาน + แยกเงินสด/ช่องทางอื่น/จำนวนบิล · 📊 แยกยอดรายสาขาเป็นแถบ · 🌙 สถานะปิดร้านแต่ละสาขา (ตรง/ขาด/เกิน/ยังไม่ปิด) + เวลาปิด + เก็บเข้าเซฟ/เงินในเซฟรวม · 👥 ใครเข้างานวันนี้ (เวลาเข้า-ออก) + ใครลา · ⚠️ กล่อง "ต้องดู" เตือนสาขาที่ยังไม่ปิด/เงินขาด-เกิน · เลื่อนดูย้อนหลังได้ (‹ ก่อนหน้า / ถัดไป › หรือเลือกวันที่) · กด "ออก PDF" พิมพ์/บันทึกเป็นไฟล์ได้ · เป็นรายงาน "อ่านอย่างเดียว" ไม่แตะเงิน/ยอดใดๆ']},
   {v:'4.1.1',date:'2026-07-08',changes:['🖼️ แก้ปัญหา "อัปโลโก้แล้วไม่เปลี่ยน" — เดิมระบบอัปโลโก้ขึ้น Firebase Storage ซึ่งบนแผนฟรีมักยังไม่ได้เปิด ทำให้อัปไม่ขึ้นจริง · เปลี่ยนเป็น "ย่อรูปแล้วฝังลงข้อมูลโดยตรง" (ไม่ต้องใช้ Storage) — ฟรี ทำงานทันที · วิธีใส่: ตั้งค่า › ปรับแต่งหน้าตา › อัปโหลดรูปโลโก้ › กดบันทึกการปรับแต่ง → โลโก้ขึ้นบนแถบเมนู+แถบบนทุกที่']},
   {v:'4.1.0',date:'2026-07-08',changes:['🌿 เปลี่ยนโทนหน้าตา v4 เป็น "เขียวมิ้นต์ เรียบ สบายตา" (ตามที่เลือกจาก mockup) — เขียวสดอ่อนลง สบายตาขึ้น · พื้นหลังมิ้นต์จางๆ · แถบเมนูซ้าย (จอคอม) เปลี่ยนจากเขียวเข้มเป็น "ขาวสะอาด" เมนูที่เลือกไฮไลต์มิ้นต์ · การ์ด/ปุ่ม/เงา นุ่มสบายตา · เปลี่ยนพร้อมกันทุกหน้า (แก้ที่โทนสีกลาง) — หน้าตาล้วน ทุกฟังก์ชัน/ตัวเลข/การคำนวณเหมือนเดิม 100% · ปรับสีเองได้ในตั้งค่า (accent/สีพื้น/โหมดมืด)']},
@@ -2042,11 +2043,11 @@ function dailyReportRender(R,att,lv){
     :`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:${R.pct>=0?'var(--green-d)':'#C2410C'};background:${R.pct>=0?'var(--green-l)':'var(--amber-l)'};border-radius:10px;padding:3px 10px">${R.pct>=0?'▲':'▼'} ${Math.abs(R.pct)}% จากเมื่อวาน (฿${fmt(R.prevTotal)})</span>`;
   const maxT=Math.max(1,...R.rows.map(r=>r.total));
   const bcol=['var(--green)','var(--blue,#5B9BD5)','var(--amber,#E8A63C)'];
-  const branchBars=R.rows.map(r=>`<div style="display:flex;align-items:center;gap:11px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow)">
-      <span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[r.b]};flex-shrink:0"></span>
-      <span style="flex:1;font-size:13px;font-weight:700;color:var(--text)">${r.bn}</span>
-      <span style="width:66px;height:6px;border-radius:4px;background:var(--bg);overflow:hidden"><i style="display:block;height:100%;width:${Math.round(r.total/maxT*100)}%;background:${BCOLORS[r.b]};border-radius:4px"></i></span>
-      <span style="font-family:var(--disp);font-size:14px;font-weight:600;color:var(--text);min-width:62px;text-align:right">฿${fmt(r.total)}</span>
+  const branchBars=R.rows.map(r=>`<div style="display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:9px 12px;margin-bottom:7px;box-shadow:var(--shadow)">
+      <span style="width:8px;height:8px;border-radius:3px;background:${BCOLORS[r.b]};flex-shrink:0"></span>
+      <span style="flex:1;font-size:12.5px;font-weight:700;color:var(--text)">${r.bn}</span>
+      <span style="width:58px;height:5px;border-radius:4px;background:var(--bg);overflow:hidden"><i style="display:block;height:100%;width:${Math.round(r.total/maxT*100)}%;background:${BCOLORS[r.b]};border-radius:4px"></i></span>
+      <span style="font-family:var(--disp);font-size:13.5px;font-weight:600;color:var(--text);min-width:58px;text-align:right">฿${fmt(r.total)}</span>
     </div>`).join('');
   const closeRows=R.rows.map(r=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="width:9px;height:9px;border-radius:3px;background:${BCOLORS[r.b]};flex-shrink:0"></span>
@@ -2056,33 +2057,34 @@ function dailyReportRender(R,att,lv){
   const attRows=att.length?att.map(a=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0"></span><span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${a.name}</span><span style="font-size:12px;color:var(--text2);font-weight:600">${a.ci}${a.co?' – '+a.co:' –'}</span></div>`).join(''):`<div style="font-size:12px;color:var(--text3);padding:8px 0">ยังไม่มีข้อมูลลงเวลาวันนี้</div>`;
   const lvRows=lv.length?lv.map(l=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><span style="width:8px;height:8px;border-radius:50%;background:var(--rose,#E27A72);flex-shrink:0"></span><span style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${l.name}</span><span style="font-size:10.5px;font-weight:800;border-radius:9px;padding:3px 10px;background:var(--red-l);color:var(--red-t)">${l.type}</span></div>`).join(''):'';
   const alertBox=R.alerts.length?`<div style="display:flex;align-items:flex-start;gap:9px;background:var(--amber-l);border:1px solid var(--amber);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--amber-t);line-height:1.6;font-weight:600"><span>⚠️</span><span><b>ต้องดู:</b> ${R.alerts.join(' · ')}</span></div>`:`<div style="display:flex;align-items:center;gap:9px;background:var(--green-l);border:1px solid var(--green-l);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--green-dd);font-weight:600"><span>✅</span> วันนี้เรียบร้อย ปิดร้านครบ เงินตรงทุกสาขา</div>`;
-  const seclabel=t=>`<div style="font-size:11.5px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin:14px 2px 10px;display:flex;align-items:center;gap:8px"><span style="width:15px;height:2px;border-radius:2px;background:var(--green)"></span>${t}</div>`;
-  openModal(`<div class="modal-title" style="display:flex;align-items:center;gap:8px">📅 รายงานรายวัน</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin:-6px 0 12px">
-      <button class="btn btn-sm" onclick="dailyReportShift(-1)">‹ ก่อนหน้า</button>
-      <div style="text-align:center;flex:1"><div style="font-family:var(--disp);font-weight:600;font-size:14.5px">${dLbl}</div><div style="font-size:10.5px;color:var(--text3)">รวม 3 สาขา${d===today?' · วันนี้':''}</div></div>
-      <button class="btn btn-sm" ${d>=today?'disabled style="opacity:.4"':''} onclick="dailyReportShift(1)">ถัดไป ›</button>
+  const seclabel=t=>`<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.08em;margin:12px 2px 8px;display:flex;align-items:center;gap:7px"><span style="width:13px;height:2px;border-radius:2px;background:var(--green)"></span>${t}</div>`;
+  const dShort=dObj.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'short',year:'numeric'});
+  openModal(`<div class="modal-title" style="display:flex;align-items:center;gap:7px;font-size:16px">📅 รายงานรายวัน</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin:-4px 0 10px">
+      <button class="btn btn-sm" style="white-space:nowrap;padding:6px 9px;font-size:11.5px" onclick="dailyReportShift(-1)">‹ ก่อน</button>
+      <div style="text-align:center;flex:1;min-width:0"><div style="font-family:var(--disp);font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dShort}</div><div style="font-size:10px;color:var(--text3)">รวม 3 สาขา${d===today?' · วันนี้':''}</div></div>
+      <button class="btn btn-sm" ${d>=today?'disabled':''} style="white-space:nowrap;padding:6px 9px;font-size:11.5px${d>=today?';opacity:.4':''}" onclick="dailyReportShift(1)">ถัดไป ›</button>
     </div>
-    ${isAdmin?`<div style="text-align:center;margin-bottom:12px"><input type="date" max="${today}" value="${d}" onchange="dailyReportPick(this.value)" style="border:1px solid var(--border2);border-radius:9px;padding:5px 9px;font-family:var(--font);font-size:12px;color:var(--text2)"></div>`:''}
-    <div style="max-height:62vh;overflow:auto">
+    ${isAdmin?`<div style="text-align:center;margin-bottom:10px"><input type="date" max="${today}" value="${d}" onchange="dailyReportPick(this.value)" style="border:1px solid var(--border2);border-radius:9px;padding:4px 8px;font-family:var(--font);font-size:11.5px;color:var(--text2)"></div>`:''}
+    <div style="max-height:64vh;overflow:auto">
       ${alertBox}
       ${seclabel('ยอดขาย')}
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:15px 16px;box-shadow:var(--shadow);margin-bottom:6px">
-        <div style="font-size:11.5px;color:var(--text3)">ยอดขายรวมวันนี้</div>
-        <div style="font-family:var(--disp);font-size:30px;font-weight:600;color:var(--text);margin:2px 0 5px">฿${fmt(R.total)}</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow);margin-bottom:6px">
+        <div style="font-size:11px;color:var(--text3)">ยอดขายรวมวันนี้</div>
+        <div style="font-family:var(--disp);font-size:25px;font-weight:600;color:var(--text);margin:1px 0 5px">฿${fmt(R.total)}</div>
         ${cmp}
         <div style="display:flex;border-top:1px solid var(--border);margin-top:12px;padding-top:11px">
-          <div style="flex:1;text-align:center"><div style="font-size:10.5px;color:var(--text3)">💵 เงินสด</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.cash)}</div></div>
-          <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">💳 อื่นๆ</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.other)}</div></div>
-          <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">🧾 บิล</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">${R.bills}</div></div>
+          <div style="flex:1;text-align:center"><div style="font-size:10.5px;color:var(--text3)">💵 เงินสด</div><div style="font-family:var(--disp);font-size:14px;font-weight:600">฿${fmt(R.cash)}</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">💳 อื่นๆ</div><div style="font-family:var(--disp);font-size:14px;font-weight:600">฿${fmt(R.other)}</div></div>
+          <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">🧾 บิล</div><div style="font-family:var(--disp);font-size:14px;font-weight:600">${R.bills}</div></div>
         </div>
       </div>
       ${seclabel('แยกสาขา')}${branchBars}
       ${seclabel('ปิดร้าน & เงินสด')}
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 15px;box-shadow:var(--shadow)">${closeRows}</div>
       <div style="display:flex;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 8px;margin-top:10px;box-shadow:var(--shadow)">
-        <div style="flex:1;text-align:center"><div style="font-size:10.5px;color:var(--text3)">เก็บเข้าเซฟวันนี้</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.dep)}</div></div>
-        <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">เงินในเซฟรวม</div><div style="font-family:var(--disp);font-size:15px;font-weight:600">฿${fmt(R.safeTotal)}</div></div>
+        <div style="flex:1;text-align:center"><div style="font-size:10.5px;color:var(--text3)">เก็บเข้าเซฟวันนี้</div><div style="font-family:var(--disp);font-size:14px;font-weight:600">฿${fmt(R.dep)}</div></div>
+        <div style="flex:1;text-align:center;border-left:1px solid var(--border)"><div style="font-size:10.5px;color:var(--text3)">เงินในเซฟรวม</div><div style="font-family:var(--disp);font-size:14px;font-weight:600">฿${fmt(R.safeTotal)}</div></div>
       </div>
       ${seclabel('เข้างานวันนี้ · '+att.length+' คน')}
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 15px;box-shadow:var(--shadow)">${attRows}${lvRows}</div>
