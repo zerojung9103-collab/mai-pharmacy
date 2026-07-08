@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.1';
+const APP_VERSION='4.2.2';
 const CHANGELOG=[
+  {v:'4.2.2',date:'2026-07-08',changes:['📤 เพิ่มปุ่ม "แชร์" ในรายงานรายวัน — กดแล้วเปิดแผงแชร์ของมือถือ ส่งสรุปยอด/ปิดร้าน/แจ้งเตือนเข้า "ไลน์" (หรือแอปอื่น) ได้เลย · บนคอมที่ไม่มีแผงแชร์จะเปิดไลน์พร้อมข้อความ + ก็อปปี้ไว้ให้ · 📐 ย่อรายงานให้เล็กลงอีกให้พอดีจอมือถือจริง (ลดขอบ/ตัวเลข/ระยะห่าง) เห็นครบขึ้น ไม่ล้นจอ']},
   {v:'4.2.1',date:'2026-07-08',changes:['📐 ปรับ "รายงานรายวัน" ให้กระชับพอดีจอมือถือ — เดิมตัวเลข/ปุ่ม/การ์ดใหญ่ไป (วันที่+ปุ่มเลื่อนวันตัดบรรทัด) · ย่อขนาดหัวข้อ ยอดรวม แถบสาขา และระยะห่างลง เห็นครบในจอเดียวไม่ต้องเลื่อนเยอะ']},
   {v:'4.2.0',date:'2026-07-08',changes:['📅 เพิ่ม "รายงานรายวัน" (หน้ารายงาน — เฉพาะแอดมิน/ผู้มีสิทธิ์ดูยอด) — สรุปทั้ง 3 สาขาในหน้าเดียว: 💰 ยอดขายรวมวันนี้ + เทียบ %กับเมื่อวาน + แยกเงินสด/ช่องทางอื่น/จำนวนบิล · 📊 แยกยอดรายสาขาเป็นแถบ · 🌙 สถานะปิดร้านแต่ละสาขา (ตรง/ขาด/เกิน/ยังไม่ปิด) + เวลาปิด + เก็บเข้าเซฟ/เงินในเซฟรวม · 👥 ใครเข้างานวันนี้ (เวลาเข้า-ออก) + ใครลา · ⚠️ กล่อง "ต้องดู" เตือนสาขาที่ยังไม่ปิด/เงินขาด-เกิน · เลื่อนดูย้อนหลังได้ (‹ ก่อนหน้า / ถัดไป › หรือเลือกวันที่) · กด "ออก PDF" พิมพ์/บันทึกเป็นไฟล์ได้ · เป็นรายงาน "อ่านอย่างเดียว" ไม่แตะเงิน/ยอดใดๆ']},
   {v:'4.1.1',date:'2026-07-08',changes:['🖼️ แก้ปัญหา "อัปโลโก้แล้วไม่เปลี่ยน" — เดิมระบบอัปโลโก้ขึ้น Firebase Storage ซึ่งบนแผนฟรีมักยังไม่ได้เปิด ทำให้อัปไม่ขึ้นจริง · เปลี่ยนเป็น "ย่อรูปแล้วฝังลงข้อมูลโดยตรง" (ไม่ต้องใช้ Storage) — ฟรี ทำงานทันที · วิธีใส่: ตั้งค่า › ปรับแต่งหน้าตา › อัปโหลดรูปโลโก้ › กดบันทึกการปรับแต่ง → โลโก้ขึ้นบนแถบเมนู+แถบบนทุกที่']},
@@ -2059,7 +2060,8 @@ function dailyReportRender(R,att,lv){
   const alertBox=R.alerts.length?`<div style="display:flex;align-items:flex-start;gap:9px;background:var(--amber-l);border:1px solid var(--amber);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--amber-t);line-height:1.6;font-weight:600"><span>⚠️</span><span><b>ต้องดู:</b> ${R.alerts.join(' · ')}</span></div>`:`<div style="display:flex;align-items:center;gap:9px;background:var(--green-l);border:1px solid var(--green-l);border-radius:14px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--green-dd);font-weight:600"><span>✅</span> วันนี้เรียบร้อย ปิดร้านครบ เงินตรงทุกสาขา</div>`;
   const seclabel=t=>`<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.08em;margin:12px 2px 8px;display:flex;align-items:center;gap:7px"><span style="width:13px;height:2px;border-radius:2px;background:var(--green)"></span>${t}</div>`;
   const dShort=dObj.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'short',year:'numeric'});
-  openModal(`<div class="modal-title" style="display:flex;align-items:center;gap:7px;font-size:16px">📅 รายงานรายวัน</div>
+  openModal(`<style>#modal-box:has(#dr-wrap){padding:1rem .9rem}@media(max-width:430px){#modal-box:has(#dr-wrap){padding:.8rem .7rem}}</style><div id="dr-wrap"></div>
+    <div class="modal-title" style="display:flex;align-items:center;gap:7px;font-size:15px">📅 รายงานรายวัน</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin:-4px 0 10px">
       <button class="btn btn-sm" style="white-space:nowrap;padding:6px 9px;font-size:11.5px" onclick="dailyReportShift(-1)">‹ ก่อน</button>
       <div style="text-align:center;flex:1;min-width:0"><div style="font-family:var(--disp);font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${dShort}</div><div style="font-size:10px;color:var(--text3)">รวม 3 สาขา${d===today?' · วันนี้':''}</div></div>
@@ -2071,7 +2073,7 @@ function dailyReportRender(R,att,lv){
       ${seclabel('ยอดขาย')}
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 14px;box-shadow:var(--shadow);margin-bottom:6px">
         <div style="font-size:11px;color:var(--text3)">ยอดขายรวมวันนี้</div>
-        <div style="font-family:var(--disp);font-size:25px;font-weight:600;color:var(--text);margin:1px 0 5px">฿${fmt(R.total)}</div>
+        <div style="font-family:var(--disp);font-size:22px;font-weight:600;color:var(--text);margin:1px 0 5px">฿${fmt(R.total)}</div>
         ${cmp}
         <div style="display:flex;border-top:1px solid var(--border);margin-top:12px;padding-top:11px">
           <div style="flex:1;text-align:center"><div style="font-size:10.5px;color:var(--text3)">💵 เงินสด</div><div style="font-family:var(--disp);font-size:14px;font-weight:600">฿${fmt(R.cash)}</div></div>
@@ -2089,7 +2091,7 @@ function dailyReportRender(R,att,lv){
       ${seclabel('เข้างานวันนี้ · '+att.length+' คน')}
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:4px 15px;box-shadow:var(--shadow)">${attRows}${lvRows}</div>
     </div>
-    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="dailyReportPrint()">📄 ออก PDF</button></div>`);
+    <div class="modal-footer" style="gap:7px"><button class="btn" style="padding:9px 6px;font-size:12.5px" onclick="closeMD()">ปิด</button><button class="btn" style="padding:9px 6px;font-size:12.5px" onclick="dailyReportShare()">📤 แชร์</button><button class="btn btn-primary" style="padding:9px 6px;font-size:12.5px" onclick="dailyReportPrint()">📄 PDF</button></div>`);
 }
 // พิมพ์/บันทึก PDF — เปิดหน้าต่างพิมพ์แบบกระดาษ
 window.dailyReportPrint=function(){
@@ -2118,6 +2120,37 @@ window.dailyReportPrint=function(){
   const w=window.open('','_blank');
   if(!w){showToast('เบราว์เซอร์บล็อกหน้าต่าง — อนุญาต popup แล้วลองใหม่','err');return;}
   w.document.write(html);w.document.close();
+};
+// แชร์เป็นข้อความ — เปิดแผงแชร์ของเครื่อง (เลือกไลน์ได้) · ถ้าไม่มีก็เปิดไลน์พร้อมข้อความ/ก็อปปี้
+window.dailyReportShare=async function(){
+  const L=window._drLast; if(!L){showToast('ยังไม่มีรายงาน','err');return;}
+  const R=L.R;
+  const dLbl=new Date(R.d+'T12:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const shop=(appearanceCfg?.shopName)||'ใหม่เภสัช';
+  const cmp=R.pct==null?'':` (${R.pct>=0?'▲':'▼'}${Math.abs(R.pct)}% จากเมื่อวาน)`;
+  const t=[];
+  t.push(`📅 รายงานประจำวัน — ${shop}`);
+  t.push(dLbl);
+  t.push('');
+  t.push(`💰 ยอดขายรวม ฿${fmt(R.total)}${cmp}`);
+  t.push(`   เงินสด ฿${fmt(R.cash)} · อื่นๆ ฿${fmt(R.other)} · ${R.bills} บิล`);
+  t.push('');
+  t.push('🏪 แยกสาขา');
+  R.rows.forEach(r=>t.push(`   • ${r.bn}  ฿${fmt(r.total)}`));
+  t.push('');
+  t.push('🌙 ปิดร้าน');
+  R.rows.forEach(r=>t.push(`   • ${r.bn} — ${r.status}${r.ctime?' (ปิด '+r.ctime+')':''}`));
+  t.push(`   เก็บเข้าเซฟวันนี้ ฿${fmt(R.dep)}`);
+  if(R.alerts.length){t.push('');t.push('⚠️ ต้องดู: '+R.alerts.join(' · '));}
+  const text=t.join('\n');
+  if(navigator.share){
+    try{await navigator.share({title:`รายงานประจำวัน ${shop}`,text});return;}
+    catch(e){if(e&&e.name==='AbortError')return;} // ผู้ใช้กดยกเลิก = เงียบ
+  }
+  // สำรอง: คอมพิวเตอร์/เบราว์เซอร์ที่ไม่มีแผงแชร์ → เปิดไลน์พร้อมข้อความ + ก็อปปี้ไว้ให้
+  try{if(navigator.clipboard)await navigator.clipboard.writeText(text);}catch(e){}
+  const w=window.open('https://line.me/R/msg/text/?'+encodeURIComponent(text),'_blank');
+  showToast(w?'เปิดไลน์พร้อมข้อความให้แล้ว (ก็อปปี้ไว้ด้วย)':'ก็อปปี้รายงานไว้แล้ว — วางในไลน์ได้เลย');
 };
 
 // ===== สีประจำวัน (ความเชื่อไทย) — สำหรับน้องแคปซูล =====
