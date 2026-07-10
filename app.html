@@ -537,7 +537,7 @@ input,select,textarea{border-radius:14px}
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
 </button>
 
-<div id="tester-banner" style="display:none;background:#F59E0B;color:#1C1917;text-align:center;padding:6px 16px;font-size:12px;font-weight:600;position:fixed;top:calc(56px + env(safe-area-inset-top));left:0;right:0;z-index:89">🧪 โหมดทดสอบ — ข้อมูลที่บันทึกจะอยู่ในระบบจริง</div>
+<div id="tester-banner" style="display:none;background:#F59E0B;color:#1C1917;text-align:center;padding:6px 16px;font-size:12px;font-weight:600;position:fixed;top:calc(56px + env(safe-area-inset-top));left:0;right:0;z-index:89">🧪 โหมดทดสอบ — เงิน/ยอดขาย/ลา/งาน เป็นข้อมูลจำลอง ไม่กระทบระบบจริง</div>
 <main class="main">
   <button id="home-back-btn" onclick="goto('home')" style="display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;font-family:var(--font);margin-bottom:1rem;box-shadow:var(--shadow)">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
@@ -1625,8 +1625,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.4.0';
+const APP_VERSION='4.7.0';
 const CHANGELOG=[
+  {v:'4.7.0',date:'2026-07-10',changes:['🧪 เพิ่ม "โคลนพนักงาน (ทดสอบ)" — ในจัดการพนักงาน กดปุ่ม "📋 โคลน" ที่พนักงานคนไหนก็ได้ จะสร้างสำเนา "(ชื่อ) — ทดสอบ" (ก็อปปี้ บทบาท/สาขา/สิทธิ์/ตั้งค่าเงินเดือน) ไว้ลองทดสอบวิธีคิดเงินเดือน/สลิป/หน้าตา โดยไม่กระทบพนักงานจริง · โคลนไม่มีล็อกอิน (กรอกชั่วโมงทำงานเองตอนทดสอบ) · ติดป้าย 🧪 · ไม่ถูกรวมใน "จ่ายเงินเดือนทุกคน" · ลบทิ้งได้ (ปุ่ม 🗑 ลบโคลน) · ⚠️ ต้องอัป Firestore rules ด้วย (ให้แอดมินสร้าง/ลบพนักงานได้)']},
+  {v:'4.6.1',date:'2026-07-10',changes:['↩️ เพิ่มปุ่ม "ยกเลิกการจ่ายเงินเดือน" (หน้าคำนวณเงินเดือน · รอบที่จ่ายแล้ว) — กรณีคำนวณผิด กดยกเลิกให้รอบกลับเป็น "รอดำเนินการ" ข้อมูลยังอยู่ครบ แก้ตัวเลขแล้วกดจ่ายใหม่ได้ (ต่างจาก "ลบรอบ" ที่ลบสลิปทิ้ง)']},
+  {v:'4.6.0',date:'2026-07-10',changes:['💵 เพิ่มวิธีคิดเงินเดือนแบบใหม่ 3 แบบ (คิดจาก "ชั่วโมงจริง" เช็คอิน–เช็คเอาท์) — ตั้งรายคนที่จัดการพนักงาน · ระบบดึงมาคำนวณให้อัตโนมัติ: ① ตามชั่วโมงจริง = ชั่วโมง×เรท · ② ชั่วโมงบังคับ (วันหยุด=อาทิตย์+วันหยุดพิเศษที่ admin กรอก) · ③ ชั่วโมงบังคับ (วันหยุด 6 วัน) — แบบ ②③: ทำครบได้เงินเดือนเต็ม · ทำเกิน=OT บวกเพิ่ม · ทำขาด=หัก (เรท/ชม.ตัวเดียวใช้ทั้งหัก+OT) · ชั่วโมงบังคับ=(วันในเดือน−วันหยุด)×9 · ลืมเช็คเอาท์นับ 0 (admin แก้ชั่วโมงเองได้) · รายการบวก/หัก admin จัดการเหมือนเดิม · สลิปแสดงครบ · วิธีเดิม (ประจำ/รายชั่วโมง/ผสม) ยังใช้ได้ปกติ']},
+  {v:'4.5.0',date:'2026-07-10',changes:['🧪 ขยายโหมดทดสอบ (tester) ให้ครอบ "งานประจำวัน" มากขึ้น — เดิมจำลองแค่เงินสด/ยอดขาย ตอนนี้ "ขอลา" และ "ติ๊กงานวันนี้ (To-do)" ก็เป็นข้อมูลจำลองในเครื่องแล้ว ไม่เขียนเข้าระบบจริง/ไม่ตัดเวรจริง/ไม่กระทบงานของคนอื่น · ปุ่ม "🔄 รีเซ็ตทดสอบ" ล้างคำขอลาจำลองด้วย · แถบเหลืองบอกชัดขึ้น (เงิน/ยอดขาย/ลา/งาน = จำลอง)']},
   {v:'4.4.0',date:'2026-07-10',changes:['🔐 อุดช่องโหว่ข้อมูลอ่อนไหว — ย้าย เงินเดือน/บัญชีธนาคาร/บัตรปชช./ที่อยู่/เบอร์ ของพนักงาน ไปเก็บแยกใน "memberSecure" ที่เปิดอ่านเฉพาะแอดมิน+เจ้าตัว (เดิมพนักงานที่รู้เทคนิคอ่านกันเองได้) · หน้า "จัดการสมาชิก" มีการ์ด 🔐 พร้อมปุ่ม 2 ขั้น: ① คัดลอกไปที่ปลอดภัย (ยังไม่ลบของเดิม ทดสอบได้) → ② ปิดช่องโหว่ (ลบออกจาก members) · ระบบเงินเดือน/สลิปทำงานเหมือนเดิมทุกอย่าง (โหลดข้อมูลมารวมให้อัตโนมัติ) · ⚠️ ต้องอัป Firestore rules ด้วย (เพิ่มบล็อก memberSecure) · วิธีทำ: อัปแอป → กด ① → เช็คเงินเดือนถูกต้อง → กด ② → อัป rules']},
   {v:'4.3.0',date:'2026-07-10',changes:['🔐 เพิ่มความปลอดภัย: "แจ้งเตือนเข้าระบบจากอุปกรณ์ใหม่" — เมื่อมีการล็อกอินบัญชีจากเครื่อง/เบราว์เซอร์ที่ไม่เคยใช้ ระบบจะบันทึกลง "ประวัติใช้งาน" (แอดมินเห็น แก้ไม่ได้) พร้อมบอกชนิดเครื่อง (เช่น iPhone·Safari) และเตือนเจ้าตัวว่า "ถ้าไม่ใช่คุณ รีบเปลี่ยนรหัสผ่าน/แจ้งแอดมิน" · เครื่องเดิมไม่เตือนซ้ำ · ⚠️ ต้องอัปเดต Firestore rules ด้วย (ไฟล์ firestore-rules-ใหม่.txt — เพิ่มสิทธิ์ให้พนักงานบันทึกรายชื่ออุปกรณ์ของตัวเองได้ ไม่กระทบข้อมูลอื่น)']},
   {v:'4.2.9',date:'2026-07-08',changes:['🧹 จัดระเบียบโค้ดภายในเล็กน้อย (ลบตัวแปรที่ไม่ได้ใช้ในรายงานรายวัน) — ไม่กระทบการใช้งาน/ตัวเลข/หน้าตาใดๆ']},
@@ -5111,13 +5115,17 @@ function testerCashPersist(){
   try{localStorage.setItem(TESTER_CASH_KEY,JSON.stringify({state:cashState,events:cashEvents.slice(0,300),sales:window._testerSales||{}}));}catch(e){}
 }
 window.testerCashReset=async function(){
-  if(!await capsuleConfirm('🧪 รีเซ็ตข้อมูลทดสอบทั้งหมด?\n(เงินจำลอง + รายการจำลอง + ยอดขายจำลอง — ไม่กระทบข้อมูลจริงแน่นอน)'))return;
+  if(!await capsuleConfirm('🧪 รีเซ็ตข้อมูลทดสอบทั้งหมด? (เงิน/ยอดขาย/คำขอลา จำลอง — ไม่กระทบข้อมูลจริงแน่นอน)'))return;
   localStorage.removeItem(TESTER_CASH_KEY);
+  localStorage.removeItem('nm_testerLeaves');window._testerLeaves=[];
   const s=testerCashLoad();
   cashState=s.state;cashEvents=s.events;window._testerSales={};
   renderCashPage();
   showToast('🧪 รีเซ็ตข้อมูลทดสอบแล้ว — เริ่มวันใหม่ได้เลย');
 };
+// 🧪 เก็บ "คำขอลา" จำลองสำหรับ tester (ในเครื่อง ไม่แตะ Firestore)
+function testerLeavesGet(){if(!Array.isArray(window._testerLeaves)){try{window._testerLeaves=JSON.parse(localStorage.getItem('nm_testerLeaves')||'[]');}catch(e){window._testerLeaves=[];}}return window._testerLeaves;}
+function testerLeavesSave(){try{localStorage.setItem('nm_testerLeaves',JSON.stringify(window._testerLeaves||[]));}catch(e){}}
 // ===== โหลดรายการเงินสดแบบจำกัดช่วง (ลดปริมาณอ่านข้อมูล/ค่าใช้จ่าย Firestore) =====
 // ปกติดึงย้อนหลัง 7 เดือน ซึ่งพอสำหรับทุกหน้าจอ — แต่ถ้าสาขาไหนยังไม่มีรอบนับเต็ม
 // (นับสำรอง/นับเซฟ) อยู่ในช่วงนี้ จะถอยไปโหลดทั้งหมดแทน เพื่อให้ยอดแยกชนิดเงินไม่เพี้ยน
@@ -7651,8 +7659,52 @@ window.filterMembers=function(){
     const dob=m.dateOfBirth?new Date(m.dateOfBirth).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):'—';
     const roleBadge=m.role==='admin'?'<span class="badge badge-purple">Admin</span>':'<span class="badge badge-green">สมาชิก</span>';
     const sta=m.status==='active'?'<span class="sta-on">ใช้งาน</span>':'<span class="sta-off">ระงับ</span>';
-    return`<tr><td><div style="display:flex;align-items:center;gap:10px"><div class="mem-av">${name.charAt(0)}</div><div style="font-weight:600">${name}</div></div></td><td style="font-size:12px;color:var(--text2)">${m.email||'—'}</td><td>${dob}</td><td>${roleBadge}</td><td>${sta}</td><td><div style="display:flex;gap:6px"><button class="btn btn-sm btn-blue" onclick="viewMember('${m.uid}')">จัดการ</button><button class="btn btn-sm ${m.status==='active'?'btn-danger':'btn-primary'}" onclick="toggleMember('${m.uid}','${m.status}')">${m.status==='active'?'ระงับ':'เปิดใช้'}</button></div></td></tr>`;
+    const cloneBadge=m.isClone?'<span class="badge" style="background:#F59E0B;color:#1C1917;font-size:10px;font-weight:700;margin-left:6px">🧪 ทดสอบ</span>':'';
+    const actions=isAdmin?(m.isClone
+      ?`<button class="btn btn-sm btn-danger" onclick="deleteMemberClone('${m.uid}')">🗑 ลบโคลน</button>`
+      :`<button class="btn btn-sm" onclick="cloneMember('${m.uid}')" title="โคลนไว้ทดสอบ">📋 โคลน</button><button class="btn btn-sm ${m.status==='active'?'btn-danger':'btn-primary'}" onclick="toggleMember('${m.uid}','${m.status}')">${m.status==='active'?'ระงับ':'เปิดใช้'}</button>`):'';
+    return`<tr><td><div style="display:flex;align-items:center;gap:10px"><div class="mem-av">${name.charAt(0)}</div><div style="font-weight:600">${name}${cloneBadge}</div></div></td><td style="font-size:12px;color:var(--text2)">${m.email||'—'}</td><td>${dob}</td><td>${roleBadge}</td><td>${sta}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm btn-blue" onclick="viewMember('${m.uid}')">จัดการ</button>${actions}</div></td></tr>`;
   }).join('');
+};
+// 📋 โคลนพนักงานเป็น "พนักงานทดสอบ" (สำเนา config ไม่มีล็อกอิน) — ไว้ทดสอบเงินเดือน/สิทธิ์/หน้าตา
+window.cloneMember=async function(uid){
+  if(!isAdmin){showToast('เฉพาะแอดมิน','err');return;}
+  const src=allMembers.find(x=>x.uid===uid);if(!src)return;
+  const srcName=`${src.firstName||''} ${src.lastName||''}`.trim();
+  if(!await capsuleConfirm(`โคลน "${srcName}" เป็นพนักงานทดสอบ?\nก็อปปี้ บทบาท/สาขา/สิทธิ์/ตั้งค่าเงินเดือน · ไม่มีล็อกอิน · ชั่วโมงทำงานกรอกเองตอนทดสอบ · ลบทีหลังได้`))return;
+  loading(true);
+  try{
+    const nid='clone_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+    const pub={firstName:`${src.firstName||''}`.trim(),lastName:`${(src.lastName||'').trim()} (ทดสอบ)`.trim(),
+      nickname:src.nickname||'',role:src.role||'member',branch:src.branch??0,
+      permissions:src.permissions||{},empId:src.empId||'',position:src.position||'',reportsTo:src.reportsTo||'',
+      dateOfBirth:src.dateOfBirth||'',email:'',status:'active',isClone:true,clonedFrom:uid,createdAt:new Date().toISOString()};
+    await setDoc(doc(db,'members',nid),pub);
+    const sec={};SECURE_FIELDS.forEach(f=>{if(src[f]!==undefined)sec[f]=src[f];});
+    if(Object.keys(sec).length)await setDoc(doc(db,'memberSecure',nid),sec,{merge:true});
+    allMembers.push({...pub,...sec,uid:nid});
+    showToast('โคลนพนักงานทดสอบแล้ว 🧪 — เปิดหน้าเงินเดือนแล้วกรอกชั่วโมงเพื่อทดสอบได้เลย');
+    logActivity('member_clone',`โคลนพนักงานทดสอบจาก ${srcName}`);
+    filterMembers();
+  }catch(e){showToast('โคลนไม่สำเร็จ: '+(e?.message||e),'err');}
+  loading(false);
+};
+// ลบพนักงานโคลน (ทดสอบ) เท่านั้น — กันลบพนักงานจริงพลาด
+window.deleteMemberClone=async function(uid){
+  if(!isAdmin)return;
+  const m=allMembers.find(x=>x.uid===uid);
+  if(!m||!m.isClone){showToast('ลบได้เฉพาะพนักงานโคลน (ทดสอบ)','err');return;}
+  if(!await capsuleConfirm(`ลบพนักงานโคลน "${`${m.firstName||''} ${m.lastName||''}`.trim()}" ถาวร?`))return;
+  loading(true);
+  try{
+    await deleteDoc(doc(db,'members',uid));
+    try{await deleteDoc(doc(db,'memberSecure',uid));}catch(e){}
+    allMembers=allMembers.filter(x=>x.uid!==uid);
+    showToast('ลบโคลนแล้ว');
+    logActivity('member_clone_delete',`ลบพนักงานโคลน ${`${m.firstName||''} ${m.lastName||''}`.trim()}`);
+    filterMembers();
+  }catch(e){showToast('ลบไม่สำเร็จ: '+(e?.message||e),'err');}
+  loading(false);
 };
 // เปิดหน้าจัดการสมาชิก แล้วเปิด modal ของพนักงานคนนั้นเลย (ใช้จากชื่อที่คลิกได้ทั่วแอป)
 window.gotoManageMember=async function(uid){
@@ -7794,18 +7846,25 @@ window.viewMember=function(uid){
     <div class="field">
       <label class="fl">ประเภทการจ่าย</label>
       <select id="m-salary-type" onchange="toggleSalaryFields()">
-        <option value="fixed" ${salaryType==='fixed'?'selected':''}>เงินเดือนประจำ</option>
-        <option value="hourly" ${salaryType==='hourly'?'selected':''}>รายชั่วโมง</option>
-        <option value="both" ${salaryType==='both'?'selected':''}>ทั้งสองแบบ</option>
+        <optgroup label="── วิธีใหม่ (คิดจากชั่วโมงจริง เช็คอิน–เช็คเอาท์) ──">
+          <option value="hourly_actual" ${salaryType==='hourly_actual'?'selected':''}>① ตามชั่วโมงจริง</option>
+          <option value="req_sun" ${salaryType==='req_sun'?'selected':''}>② ชั่วโมงบังคับ (หยุด=อาทิตย์+พิเศษ)</option>
+          <option value="req_fix6" ${salaryType==='req_fix6'?'selected':''}>③ ชั่วโมงบังคับ (หยุด 6 วัน)</option>
+        </optgroup>
+        <optgroup label="── วิธีเดิม ──">
+          <option value="fixed" ${salaryType==='fixed'?'selected':''}>เงินเดือนประจำ</option>
+          <option value="hourly" ${salaryType==='hourly'?'selected':''}>รายชั่วโมง (ตามตารางเวร)</option>
+          <option value="both" ${salaryType==='both'?'selected':''}>ทั้งสองแบบ</option>
+        </optgroup>
       </select>
     </div>
     <div class="field-row">
-      <div class="field" id="f-base" style="${salaryType==='hourly'?'display:none':''}">
-        <label class="fl">เงินเดือนฐาน (บาท/เดือน)</label>
+      <div class="field" id="f-base" style="${(salaryType==='hourly'||salaryType==='hourly_actual')?'display:none':''}">
+        <label class="fl" id="m-base-label">${(salaryType==='req_sun'||salaryType==='req_fix6')?'เงินเดือนเต็ม (บาท/เดือน)':'เงินเดือนฐาน (บาท/เดือน)'}</label>
         <input type="number" id="m-base" value="${m.salary?.base||0}" min="0">
       </div>
       <div class="field" id="f-hourly" style="${salaryType==='fixed'?'display:none':''}">
-        <label class="fl">ค่าชั่วโมง (บาท/ชั่วโมง)</label>
+        <label class="fl" id="m-hourly-label">${['hourly_actual','req_sun','req_fix6'].includes(salaryType)?'เรทต่อชั่วโมง (บาท/ชม.)':'ค่าชั่วโมง (บาท/ชั่วโมง)'}</label>
         <input type="number" id="m-hourly" value="${m.salary?.hourlyRate||0}" min="0">
       </div>
     </div>
@@ -7955,9 +8014,12 @@ window.showOrgChart=function(){
 };
 window.toggleSalaryFields=function(){
   const t=document.getElementById('m-salary-type').value;
-  document.getElementById('f-base').style.display=t==='hourly'?'none':'';
-  document.getElementById('f-hourly').style.display=t==='fixed'?'none':'';
+  const hideBase=(t==='hourly'||t==='hourly_actual');        // รายชั่วโมง (เดิม+ใหม่) ไม่มีเงินเดือนฐาน
+  document.getElementById('f-base').style.display=hideBase?'none':'';
+  document.getElementById('f-hourly').style.display=t==='fixed'?'none':'';   // fixed ไม่มีค่าชั่วโมง
   document.getElementById('f-laterate-row').style.display=t==='fixed'?'':'none';
+  const bl=document.getElementById('m-base-label'); if(bl)bl.textContent=(t==='req_sun'||t==='req_fix6')?'เงินเดือนเต็ม (บาท/เดือน)':'เงินเดือนฐาน (บาท/เดือน)';
+  const hl=document.getElementById('m-hourly-label'); if(hl)hl.textContent=PR_NEW_METHODS.includes(t)?'เรทต่อชั่วโมง (บาท/ชม.)':'ค่าชั่วโมง (บาท/ชั่วโมง)';
 };
 window.saveMemberSettings=async function(uid){
   const role=document.getElementById('m-role').value;
@@ -8117,6 +8179,53 @@ async function _prComputeHours(uid, monthStr){
   return {hours,rawHours:Math.round(rawHours*10)/10,lateDeduction,lateCount,minorLateAccum,minorLateEvents,accumDeductCount,shiftCount:myShifts.length};
 }
 
+// ===== วิธีคิดเงินเดือนแบบใหม่ (คิดจากชั่วโมงจริง เช็คอิน–เช็คเอาท์) =====
+const PR_NEW_METHODS=['hourly_actual','req_sun','req_fix6'];
+const PR_METHOD_LABEL={hourly_actual:'ตามชั่วโมงจริง',req_sun:'ชั่วโมงบังคับ (หยุด=อาทิตย์+พิเศษ)',req_fix6:'ชั่วโมงบังคับ (หยุด 6 วัน)'};
+// ชั่วโมงจริงจากเช็คอิน–เช็คเอาท์ รวมทั้งเดือน (ลืมเช็คเอาท์ = วันนั้น 0 ชม. admin แก้ได้)
+async function _prActualHours(uid, monthStr){
+  if(!allCheckins.length)await loadCheckinsForSchedule();
+  await ensureCheckinsMonth(monthStr);
+  let hours=0, missingOut=0, days=0;
+  allCheckins.filter(c=>c.uid===uid&&(c.date||'').startsWith(monthStr)&&c.checkIn).forEach(c=>{
+    days++;
+    if(c.checkOut){
+      const[ih,im]=c.checkIn.split(':').map(Number);
+      const[oh,om]=c.checkOut.split(':').map(Number);
+      let h=(oh+om/60)-(ih+im/60);
+      if(h<0)h+=24; // ข้ามคืน
+      hours+=h;
+    }else missingOut++;
+  });
+  return {actualHours:Math.round(hours*10)/10, missingOut, days};
+}
+// จำนวนวันอาทิตย์ในเดือน (month = 1-12)
+function _sundaysInMonth(year, month){
+  let n=0, last=new Date(year,month,0).getDate();
+  for(let d=1;d<=last;d++){if(new Date(year,month-1,d).getDay()===0)n++;}
+  return n;
+}
+// ชั่วโมงบังคับสุทธิ/เดือน = (วันในเดือน − วันหยุด) × 9
+function _prMandatoryHours(type, year, month, adminHolidays){
+  const days=new Date(year,month,0).getDate();
+  const holidays=(type==='req_fix6')?6:(_sundaysInMonth(year,month)+(parseInt(adminHolidays)||0));
+  return Math.max(0,days-holidays)*9;
+}
+// คิดเงินสุทธิของวิธีใหม่ (ยังไม่รวมรายการเพิ่ม/หัก ของ admin)
+// คืน {base, diffAmt, hourlyAmt, net, mandatory, deficit, ot} — diffAmt: + = OT, − = หักชั่วโมงขาด
+function _prNewMethodCalc(d){
+  const rate=d.rate||0, monthly=d.monthly||0, actual=d.actualHours||0, mand=d.mandatoryHours||0;
+  if(d.salaryType==='hourly_actual'){
+    const hourlyAmt=Math.round(actual*rate);
+    return {base:0,hourlyAmt,diffAmt:0,mandatory:0,deficit:0,ot:0,net:hourlyAmt};
+  }
+  // req_sun / req_fix6
+  const diffH=Math.round((actual-mand)*10)/10;               // + = เกิน(OT) · − = ขาด(หัก)
+  const diffAmt=Math.round(diffH*rate);
+  return {base:monthly,hourlyAmt:0,diffAmt,mandatory:mand,
+    deficit:diffH<0?-diffH:0, ot:diffH>0?diffH:0, net:monthly+diffAmt};
+}
+
 // ===== เลือกพนักงานเพื่อคำนวณ =====
 window.selectPRPerson=async function(uid){
   prCurrentPerson=uid;
@@ -8139,6 +8248,16 @@ window.selectPRPerson=async function(uid){
   prLeave=m.slipLeave?JSON.parse(JSON.stringify(m.slipLeave)):{show:false,items:[]};
   if(!Array.isArray(prLeave.items))prLeave.items=[];
 
+  // 🆕 วิธีใหม่: คิดชั่วโมงจริงจากเช็คอิน–เช็คเอาท์ + ชั่วโมงบังคับ
+  const _isNewM=PR_NEW_METHODS.includes(salary.type);
+  let actualH=0, missingOut=0, mandatoryH=0;
+  const adminHol=saved?.adminHolidays!=null?saved.adminHolidays:0;
+  if(_isNewM){
+    const AH=await _prActualHours(uid,monthStr);
+    actualH=AH.actualHours; missingOut=AH.missingOut;
+    mandatoryH=_prMandatoryHours(salary.type,prYear,prMonth,adminHol);
+  }
+
   prData={
     uid,name:`${m.firstName||''} ${m.lastName||''}`.trim(),
     salaryType:salary.type||'fixed',
@@ -8154,6 +8273,15 @@ window.selectPRPerson=async function(uid){
     minorLateEvents,
     accumDeductCount,
     shiftCount,
+    // 🆕 ฟิลด์วิธีใหม่
+    isNewMethod:_isNewM,
+    rate:salary.hourlyRate||0,                                     // เรท/ชม. (หัก+OT / ตามชั่วโมง)
+    monthly:(saved&&saved.baseAmt!=null)?saved.baseAmt:(salary.base||0), // เงินเดือนเต็ม
+    actualHours:saved?.actualOverride!=null?saved.actualOverride:actualH,
+    autoActualHours:actualH,
+    missingOut,
+    mandatoryHours:mandatoryH,
+    adminHolidays:adminHol,
     otHours:saved?.otHours||0,
     otRate:saved?.otRate||0,
     slipNote:saved?.slipNote||'',
@@ -8168,15 +8296,23 @@ window.selectPRPerson=async function(uid){
 function renderPRCalc(){
   document.getElementById('pr-calc-area').style.display='block';
   const d=prData;
-  const baseAmt=d.salaryType==='hourly'?0:d.base;
-  const hourlyAmt=d.salaryType==='fixed'?0:Math.round(d.hours*d.hourlyRate);
-  const otAmt=Math.round((d.otHours||0)*(d.otRate||0));
-  // หักมาสายเป็นเงิน — เฉพาะ fixed (hourly/both หักผ่านชั่วโมงที่คิดเงินอยู่แล้ว จึงไม่หักซ้ำ)
-  const lateDeductAmt=d.salaryType==='fixed'?Math.round((d.lateDeduction||0)*(d.lateRate||0)):0;
+  const NM=PR_NEW_METHODS.includes(d.salaryType);   // 🆕 วิธีใหม่ (คิดชั่วโมงจริง)
+  let baseAmt,hourlyAmt,otAmt,lateDeductAmt,reqDiffAmt=0,nmc=null;
+  if(NM){
+    nmc=_prNewMethodCalc(d);
+    baseAmt=nmc.base; hourlyAmt=nmc.hourlyAmt; reqDiffAmt=nmc.diffAmt;
+    otAmt=0; lateDeductAmt=0;   // วิธีใหม่: OT/หักขาด รวมใน reqDiffAmt แล้ว · ไม่มีหักสายอัตโนมัติ
+  }else{
+    baseAmt=d.salaryType==='hourly'?0:d.base;
+    hourlyAmt=d.salaryType==='fixed'?0:Math.round(d.hours*d.hourlyRate);
+    otAmt=Math.round((d.otHours||0)*(d.otRate||0));
+    // หักมาสายเป็นเงิน — เฉพาะ fixed (hourly/both หักผ่านชั่วโมงที่คิดเงินอยู่แล้ว จึงไม่หักซ้ำ)
+    lateDeductAmt=d.salaryType==='fixed'?Math.round((d.lateDeduction||0)*(d.lateRate||0)):0;
+  }
   const extraAdd=prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0);
   const extraDed=prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0);
-  const net=baseAmt+hourlyAmt+otAmt+extraAdd-extraDed-lateDeductAmt;
-  d.computedNet=net;d.baseAmt=baseAmt;d.hourlyAmt=hourlyAmt;d.otAmt=otAmt;d.lateDeductAmt=lateDeductAmt;
+  const net=baseAmt+hourlyAmt+otAmt+reqDiffAmt+extraAdd-extraDed-lateDeductAmt;
+  d.computedNet=net;d.baseAmt=baseAmt;d.hourlyAmt=hourlyAmt;d.otAmt=otAmt;d.lateDeductAmt=lateDeductAmt;d.reqDiffAmt=reqDiffAmt;
 
   const extraRows=prExtraItems.map((item,i)=>`
     <div class="pr-line">
@@ -8213,12 +8349,12 @@ function renderPRCalc(){
       <div class="pr-person-av" style="width:48px;height:48px;font-size:18px">${d.name.charAt(0)}</div>
       <div style="flex:1">
         <div style="font-size:17px;font-weight:700">${d.name}</div>
-        <div style="font-size:12px;color:var(--text3)">เงินเดือน ${MONTHS_TH[prMonth-1]} ${prYear} • ${d.salaryType==='fixed'?'ประจำ':d.salaryType==='hourly'?'รายชั่วโมง':'ผสม'}</div>
+        <div style="font-size:12px;color:var(--text3)">เงินเดือน ${MONTHS_TH[prMonth-1]} ${prYear} • ${PR_METHOD_LABEL[d.salaryType]||(d.salaryType==='fixed'?'ประจำ':d.salaryType==='hourly'?'รายชั่วโมง':'ผสม')}</div>
       </div>
       <span class="${d.status==='paid'?'sta-on':'sta-off'}">${d.status==='paid'?'จ่ายแล้ว':'รอดำเนินการ'}</span>
     </div>
 
-    ${d.status==='paid'?`<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:10px 13px;margin-bottom:1rem;font-size:12.5px;color:var(--blue-t)">✏️ <b>รอบนี้จ่ายแล้ว — แก้ไขได้</b> · ปรับตัวเลขด้านล่างแล้วกด “บันทึกการแก้ไข” ระบบจะทับยอดเดิมให้<div style="margin-top:8px;text-align:right"><button class="btn btn-sm btn-danger" onclick="prDeleteSaved()">🗑 ลบรอบเงินเดือนนี้</button></div></div>`:''}
+    ${d.status==='paid'?`<div style="background:var(--blue-l);border:1px solid var(--blue);border-radius:10px;padding:10px 13px;margin-bottom:1rem;font-size:12.5px;color:var(--blue-t)">✏️ <b>รอบนี้จ่ายแล้ว — แก้ไขได้</b> · ปรับตัวเลขด้านล่างแล้วกด “บันทึกการแก้ไข” ระบบจะทับยอดเดิมให้<div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap"><button class="btn btn-sm" onclick="prUnpay()">↩️ ยกเลิกการจ่าย</button><button class="btn btn-sm btn-danger" onclick="prDeleteSaved()">🗑 ลบรอบเงินเดือนนี้</button></div></div>`:''}
 
     <div class="pr-line">
       <span class="pr-line-label">🗓️ งวดเงินเดือน (บนสลิป)</span>
@@ -8229,6 +8365,18 @@ function renderPRCalc(){
       <input type="date" id="pr-pay-date" class="pr-line-input" style="width:auto" value="${_defPay}" onchange="prData.payDate=this.value">
     </div>
 
+    ${NM?`
+    <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.25);border-radius:12px;padding:14px;margin-bottom:1rem">
+      <div style="font-size:12.5px;color:var(--green-dd);font-weight:800;margin-bottom:10px">🧮 ${PR_METHOD_LABEL[d.salaryType]}</div>
+      ${d.salaryType!=='hourly_actual'?`<div class="pr-line"><span class="pr-line-label">💰 เงินเดือนเต็ม</span><input type="number" class="pr-line-input" value="${d.monthly}" min="0" onchange="updatePRNM('monthly',this.value)"></div>`:''}
+      <div class="pr-line"><span class="pr-line-label">💵 เรทต่อชั่วโมง${d.salaryType!=='hourly_actual'?' (หัก/OT)':''}</span><input type="number" class="pr-line-input" value="${d.rate}" min="0" onchange="updatePRNM('rate',this.value)"></div>
+      ${d.salaryType==='req_sun'?`<div class="pr-line"><span class="pr-line-label">🌴 วันหยุดพิเศษเดือนนี้ <span style="font-size:11px;color:var(--text3)">— นอกจากอาทิตย์</span></span><input type="number" class="pr-line-input" style="width:80px" value="${d.adminHolidays}" min="0" onchange="updatePRNM('adminHolidays',this.value)"></div>`:''}
+      <div class="pr-line"><span class="pr-line-label">⏱️ ชั่วโมงจริง <span style="font-size:11px;color:var(--text3)">(เช็คอิน–ออก · auto ${d.autoActualHours})</span>${d.missingOut?` <span style="font-size:11px;color:var(--amber-t)">⚠️ลืมออก ${d.missingOut}วัน(นับ0)</span>`:''}</span><input type="number" class="pr-line-input" style="width:90px" step="0.5" value="${d.actualHours}" min="0" onchange="updatePRNM('actualHours',this.value)"></div>
+      ${d.salaryType==='hourly_actual'
+        ?`<div class="pr-line"><span class="pr-line-label" style="color:var(--text3)">= ค่าแรง (${d.actualHours} × ${d.rate})</span><span style="font-weight:700;color:var(--green-d)">฿${fmt(hourlyAmt)}</span></div>`
+        :`<div class="pr-line"><span class="pr-line-label" style="color:var(--text3)">= ชั่วโมงบังคับ (${new Date(prYear,prMonth,0).getDate()}วัน − หยุด) × 9</span><span style="font-weight:600">${d.mandatoryHours} ชม.</span></div>
+      <div class="pr-line" style="border-top:1px solid rgba(29,158,117,.15);margin-top:4px;padding-top:8px"><span class="pr-line-label" style="font-weight:700;color:${reqDiffAmt>=0?'var(--green-d)':'var(--red-t)'}">${nmc.ot>0?'⬆️ ทำเกิน (OT) '+nmc.ot+' ชม.':nmc.deficit>0?'⬇️ ขาด '+nmc.deficit+' ชม.':'✓ ทำครบพอดี'}</span><span style="font-weight:700;color:${reqDiffAmt>=0?'var(--green-d)':'var(--red-t)'}">${reqDiffAmt>=0?'+':'−'}฿${fmt(Math.abs(reqDiffAmt))}</span></div>`}
+    </div>`:`
     <!-- สรุปชั่วโมงจากตารางเวร (แสดงทุกคน) -->
     <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.2);border-radius:10px;padding:12px 14px;margin-bottom:1rem">
       <div style="display:flex;align-items:center;justify-content:space-between">
@@ -8298,7 +8446,7 @@ function renderPRCalc(){
     <div class="pr-line">
       <span class="pr-line-label" style="color:var(--text3)">= ค่า OT รวม</span>
       <span style="font-weight:600;color:var(--green-d)">฿${fmt(otAmt)}</span>
-    </div>
+    </div>`}
 
     <div style="margin:1.25rem 0 .75rem;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between">
       <span>รายการเพิ่มเติม (ค่ารถ, Incentive, ภาษี, ประกันสังคม ฯลฯ)</span>
@@ -8357,6 +8505,12 @@ window.updatePRField=function(field,val){
   prData[field]=parseFloat(val)||0;
   renderPRCalc();
 };
+// 🆕 อัปเดตฟิลด์วิธีใหม่ (เงินเดือนเต็ม/เรท/วันหยุดพิเศษ/ชั่วโมงจริง) — คำนวณชั่วโมงบังคับใหม่ถ้าวันหยุดเปลี่ยน
+window.updatePRNM=function(field,val){
+  prData[field]=parseFloat(val)||0;
+  if(field==='adminHolidays')prData.mandatoryHours=_prMandatoryHours(prData.salaryType,prYear,prMonth,prData.adminHolidays);
+  renderPRCalc();
+};
 
 window.addPRExtra=function(){
   const name=document.getElementById('pr-extra-name').value.trim();
@@ -8410,6 +8564,9 @@ window.savePRPerson=async function(){
       hours:d.hours,hoursOverride:d.hours,autoHours:d.autoHours,
       lateRate:d.lateRate||0,lateDeduction:d.lateDeduction||0,lateDeductAmt:d.lateDeductAmt||0,
       otHours:d.otHours||0,otRate:d.otRate||0,otAmt:d.otAmt||0,
+      // 🆕 ฟิลด์วิธีใหม่ (เก็บไว้ให้โหลดกลับมาแก้ได้ตรงตามที่บันทึก)
+      isNewMethod:!!d.isNewMethod,rate:d.rate||0,actualOverride:d.actualHours,autoActualHours:d.autoActualHours||0,
+      mandatoryHours:d.mandatoryHours||0,adminHolidays:d.adminHolidays||0,reqDiffAmt:d.reqDiffAmt||0,
       bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
       deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
       extraItems:prExtraItems,
@@ -8428,6 +8585,22 @@ window.savePRPerson=async function(){
 };
 
 // admin ลบรอบเงินเดือนที่บันทึก/จ่ายแล้ว (เช่น บันทึกผิดคน/ผิดเดือน)
+// ยกเลิกการจ่าย (กลับเป็น "รอดำเนินการ") — เก็บข้อมูลไว้ครบ แก้แล้วกดจ่ายใหม่ได้ (สำหรับกรณีคำนวณผิด)
+window.prUnpay=async function(){
+  if(!prCurrentPerson||!isAdmin)return;
+  const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
+  if(!await capsuleConfirm(`ยกเลิกการจ่ายเงินเดือน ${prData?.name||''} ${MONTHS_TH[prMonth-1]} ${prYear}?\nรอบนี้จะกลับเป็น "รอดำเนินการ" — ข้อมูลยังอยู่ครบ แก้ตัวเลขแล้วกด "จ่ายเงินเดือน" ใหม่ได้`))return;
+  loading(true);
+  try{
+    await updateDoc(doc(db,'payroll',`${prCurrentPerson}_${monthStr}`),{status:'pending',updatedAt:new Date().toISOString(),updatedBy:currentUser.uid});
+    if(prData)prData.status='pending';
+    if(prMonthRecords[prCurrentPerson])prMonthRecords[prCurrentPerson].status='pending';
+    showToast('ยกเลิกการจ่ายแล้ว — แก้ไขแล้วกดจ่ายใหม่ได้');
+    logActivity('payroll_unpay',`ยกเลิกการจ่ายเงินเดือน ${prData?.name||''} ${monthStr}`);
+    renderPRCalc();renderPRPersonSelect();
+  }catch(e){showToast('ยกเลิกไม่สำเร็จ: '+e.message,'err');}
+  loading(false);
+};
 window.prDeleteSaved=async function(){
   if(!prCurrentPerson||!isAdmin)return;
   const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
@@ -8453,6 +8626,20 @@ async function _prComputeRow(m, monthStr){
   const salary=m.salary||{type:'fixed',base:0,hourlyRate:0};
   const type=salary.type||'fixed';
   const base=salary.base||0, hourlyRate=salary.hourlyRate||0;
+  // 🆕 วิธีใหม่ (คิดชั่วโมงจริง) — คำนวณแยก
+  if(PR_NEW_METHODS.includes(type)){
+    const AH=await _prActualHours(uid,monthStr);
+    const actual=saved?.actualOverride!=null?saved.actualOverride:AH.actualHours;
+    const adminHol=saved?.adminHolidays!=null?saved.adminHolidays:0;
+    const mand=_prMandatoryHours(type,prYear,prMonth,adminHol);
+    const nmc=_prNewMethodCalc({salaryType:type,rate:hourlyRate,monthly:base,actualHours:actual,mandatoryHours:mand});
+    const extraItems=saved?.extraItems?[...saved.extraItems]:[];
+    return {uid,name:`${m.firstName||''} ${m.lastName||''}`.trim(),salaryType:type,base,hourlyRate,rate:hourlyRate,lateRate:0,
+      hours:actual,autoHours:AH.actualHours,actualHours:actual,autoActualHours:AH.actualHours,missingOut:AH.missingOut,
+      mandatoryHours:mand,adminHolidays:adminHol,isNewMethod:true,
+      baseAmt:nmc.base,hourlyAmt:nmc.hourlyAmt,reqDiffAmt:nmc.diffAmt,otHours:0,otRate:0,otAmt:0,lateDeduction:0,lateDeductAmt:0,
+      extraItems,slipNote:saved?.slipNote||'',status:saved?.status||'pending',alreadySaved:!!saved};
+  }
   const lateRate=saved?.lateRate!=null?saved.lateRate:(salary.lateRate||0);
   const hours=saved?.hoursOverride!=null?saved.hoursOverride:H.hours;
   const baseAmt=type==='hourly'?0:base;
@@ -8470,7 +8657,7 @@ function _prRowNet(row, sharedExtra){
   if(sharedExtra&&!items.some(x=>x.name===sharedExtra.name&&x.type===sharedExtra.type&&x.amount===sharedExtra.amount))items.push(sharedExtra);
   const add=items.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0);
   const ded=items.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0);
-  const net=row.baseAmt+row.hourlyAmt+row.otAmt+add-ded-row.lateDeductAmt;
+  const net=row.baseAmt+row.hourlyAmt+row.otAmt+(row.reqDiffAmt||0)+add-ded-row.lateDeductAmt;
   return {items,add,ded,net};
 }
 let _prBatchRows=[];
@@ -8483,7 +8670,7 @@ window.openPRBatch=async function(){
   try{
     if(!allMembers.length)await loadMembers();
     if(!shifts.length)await loadShiftsFromCloud();
-    const active=allMembers.filter(m=>m.status==='active');
+    const active=allMembers.filter(m=>m.status==='active'&&!m.isClone); // ไม่รวมพนักงานโคลน (ทดสอบ) ในการจ่ายทุกคน
     _prBatchRows=await Promise.all(active.map(m=>_prComputeRow(m,monthStr)));
   }catch(e){loading(false);showToast('คำนวณไม่สำเร็จ: '+e.message,'err');return;}
   loading(false);
@@ -8560,6 +8747,8 @@ window.prBatchSave=async function(){
         hours:row.hours,hoursOverride:row.hours,autoHours:row.autoHours,
         lateRate:row.lateRate||0,lateDeduction:row.lateDeduction||0,lateDeductAmt:row.lateDeductAmt||0,
         otHours:row.otHours||0,otRate:row.otRate||0,otAmt:row.otAmt||0,
+        isNewMethod:!!row.isNewMethod,rate:row.rate||0,actualOverride:row.actualHours,autoActualHours:row.autoActualHours||0,
+        mandatoryHours:row.mandatoryHours||0,adminHolidays:row.adminHolidays||0,reqDiffAmt:row.reqDiffAmt||0,
         bonus:calc.add,deduction:calc.ded,extraItems:calc.items,
         slipNote:sharedNote||row.slipNote||'',
         payDate:sharedPayDate||'',
@@ -8875,7 +9064,7 @@ function empCode(uid){
 }
 
 function buildMonthSlip(r, memberName, memberRole, uid){
-  const typeLabel=r.salaryType==='fixed'?'เงินเดือนประจำ':r.salaryType==='hourly'?'รายชั่วโมง':'ประจำ + รายชั่วโมง';
+  const typeLabel=r.salaryType==='fixed'?'เงินเดือนประจำ':r.salaryType==='hourly'?'รายชั่วโมง':r.salaryType==='hourly_actual'?'ตามชั่วโมงจริง':(r.salaryType==='req_sun'||r.salaryType==='req_fix6')?'ชั่วโมงบังคับ':'ประจำ + รายชั่วโมง';
   const statusLabel=r.status==='paid'?'จ่ายเงินแล้ว':'รอดำเนินการ';
   // หาข้อมูลพนักงานเพิ่มเติม (รหัสกำหนดเอง, ตำแหน่ง, บัญชีธนาคาร)
   const mem=allMembers.find(x=>x.uid===(uid||r.uid));
@@ -8902,7 +9091,11 @@ function buildMonthSlip(r, memberName, memberRole, uid){
   if(r.salaryType==='fixed'&&(r.lateDeductAmt||0)>0)dedItems.push({name:`หักมาสาย (${r.lateDeduction||0} ชม.)`,amount:r.lateDeductAmt});
 
   const otAmt=r.otAmt||0;
-  const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+otAmt+addItems.reduce((a,x)=>a+x.amount,0);
+  // 🆕 วิธีใหม่: ส่วนต่างชั่วโมงบังคับ — เกิน = OT (รายรับ) · ขาด = หัก (รายหัก)
+  const reqDiff=r.reqDiffAmt||0;
+  const _diffH=(r.mandatoryHours!=null)?Math.round(((r.hours||0)-(r.mandatoryHours||0))*10)/10:0;
+  if(reqDiff<0)dedItems.push({name:`หักชั่วโมงขาด (${Math.abs(_diffH)} ชม.)`,amount:-reqDiff});
+  const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+otAmt+(reqDiff>0?reqDiff:0)+addItems.reduce((a,x)=>a+x.amount,0);
   const totalDed=dedItems.reduce((a,x)=>a+x.amount,0);
 
   // สร้างแถวรายรับ
@@ -8987,8 +9180,11 @@ function buildMonthSlip(r, memberName, memberRole, uid){
     <table class="ps-main-table">
       <thead><tr><th style="text-align:left">รายการ</th><th class="r">รายรับ (บาท)</th><th class="r">รายหัก (บาท)</th></tr></thead>
       <tbody>
-        ${r.salaryType!=='hourly'?`<tr><td>เงินเดือนฐาน</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>`:''}
-        ${r.salaryType!=='fixed'?`<tr><td>ค่าแรงรายชั่วโมง (${r.hours||0} ชม.)</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`:''}
+        ${r.salaryType==='hourly_actual'
+          ?`<tr><td>ค่าแรงตามชั่วโมงจริง (${r.hours||0} ชม.)</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`
+          :(r.salaryType==='req_sun'||r.salaryType==='req_fix6')
+          ?`<tr><td>เงินเดือนเต็ม</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>${reqDiff>0?`<tr><td>ทำงานเกิน OT (${_diffH} ชม.)</td><td class="r">${fmt(reqDiff)}</td><td class="r"></td></tr>`:''}`
+          :`${r.salaryType!=='hourly'?`<tr><td>เงินเดือนฐาน</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>`:''}${r.salaryType!=='fixed'?`<tr><td>ค่าแรงรายชั่วโมง (${r.hours||0} ชม.)</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`:''}`}
         ${otAmt>0?`<tr><td>ค่าล่วงเวลา OT (${r.otHours||0} ชม.)</td><td class="r">${fmt(otAmt)}</td><td class="r"></td></tr>`:''}
         ${addItems.map(x=>`<tr><td>${x.name}</td><td class="r">${fmt(x.amount)}</td><td class="r"></td></tr>`).join('')}
         ${dedItems.map(x=>`<tr><td>${x.name}</td><td class="r"></td><td class="r">${fmt(x.amount)}</td></tr>`).join('')}
@@ -12923,6 +13119,9 @@ window.toggleTodoTask=async function(date,branch,idx){
     task.doneBy=task.done?currentUser.uid:null;
     task.doneAt=task.done?new Date().toISOString():null;
     task.isAuto=false;
+    if(isTester){ // 🧪 ติ๊กงานจำลอง — ไม่เขียนจริง (รีเฟรชแล้วรีเซ็ต)
+      renderTodoPageContent(data,branch);showToast('🧪 ติ๊กงาน (จำลอง) — ไม่บันทึกจริง');return;
+    }
     await setDoc(doc(db,'todos',docId),data);
     renderTodoPageContent(data,branch);
     if(window.refreshTodoStatus)refreshTodoStatus();
@@ -13505,6 +13704,14 @@ window.submitLeave=async function(){
   if(!from){showToast('เลือกวันที่เริ่มลา','err');return;}
   if(to<from){showToast('วันสิ้นสุดต้องไม่ก่อนวันเริ่ม','err');return;}
   const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():currentUser.email;
+  if(isTester){ // 🧪 คำขอลาจำลอง — ไม่เขียน Firestore/ไม่ตัดเวรจริง
+    testerLeavesGet().unshift({id:'tlv_'+Date.now(),uid:currentUser.uid,name,from,to,reason,type:'',status:'pending',createdAt:new Date().toISOString(),isTest:true});
+    testerLeavesSave();
+    document.getElementById('leave-from').value='';document.getElementById('leave-to').value='';document.getElementById('leave-reason').value='';
+    showToast('🧪 ส่งคำขอลา (จำลอง) แล้ว — ไม่กระทบระบบจริง');
+    loadMyLeaves();
+    return;
+  }
   loading(true);
   try{
     const id='leave_'+Date.now();
@@ -13535,8 +13742,13 @@ window.loadMyLeaves=async function(){
   const el=document.getElementById('my-leave-list');
   el.innerHTML='<div style="color:var(--text3);font-size:13px">กำลังโหลด...</div>';
   try{
-    const snap=await getDocs(query(collection(db,'leaves'),where('uid','==',currentUser.uid)));
-    const list=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.from||'').localeCompare(a.from||''));
+    let list;
+    if(isTester){ // 🧪 อ่านคำขอลาจำลองในเครื่อง
+      list=testerLeavesGet().slice().sort((a,b)=>(b.from||'').localeCompare(a.from||''));
+    }else{
+      const snap=await getDocs(query(collection(db,'leaves'),where('uid','==',currentUser.uid)));
+      list=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.from||'').localeCompare(a.from||''));
+    }
     if(!list.length){el.innerHTML='<div style="color:var(--text3);font-size:13px">ยังไม่มีประวัติการลา</div>';return;}
     const _stMap={approved:['อนุมัติแล้ว','#0F8A63','var(--green-l)'],rejected:['ไม่อนุมัติ','var(--red-t)','var(--red-l)'],pending:['รออนุมัติ','var(--amber-t)','var(--amber-l)']};
     el.innerHTML=list.map(l=>{
@@ -13555,6 +13767,10 @@ window.loadMyLeaves=async function(){
 
 window.cancelLeave=async function(id){
   if(!await capsuleConfirm('ยกเลิกคำขอลานี้?'))return;
+  if(isTester){ // 🧪 ลบคำขอลาจำลอง
+    window._testerLeaves=testerLeavesGet().filter(l=>l.id!==id);testerLeavesSave();
+    showToast('🧪 ยกเลิกคำขอลา (จำลอง) แล้ว');loadMyLeaves();return;
+  }
   try{await deleteDoc(doc(db,'leaves',id));await loadLeavesForSchedule();if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();showToast('ยกเลิกคำขอลาแล้ว');loadMyLeaves();}
   catch(e){showToast(e.message,'err');}
 };
@@ -13642,6 +13858,10 @@ const ACTION_LABELS={
   login_newdevice:['เข้าระบบ • อุปกรณ์ใหม่','#C2410C','🔐'],
   secure_copy:['คัดลอกข้อมูลอ่อนไหว','#7A4E06','🔐'],
   secure_close:['ปิดช่องโหว่ข้อมูล','#217A54','🔐'],
+  member_clone:['โคลนพนักงานทดสอบ','#8A6418','🧪'],
+  member_clone_delete:['ลบพนักงานโคลน','#A32D2D','🗑️'],
+  payroll_unpay:['ยกเลิกการจ่ายเงินเดือน','#C2410C','↩️'],
+  payroll_delete:['ลบรอบเงินเดือน','#A32D2D','🗑️'],
   checkin:['เช็คอิน','#16B981','🟢'],
   checkout:['เช็คเอาท์','#1E63B5','🔵'],
   sales_save:['บันทึกยอดขาย','#0F8A63','💰'],
