@@ -1624,8 +1624,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.8';
+const APP_VERSION='4.3.0';
 const CHANGELOG=[
+  {v:'4.3.0',date:'2026-07-10',changes:['🔐 เพิ่มความปลอดภัย: "แจ้งเตือนเข้าระบบจากอุปกรณ์ใหม่" — เมื่อมีการล็อกอินบัญชีจากเครื่อง/เบราว์เซอร์ที่ไม่เคยใช้ ระบบจะบันทึกลง "ประวัติใช้งาน" (แอดมินเห็น แก้ไม่ได้) พร้อมบอกชนิดเครื่อง (เช่น iPhone·Safari) และเตือนเจ้าตัวว่า "ถ้าไม่ใช่คุณ รีบเปลี่ยนรหัสผ่าน/แจ้งแอดมิน" · เครื่องเดิมไม่เตือนซ้ำ · ⚠️ ต้องอัปเดต Firestore rules ด้วย (ไฟล์ firestore-rules-ใหม่.txt — เพิ่มสิทธิ์ให้พนักงานบันทึกรายชื่ออุปกรณ์ของตัวเองได้ ไม่กระทบข้อมูลอื่น)']},
+  {v:'4.2.9',date:'2026-07-08',changes:['🧹 จัดระเบียบโค้ดภายในเล็กน้อย (ลบตัวแปรที่ไม่ได้ใช้ในรายงานรายวัน) — ไม่กระทบการใช้งาน/ตัวเลข/หน้าตาใดๆ']},
   {v:'4.2.8',date:'2026-07-08',changes:['📉 การ์ด "ยอดขายเงินสดวันนี้ (3 สาขา)" ช่วงเย็น — เดิมถ้ายอดยังเป็น ฿0 (ยังไม่มีขาย/ยังไม่ปิดร้าน) จะขึ้น "▼ -100% จากวันปกติ" ดูน่าตกใจเกินจริง · ตอนนี้ถ้ายัง ฿0 จะโชว์บรรทัดอ้างอิงเฉยๆ ("วัน...ปกติทั้งวัน ~฿X") พอเริ่มมียอดขายจริงค่อยโชว์ %เทียบ']},
   {v:'4.2.7',date:'2026-07-08',changes:['🕑 หน้าเงินสด: ข้อความ "วันนี้ ... เปิดร้านสาขานี้ไปแล้ว" เอาเวลาออก (เดิมโชว์ "(12:44 น.)") — บอกแค่ว่ามีคนเปิด/ปิดร้านแล้วก็พอ · ใช้กับข้อความปิดร้านด้วย']},
   {v:'4.2.6',date:'2026-07-08',changes:['🐞 แก้บั๊กโหมดทดสอบ (🧪 tester): กรอกยอด "รับชำระอื่นๆ" (บัตร/โอน) แล้วหาย — เวลากลับมาแก้ขึ้น ฿0 · เดิมโหมดจำลองเก็บแต่ยอดเงินสด ไม่เก็บช่องทางอื่น+จำนวนบิล · ตอนนี้เก็บครบ (เงินสด/อื่นๆ/บิล) ทั้งตอนลงยอดในขั้นปิดร้านและตอนแก้ยอด · (โหมดจริงไม่มีปัญหานี้อยู่แล้ว)']},
@@ -2048,7 +2050,6 @@ function dailyReportRender(R,att,lv){
   const cmp=R.pct==null?`<span style="font-size:12px;color:var(--text3)">ไม่มีข้อมูลเทียบ</span>`
     :`<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:${R.pct>=0?'var(--green-d)':'#C2410C'};background:${R.pct>=0?'var(--green-l)':'var(--amber-l)'};border-radius:10px;padding:3px 10px">${R.pct>=0?'▲':'▼'} ${Math.abs(R.pct)}% จากเมื่อวาน (฿${fmt(R.prevTotal)})</span>`;
   const maxT=Math.max(1,...R.rows.map(r=>r.total));
-  const bcol=['var(--green)','var(--blue,#5B9BD5)','var(--amber,#E8A63C)'];
   const branchBars=R.rows.map(r=>`<div style="display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:9px 12px;margin-bottom:7px;box-shadow:var(--shadow)">
       <span style="width:8px;height:8px;border-radius:3px;background:${BCOLORS[r.b]};flex-shrink:0"></span>
       <span style="flex:1;font-size:12.5px;font-weight:700;color:var(--text)">${r.bn}</span>
@@ -2606,6 +2607,51 @@ async function logActivity(action, detail){
   }catch(e){/* log ไม่สำเร็จไม่ควรขัดการทำงานหลัก */}
 }
 
+// ===== ความปลอดภัย: แจ้งเตือนเมื่อเข้าระบบจากอุปกรณ์ใหม่ =====
+// อ่าน userAgent มาทำ "ชื่อเครื่อง" อ่านง่ายๆ (ระบบ · เบราว์เซอร์) ไว้ให้แอดมินดูว่าเข้าจากอะไร
+function _deviceLabel(){
+  const ua=navigator.userAgent||'';
+  let os='อุปกรณ์';
+  if(/iPhone|iPad|iPod/.test(ua))os='iPhone/iPad';
+  else if(/Android/.test(ua))os='Android';
+  else if(/Windows/.test(ua))os='Windows';
+  else if(/Macintosh|Mac OS/.test(ua))os='Mac';
+  else if(/Linux/.test(ua))os='Linux';
+  let br='เบราว์เซอร์';
+  if(/Line\//i.test(ua))br='LINE';
+  else if(/Edg\//.test(ua))br='Edge';
+  else if(/Chrome\//.test(ua)&&!/Edg\//.test(ua))br='Chrome';
+  else if(/Firefox\//.test(ua))br='Firefox';
+  else if(/Safari\//.test(ua)&&!/Chrome/.test(ua))br='Safari';
+  return `${os} · ${br}`;
+}
+function _getDeviceId(){
+  let id=localStorage.getItem('nm_deviceId');
+  if(!id){id='dev_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('nm_deviceId',id);}
+  return id;
+}
+// เรียกหลังโหลดโปรไฟล์เสร็จ — ถ้าเป็นเครื่องใหม่ (ไม่เคยเข้าจากเบราว์เซอร์นี้) ให้บันทึก+เตือน
+async function checkLoginDevice(){
+  if(!currentUser||!profile||isTester)return;
+  // กันสแปม: เบราว์เซอร์นี้เคยแจ้งแล้วก็ข้าม (ใช้ได้แม้ rules ยังไม่ได้อัปเดต / เขียนเซิร์ฟไม่ผ่าน)
+  const alertedKey='nm_dev_alerted_'+currentUser.uid;
+  if(localStorage.getItem(alertedKey))return;
+  localStorage.setItem(alertedKey,'1');
+  try{
+    const devId=_getDeviceId(), label=_deviceLabel(), nowIso=new Date().toISOString();
+    const known=Array.isArray(profile.knownDevices)?profile.knownDevices.slice():[];
+    const isFirstEver=known.length===0;                 // บัญชีเพิ่งใช้ครั้งแรก = ไม่ต้องเตือนให้ตกใจ
+    if(!known.some(d=>d&&d.id===devId)){
+      known.push({id:devId,label,firstSeen:nowIso,lastSeen:nowIso});
+      // บันทึกลงประวัติใช้งาน (แอดมินเห็น · แก้ไม่ได้) — ถือเป็น "การเข้าระบบแปลก" ถ้าไม่ใช่เครื่องแรก
+      await logActivity('login_newdevice',`🔐 เข้าระบบจากอุปกรณ์ใหม่: ${label}`);
+      if(!isFirstEver)setTimeout(()=>showToast('🔐 เข้าระบบจากอุปกรณ์ใหม่ — ถ้าไม่ใช่คุณ รีบเปลี่ยนรหัสผ่าน/แจ้งแอดมิน','err'),1200);
+      // เก็บรายชื่อเครื่องไว้ในโปรไฟล์ตัวเอง (ไม่เกิน 15 เครื่องล่าสุด) — เขียนเฉพาะคีย์นี้ให้ตรงกฎ Firestore
+      try{await setDoc(doc(db,'members',currentUser.uid),{knownDevices:known.slice(-15),lastLoginAt:nowIso,lastLoginDevice:label},{merge:true});profile.knownDevices=known.slice(-15);}catch(e){}
+    }
+  }catch(e){/* ความปลอดภัยล้มเหลวไม่ควรขัดการเข้าใช้งาน */}
+}
+
 // ===== ดักข้อผิดพลาดของแอปอัตโนมัติ — เก็บลง "ประวัติการใช้งาน" ให้ผู้ดูแล/ผู้พัฒนาเห็น =====
 const _jsErrSeen=new Set();
 function _logJsError(msg,src){
@@ -2782,6 +2828,7 @@ onAuthStateChanged(auth,async user=>{
     isAdmin=profile?.role==='admin';
     isTester=profile?.role==='tester';
   }catch(e){profile=null;isAdmin=false;isTester=false;}
+  checkLoginDevice(); // 🔐 เช็ค/แจ้งเตือนถ้าเข้าจากอุปกรณ์ใหม่ (ไม่บล็อกการโหลด)
   // ฟังการเปลี่ยนแปลงสิทธิ์/role ของตัวเองแบบเรียลไทม์ → อัปเดตเมนูทันทีโดยไม่ต้อง login ใหม่
   try{
     onSnapshot(doc(db,'members',user.uid),(d)=>{
@@ -13501,6 +13548,7 @@ window.deleteLeaveAdmin=async function(id){
 let allActivityLogs=[];
 const ACTION_LABELS={
   login:['เข้าสู่ระบบ','#3B8EEA','🔑'],
+  login_newdevice:['เข้าระบบ • อุปกรณ์ใหม่','#C2410C','🔐'],
   checkin:['เช็คอิน','#16B981','🟢'],
   checkout:['เช็คเอาท์','#1E63B5','🔵'],
   sales_save:['บันทึกยอดขาย','#0F8A63','💰'],
