@@ -1624,9 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.3';
+const APP_VERSION='4.2.4';
 const CHANGELOG=[
-  {v:'4.2.3',date:'2026-07-08',changes:['✏️ แก้ปุ่ม "ลงยอดขาย" บนหน้าเงินสดที่ทำให้สับสน (ซ้ำกับตอนปิดร้านที่ลงยอดอยู่แล้ว) — เปลี่ยนเป็น "ฉลาดตามสถานะ": ถ้ายังไม่ได้ลงยอดวันนี้ = "📊 ลงยอดขาย" · ถ้าลงแล้ว = "✏️ แก้ยอดขาย" (ไว้แก้ตอนกรอกผิด) แยกตามสาขา · กดแล้วเห็นยอดปัจจุบันก่อน ค่อยกดแก้ (กติกาแก้ใน 5 นาที/แอดมินแก้ได้เสมอ เหมือนเดิม)']},
+  {v:'4.2.4',date:'2026-07-08',changes:['✏️ เปลี่ยนชื่อปุ่ม "ลงยอดขาย" บนหน้าเงินสด → "แก้ยอดขาย" — เดิมชื่อ "ลงยอดขาย" ทำให้พนักงานสับสน (นึกว่าต้องลงเอง ทั้งที่ตอนปิดร้านลงยอดอยู่แล้ว) · ตอนนี้ปุ่มนี้ไว้ "แก้ยอดตอนกรอกผิด" ชัดเจน (ยอดขายจริงกรอกในขั้นปิดร้าน) · กดแล้วเห็นยอดปัจจุบันก่อน ค่อยแก้ (กติกาแก้ใน 5 นาที/แอดมินแก้ได้เสมอ เหมือนเดิม)']},
   {v:'4.2.2',date:'2026-07-08',changes:['📤 เพิ่มปุ่ม "แชร์" ในรายงานรายวัน — กดแล้วเปิดแผงแชร์ของมือถือ ส่งสรุปยอด/ปิดร้าน/แจ้งเตือนเข้า "ไลน์" (หรือแอปอื่น) ได้เลย · บนคอมที่ไม่มีแผงแชร์จะเปิดไลน์พร้อมข้อความ + ก็อปปี้ไว้ให้ · 📐 ย่อรายงานให้เล็กลงอีกให้พอดีจอมือถือจริง (ลดขอบ/ตัวเลข/ระยะห่าง) เห็นครบขึ้น ไม่ล้นจอ']},
   {v:'4.2.1',date:'2026-07-08',changes:['📐 ปรับ "รายงานรายวัน" ให้กระชับพอดีจอมือถือ — เดิมตัวเลข/ปุ่ม/การ์ดใหญ่ไป (วันที่+ปุ่มเลื่อนวันตัดบรรทัด) · ย่อขนาดหัวข้อ ยอดรวม แถบสาขา และระยะห่างลง เห็นครบในจอเดียวไม่ต้องเลื่อนเยอะ']},
   {v:'4.2.0',date:'2026-07-08',changes:['📅 เพิ่ม "รายงานรายวัน" (หน้ารายงาน — เฉพาะแอดมิน/ผู้มีสิทธิ์ดูยอด) — สรุปทั้ง 3 สาขาในหน้าเดียว: 💰 ยอดขายรวมวันนี้ + เทียบ %กับเมื่อวาน + แยกเงินสด/ช่องทางอื่น/จำนวนบิล · 📊 แยกยอดรายสาขาเป็นแถบ · 🌙 สถานะปิดร้านแต่ละสาขา (ตรง/ขาด/เกิน/ยังไม่ปิด) + เวลาปิด + เก็บเข้าเซฟ/เงินในเซฟรวม · 👥 ใครเข้างานวันนี้ (เวลาเข้า-ออก) + ใครลา · ⚠️ กล่อง "ต้องดู" เตือนสาขาที่ยังไม่ปิด/เงินขาด-เกิน · เลื่อนดูย้อนหลังได้ (‹ ก่อนหน้า / ถัดไป › หรือเลือกวันที่) · กด "ออก PDF" พิมพ์/บันทึกเป็นไฟล์ได้ · เป็นรายงาน "อ่านอย่างเดียว" ไม่แตะเงิน/ยอดใดๆ']},
@@ -5807,9 +5807,6 @@ function renderCashPage(){
   const _closeEv0=cashTodayClose(branch);
   const depBeforeClose=cashEvents.filter(ev=>ev.branch===branch&&ev.date===todayStr()&&ev.type==='deposit'&&(!_closeEv0||ev.ts<_closeEv0.ts)).reduce((a,ev)=>a+(ev.amount||0),0);
   const expClose=cashExpectedClose(branch);
-  // ปุ่มยอดขายในแถวเล็ก: ถ้ายังไม่ได้ลงยอดวันนี้ = "ลงยอดขาย" · ถ้าลงแล้ว = "แก้ยอดขาย" (กันสับสนว่าจะลงซ้ำ + ไว้แก้ตอนลงผิด)
-  const _hasSalesToday=isTester?(window._testerSales?.[branch]!=null&&window._testerSales?.[branch]!==''):!!salesEntries.find(x=>x.date===todayStr()&&+x.branch===+branch);
-  const _salesIc=_hasSalesToday?'✏️':'📊', _salesLb=_hasSalesToday?'แก้ยอดขาย':'ลงยอดขาย';
 
   let html='';
   // 🧪 ผู้ทดสอบ: ทุกอย่างในหน้านี้เป็นข้อมูลจำลองในเครื่อง
@@ -5878,10 +5875,10 @@ function renderCashPage(){
   if(!opened){
     html+=`<button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="cashOpenPrompt(${branch})">🌅 เปิดร้าน — ยืนยันเงินแคชเชียร์</button>
       <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:8px">เงินแคชเชียร์คงที่ทุกวัน — เช็คแล้วกดยืนยัน จบใน 3 วินาที</div>
-      <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,_salesIc,_salesLb)}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>`;
+      <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'✏️','แก้ยอดขาย')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>`;
   }else{
     html+=`${closeEv?'':`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="cashCloseWizard(${branch})">🌙 ปิดร้าน — ระบบคิดยอดตัดเข้าเซฟให้</button>`}
-    <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,_salesIc,_salesLb)}${_ib(`cashMovePrompt(${branch})`,'💸','ทำรายการเงิน')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
+    <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'✏️','แก้ยอดขาย')}${_ib(`cashMovePrompt(${branch})`,'💸','ทำรายการเงิน')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
     <div style="font-size:11px;color:var(--text3);margin-top:9px;text-align:center">🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก — ระบบตรวจด้วยการนับสำรองประจำสัปดาห์</div>`;
   }
   // สรุปวันนี้
