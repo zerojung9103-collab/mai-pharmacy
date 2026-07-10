@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.5';
+const APP_VERSION='4.2.6';
 const CHANGELOG=[
+  {v:'4.2.6',date:'2026-07-08',changes:['🐞 แก้บั๊กโหมดทดสอบ (🧪 tester): กรอกยอด "รับชำระอื่นๆ" (บัตร/โอน) แล้วหาย — เวลากลับมาแก้ขึ้น ฿0 · เดิมโหมดจำลองเก็บแต่ยอดเงินสด ไม่เก็บช่องทางอื่น+จำนวนบิล · ตอนนี้เก็บครบ (เงินสด/อื่นๆ/บิล) ทั้งตอนลงยอดในขั้นปิดร้านและตอนแก้ยอด · (โหมดจริงไม่มีปัญหานี้อยู่แล้ว)']},
   {v:'4.2.5',date:'2026-07-08',changes:['🔒 ปุ่ม "แก้ยอดขาย" (หน้าเงินสด) แก้ได้เฉพาะ "หลังปิดร้านแล้ว" เท่านั้น — เพราะยอดขายจริงเพิ่งถูกกรอกในขั้นตอนปิดร้าน · ก่อนปิดร้านปุ่มจะจาง+มีแม่กุญแจ 🔒 กดแล้วบอกว่า "แก้ยอดขายได้หลังปิดร้านแล้วเท่านั้น" · พอปิดร้านเสร็จปุ่มจะปลดล็อกให้แก้ได้ (กติกาแก้ใน 5 นาที/แอดมินแก้ได้เสมอ เหมือนเดิม)']},
   {v:'4.2.4',date:'2026-07-08',changes:['✏️ เปลี่ยนชื่อปุ่ม "ลงยอดขาย" บนหน้าเงินสด → "แก้ยอดขาย" — เดิมชื่อ "ลงยอดขาย" ทำให้พนักงานสับสน (นึกว่าต้องลงเอง ทั้งที่ตอนปิดร้านลงยอดอยู่แล้ว) · ตอนนี้ปุ่มนี้ไว้ "แก้ยอดตอนกรอกผิด" ชัดเจน (ยอดขายจริงกรอกในขั้นปิดร้าน)']},
   {v:'4.2.2',date:'2026-07-08',changes:['📤 เพิ่มปุ่ม "แชร์" ในรายงานรายวัน — กดแล้วเปิดแผงแชร์ของมือถือ ส่งสรุปยอด/ปิดร้าน/แจ้งเตือนเข้า "ไลน์" (หรือแอปอื่น) ได้เลย · บนคอมที่ไม่มีแผงแชร์จะเปิดไลน์พร้อมข้อความ + ก็อปปี้ไว้ให้ · 📐 ย่อรายงานให้เล็กลงอีกให้พอดีจอมือถือจริง (ลดขอบ/ตัวเลข/ระยะห่าง) เห็นครบขึ้น ไม่ล้นจอ']},
@@ -5037,8 +5038,15 @@ async function loadCashData(){
   }catch(e){console.error('loadCashData',e);}
 }
 function cashGet(b){const s=cashState[String(b)]||{};return{reserve:+s.reserve||0,drawer:+s.drawer||0,safe:+s.safe||0,openDrawer:(s.openDrawer==null?null:+s.openDrawer),openDate:s.openDate||null,openBy:s.openBy||''};}
+// 🧪 อ่านยอดขายจำลอง (tester) แบบรองรับทั้งรูปแบบใหม่ {cash,other,bills} และเก่า (ตัวเลขล้วน=เงินสด)
+function _testerSalesGet(b){
+  const v=window._testerSales?.[b];
+  if(v==null||v==='')return null;
+  if(typeof v==='object')return {cash:parseFloat(v.cash)||0,other:parseFloat(v.other)||0,bills:parseInt(v.bills)||0};
+  return {cash:parseFloat(v)||0,other:0,bills:0};
+}
 function cashSalesToday(b){
-  if(isTester)return parseFloat(window._testerSales?.[b])||0; // 🧪 ยอดขายจำลอง
+  if(isTester){const t=_testerSalesGet(b);return t?t.cash:0;} // 🧪 เงินสดจำลอง (ไม่รวมช่องทางอื่น — เข้าลิ้นชักเฉพาะเงินสด)
   const e=salesEntries.find(x=>x.date===todayStr()&&+x.branch===+b);return e?(parseFloat(e.amounts&&e.amounts['เงินสด'])||0):0;
 }
 function cashSumToday(b,type){return cashEvents.filter(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type===type).reduce((a,ev)=>a+(ev.amount||0),0);}
@@ -6379,8 +6387,8 @@ window.cashCWStep1=function(editMode){
   const branch=window._ccwB;
   let e=salesEntries.find(x=>x.date===todayStr()&&+x.branch===+branch);
   if(isTester){ // 🧪 ใช้ยอดขายจำลองแทนของจริง
-    const tv=window._testerSales?.[branch];
-    e=(tv!=null&&tv!=='')?{amounts:{[SALES_CASH]:tv,[SALES_OTHER]:0},billCount:0,updatedAt:new Date().toISOString()}:null;
+    const tt=_testerSalesGet(branch);
+    e=tt?{amounts:{[SALES_CASH]:tt.cash,[SALES_OTHER]:tt.other},billCount:tt.bills,updatedAt:new Date().toISOString()}:null;
   }
   const _mins=e?.updatedAt?(Date.now()-new Date(e.updatedAt).getTime())/60000:null;
   const canEdit=isAdmin||isTester||!e||_mins==null||_mins<5;
@@ -6421,7 +6429,7 @@ window.cashCWSaveSales=async function(){
     if(!cashV&&!otherV){showToast('ใส่ยอดขายก่อนนะ','err');return;}
     if(isTester){ // 🧪 ยอดขายจำลอง — ไม่เขียนเข้าระบบจริง
       window._testerSales=window._testerSales||{};
-      window._testerSales[branch]=cashV;
+      window._testerSales[branch]={cash:cashV,other:otherV,bills:parseInt(document.getElementById('ccw-bills')?.value)||0};
       testerCashPersist();
       showToast('🧪 บันทึกยอดขายจำลอง ฿'+fmt(cashV+otherV));
       cashCWStep2();
@@ -6596,8 +6604,8 @@ window.cashSalesPrompt=function(branch,forceEdit){
   const date=todayStr();
   let e=salesEntries.find(x=>x.date===date&&+x.branch===+branch);
   if(isTester){ // 🧪 ยอดจำลอง
-    const tv=window._testerSales?.[branch];
-    e=(tv!=null&&tv!=='')?{amounts:{[SALES_CASH]:tv,[SALES_OTHER]:0},billCount:0,updatedAt:new Date().toISOString()}:null;
+    const tt=_testerSalesGet(branch);
+    e=tt?{amounts:{[SALES_CASH]:tt.cash,[SALES_OTHER]:tt.other},billCount:tt.bills,updatedAt:new Date().toISOString()}:null;
   }
   const _mins=e?.updatedAt?(Date.now()-new Date(e.updatedAt).getTime())/60000:null;
   const locked=!!e&&!isAdmin&&!isTester&&_mins!=null&&_mins>=5;
@@ -6636,7 +6644,7 @@ window.cashSalesSave=async function(branch){
     if(!cashV&&!otherV){showToast('ใส่ยอดขายก่อนนะ','err');return;}
     if(isTester){ // 🧪 จำลอง
       window._testerSales=window._testerSales||{};
-      window._testerSales[branch]=cashV;
+      window._testerSales[branch]={cash:cashV,other:otherV,bills:parseInt(document.getElementById('cs-bills')?.value)||0};
       testerCashPersist();
       closeMD();renderCashPage();
       showToast('🧪 บันทึกยอดขายจำลอง ฿'+fmt(cashV+otherV));
