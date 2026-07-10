@@ -428,7 +428,59 @@ textarea{resize:vertical;min-height:64px}
 .pr-net-box{background:var(--grad-green);border-radius:20px;padding:1.5rem;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
 .pr-net-box .lbl{font-size:13px;opacity:.85}
 .pr-net-box .val{font-size:30px;font-weight:700}
-.pr-extra-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.pr-extra-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+/* 🆕 v4.8: หน้าจัดการเงินเดือน 3 คอลัมน์บนจอกว้าง (มือถือ = เรียงลงมา) */
+.pr-grid{display:grid;gap:16px;grid-template-columns:1fr;align-items:start}
+@media(min-width:1024px){
+  .pr-grid{grid-template-columns:290px minmax(0,1fr) 330px}
+  .pr-grid .pr-person-select{grid-template-columns:1fr;margin-bottom:0}
+  .pr-col-people{position:sticky;top:12px}
+}
+.pr-side-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem;box-shadow:var(--shadow)}
+/* กล่อง "ใบเสร็จวิธีคิด" */
+.pr-calcbox{border:1px solid var(--green-l);background:linear-gradient(180deg,var(--green-ll),var(--surface));border-radius:14px;padding:4px 14px 8px;margin-bottom:1rem}
+.pr-calcbox .pr-line{border-bottom:1px dashed var(--border2)}
+.pr-calcbox .pr-line:last-of-type{border-bottom:none}
+.pr-calcbox .pr-line-input{background:var(--surface);border:1px dashed var(--green);border-radius:8px}
+/* modal กว้าง (ใช้กับ preview สลิป) */
+.modal.modal-wide{width:1100px;max-width:96vw}
+.pv-grid{display:grid;grid-template-columns:330px minmax(0,1fr);gap:16px;align-items:start}
+@media(max-width:900px){.pv-grid{grid-template-columns:1fr}}
+.pv-warn{border-radius:11px;padding:9px 12px;font-size:12.5px;font-weight:600;margin-bottom:7px;display:flex;gap:8px;align-items:flex-start;line-height:1.45}
+.pv-warn.w{background:var(--amber-l);color:var(--amber-t);border:1px solid var(--amber)}
+.pv-warn.e{background:var(--red-l);color:var(--red-t);border:1px solid var(--red)}
+.pv-tgl{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12.5px}
+.pv-tgl:last-of-type{border-bottom:none}
+.pv-tgl input{width:18px;height:18px;accent-color:var(--green-d);cursor:pointer}
+#pv-frame{width:100%;height:640px;border:none;background:#DDE6E0;border-radius:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+/* 🆕 v4.9: หน้าเงินสดโฉมใหม่ */
+.cash-hero{border-radius:20px;padding:18px 16px;color:#fff;margin-bottom:14px;box-shadow:var(--shadow);background:linear-gradient(140deg,#5FD3A0,#3FA877)}
+.cash-hero .st{font-size:12px;opacity:.88}
+.cash-hero .h{font-family:var(--disp);font-size:19px;font-weight:700;margin:2px 0 12px}
+.cash-steps{display:flex;align-items:center;gap:4px;margin-bottom:14px}
+.cash-stp{flex:1;text-align:center;font-size:10.5px;font-weight:700;opacity:.75}
+.cash-stp .dot{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:12px}
+.cash-stp.done .dot{background:#fff;color:var(--green-d)}
+.cash-stp.now{opacity:1}
+.cash-stp.now .dot{background:#fff;color:var(--green-d);box-shadow:0 0 0 4px rgba(255,255,255,.3)}
+.cash-stline{flex:0 0 16px;height:2px;background:rgba(255,255,255,.35);margin-top:-16px}
+.cash-cta{width:100%;border:none;border-radius:14px;padding:14px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;background:#fff;color:var(--green-dd);box-shadow:0 4px 14px rgba(0,0,0,.12)}
+.cash-cta.night{color:var(--blue-t)}
+.cash-hero .hint{font-size:11px;opacity:.88;text-align:center;margin-top:8px;line-height:1.5}
+.cash-pools{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.cash-pool{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:11px 8px;text-align:center;box-shadow:var(--shadow)}
+.cash-pool .ic{font-size:19px}
+.cash-pool .l{font-size:10.5px;color:var(--text3);font-weight:700;margin:3px 0 1px}
+.cash-pool .v{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
+.cash-pool .c{font-size:9.5px;color:var(--text3);margin-top:2px;line-height:1.3}
+.cash-subbtns{display:flex;gap:8px;margin-bottom:12px}
+.cash-sb{flex:1;text-align:center;padding:11px 4px;border-radius:13px;background:var(--surface);border:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:var(--font);box-shadow:var(--shadow)}
+.cash-sb .i{font-size:17px;display:block;margin-bottom:3px}
+.cash-sb.lock{opacity:.45}
+.cash-rcpt{background:linear-gradient(180deg,var(--green-ll),var(--surface));border:1px solid var(--green-l);border-radius:16px;padding:6px 14px 10px;margin-bottom:12px;box-shadow:var(--shadow)}
+.cash-rcpt .rh{font-size:12.5px;font-weight:800;color:var(--green-dd);margin:10px 0 2px}
+.cash-notice{display:flex;gap:9px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:9px 12px;margin-bottom:9px;font-size:11.5px;box-shadow:var(--shadow);flex-wrap:wrap}
 /* ===== Elegant theme (Serif headings) ===== */
 .page-title{font-family:var(--disp);font-weight:600;letter-spacing:0}
 .sb-brand h1,.tbd-brand-name{font-family:var(--disp);font-weight:600}
@@ -771,7 +823,7 @@ input,select,textarea{border-radius:14px}
   <!-- PAYROLL (admin) -->
   <div class="page" id="page-payroll">
     <div class="topbar">
-      <div><div class="page-title">จัดการ Payroll</div><div class="page-sub">คำนวณ บันทึก และดูประวัติเงินเดือนพนักงาน</div></div>
+      <div><div class="page-title">จัดการเงินเดือน</div><div class="page-sub">คำนวณ · บันทึก · ออกสลิป · ประวัติรายปี</div></div>
     </div>
     <div class="tabs" id="pr-tabs" style="margin-bottom:1.25rem">
       <button class="tab active" onclick="prSetTab('current',this)">เดือนปัจจุบัน</button>
@@ -788,30 +840,41 @@ input,select,textarea{border-radius:14px}
         <select id="pr-year" onchange="prMonthChanged()" style="width:auto;padding:7px 12px;font-size:13px"></select>
       </div>
 
-      <div style="background:var(--green-ll);border:1px solid rgba(22,185,129,.2);border-radius:12px;padding:14px;margin-bottom:1.25rem">
-        <div style="font-size:13px;font-weight:700;margin-bottom:4px">📤 ส่งให้ฝ่ายบัญชี / พนักงาน (ทั้งเดือน)</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:10px">รวมเงินเดือนทุกคนที่บันทึกแล้วในเดือนนี้ ไว้ส่งทีเดียว</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-primary btn-sm" onclick="exportAllSlips()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            สลิปทั้งเดือน (รวมไฟล์เดียว)
-          </button>
-          <button class="btn btn-sm" onclick="exportPayrollExcel()" style="background:#1D6F42;color:#fff;border-color:#1D6F42">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
-            สรุป Excel (ให้บัญชี)
-          </button>
+      <div class="pr-grid">
+        <!-- คอลัมน์ซ้าย: รายชื่อพนักงาน + เครื่องมือรวม -->
+        <div class="pr-col-people">
+          <div class="card-title" style="margin-bottom:.75rem">เลือกพนักงานที่ต้องการคำนวณ</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <button class="btn btn-primary btn-sm" onclick="openPRBatch()">⚡ ทำหลายคนพร้อมกัน</button>
+            <button class="btn btn-sm" onclick="openSlipSettings()">✏️ ปรับแต่งสลิป</button>
+          </div>
+          <div class="pr-person-select" id="pr-person-select"></div>
+
+          <div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:16px;padding:14px;margin-top:14px;box-shadow:var(--shadow)">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">📤 ส่งให้ฝ่ายบัญชี / พนักงาน (ทั้งเดือน)</div>
+            <div style="font-size:12px;color:var(--text3);margin-bottom:10px">รวมเงินเดือนทุกคนที่บันทึกแล้วในเดือนนี้ ไว้ส่งทีเดียว</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-primary btn-sm" onclick="exportAllSlips()">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                สลิปทั้งเดือน (รวมไฟล์เดียว)
+              </button>
+              <button class="btn btn-sm" onclick="exportPayrollExcel()" style="background:#1D6F42;color:#fff;border-color:#1D6F42">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+                สรุป Excel (ให้บัญชี)
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="card-title" style="margin-bottom:.75rem">เลือกพนักงานที่ต้องการคำนวณ</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <button class="btn btn-primary btn-sm" onclick="openPRBatch()">⚡ ทำหลายคนพร้อมกัน</button>
-        <button class="btn btn-sm" onclick="openSlipSettings()">✏️ ข้อความในสลิป</button>
-      </div>
-      <div class="pr-person-select" id="pr-person-select"></div>
+        <!-- คอลัมน์กลาง: การ์ดคำนวณ -->
+        <div id="pr-calc-area" style="display:none">
+          <div class="pr-calc-card" id="pr-calc-card"></div>
+        </div>
 
-      <div id="pr-calc-area" style="display:none">
-        <div class="pr-calc-card" id="pr-calc-card"></div>
+        <!-- คอลัมน์ขวา: รายการเพิ่ม/หัก + สุทธิ + ปุ่ม -->
+        <div id="pr-side-area" style="display:none">
+          <div class="pr-side-card" id="pr-side-card"></div>
+        </div>
       </div>
     </div>
 
@@ -1626,8 +1689,24 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.7.1';
+const APP_VERSION='4.9.0';
 const CHANGELOG=[
+  {v:'4.9.0',date:'2026-07-10',changes:[
+    '💰 หน้า "เงินสด & ตู้เซฟ" โฉมใหม่ทั้งหน้า (ระบบเงินเดิมทุกอย่าง ไม่กระทบตัวเลข):',
+    '🟩 การ์ดสถานะใหญ่บนสุด — แถบขั้นตอน 1→2→3 (เปิดร้าน→ระหว่างวัน→ปิดร้าน) รู้ทันทีว่าต้องทำอะไรต่อ · ปุ่มใหญ่ปุ่มเดียวเปลี่ยนตามช่วงเวลา (เช้า=เปิดร้าน เย็น=ปิดร้าน) · บอกใครเปิด/ปิดร้านบนหัวการ์ด · ปิดร้านแล้วโชว์ผลตรง/ขาด/เกินเด่นๆ',
+    '💼🧰🔒 การ์ด 3 กองมีคำอธิบายที่มา: สำรอง=นับตรวจสัปดาห์นี้หรือยัง · ลิ้นชัก=เงินเปิดร้าน · เซฟ=เข้าเซฟวันนี้เท่าไหร่',
+    '🧮 กล่อง "เงินลิ้นชักวันนี้" แบบใบเสร็จ — สูตรควรมีตอนปิดร้านอ่านง่ายทีละบรรทัด (สูตรเดิมเป๊ะ)',
+    '📖 ปุ่ม "สมุดบันทึก" กดแล้วกางประวัติวันนี้ให้เลย · เปลี่ยนชื่อการ์ด "ประวัติ" เป็น "สมุดบันทึกเงิน"',
+    'แถบเตือนนับเงินสำรองย่อเหลือบรรทัดเดียว ไม่บังเนื้อหา']},
+  {v:'4.8.0',date:'2026-07-10',changes:[
+    '💵 ยกเครื่องหน้า "จัดการเงินเดือน" — จอคอมเป็น 3 คอลัมน์ (รายชื่อ | คำนวณ | สรุป+ปุ่ม) เห็นทุกอย่างไม่ต้องเลื่อน · มือถือเรียงลงมาเหมือนเดิม · กล่องวิธีคิดแบบ "ใบเสร็จ" อธิบายสูตรทีละขั้น ช่องที่แก้ได้เป็นกรอบเส้นประเขียว',
+    '👁️ ดูตัวอย่างสลิปก่อนบันทึกทุกครั้ง — กด "บันทึกและจ่าย" ระบบเปิดตัวอย่างสลิปจริงทั้งใบให้ดูก่อน ถูกต้องค่อยกดยืนยัน · แก้ข้อความ/ตั้งค่าสลิปในหน้านี้ได้เลย เห็นผลสด ๆ',
+    '🛡️ ระบบกันพลาดก่อนจ่ายเงิน — เช็คให้อัตโนมัติ: เรท/เงินเดือน/ชั่วโมงเป็น 0 · ลืมเช็คเอาท์ · เงินสุทธิติดลบ · ต่างจากเดือนก่อนเกิน 30% — ถ้าเจอต้องติ๊ก "ตรวจแล้ว" ก่อนถึงจะจ่ายได้',
+    '🎛️ ปรับแต่งสลิปได้มากขึ้น — สวิตช์ แสดง/ซ่อน: บัญชีธนาคาร · รายละเอียดวิธีคิด · สิทธิ์วันลา · ช่องลายเซ็น · ป้ายสถานะ (ตั้งครั้งเดียวใช้ทุกเดือน ที่ปุ่ม "✏️ ปรับแต่งสลิป" หรือในหน้าดูตัวอย่าง)',
+    '🖼️ ใส่โลโก้ร้านบนหัวสลิปได้ — อัปโหลดครั้งเดียว ระบบย่อรูปให้อัตโนมัติ',
+    '🔢 เลขที่เอกสารอัตโนมัติบนสลิป เช่น SLIP-2569-07-001 (ออกตอนบันทึกครั้งแรก ใช้อ้างอิง/เก็บบัญชี)',
+    '🔔 พนักงานเห็นแถบแจ้ง "สลิปเงินเดือนออกแล้ว" บนหน้าแรกทันทีที่ admin กดจ่าย — กดดูสลิปได้เลย']},
+  {v:'4.7.2',date:'2026-07-10',changes:['🧾 แก้สลิปเงินเดือนให้ "ตรงตามกฏการคิดจริง" ของวิธีคิดชั่วโมงจริง (①②③) — เดิมสลิปยังคิดแบบเงินเดือนประจำทำให้ขึ้นแถวแปลกๆ (เช่น "เงินเดือนฐาน ฿0", "ค่าแรงรายชั่วโมง ฿0") และจำนวนชั่วโมงที่ขาด/เกินไม่ตรง · ตอนนี้: แบบ① โชว์ "ค่าแรงตามชั่วโมงจริง (ชม.×เรท)" · แบบ②③ โชว์ "เงินเดือน (ครบชั่วโมงบังคับ … ชม.)" + แถว OT ถ้าทำเกิน / แถวหักถ้าทำขาด — เลขชั่วโมงดึงจาก "ชั่วโมงจริง" ที่ถูกต้อง · ปุ่ม "📥 สลิป PDF" ในหน้าคำนวณก็ออกสลิปวิธีใหม่ครบถ้วนแล้ว','🖼️ เพิ่มปุ่ม "บันทึกเป็นรูป (PNG)" บนสลิป — เซฟสลิปเป็นรูปภาพส่งไลน์ได้ทันที (เดิมมีแค่ "พิมพ์/บันทึกเป็น PDF") · ต้องต่อเน็ตครั้งแรกเพื่อโหลดตัวแปลงรูป','🧹 เก็บกวาดหน้าจัดการเงินเดือน: เปลี่ยนหัวข้อเป็นไทย "จัดการเงินเดือน" · ไม่โชว์ "ประเภทการจ้าง" บนสลิปแล้ว · ป้ายวิธีคิดในรายชื่อพนักงานอ่านง่ายขึ้น']},
   {v:'4.7.1',date:'2026-07-10',changes:['🧪 ปรับ "พนักงานทดสอบ" ให้ใช้ง่าย+เห็นชัดขึ้น — เพิ่มปุ่ม "🧪 สร้างพนักงานทดสอบ" ที่หัวหน้า "จัดการพนักงาน" (สร้างเปล่าๆ ไม่ต้องโคลนใคร) · พอสร้าง/โคลนเสร็จ ระบบเปิดหน้าแก้ไขให้เลย (จะได้ไม่งงว่าไปไหน) · พนักงานทดสอบเห็นเฉพาะแอดมิน — ไม่โผล่ในตารางเวร/การจัดเวร/จ่ายเงินเดือนทุกคน · กรอกเงินเดือน + ออกสลิปได้ตามปกติ · ลบทิ้งได้ (🗑 ลบโคลน)']},
   {v:'4.7.0',date:'2026-07-10',changes:['🧪 เพิ่ม "โคลนพนักงาน (ทดสอบ)" — ในจัดการพนักงาน กดปุ่ม "📋 โคลน" ที่พนักงานคนไหนก็ได้ จะสร้างสำเนา "(ชื่อ) — ทดสอบ" (ก็อปปี้ บทบาท/สาขา/สิทธิ์/ตั้งค่าเงินเดือน) ไว้ลองทดสอบวิธีคิดเงินเดือน/สลิป/หน้าตา โดยไม่กระทบพนักงานจริง · โคลนไม่มีล็อกอิน (กรอกชั่วโมงทำงานเองตอนทดสอบ) · ติดป้าย 🧪 · ไม่ถูกรวมใน "จ่ายเงินเดือนทุกคน" · ลบทิ้งได้ (ปุ่ม 🗑 ลบโคลน) · ⚠️ ต้องอัป Firestore rules ด้วย (ให้แอดมินสร้าง/ลบพนักงานได้)']},
   {v:'4.6.1',date:'2026-07-10',changes:['↩️ เพิ่มปุ่ม "ยกเลิกการจ่ายเงินเดือน" (หน้าคำนวณเงินเดือน · รอบที่จ่ายแล้ว) — กรณีคำนวณผิด กดยกเลิกให้รอบกลับเป็น "รอดำเนินการ" ข้อมูลยังอยู่ครบ แก้ตัวเลขแล้วกดจ่ายใหม่ได้ (ต่างจาก "ลบรอบ" ที่ลบสลิปทิ้ง)']},
@@ -2705,7 +2784,7 @@ function showToast(msg,type='ok'){
   clearTimeout(t._tmr); // กันหลายข้อความซ้อนกันแล้วหายเร็วเกิน
   t._tmr=setTimeout(()=>t.classList.remove('show'),type==='err'?4500:3600);
 }
-function openModal(html){document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-overlay').classList.add('open');}
+function openModal(html,wide){const _b=document.getElementById('modal-box');_b.classList.toggle('modal-wide',!!wide);_b.innerHTML=html;document.getElementById('modal-overlay').classList.add('open');}
 window.closeMO=function(e){if(!e||e.target===document.getElementById('modal-overlay'))document.getElementById('modal-overlay').classList.remove('open');};
 window.closeMD=function(){document.getElementById('modal-overlay').classList.remove('open');};
 function fmt(n){return Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:0});}
@@ -5980,15 +6059,8 @@ function renderCashPage(){
       <span>วันนี้คุณเช็คอินที่ <b>${BRANCHES[myCheckinBranchToday]}</b> แต่กำลังดู/ลงเงินสดของสาขา <b>${BRANCHES[branch]}</b> — ตรวจสอบว่าเลือกสาขาถูกต้องไหม</span>
     </div>`;
   }
-  // แจ้งว่าวันนี้สาขานี้มีคนบันทึกไปแล้ว (ใคร/เวลาไหน) — กันบันทึกซ้ำ
+  // ใครเปิด/ปิดร้านแล้ว — เอาไปแสดงบนหัวการ์ดสถานะ (hero) แทนแถบแจ้งแยก
   const _openEv=cashEvents.find(ev=>ev.branch===branch&&ev.date===todayStr()&&ev.type==='open');
-  if(opened&&_openEv){
-    let _txt=`วันนี้ <b>${_openEv.by||st.openBy||'—'}</b> เปิดร้านสาขานี้ไปแล้ว`;
-    if(closeEv){_txt+=` · <b>${closeEv.by||'—'}</b> ปิดร้านแล้ว`;}
-    html+=`<div style="display:flex;align-items:center;gap:10px;background:var(--blue-l);border:1px solid var(--blue);color:var(--blue-t);border-radius:13px;padding:11px 14px;margin-bottom:1.1rem;font-size:12.5px;line-height:1.5">
-      <span style="font-size:18px;flex-shrink:0">ℹ️</span><span>${_txt}</span>
-    </div>`;
-  }
   // เตือนยอดติดลบ (เงินจริงไม่ควรติดลบ — ให้แอดมินปรับยอดให้ตรง)
   const _neg=[['reserve','เงินสำรอง'],['drawer','ลิ้นชัก'],['safe','ตู้เซฟ']].filter(([k])=>(st[k]||0)<0).map(([,n])=>n);
   if(_neg.length){
@@ -5998,54 +6070,73 @@ function renderCashPage(){
       ${isAdmin?`<button class="btn btn-sm" style="flex-shrink:0" onclick="cashAdjustPrompt(${branch})">⚖️ ปรับยอด</button>`:''}
     </div>`;
   }
-  // เตือนค้างนับเงินสำรองประจำสัปดาห์ (เตือนทุกวันจนกว่าจะนับ — ไม่บล็อกงานอื่น)
+  // เตือนค้างนับเงินสำรองประจำสัปดาห์ — แถบเล็กบรรทัดเดียว (เตือนทุกวันจนกว่าจะนับ ไม่บล็อกงานอื่น)
   const _rcDue=cashReserveDue(branch);
   if(_rcDue){
     const _dueTxt=new Date(_rcDue+'T00:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
-    html+=`<div style="display:flex;align-items:center;gap:10px;background:var(--purple-l);border:1.5px dashed var(--purple);color:var(--purple-t);border-radius:13px;padding:11px 14px;margin-bottom:1.1rem;font-size:12.5px;line-height:1.5;flex-wrap:wrap">
-      <span style="font-size:18px;flex-shrink:0">🪙</span>
-      <span style="flex:1;min-width:150px"><b>ถึงรอบนับเงินสำรองประจำสัปดาห์</b> (กำหนด ${_dueTxt}) — นับแยกชนิดเพื่อ validate เงินทอน</span>
+    html+=`<div class="cash-notice">🪙 <span style="flex:1;min-width:140px"><b>ถึงรอบนับเงินสำรอง</b> ประจำสัปดาห์ (กำหนด ${_dueTxt})</span>
       <span style="display:flex;gap:6px;flex-shrink:0">
         <button class="btn btn-sm btn-primary" onclick="cashReserveCountPrompt(${branch})">นับตอนนี้</button>
         ${isAdmin?`<button class="btn btn-sm" onclick="cashReserveSkipPrompt()">โยกรอบ</button>`:''}
-      </span>
-    </div>`;
+      </span></div>`;
   }
-  // 3 กล่องยอด
-  html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.1rem">
-    ${cashBalCard('เงินสำรอง','💼',st.reserve,'var(--amber-t)','var(--amber-l)')}
-    ${cashBalCard('ลิ้นชัก','🧰',st.drawer,'var(--green-d)','var(--green-l)')}
-    ${cashBalCard('ตู้เซฟ','🔒',st.safe,'#1E3A8A','var(--blue-l)')}
+
+  // 🆕 การ์ดสถานะวันนี้ (hero): ขั้นตอน 1→2→3 + ปุ่มหลักปุ่มเดียวตามช่วงเวลา
+  const dlabel=new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'short'});
+  const _stp=(n,lb,state)=>`<div class="cash-stp ${state}"><div class="dot">${state==='done'?'✓':n}</div>${lb}</div>`;
+  const _stline='<div class="cash-stline"></div>';
+  let heroSt,heroH,heroSteps,heroBody;
+  if(!opened){
+    heroSt=`${dlabel} · ${BRANCHES[branch]}`;
+    heroH='🌅 เริ่มวันใหม่ — ยังไม่เปิดร้าน';
+    heroSteps=_stp(1,'เปิดร้าน','now')+_stline+_stp(2,'ระหว่างวัน','')+_stline+_stp(3,'ปิดร้าน','');
+    heroBody=`<button class="cash-cta" onclick="cashOpenPrompt(${branch})">🌅 เปิดร้าน — ยืนยันเงินแคชเชียร์${cashCfg.floatTarget?` ฿${fmt(cashCfg.floatTarget)}`:''}</button>
+      <div class="hint">เงินแคชเชียร์คงที่ทุกวัน · เช็คแล้วกดยืนยัน จบใน 3 วิ · ไม่ตรงค่อยกด "นับจริง"</div>`;
+  }else if(!closeEv){
+    heroSt=`${dlabel} · ${BRANCHES[branch]} · ${_openEv?.by||st.openBy||'—'} เปิดร้านแล้ว ✓`;
+    heroH='🏪 ร้านเปิดอยู่ — ขายดีๆ นะวันนี้';
+    heroSteps=_stp(1,'เปิดร้าน','done')+_stline+_stp(2,'ระหว่างวัน','now')+_stline+_stp(3,'ปิดร้าน','');
+    heroBody=`<button class="cash-cta night" onclick="cashCloseWizard(${branch})">🌙 ปิดร้าน — ระบบคิดยอดตัดเข้าเซฟให้</button>
+      <div class="hint">ลงยอดขาย → ระบบบอกยอดเก็บเข้าเซฟ → ยืนยันลิ้นชักเหลือมาตรฐาน จบ<br>🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก</div>`;
+  }else{
+    const _d=cashCloseCalc(branch,closeEv).diff;
+    const _dt=_d===0?'✓ เงินตรงพอดี':(_d>0?`เงินเกิน ฿${fmt(Math.abs(_d))}`:`เงินขาด ฿${fmt(Math.abs(_d))}`);
+    heroSt=`${dlabel} · ${BRANCHES[branch]} · ${_openEv?.by||'—'} เปิด · ${closeEv.by||'—'} ปิด`;
+    heroH='🌙 ปิดร้านแล้ว — สรุปวันนี้';
+    heroSteps=_stp(1,'เปิดร้าน','done')+_stline+_stp(2,'ระหว่างวัน','done')+_stline+_stp(3,'ปิดร้าน','done');
+    heroBody=`<div style="background:#fff;border-radius:14px;padding:12px;text-align:center;font-weight:800;font-size:15px;color:${_d===0?'var(--green-dd)':(_d>0?'var(--blue-t)':'#C2410C')}">${_dt}</div>
+      <div class="hint">นับจริง ฿${fmt(closeEv.counted!=null?closeEv.counted:closeEv.amount)} · รายละเอียดดูในกล่องด้านล่าง</div>`;
+  }
+  html+=`<div class="cash-hero"><div class="st">${heroSt}</div><div class="h">${heroH}</div>
+    <div class="cash-steps">${heroSteps}</div>${heroBody}</div>`;
+
+  // 🆕 การ์ด 3 กอง + คำอธิบายที่มาสั้นๆ
+  const _poolCap={
+    reserve:_rcDue?'ค้างนับรอบสัปดาห์นี้':'นับตรวจทุกสัปดาห์ ✓',
+    drawer:opened?(closeEv?'หลังปิดร้าน':`เปิดร้าน ฿${fmt(st.openDrawer||0)}`):`มาตรฐาน ฿${fmt(cashCfg.floatTarget||0)}`,
+    safe:depT>0?`เข้าเซฟวันนี้ ฿${fmt(depT)}`:'ยังไม่เข้าเซฟวันนี้'
+  };
+  const _pool=(ic,l,v,cap)=>`<div class="cash-pool"><div class="ic">${ic}</div><div class="l">${l}</div><div class="v">฿${fmt(v||0)}</div><div class="c">${cap}</div></div>`;
+  html+=`<div class="cash-pools">
+    ${_pool('💼','เงินสำรอง',st.reserve,_poolCap.reserve)}
+    ${_pool('🧰','ลิ้นชัก',st.drawer,_poolCap.drawer)}
+    ${_pool('🔒','ตู้เซฟ',st.safe,_poolCap.safe)}
   </div>`;
 
-  // การ์ดรอบวันนี้
-  const dlabel=new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
-  html+=`<div class="card" style="margin-bottom:1.1rem">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
-      <div style="font-family:var(--disp);font-weight:600;font-size:16px">รอบวันนี้ · ${BRANCHES[branch]}</div>
-      <div style="font-size:11.5px;color:var(--text3)">${dlabel}</div>
-    </div>`;
-  // ปุ่มงานรอง = แถวไอคอนเล็ก (ให้ปุ่มหลักเด่นปุ่มเดียว)
-  const _ib=(oc,ic,lb)=>`<button onclick="${oc}" style="flex:1;text-align:center;padding:11px 4px;border-radius:11px;background:var(--bg);border:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--text2);cursor:pointer;font-family:var(--font)"><span style="font-size:17px;display:block;margin-bottom:3px">${ic}</span>${lb}</button>`;
-  // ปุ่มล็อก (จางๆ) — กดแล้วบอกเหตุผล ยังกดใช้งานจริงไม่ได้
-  const _ibLock=(ic,lb,msg)=>`<button onclick="showToast('${msg}','err')" style="flex:1;text-align:center;padding:11px 4px;border-radius:11px;background:var(--bg);border:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--text3);cursor:pointer;font-family:var(--font);opacity:.5"><span style="font-size:17px;display:block;margin-bottom:3px">${ic}</span>${lb} 🔒</button>`;
+  // 🆕 ปุ่มงานรอง — การ์ดขาวแถวเดียว
+  const _sb=(oc,ic,lb)=>`<button class="cash-sb" onclick="${oc}"><span class="i">${ic}</span>${lb}</button>`;
+  const _sbLock=(ic,lb,msg)=>`<button class="cash-sb lock" onclick="showToast('${msg}','err')"><span class="i">${ic}</span>${lb} 🔒</button>`;
   // "แก้ยอดขาย" แก้ได้เฉพาะหลังปิดร้านแล้วเท่านั้น (ยอดขายเพิ่งถูกกรอกตอนปิดร้าน)
-  const _salesBtn=closeEv?_ib(`cashSalesPrompt(${branch})`,'✏️','แก้ยอดขาย'):_ibLock('✏️','แก้ยอดขาย','แก้ยอดขายได้หลังปิดร้านแล้วเท่านั้น 🌙');
-  if(!opened){
-    html+=`<button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="cashOpenPrompt(${branch})">🌅 เปิดร้าน — ยืนยันเงินแคชเชียร์</button>
-      <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:8px">เงินแคชเชียร์คงที่ทุกวัน — เช็คแล้วกดยืนยัน จบใน 3 วินาที</div>
-      <div style="display:flex;gap:7px;margin-top:12px">${_salesBtn}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>`;
-  }else{
-    html+=`${closeEv?'':`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="cashCloseWizard(${branch})">🌙 ปิดร้าน — ระบบคิดยอดตัดเข้าเซฟให้</button>`}
-    <div style="display:flex;gap:7px;margin-top:12px">${_salesBtn}${_ib(`cashMovePrompt(${branch})`,'💸','ทำรายการเงิน')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
-    <div style="font-size:11px;color:var(--text3);margin-top:9px;text-align:center">🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก — ระบบตรวจด้วยการนับสำรองประจำสัปดาห์</div>`;
-  }
-  // สรุปวันนี้
+  const _salesBtn=closeEv?_sb(`cashSalesPrompt(${branch})`,'✏️','แก้ยอดขาย'):_sbLock('✏️','แก้ยอดขาย','แก้ยอดขายได้หลังปิดร้านแล้วเท่านั้น 🌙');
+  const _bookBtn=_sb(`cashBookScroll()`,'📖','สมุดบันทึก');
+  html+=`<div class="cash-subbtns">${opened&&!closeEv?_sb(`cashMovePrompt(${branch})`,'💸','ทำรายการเงิน'):''}${_salesBtn}${_sb(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}${_bookBtn}</div>`;
+
+  // 🆕 กล่องใบเสร็จ "เงินลิ้นชักวันนี้" (สูตรเดิมทุกบรรทัด แค่จัดหน้าใหม่)
   const _openDn=cashDenomSummary(_openEv?.denoms);
-  html+=`<div style="margin-top:13px;border-top:1px solid var(--border);padding-top:11px">
+  html+=`<div class="cash-rcpt"><div class="rh">🧮 เงินลิ้นชักวันนี้ (คิดให้อัตโนมัติ)</div>
     ${cashRow('เงินต้นลิ้นชัก (เปิดร้าน)',opened?`฿${fmt(st.openDrawer||0)}`:'— ยังไม่เปิด')}
     ${_openDn?`<div style="font-size:11px;color:var(--text3);margin:-2px 0 4px;padding-left:2px">🪙 นับเปิดร้าน: ${_openDn}</div>`:''}
-    ${cashRow('+ เบิกจากสำรอง',`฿${fmt(r2dT)}`)}
+    ${r2dT>0?cashRow('+ เบิกจากสำรอง',`฿${fmt(r2dT)}`):''}
     ${cashRow('+ ยอดขายเงินสดวันนี้',`฿${fmt(cashSales)}`,'จากระบบยอดขาย')}
     ${depT>0?cashRow('− ดึงเข้าตู้เซฟ (ก่อนปิด)',`฿${fmt(depBeforeClose)}`):''}
     ${expDrawerT>0?cashRow('− เบิกซื้อของ (จากลิ้นชัก)',`฿${fmt(expDrawerT)}`):''}
@@ -6060,7 +6151,7 @@ function renderCashPage(){
         <span style="font-weight:700;color:${dc};font-size:15px">${dt}</span>
       </div>`;
   }
-  html+=`${cashRow('ดึงเข้าตู้เซฟวันนี้',`฿${fmt(depT)}`)}</div></div>`;
+  html+=`${depT>0?cashRow('ดึงเข้าตู้เซฟวันนี้ (รวม)',`฿${fmt(depT)}`):''}</div>`;
 
   // ปุ่มผู้ดูแล — ยุบเป็นกล่องพับได้ (ไม่เกะกะงานประจำวัน)
   if(isAdmin){
@@ -6086,9 +6177,9 @@ function renderCashPage(){
   const navBtn=(dir,enabled,txt)=>`<button class="btn btn-sm" ${enabled?'':'disabled'} onclick="cashHistShift(${branch},${dir})" style="padding:6px 11px;${enabled?'':'opacity:.4;cursor:not-allowed'}">${txt}</button>`;
   const dayEvs=cashEvents.filter(e=>e.branch===branch&&e.date===histDate).sort((a,b)=>(b.ts||0)-(a.ts||0));
   const _histOpen=histDate!==today; // ถ้ากำลังดูวันอื่น (แอดมินเลือก) ให้กางไว้
-  html+=`<div class="card" style="padding:0;overflow:hidden;margin-bottom:1.1rem">
-    <div onclick="var b=this.nextElementSibling;var o=b.style.display==='none';b.style.display=o?'block':'none';this.querySelector('.fc').textContent=o?'▴':'▾'" style="display:flex;align-items:center;gap:7px;padding:14px 15px;cursor:pointer;font-family:var(--disp);font-weight:600;font-size:15px">📜 ประวัติ<span style="margin-left:auto;font-size:12px;font-weight:400;color:var(--text3);font-family:var(--font)">${dayEvs.length} รายการ <span class="fc">${_histOpen?'▴':'▾'}</span></span></div>
-    <div style="display:${_histOpen?'block':'none'};padding:0 15px 15px">
+  html+=`<div class="card" id="cash-day-book" style="padding:0;overflow:hidden;margin-bottom:1.1rem">
+    <div onclick="var b=this.nextElementSibling;var o=b.style.display==='none';b.style.display=o?'block':'none';this.querySelector('.fc').textContent=o?'▴':'▾'" style="display:flex;align-items:center;gap:7px;padding:14px 15px;cursor:pointer;font-family:var(--disp);font-weight:600;font-size:15px">📖 สมุดบันทึกเงิน<span style="margin-left:auto;font-size:12px;font-weight:400;color:var(--text3);font-family:var(--font)">${dayEvs.length} รายการ <span class="fc">${_histOpen?'▴':'▾'}</span></span></div>
+    <div id="cash-day-book-body" style="display:${_histOpen?'block':'none'};padding:0 15px 15px">
     ${isAdmin?`<div style="text-align:right;margin-bottom:8px"><input type="date" max="${today}" value="${histDate}" onchange="cashHistPick(${branch},this.value)" style="border:1px solid var(--border2);border-radius:9px;padding:5px 8px;font-family:var(--font);font-size:12px;color:var(--text2)"></div>`:''}
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--bg);border-radius:11px;padding:6px 8px;margin-bottom:10px">
       ${navBtn(-1,canPrev,'◀ ก่อนหน้า')}
@@ -6128,6 +6219,13 @@ function renderCashPage(){
 }
 
 // ===== Actions =====
+// 🆕 ปุ่ม "📖 สมุดบันทึก" — กางการ์ดสมุดบันทึกเงินแล้วเลื่อนไปหา
+window.cashBookScroll=function(){
+  const card=document.getElementById('cash-day-book');if(!card)return;
+  const body=document.getElementById('cash-day-book-body');
+  if(body&&body.style.display==='none'){body.style.display='block';const fc=card.querySelector('.fc');if(fc)fc.textContent='▴';}
+  card.scrollIntoView({behavior:'smooth',block:'start'});
+};
 function cashWho(){return memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้';}
 // เปิดร้านแบบใหม่: ร้าน fix เงินแคชเชียร์ไว้ → แค่กดยืนยันปุ่มเดียว (ไม่ต้องนับทุกเช้า)
 window.cashOpenPrompt=function(branch){
@@ -8159,7 +8257,8 @@ function renderPRPersonSelect(){
   el.innerHTML=head+active.map(m=>{
     const name=`${m.firstName||''} ${m.lastName||''}`.trim();
     const sel=prCurrentPerson===m.uid?'selected':'';
-    const typeLbl=m.salary?.type==='fixed'?'ประจำ':m.salary?.type==='hourly'?'รายชั่วโมง':m.salary?.type==='both'?'ผสม':'ยังไม่ตั้ง';
+    const _SHORT={hourly_actual:'ตามชั่วโมงจริง',req_sun:'ชั่วโมงบังคับ',req_fix6:'ชั่วโมงบังคับ (6วัน)',fixed:'ประจำ',hourly:'รายชั่วโมง',both:'ผสม'};
+    const typeLbl=(_SHORT[m.salary?.type]||'ยังไม่ตั้งเงินเดือน')+(m.isClone?' · 🧪 ทดสอบ':'');
     const rec=prMonthRecords[m.uid];
     const status=rec
       ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--green-d);background:var(--green-l);padding:2px 9px;border-radius:20px">✓ ฿${fmt(rec.net||0)}</span>`
@@ -8314,6 +8413,7 @@ window.selectPRPerson=async function(uid){
     slipNote:saved?.slipNote||'',
     payDate:saved?.payDate||'',
     periodText:saved?.periodText||'',
+    docNo:saved?.docNo||'',   // 🆕 เลขที่เอกสาร (ออกใหม่ตอนบันทึกครั้งแรก)
     status:saved?.status||'pending'
   };
   loading(false);
@@ -8322,6 +8422,7 @@ window.selectPRPerson=async function(uid){
 
 function renderPRCalc(){
   document.getElementById('pr-calc-area').style.display='block';
+  document.getElementById('pr-side-area').style.display='block';
   const d=prData;
   const NM=PR_NEW_METHODS.includes(d.salaryType);   // 🆕 วิธีใหม่ (คิดชั่วโมงจริง)
   let baseAmt,hourlyAmt,otAmt,lateDeductAmt,reqDiffAmt=0,nmc=null;
@@ -8393,8 +8494,9 @@ function renderPRCalc(){
     </div>
 
     ${NM?`
-    <div style="background:var(--green-ll);border:1px solid rgba(29,158,117,.25);border-radius:12px;padding:14px;margin-bottom:1rem">
-      <div style="font-size:12.5px;color:var(--green-dd);font-weight:800;margin-bottom:10px">🧮 ${PR_METHOD_LABEL[d.salaryType]}</div>
+    <div class="pr-calcbox" style="padding-top:12px">
+      <div style="font-size:12.5px;color:var(--green-dd);font-weight:800">🧮 วิธีคิด: ${PR_METHOD_LABEL[d.salaryType]}</div>
+      <div style="font-size:11px;color:var(--text3);margin:3px 0 6px;line-height:1.5">${d.salaryType==='hourly_actual'?'ค่าแรง = ชั่วโมงทำงานจริง × เรทต่อชั่วโมง':'ทำครบชั่วโมงบังคับ = ได้เงินเดือนเต็ม · ทำเกิน = OT บวกเพิ่ม · ทำขาด = หัก (เรทเดียวกัน)'}</div>
       ${d.salaryType!=='hourly_actual'?`<div class="pr-line"><span class="pr-line-label">💰 เงินเดือนเต็ม</span><input type="number" class="pr-line-input" value="${d.monthly}" min="0" onchange="updatePRNM('monthly',this.value)"></div>`:''}
       <div class="pr-line"><span class="pr-line-label">💵 เรทต่อชั่วโมง${d.salaryType!=='hourly_actual'?' (หัก/OT)':''}</span><input type="number" class="pr-line-input" value="${d.rate}" min="0" onchange="updatePRNM('rate',this.value)"></div>
       ${d.salaryType==='req_sun'?`<div class="pr-line"><span class="pr-line-label">🌴 วันหยุดพิเศษเดือนนี้ <span style="font-size:11px;color:var(--text3)">— นอกจากอาทิตย์</span></span><input type="number" class="pr-line-input" style="width:80px" value="${d.adminHolidays}" min="0" onchange="updatePRNM('adminHolidays',this.value)"></div>`:''}
@@ -8475,21 +8577,6 @@ function renderPRCalc(){
       <span style="font-weight:600;color:var(--green-d)">฿${fmt(otAmt)}</span>
     </div>`}
 
-    <div style="margin:1.25rem 0 .75rem;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:space-between">
-      <span>รายการเพิ่มเติม (ค่ารถ, Incentive, ภาษี, ประกันสังคม ฯลฯ)</span>
-    </div>
-    ${extraRows||'<div style="font-size:12px;color:var(--text3);padding:8px 0">ยังไม่มีรายการเพิ่มเติม</div>'}
-
-    <div class="pr-extra-row" style="margin-top:.75rem">
-      <input type="text" id="pr-extra-name" placeholder="ชื่อรายการ เช่น ค่ารถ" style="flex:1;min-width:120px">
-      <select id="pr-extra-type" style="width:auto;padding:9px 12px">
-        <option value="add">+ รายรับ</option>
-        <option value="ded">- หัก</option>
-      </select>
-      <input type="number" id="pr-extra-amt" placeholder="บาท" style="width:110px" min="0">
-      <button class="btn btn-primary btn-sm" onclick="addPRExtra()">+ เพิ่ม</button>
-    </div>
-
     <div style="margin:1.25rem 0 .75rem;font-size:13px;font-weight:700">💬 ข้อความบนสลิป (เฉพาะรอบนี้)</div>
     <input type="text" id="pr-slip-note" value="${(d.slipNote||'').replace(/"/g,'&quot;')}" placeholder="เช่น โบนัสพิเศษเดือนนี้ ขอบคุณที่ตั้งใจทำงาน" onchange="prData.slipNote=this.value" style="width:100%">
     <div style="font-size:11px;color:var(--text3);margin-top:4px">ข้อความนี้จะพิมพ์บนสลิปของคนนี้ · ตั้งข้อความรวมทุกคนได้ที่ปุ่ม “✏️ ข้อความในสลิป” ด้านบน</div>
@@ -8509,22 +8596,39 @@ function renderPRCalc(){
       <button class="btn btn-primary btn-sm" onclick="addPRLeave()">+ เพิ่ม</button>
     </div>
     <button class="btn btn-sm" onclick="savePRLeave()" style="margin-top:8px">💾 บันทึกสิทธิ์ลา</button>
+  `;
 
-    <div class="pr-net-box">
+  // 🆕 คอลัมน์ขวา: รายการเพิ่ม/หัก + เงินสุทธิ + ปุ่ม (จอกว้างอยู่ข้างกัน · มือถือถัดลงมา)
+  document.getElementById('pr-side-card').innerHTML=`
+    <div style="margin:0 0 .75rem;font-size:13px;font-weight:700">➕ รายการเพิ่ม / หัก <span style="font-weight:400;color:var(--text3);font-size:11.5px">(ค่ารถ, Incentive, ประกันสังคม ฯลฯ)</span></div>
+    ${extraRows||'<div style="font-size:12px;color:var(--text3);padding:8px 0">ยังไม่มีรายการเพิ่มเติม</div>'}
+
+    <div class="pr-extra-row" style="margin-top:.75rem">
+      <input type="text" id="pr-extra-name" placeholder="ชื่อรายการ เช่น ค่ารถ" style="flex:1;min-width:100px">
+      <select id="pr-extra-type" style="width:auto;padding:9px 10px">
+        <option value="add">+ รายรับ</option>
+        <option value="ded">- หัก</option>
+      </select>
+      <input type="number" id="pr-extra-amt" placeholder="บาท" style="width:90px" min="0">
+      <button class="btn btn-primary btn-sm" onclick="addPRExtra()">เพิ่ม</button>
+    </div>
+
+    <div class="pr-net-box" style="margin-top:1.25rem">
       <div>
         <div class="lbl">เงินเดือนสุทธิ</div>
-        <div style="font-size:11px;opacity:.6;margin-top:2px">ฐาน ฿${fmt(baseAmt)} ${hourlyAmt?`+ ชม. ฿${fmt(hourlyAmt)}`:''} ${otAmt?`+ OT ฿${fmt(otAmt)}`:''} ${extraAdd?`+ พิเศษ ฿${fmt(extraAdd)}`:''} ${lateDeductAmt?`− สาย ฿${fmt(lateDeductAmt)}`:''} ${extraDed?`− หัก ฿${fmt(extraDed)}`:''}</div>
+        <div style="font-size:11px;opacity:.6;margin-top:2px">${baseAmt?`ฐาน ฿${fmt(baseAmt)}`:''} ${hourlyAmt?`${baseAmt?'+ ':''}ชม. ฿${fmt(hourlyAmt)}`:''} ${reqDiffAmt>0?`+ OT ฿${fmt(reqDiffAmt)}`:''} ${reqDiffAmt<0?`− ขาด ฿${fmt(-reqDiffAmt)}`:''} ${otAmt?`+ OT ฿${fmt(otAmt)}`:''} ${extraAdd?`+ พิเศษ ฿${fmt(extraAdd)}`:''} ${lateDeductAmt?`− สาย ฿${fmt(lateDeductAmt)}`:''} ${extraDed?`− หัก ฿${fmt(extraDed)}`:''}</div>
       </div>
       <div class="val">฿${fmt(net)}</div>
     </div>
 
-    <div style="display:flex;gap:8px;margin-top:1.25rem;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="savePRPerson()" style="flex:1">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-        ${d.status==='paid'?'บันทึกการแก้ไข':'บันทึกและจ่ายเงินเดือน'}
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:1.25rem">
+      <button class="btn btn-primary" onclick="openSlipPreviewConfirm()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        ดูตัวอย่างสลิป → ${d.status==='paid'?'บันทึกการแก้ไข':'บันทึกและจ่าย'}
       </button>
-      <button class="btn" onclick="exportPersonSlip()">📥 สลิป PDF</button>
+      <button class="btn" onclick="exportPersonSlip()">📥 ดาวน์โหลดสลิป (PDF / รูป)</button>
     </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5">👁️ ระบบจะให้ดูตัวอย่างสลิป + ตรวจความผิดปกติก่อนบันทึกทุกครั้ง</div>
   `;
 }
 
@@ -8585,6 +8689,10 @@ window.savePRPerson=async function(){
   try{
     const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
     const d=prData;
+    // 🆕 เลขที่เอกสารอัตโนมัติ (ครั้งแรกของรอบนี้เท่านั้น — แก้ไขภายหลังเลขเดิมคงอยู่)
+    if(!d.docNo){
+      try{const recs=await loadMonthPayroll();d.docNo=`SLIP-${prYear+543}-${String(prMonth).padStart(2,'0')}-${String(recs.filter(r=>r.docNo).length+1).padStart(3,'0')}`;}catch(e){d.docNo='';}
+    }
     await setDoc(doc(db,'payroll',`${prCurrentPerson}_${monthStr}`),{
       uid:prCurrentPerson,name:d.name,month:prMonth,year:prYear,monthStr,
       salaryType:d.salaryType,baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,
@@ -8594,6 +8702,7 @@ window.savePRPerson=async function(){
       // 🆕 ฟิลด์วิธีใหม่ (เก็บไว้ให้โหลดกลับมาแก้ได้ตรงตามที่บันทึก)
       isNewMethod:!!d.isNewMethod,rate:d.rate||0,actualOverride:d.actualHours,autoActualHours:d.autoActualHours||0,
       mandatoryHours:d.mandatoryHours||0,adminHolidays:d.adminHolidays||0,reqDiffAmt:d.reqDiffAmt||0,
+      docNo:d.docNo||'',
       bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
       deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
       extraItems:prExtraItems,
@@ -8665,7 +8774,7 @@ async function _prComputeRow(m, monthStr){
       hours:actual,autoHours:AH.actualHours,actualHours:actual,autoActualHours:AH.actualHours,missingOut:AH.missingOut,
       mandatoryHours:mand,adminHolidays:adminHol,isNewMethod:true,
       baseAmt:nmc.base,hourlyAmt:nmc.hourlyAmt,reqDiffAmt:nmc.diffAmt,otHours:0,otRate:0,otAmt:0,lateDeduction:0,lateDeductAmt:0,
-      extraItems,slipNote:saved?.slipNote||'',status:saved?.status||'pending',alreadySaved:!!saved};
+      docNo:saved?.docNo||'',extraItems,slipNote:saved?.slipNote||'',status:saved?.status||'pending',alreadySaved:!!saved};
   }
   const lateRate=saved?.lateRate!=null?saved.lateRate:(salary.lateRate||0);
   const hours=saved?.hoursOverride!=null?saved.hoursOverride:H.hours;
@@ -8676,7 +8785,7 @@ async function _prComputeRow(m, monthStr){
   const extraItems=saved?.extraItems?[...saved.extraItems]:[];
   return {uid,name:`${m.firstName||''} ${m.lastName||''}`.trim(),salaryType:type,base,hourlyRate,lateRate,
     hours,autoHours:H.hours,rawHours:H.rawHours,lateDeduction:H.lateDeduction,lateCount:H.lateCount,
-    baseAmt,hourlyAmt,otHours,otRate,otAmt,lateDeductAmt,extraItems,slipNote:saved?.slipNote||'',
+    baseAmt,hourlyAmt,otHours,otRate,otAmt,lateDeductAmt,docNo:saved?.docNo||'',extraItems,slipNote:saved?.slipNote||'',
     status:saved?.status||'pending',alreadySaved:!!saved};
 }
 function _prRowNet(row, sharedExtra){
@@ -8764,10 +8873,13 @@ window.prBatchSave=async function(){
   const monthStr=`${prYear}-${String(prMonth).padStart(2,'0')}`;
   loading(true);
   let ok=0, grand=0;
+  // 🆕 เลขที่เอกสาร: นับต่อจากที่ออกไปแล้วของเดือนนี้
+  let _docSeq=0;try{_docSeq=(await loadMonthPayroll()).filter(r=>r.docNo).length;}catch(e){}
   try{
     for(const uid of checked){
       const row=_prBatchRows.find(r=>r.uid===uid);if(!row)continue;
       const calc=_prRowNet(row,sharedExtra);
+      if(!row.docNo){_docSeq++;row.docNo=`SLIP-${prYear+543}-${String(prMonth).padStart(2,'0')}-${String(_docSeq).padStart(3,'0')}`;}
       await setDoc(doc(db,'payroll',`${uid}_${monthStr}`),{
         uid,name:row.name,month:prMonth,year:prYear,monthStr,
         salaryType:row.salaryType,baseAmt:row.baseAmt,hourlyAmt:row.hourlyAmt||0,
@@ -8776,6 +8888,7 @@ window.prBatchSave=async function(){
         otHours:row.otHours||0,otRate:row.otRate||0,otAmt:row.otAmt||0,
         isNewMethod:!!row.isNewMethod,rate:row.rate||0,actualOverride:row.actualHours,autoActualHours:row.autoActualHours||0,
         mandatoryHours:row.mandatoryHours||0,adminHolidays:row.adminHolidays||0,reqDiffAmt:row.reqDiffAmt||0,
+        docNo:row.docNo||'',
         bonus:calc.add,deduction:calc.ded,extraItems:calc.items,
         slipNote:sharedNote||row.slipNote||'',
         payDate:sharedPayDate||'',
@@ -8793,14 +8906,18 @@ window.prBatchSave=async function(){
   renderPRPersonSelect();
 };
 
-window.exportPersonSlip=function(){
-  const d=prData;if(!d.uid){showToast('กรุณาเลือกพนักงานก่อน','err');return;}
-  const m=allMembers.find(x=>x.uid===d.uid);
-  const rec={
-    month:prMonth,year:prYear,salaryType:d.salaryType,
+// สร้าง record สลิปจากข้อมูลที่กำลังคำนวณ (ใช้ร่วมทั้ง ดาวน์โหลด และ ดูตัวอย่างก่อนบันทึก)
+function _pvRec(){
+  const d=prData;
+  return {
+    uid:d.uid,month:prMonth,year:prYear,salaryType:d.salaryType,
     baseAmt:d.baseAmt,hourlyAmt:d.hourlyAmt||0,hours:d.hours,
     lateDeduction:d.lateDeduction||0,lateDeductAmt:d.lateDeductAmt||0,
     otHours:d.otHours||0,otRate:d.otRate||0,otAmt:d.otAmt||0,
+    // ฟิลด์วิธีคิดชั่วโมงจริง — ต้องส่งให้สลิปแสดง OT/หักชั่วโมงขาดถูกต้อง
+    isNewMethod:!!d.isNewMethod,rate:d.rate||0,actualOverride:d.actualHours,
+    mandatoryHours:d.mandatoryHours||0,adminHolidays:d.adminHolidays||0,reqDiffAmt:d.reqDiffAmt||0,
+    docNo:d.docNo||'',
     bonus:prExtraItems.filter(x=>x.type==='add').reduce((a,x)=>a+x.amount,0),
     deduction:prExtraItems.filter(x=>x.type==='ded').reduce((a,x)=>a+x.amount,0),
     net:d.computedNet,status:d.status,extraItems:prExtraItems,
@@ -8808,9 +8925,90 @@ window.exportPersonSlip=function(){
     payDate:(document.getElementById('pr-pay-date')?.value||d.payDate||''),
     periodText:(document.getElementById('pr-period-text')?.value||d.periodText||'').trim()
   };
-  const role=m?.role||'';
-  downloadHTML(buildMonthSlip(rec,d.name,role,d.uid),`สลิป_${d.name}_${MONTHS_TH[prMonth-1]}_${prYear}.html`);
+}
+window.exportPersonSlip=function(){
+  const d=prData;if(!d.uid){showToast('กรุณาเลือกพนักงานก่อน','err');return;}
+  const m=allMembers.find(x=>x.uid===d.uid);
+  downloadHTML(buildMonthSlip(_pvRec(),d.name,m?.role||'',d.uid),`สลิป_${d.name}_${MONTHS_TH[prMonth-1]}_${prYear}.html`);
   showToast('ดาวน์โหลดสลิปแล้ว');
+};
+
+// ===== 🆕 v4.8: ดูตัวอย่างสลิป + ตรวจกันพลาด ก่อนบันทึกและจ่าย =====
+// ตรวจความผิดปกติก่อนจ่าย — e = แดง (น่าจะผิดแน่) · w = เหลือง (เช็คหน่อย)
+async function _pvWarnings(){
+  const d=prData,w=[];
+  const NM=PR_NEW_METHODS.includes(d.salaryType);
+  if(NM){
+    if(!(d.rate>0))w.push({t:'e',m:'เรทต่อชั่วโมงเป็น 0 — ยังไม่ได้ตั้งเรท (OT/หักขาดจะเป็น 0 หมด)'});
+    if(!(d.actualHours>0))w.push({t:'e',m:'ชั่วโมงจริงเป็น 0 — เช็คว่าพนักงานมีเช็คอินเดือนนี้ หรือกรอกชั่วโมงเอง'});
+    if(d.salaryType!=='hourly_actual'&&!(d.monthly>0))w.push({t:'e',m:'เงินเดือนเต็มเป็น 0 — ยังไม่ได้ตั้งเงินเดือน'});
+    if(d.missingOut>0)w.push({t:'w',m:`ลืมเช็คเอาท์ ${d.missingOut} วัน (วันนั้นนับ 0 ชม.) — ชั่วโมงจริงอาจน้อยกว่าความเป็นจริง`});
+  }else{
+    if(d.salaryType!=='hourly'&&!(d.base>0))w.push({t:'w',m:'เงินเดือนฐานเป็น 0'});
+    if(d.salaryType!=='fixed'&&!(d.hours>0))w.push({t:'w',m:'ชั่วโมงคิดเงินเป็น 0 — เช็คตารางเวรเดือนนี้'});
+  }
+  const net=d.computedNet||0;
+  if(net<0)w.push({t:'e',m:`เงินสุทธิติดลบ (−฿${fmt(-net)}) — ตรวจรายการหัก/ชั่วโมงขาด`});
+  else if(net===0)w.push({t:'e',m:'เงินสุทธิเป็น ฿0'});
+  // เทียบกับเดือนก่อน — ต่างเกิน 30% = เตือน
+  try{
+    let pm=prMonth-1,py=prYear;if(pm<1){pm=12;py--;}
+    const prev=await getDoc(doc(db,'payroll',`${d.uid}_${py}-${String(pm).padStart(2,'0')}`));
+    if(prev.exists()){
+      const pn=prev.data().net||0;
+      if(pn>0&&net>0){
+        const diff=Math.abs(net-pn)/pn;
+        if(diff>0.3)w.push({t:'w',m:`ต่างจากเดือนก่อนมาก: ${MONTHS_TH[pm-1]} ฿${fmt(pn)} → เดือนนี้ ฿${fmt(net)} (${net>pn?'+':'−'}${Math.round(diff*100)}%)`});
+      }
+    }
+  }catch(e){}
+  return w;
+}
+
+window.openSlipPreviewConfirm=async function(){
+  if(!prCurrentPerson){showToast('กรุณาเลือกพนักงานก่อน','err');return;}
+  loading(true);
+  let warns=[];try{warns=await _pvWarnings();}catch(e){}
+  loading(false);
+  const d=prData;
+  openModal(`
+    <div class="modal-title" style="margin-bottom:.75rem">👁️ ดูตัวอย่างสลิปก่อนบันทึก <span style="font-weight:400;font-size:12.5px;color:var(--text3)">— ${d.name} · ${MONTHS_TH[prMonth-1]} ${prYear+543}</span></div>
+    <div class="pv-grid">
+      <div>
+        ${warns.length?`
+          ${warns.map(x=>`<div class="pv-warn ${x.t}">${x.t==='e'?'⛔':'⚠️'} <span>${x.m}</span></div>`).join('')}
+          <label style="display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:700;margin:4px 0 12px;cursor:pointer">
+            <input type="checkbox" onchange="document.getElementById('pv-confirm-btn').disabled=!this.checked" style="width:17px;height:17px;accent-color:var(--green-d)"> ตรวจแล้ว ยืนยันว่าตัวเลขถูกต้อง
+          </label>`
+        :`<div class="pv-warn" style="background:var(--green-l);color:var(--green-dd);border:1px solid var(--green)">✅ ตรวจแล้ว ไม่พบความผิดปกติ</div>`}
+        <div style="font-size:12px;font-weight:700;margin:6px 0 2px">✏️ ปรับแต่งสลิป (ใช้กับทุกคน · เห็นผลในตัวอย่างทันที)</div>
+        <div id="pv-cfg-panel">${slipCfgFieldsHtml(true)}</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+          <button class="btn btn-primary" id="pv-confirm-btn" ${warns.length?'disabled':''} onclick="pvConfirmSave()" style="width:100%">💾 ยืนยัน${d.status==='paid'?'บันทึกการแก้ไข':'บันทึกและจ่ายเงินเดือน'}</button>
+          <button class="btn" onclick="closeMD()" style="width:100%">← กลับไปแก้ตัวเลข</button>
+          <button class="btn" onclick="exportPersonSlip()" style="width:100%">📥 ดาวน์โหลดสลิป (PDF / รูป PNG)</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11.5px;color:var(--text3);margin-bottom:6px;text-align:center">🔄 ตัวอย่างอัปเดตตามที่แก้ — ยังไม่บันทึกจนกด "ยืนยัน"</div>
+        <iframe id="pv-frame"></iframe>
+      </div>
+    </div>
+  `,true);
+  _pvRefresh();
+};
+function _pvRerenderPanel(){const p=document.getElementById('pv-cfg-panel');if(p)p.innerHTML=slipCfgFieldsHtml(true);}
+function _pvRefresh(){
+  const fr=document.getElementById('pv-frame');if(!fr)return;
+  const d=prData,m=allMembers.find(x=>x.uid===d.uid);
+  fr.srcdoc=buildMonthSlip(_pvRec(),d.name,m?.role||'',d.uid);
+}
+window.pvCfgChanged=function(){collectSlipCfgFromDom();_pvRefresh();};
+window.pvConfirmSave=async function(){
+  collectSlipCfgFromDom();
+  await persistSlipCfg(true);
+  closeMD();
+  await savePRPerson();
 };
 
 // โหลด payroll ทุกคนของเดือนที่เลือก (ที่บันทึกแล้ว)
@@ -9091,6 +9289,7 @@ function empCode(uid){
 }
 
 function buildMonthSlip(r, memberName, memberRole, uid){
+  const _sv=k=>!(slipCfg.show&&slipCfg.show[k]===false); // 🆕 สวิตช์ แสดง/ซ่อน บนสลิป
   const typeLabel=r.salaryType==='fixed'?'เงินเดือนประจำ':r.salaryType==='hourly'?'รายชั่วโมง':r.salaryType==='hourly_actual'?'ตามชั่วโมงจริง':(r.salaryType==='req_sun'||r.salaryType==='req_fix6')?'ชั่วโมงบังคับ':'ประจำ + รายชั่วโมง';
   const statusLabel=r.status==='paid'?'จ่ายเงินแล้ว':'รอดำเนินการ';
   // หาข้อมูลพนักงานเพิ่มเติม (รหัสกำหนดเอง, ตำแหน่ง, บัญชีธนาคาร)
@@ -9118,26 +9317,15 @@ function buildMonthSlip(r, memberName, memberRole, uid){
   if(r.salaryType==='fixed'&&(r.lateDeductAmt||0)>0)dedItems.push({name:`หักมาสาย (${r.lateDeduction||0} ชม.)`,amount:r.lateDeductAmt});
 
   const otAmt=r.otAmt||0;
-  // 🆕 วิธีใหม่: ส่วนต่างชั่วโมงบังคับ — เกิน = OT (รายรับ) · ขาด = หัก (รายหัก)
+  // 🆕 วิธีคิดชั่วโมงจริง (hourly_actual / req_sun / req_fix6)
+  // ชั่วโมงจริง: บันทึกเดี่ยวเก็บใน actualOverride · ทำหลายคน (batch) เก็บใน hours
+  const nmActual=r.actualOverride!=null?r.actualOverride:(r.hours||0);
+  // req_sun/req_fix6: ส่วนต่างจากชั่วโมงบังคับ — เกิน = OT (รายรับ) · ขาด = หัก (รายหัก)
   const reqDiff=r.reqDiffAmt||0;
-  const _diffH=(r.mandatoryHours!=null)?Math.round(((r.hours||0)-(r.mandatoryHours||0))*10)/10:0;
-  if(reqDiff<0)dedItems.push({name:`หักชั่วโมงขาด (${Math.abs(_diffH)} ชม.)`,amount:-reqDiff});
+  const _diffH=(r.mandatoryHours!=null)?Math.round((nmActual-(r.mandatoryHours||0))*10)/10:0;
+  if(reqDiff<0)dedItems.push({name:`หักชั่วโมงขาด${_sv('calc')?` (${Math.abs(_diffH)} ชม.)`:''}`,amount:-reqDiff});
   const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+otAmt+(reqDiff>0?reqDiff:0)+addItems.reduce((a,x)=>a+x.amount,0);
   const totalDed=dedItems.reduce((a,x)=>a+x.amount,0);
-
-  // สร้างแถวรายรับ
-  const earnRows=[];
-  if(r.salaryType!=='hourly')earnRows.push(['เงินเดือนฐาน','',fmt(r.baseAmt)]);
-  if(r.salaryType!=='fixed')earnRows.push(['ค่าแรงรายชั่วโมง',`${r.hours||0} ชม.`,fmt(r.hourlyAmt||0)]);
-  if(otAmt>0)earnRows.push(['ค่าล่วงเวลา (OT)',`${r.otHours||0} ชม.`,fmt(otAmt)]);
-  addItems.forEach(x=>earnRows.push([x.name,'',fmt(x.amount)]));
-  // สร้างแถวรายหัก
-  const dedRows=dedItems.map(x=>[x.name,'',fmt(x.amount)]);
-
-  // ทำให้สองคอลัมน์สูงเท่ากัน
-  const maxRows=Math.max(earnRows.length,dedRows.length,1);
-  while(earnRows.length<maxRows)earnRows.push(['','','']);
-  while(dedRows.length<maxRows)dedRows.push(['','','']);
 
   return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>สลิปเงินเดือน ${period} — ${memberName}</title>
@@ -9172,16 +9360,21 @@ function buildMonthSlip(r, memberName, memberRole, uid){
     .ps-sign-box{text-align:center;color:#5A6B7B}
     .ps-sign-line{border-top:1px dotted #888780;margin-bottom:4px;padding-top:15px}
     .ps-foot{margin-top:9px;border-top:1px solid #D4DAD8;padding-top:5px;font-size:8.5px;color:#94A3B3;display:flex;justify-content:space-between}
-    .print-btn{display:block;margin:14px auto;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+    .slip-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px auto;max-width:148mm}
+    .slip-btn{padding:11px 22px;border:none;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+    .print-btn{background:#16202E;color:#fff}
+    .png-btn{background:#1FAE8B;color:#fff}
+    .slip-btn:disabled{opacity:.5;cursor:default}
     @media print{
       body{background:#fff;padding:0}
       .payslip{width:100%;margin:0;padding:5mm 8mm;border:none}
-      .print-btn{display:none}
+      .slip-btns{display:none}
       @page{size:A5 portrait;margin:5mm}
     }
   </style></head><body>
   <div class="payslip">
     <div class="ps-title">
+      ${slipCfg.logo&&_sv('logo')?`<img src="${slipCfg.logo}" style="height:42px;max-width:150px;object-fit:contain;margin-bottom:3px" alt="โลโก้">`:''}
       <div class="company">${slipEsc(slipCfg.companyName||'ร้านขายยา ใหม่เภสัช')}</div>
       <div class="doc">ใบแจ้งเงินเดือน (PAY SLIP)</div>
       <div class="branch">3 สาขา • ทรัพย์พัฒนา / บางปู / อินดี้</div>
@@ -9195,23 +9388,23 @@ function buildMonthSlip(r, memberName, memberRole, uid){
       </tr>
       <tr>
         <td class="lbl">ตำแหน่ง :</td><td class="val">${positionLabel}</td>
-        <td class="lbl">ประเภทจ้าง :</td><td class="val">${typeLabel}</td>
+        <td class="lbl">เลขที่ :</td><td class="val">${r.docNo||'—'}</td>
       </tr>
       <tr>
         <td class="lbl">งวดเงินเดือน :</td><td class="val">${period}</td>
         <td class="lbl">วันที่จ่าย :</td><td class="val">${payDate}</td>
       </tr>
-      ${bankInfo?`<tr><td class="lbl">โอนเข้าบัญชี :</td><td class="val" colspan="3">${bankInfo}</td></tr>`:''}
+      ${bankInfo&&_sv('bank')?`<tr><td class="lbl">โอนเข้าบัญชี :</td><td class="val" colspan="3">${bankInfo}</td></tr>`:''}
     </table>
 
     <table class="ps-main-table">
       <thead><tr><th style="text-align:left">รายการ</th><th class="r">รายรับ (บาท)</th><th class="r">รายหัก (บาท)</th></tr></thead>
       <tbody>
         ${r.salaryType==='hourly_actual'
-          ?`<tr><td>ค่าแรงตามชั่วโมงจริง (${r.hours||0} ชม.)</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`
+          ?`<tr><td>ค่าแรงตามชั่วโมงจริง${_sv('calc')?` (${nmActual} ชม. × ${fmt(r.rate||r.hourlyRate||0)})`:''}</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`
           :(r.salaryType==='req_sun'||r.salaryType==='req_fix6')
-          ?`<tr><td>เงินเดือนเต็ม</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>${reqDiff>0?`<tr><td>ทำงานเกิน OT (${_diffH} ชม.)</td><td class="r">${fmt(reqDiff)}</td><td class="r"></td></tr>`:''}`
-          :`${r.salaryType!=='hourly'?`<tr><td>เงินเดือนฐาน</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>`:''}${r.salaryType!=='fixed'?`<tr><td>ค่าแรงรายชั่วโมง (${r.hours||0} ชม.)</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`:''}`}
+          ?`<tr><td>เงินเดือน${_sv('calc')?` (ครบชั่วโมงบังคับ ${r.mandatoryHours||0} ชม.)`:''}</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>${reqDiff>0?`<tr><td>ทำงานเกิน OT${_sv('calc')?` (${_diffH} ชม.)`:''}</td><td class="r">${fmt(reqDiff)}</td><td class="r"></td></tr>`:''}`
+          :`${r.salaryType!=='hourly'?`<tr><td>เงินเดือนฐาน</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>`:''}${r.salaryType!=='fixed'?`<tr><td>ค่าแรงรายชั่วโมง${_sv('calc')?` (${r.hours||0} ชม.)`:''}</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`:''}`}
         ${otAmt>0?`<tr><td>ค่าล่วงเวลา OT (${r.otHours||0} ชม.)</td><td class="r">${fmt(otAmt)}</td><td class="r"></td></tr>`:''}
         ${addItems.map(x=>`<tr><td>${x.name}</td><td class="r">${fmt(x.amount)}</td><td class="r"></td></tr>`).join('')}
         ${dedItems.map(x=>`<tr><td>${x.name}</td><td class="r"></td><td class="r">${fmt(x.amount)}</td></tr>`).join('')}
@@ -9221,10 +9414,10 @@ function buildMonthSlip(r, memberName, memberRole, uid){
 
     <div class="ps-net">
       <span class="lbl">เงินสุทธิที่ได้รับ :</span><span class="amt">฿${fmt(r.net)}</span>
-      <div><span class="ps-status">${statusLabel}</span></div>
+      ${_sv('status')?`<div><span class="ps-status">${statusLabel}</span></div>`:''}
     </div>
 
-    ${(()=>{const lv=mem?.slipLeave;if(!lv||!lv.show||!Array.isArray(lv.items)||!lv.items.length)return '';
+    ${(()=>{const lv=mem?.slipLeave;if(!_sv('leave')||!lv||!lv.show||!Array.isArray(lv.items)||!lv.items.length)return '';
       const rows=lv.items.map(it=>{const tot=Number(it.total)||0,used=Number(it.used)||0;return `<tr><td>${slipEsc(it.type||'')}</td><td class="r">${fmt(tot)}</td><td class="r">${fmt(used)}</td><td class="r">${fmt(tot-used)}</td></tr>`;}).join('');
       return `<div class="ps-leave"><div class="ps-leave-h">สิทธิ์การลา (Leave Entitlement) — หน่วย: วัน</div>
         <table class="ps-main-table"><thead><tr><th style="text-align:left">ประเภทการลา</th><th class="r">สิทธิ์ทั้งหมด</th><th class="r">ใช้ไป</th><th class="r">คงเหลือ</th></tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -9232,17 +9425,35 @@ function buildMonthSlip(r, memberName, memberRole, uid){
 
     ${(r.slipNote||slipCfg.footerNote)?`<div class="ps-msg">${[r.slipNote,slipCfg.footerNote].filter(Boolean).map(slipEsc).join('<br>')}</div>`:''}
 
-    <div class="ps-sign">
+    ${_sv('sign')?`<div class="ps-sign">
       <div class="ps-sign-box"><div class="ps-sign-line"></div>ผู้จ่ายเงิน</div>
       <div class="ps-sign-box"><div class="ps-sign-line"></div>ผู้รับเงิน</div>
-    </div>
+    </div>`:''}
 
     <div class="ps-foot">
       <span>พิมพ์เมื่อ: ${printAt}</span>
       <span>เอกสารออกโดยระบบ ใหม่เภสัช</span>
     </div>
   </div>
-  <button class="print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
+  <div class="slip-btns">
+    <button class="slip-btn print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF</button>
+    <button class="slip-btn png-btn" id="slip-png-btn" onclick="slipSavePng(this)">🖼️ บันทึกเป็นรูป (PNG)</button>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>
+  <script>
+    // บันทึกสลิปเป็นรูปภาพ PNG (แชร์ทางไลน์ได้ง่าย) — ใช้ html2canvas จับภาพเฉพาะใบสลิป
+    function slipSavePng(btn){
+      var el=document.querySelector('.payslip');
+      if(typeof html2canvas!=='function'){alert('ยังโหลดตัวแปลงรูปไม่เสร็จ กรุณาลองใหม่อีกครั้ง (ต้องต่อเน็ต)');return;}
+      var old=btn.textContent; btn.disabled=true; btn.textContent='⏳ กำลังสร้างรูป...';
+      html2canvas(el,{scale:3,backgroundColor:'#ffffff',useCORS:true}).then(function(canvas){
+        var a=document.createElement('a');
+        a.download=(document.title||'สลิปเงินเดือน').replace(/[\\/:*?"<>|]/g,'_')+'.png';
+        a.href=canvas.toDataURL('image/png'); a.click();
+        btn.disabled=false; btn.textContent=old;
+      }).catch(function(e){ alert('บันทึกรูปไม่สำเร็จ: '+e.message); btn.disabled=false; btn.textContent=old; });
+    }
+  <\/script>
   </body></html>`;
 }
 
@@ -9563,26 +9774,86 @@ async function loadSlipCfgFromCloud(){
     }
   }catch(e){}
 }
+// 🆕 v4.8: ฟิลด์ปรับแต่งสลิป (ใช้ร่วมกันทั้ง modal ตั้งค่า และ หน้าดูตัวอย่างสด)
+// live=true → แก้แล้วอัปเดตตัวอย่างสลิปทันที
+function _slipShow(k){return !(slipCfg.show&&slipCfg.show[k]===false);}
+function slipCfgFieldsHtml(live){
+  const oi=live?'oninput="pvCfgChanged()"':'';
+  const oc=live?'onchange="pvCfgChanged()"':'';
+  const lb=t=>`<label style="font-size:12px;font-weight:600;display:block;margin:8px 0 4px;color:var(--text2)">${t}</label>`;
+  const tgl=(k,ic,txt)=>`<label class="pv-tgl" style="cursor:pointer">${ic} ${txt} <input type="checkbox" id="slip-show-${k}" ${_slipShow(k)?'checked':''} ${oc}></label>`;
+  return `
+    ${lb('ชื่อร้าน / บริษัท (หัวสลิป)')}
+    <input type="text" id="slip-company" value="${(slipCfg.companyName||'').replace(/"/g,'&quot;')}" placeholder="ร้านขายยา ใหม่เภสัช" style="width:100%" ${oi}>
+    ${lb('ข้อความหัวสลิป <span style="color:var(--text3);font-weight:400">(เว้นว่างได้)</span>')}
+    <input type="text" id="slip-header" value="${(slipCfg.headerNote||'').replace(/"/g,'&quot;')}" placeholder="เช่น สำนักงานใหญ่ ถ.สุขุมวิท" style="width:100%" ${oi}>
+    ${lb('ข้อความท้ายสลิป / หมายเหตุ')}
+    <textarea id="slip-footer" rows="2" placeholder="เช่น ขอบคุณสำหรับความทุ่มเท" style="width:100%;resize:vertical" ${oi}>${slipCfg.footerNote||''}</textarea>
+    ${lb('🖼️ โลโก้ร้าน (บนหัวสลิป)')}
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      ${slipCfg.logo?`<img src="${slipCfg.logo}" style="height:34px;border:1px solid var(--border);border-radius:6px;background:#fff;padding:2px">`:`<span style="font-size:11px;color:var(--text3)">ยังไม่มีโลโก้</span>`}
+      <input type="file" id="slip-logo-file" accept="image/*" onchange="slipLogoPick(this,${live?'true':'false'})" style="display:none">
+      <button class="btn btn-sm" onclick="document.getElementById('slip-logo-file').click()">📁 เลือกรูป</button>
+      ${slipCfg.logo?`<button class="btn btn-sm btn-danger" onclick="slipLogoRemove(${live?'true':'false'})">ลบโลโก้</button>`:''}
+    </div>
+    <div style="font-size:12px;font-weight:700;margin:12px 0 2px">🎛️ แสดง / ซ่อน บนสลิป</div>
+    ${tgl('bank','🏦','บัญชีธนาคาร')}
+    ${tgl('calc','🧮','รายละเอียดวิธีคิด (ชม.บังคับ/ขาด/OT)')}
+    ${tgl('leave','🌴','สิทธิ์วันลา')}
+    ${tgl('sign','✍️','ช่องลายเซ็น')}
+    ${tgl('status','🏷️','ป้ายสถานะ (จ่ายแล้ว/รอ)')}
+    ${slipCfg.logo?tgl('logo','🖼️','โลโก้ร้าน'):''}
+  `;
+}
+function collectSlipCfgFromDom(){
+  const g=id=>document.getElementById(id);
+  if(g('slip-company'))slipCfg.companyName=g('slip-company').value.trim()||'ร้านขายยา ใหม่เภสัช';
+  if(g('slip-header'))slipCfg.headerNote=g('slip-header').value.trim();
+  if(g('slip-footer'))slipCfg.footerNote=g('slip-footer').value.trim();
+  slipCfg.show=slipCfg.show||{};
+  ['bank','calc','leave','sign','status','logo'].forEach(k=>{const el=g('slip-show-'+k);if(el)slipCfg.show[k]=el.checked;});
+}
+async function persistSlipCfg(quiet){
+  localStorage.setItem('nm_slipCfg',JSON.stringify(slipCfg));
+  try{await setDoc(doc(db,'config','slipSettings'),slipCfg);if(!quiet)showToast('บันทึกการตั้งค่าสลิปแล้ว ✅');}
+  catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว): '+e.message,'err');}
+}
+// อัปโหลดโลโก้ — ย่อรูปอัตโนมัติ (สูงสุด 240px) เก็บเป็น dataURL ใน config
+window.slipLogoPick=function(inp,live){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  collectSlipCfgFromDom(); // เก็บข้อความที่พิมพ์ค้างไว้ก่อน re-render
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const max=240,sc=Math.min(1,max/Math.max(img.width,img.height));
+      const cv=document.createElement('canvas');
+      cv.width=Math.max(1,Math.round(img.width*sc));cv.height=Math.max(1,Math.round(img.height*sc));
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      const data=cv.toDataURL('image/png');
+      if(data.length>400000){showToast('รูปใหญ่/ซับซ้อนเกินไป ลองรูปที่เล็กหรือเรียบกว่านี้','err');return;}
+      slipCfg.logo=data;
+      if(live){_pvRerenderPanel();_pvRefresh();}else{openSlipSettings();}
+      showToast('ใส่โลโก้แล้ว — กดบันทึก/ยืนยันเพื่อเก็บถาวร');
+    };
+    img.onerror=()=>showToast('อ่านรูปไม่ได้','err');
+    img.src=rd.result;
+  };
+  rd.readAsDataURL(f);
+};
+window.slipLogoRemove=function(live){
+  collectSlipCfgFromDom();slipCfg.logo='';
+  if(live){_pvRerenderPanel();_pvRefresh();}else{openSlipSettings();}
+};
 window.openSlipSettings=function(){
-  openModal(`<div class="modal-title">✏️ ข้อความบนสลิปเงินเดือน</div>
-    <div style="font-size:12.5px;color:var(--text3);margin-bottom:14px">ข้อความเหล่านี้จะแสดงบนสลิปของทุกคน (ตั้งครั้งเดียว ใช้ร่วมกัน)</div>
-    <label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">ชื่อร้าน / บริษัท (หัวสลิป)</label>
-    <input type="text" id="slip-company" value="${(slipCfg.companyName||'').replace(/"/g,'&quot;')}" placeholder="ร้านขายยา ใหม่เภสัช" style="width:100%;margin-bottom:14px">
-    <label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">ข้อความหัวสลิป <span style="color:var(--text3);font-weight:400">(เช่น คำขวัญ/ประกาศ — เว้นว่างได้)</span></label>
-    <input type="text" id="slip-header" value="${(slipCfg.headerNote||'').replace(/"/g,'&quot;')}" placeholder="เช่น สำนักงานใหญ่ ถ.สุขุมวิท" style="width:100%;margin-bottom:14px">
-    <label style="font-size:12.5px;font-weight:600;display:block;margin-bottom:5px">ข้อความท้ายสลิป / หมายเหตุ <span style="color:var(--text3);font-weight:400">(เช่น คำขอบคุณ, เงื่อนไข)</span></label>
-    <textarea id="slip-footer" rows="3" placeholder="เช่น ขอบคุณสำหรับความทุ่มเท · กรุณาตรวจสอบยอดภายใน 7 วัน" style="width:100%;resize:vertical">${slipCfg.footerNote||''}</textarea>
+  openModal(`<div class="modal-title">✏️ ปรับแต่งสลิปเงินเดือน</div>
+    <div style="font-size:12.5px;color:var(--text3);margin-bottom:10px">ใช้กับสลิปของทุกคน (ตั้งครั้งเดียว) · ดูตัวอย่างสด ๆ ได้ตอนกด "ดูตัวอย่างสลิป → บันทึกและจ่าย"</div>
+    ${slipCfgFieldsHtml(false)}
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveSlipSettings()">บันทึก</button></div>`);
 };
 window.saveSlipSettings=async function(){
-  slipCfg={
-    companyName:document.getElementById('slip-company').value.trim()||'ร้านขายยา ใหม่เภสัช',
-    headerNote:document.getElementById('slip-header').value.trim(),
-    footerNote:document.getElementById('slip-footer').value.trim()
-  };
-  localStorage.setItem('nm_slipCfg',JSON.stringify(slipCfg));
-  try{await setDoc(doc(db,'config','slipSettings'),slipCfg);showToast('บันทึกข้อความสลิปแล้ว ✅');}
-  catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว): '+e.message,'err');}
+  collectSlipCfgFromDom();
+  await persistSlipCfg();
   closeMD();
 };
 // escape ข้อความผู้ใช้ก่อนใส่ใน HTML สลิป
@@ -9824,6 +10095,35 @@ window.adminResetTour=async function(){
   if(go&&typeof startTour==='function')startTour();
   else if(typeof showToast==='function')showToast('รีเซ็ตทัวร์แล้ว — จะเด้งให้พนักงานครั้งหน้า');
 };
+// 🆕 v4.8: แถบแจ้งบนหน้าแรก "สลิปเงินเดือนออกแล้ว" (เห็นครั้งเดียวต่อการจ่าย 1 ครั้ง)
+async function checkMySlipBanner(){
+  const el=document.getElementById('home-slip-banner');
+  if(!el||!currentUser)return;
+  if(!hasPerm('payroll_self'))return;
+  const now=new Date();
+  for(let i=0;i<2;i++){ // เช็คเดือนนี้ + เดือนก่อน
+    const dt=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const ms=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+    try{
+      const s=await getDoc(doc(db,'payroll',`${currentUser.uid}_${ms}`));
+      if(s.exists()&&s.data().status==='paid'){
+        const key=`nm_slipSeen_${currentUser.uid}_${ms}_${s.data().updatedAt||''}`;
+        if(localStorage.getItem(key))return;
+        el.innerHTML=`<div id="home-slip-banner-in" style="background:var(--green-ll);border:1px solid var(--green);border-radius:15px;padding:13px 15px;margin-bottom:1.25rem;display:flex;align-items:center;gap:11px;box-shadow:var(--shadow);flex-wrap:wrap">
+          <span style="font-size:22px">💰</span>
+          <div style="flex:1;min-width:150px">
+            <div style="font-size:13.5px;font-weight:700">สลิปเงินเดือน ${MONTHS_TH[dt.getMonth()]} ${dt.getFullYear()+543} ออกแล้ว</div>
+            <div style="font-size:11.5px;color:var(--text3)">ยอดสุทธิ ฿${fmt(s.data().net||0)} · กดดู/ดาวน์โหลดสลิปได้เลย</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="localStorage.setItem('${key}','1');goto('my-payroll')">ดูสลิป</button>
+          <button class="btn btn-sm" onclick="localStorage.setItem('${key}','1');document.getElementById('home-slip-banner-in')?.remove()" title="ปิด">✕</button>
+        </div>`;
+        return;
+      }
+    }catch(e){}
+  }
+}
+
 function renderHome(){
   const el=document.getElementById('home-content');
   if(!el||!currentUser)return;
@@ -9850,6 +10150,7 @@ function renderHome(){
     </div>
   </div>`;
   html+=`<div id="home-guide"></div>`;
+  html+=`<div id="home-slip-banner"></div>`;
   html+=`<div id="home-todo-card"></div>`;
   html+=`<div id="home-insights"></div>`;
   html+=`<div id="home-target"></div>`;
@@ -9987,6 +10288,7 @@ function renderHome(){
   if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderStaffStatus('home-staff-status');}
   if(typeof refreshTodoStatus==='function')refreshTodoStatus();
   if(typeof renderHomeGuide==='function')renderHomeGuide();
+  checkMySlipBanner(); // 🆕 แจ้ง "สลิปเงินเดือนออกแล้ว"
   // init กราฟหน้าแรก (สลับชนิด/ช่วงเวลา/ช่วงวันที่กำหนดเองได้)
   window.drawHomeChart=function(){
     const cv=document.getElementById('home-chart');
