@@ -1624,9 +1624,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.4';
+const APP_VERSION='4.2.5';
 const CHANGELOG=[
-  {v:'4.2.4',date:'2026-07-08',changes:['✏️ เปลี่ยนชื่อปุ่ม "ลงยอดขาย" บนหน้าเงินสด → "แก้ยอดขาย" — เดิมชื่อ "ลงยอดขาย" ทำให้พนักงานสับสน (นึกว่าต้องลงเอง ทั้งที่ตอนปิดร้านลงยอดอยู่แล้ว) · ตอนนี้ปุ่มนี้ไว้ "แก้ยอดตอนกรอกผิด" ชัดเจน (ยอดขายจริงกรอกในขั้นปิดร้าน) · กดแล้วเห็นยอดปัจจุบันก่อน ค่อยแก้ (กติกาแก้ใน 5 นาที/แอดมินแก้ได้เสมอ เหมือนเดิม)']},
+  {v:'4.2.5',date:'2026-07-08',changes:['🔒 ปุ่ม "แก้ยอดขาย" (หน้าเงินสด) แก้ได้เฉพาะ "หลังปิดร้านแล้ว" เท่านั้น — เพราะยอดขายจริงเพิ่งถูกกรอกในขั้นตอนปิดร้าน · ก่อนปิดร้านปุ่มจะจาง+มีแม่กุญแจ 🔒 กดแล้วบอกว่า "แก้ยอดขายได้หลังปิดร้านแล้วเท่านั้น" · พอปิดร้านเสร็จปุ่มจะปลดล็อกให้แก้ได้ (กติกาแก้ใน 5 นาที/แอดมินแก้ได้เสมอ เหมือนเดิม)']},
+  {v:'4.2.4',date:'2026-07-08',changes:['✏️ เปลี่ยนชื่อปุ่ม "ลงยอดขาย" บนหน้าเงินสด → "แก้ยอดขาย" — เดิมชื่อ "ลงยอดขาย" ทำให้พนักงานสับสน (นึกว่าต้องลงเอง ทั้งที่ตอนปิดร้านลงยอดอยู่แล้ว) · ตอนนี้ปุ่มนี้ไว้ "แก้ยอดตอนกรอกผิด" ชัดเจน (ยอดขายจริงกรอกในขั้นปิดร้าน)']},
   {v:'4.2.2',date:'2026-07-08',changes:['📤 เพิ่มปุ่ม "แชร์" ในรายงานรายวัน — กดแล้วเปิดแผงแชร์ของมือถือ ส่งสรุปยอด/ปิดร้าน/แจ้งเตือนเข้า "ไลน์" (หรือแอปอื่น) ได้เลย · บนคอมที่ไม่มีแผงแชร์จะเปิดไลน์พร้อมข้อความ + ก็อปปี้ไว้ให้ · 📐 ย่อรายงานให้เล็กลงอีกให้พอดีจอมือถือจริง (ลดขอบ/ตัวเลข/ระยะห่าง) เห็นครบขึ้น ไม่ล้นจอ']},
   {v:'4.2.1',date:'2026-07-08',changes:['📐 ปรับ "รายงานรายวัน" ให้กระชับพอดีจอมือถือ — เดิมตัวเลข/ปุ่ม/การ์ดใหญ่ไป (วันที่+ปุ่มเลื่อนวันตัดบรรทัด) · ย่อขนาดหัวข้อ ยอดรวม แถบสาขา และระยะห่างลง เห็นครบในจอเดียวไม่ต้องเลื่อนเยอะ']},
   {v:'4.2.0',date:'2026-07-08',changes:['📅 เพิ่ม "รายงานรายวัน" (หน้ารายงาน — เฉพาะแอดมิน/ผู้มีสิทธิ์ดูยอด) — สรุปทั้ง 3 สาขาในหน้าเดียว: 💰 ยอดขายรวมวันนี้ + เทียบ %กับเมื่อวาน + แยกเงินสด/ช่องทางอื่น/จำนวนบิล · 📊 แยกยอดรายสาขาเป็นแถบ · 🌙 สถานะปิดร้านแต่ละสาขา (ตรง/ขาด/เกิน/ยังไม่ปิด) + เวลาปิด + เก็บเข้าเซฟ/เงินในเซฟรวม · 👥 ใครเข้างานวันนี้ (เวลาเข้า-ออก) + ใครลา · ⚠️ กล่อง "ต้องดู" เตือนสาขาที่ยังไม่ปิด/เงินขาด-เกิน · เลื่อนดูย้อนหลังได้ (‹ ก่อนหน้า / ถัดไป › หรือเลือกวันที่) · กด "ออก PDF" พิมพ์/บันทึกเป็นไฟล์ได้ · เป็นรายงาน "อ่านอย่างเดียว" ไม่แตะเงิน/ยอดใดๆ']},
@@ -5872,13 +5873,17 @@ function renderCashPage(){
     </div>`;
   // ปุ่มงานรอง = แถวไอคอนเล็ก (ให้ปุ่มหลักเด่นปุ่มเดียว)
   const _ib=(oc,ic,lb)=>`<button onclick="${oc}" style="flex:1;text-align:center;padding:11px 4px;border-radius:11px;background:var(--bg);border:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--text2);cursor:pointer;font-family:var(--font)"><span style="font-size:17px;display:block;margin-bottom:3px">${ic}</span>${lb}</button>`;
+  // ปุ่มล็อก (จางๆ) — กดแล้วบอกเหตุผล ยังกดใช้งานจริงไม่ได้
+  const _ibLock=(ic,lb,msg)=>`<button onclick="showToast('${msg}','err')" style="flex:1;text-align:center;padding:11px 4px;border-radius:11px;background:var(--bg);border:1px solid var(--border);font-size:11.5px;font-weight:700;color:var(--text3);cursor:pointer;font-family:var(--font);opacity:.5"><span style="font-size:17px;display:block;margin-bottom:3px">${ic}</span>${lb} 🔒</button>`;
+  // "แก้ยอดขาย" แก้ได้เฉพาะหลังปิดร้านแล้วเท่านั้น (ยอดขายเพิ่งถูกกรอกตอนปิดร้าน)
+  const _salesBtn=closeEv?_ib(`cashSalesPrompt(${branch})`,'✏️','แก้ยอดขาย'):_ibLock('✏️','แก้ยอดขาย','แก้ยอดขายได้หลังปิดร้านแล้วเท่านั้น 🌙');
   if(!opened){
     html+=`<button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="cashOpenPrompt(${branch})">🌅 เปิดร้าน — ยืนยันเงินแคชเชียร์</button>
       <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-top:8px">เงินแคชเชียร์คงที่ทุกวัน — เช็คแล้วกดยืนยัน จบใน 3 วินาที</div>
-      <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'✏️','แก้ยอดขาย')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>`;
+      <div style="display:flex;gap:7px;margin-top:12px">${_salesBtn}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>`;
   }else{
     html+=`${closeEv?'':`<button class="btn btn-blue" style="width:100%;padding:14px;font-size:15px" onclick="cashCloseWizard(${branch})">🌙 ปิดร้าน — ระบบคิดยอดตัดเข้าเซฟให้</button>`}
-    <div style="display:flex;gap:7px;margin-top:12px">${_ib(`cashSalesPrompt(${branch})`,'✏️','แก้ยอดขาย')}${_ib(`cashMovePrompt(${branch})`,'💸','ทำรายการเงิน')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
+    <div style="display:flex;gap:7px;margin-top:12px">${_salesBtn}${_ib(`cashMovePrompt(${branch})`,'💸','ทำรายการเงิน')}${_ib(`cashEdcPrompt(${branch})`,'🔍','เช็ค EDC')}</div>
     <div style="font-size:11px;color:var(--text3);margin-top:9px;text-align:center">🔄 แลกเงินทอน (ลิ้นชัก↔สำรอง) แลกได้เลยไม่ต้องบันทึก — ระบบตรวจด้วยการนับสำรองประจำสัปดาห์</div>`;
   }
   // สรุปวันนี้
