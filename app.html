@@ -737,6 +737,7 @@ input,select,textarea{border-radius:14px}
       </button>
       </div>
     </div>
+    <div id="member-sec-card"></div>
     <div class="card">
       <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
         <input type="text" id="mem-search" placeholder="ค้นหาชื่อ หรืออีเมล..." oninput="filterMembersDebounced()" style="flex:1;min-width:200px">
@@ -1528,7 +1529,7 @@ window.installApp=async function(){
 };
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, addDoc, collection, getDocs, query, orderBy, where, limit, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, deleteField, addDoc, collection, getDocs, query, orderBy, where, limit, onSnapshot, increment } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const app = initializeApp({
@@ -1624,8 +1625,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.3.0';
+const APP_VERSION='4.4.0';
 const CHANGELOG=[
+  {v:'4.4.0',date:'2026-07-10',changes:['🔐 อุดช่องโหว่ข้อมูลอ่อนไหว — ย้าย เงินเดือน/บัญชีธนาคาร/บัตรปชช./ที่อยู่/เบอร์ ของพนักงาน ไปเก็บแยกใน "memberSecure" ที่เปิดอ่านเฉพาะแอดมิน+เจ้าตัว (เดิมพนักงานที่รู้เทคนิคอ่านกันเองได้) · หน้า "จัดการสมาชิก" มีการ์ด 🔐 พร้อมปุ่ม 2 ขั้น: ① คัดลอกไปที่ปลอดภัย (ยังไม่ลบของเดิม ทดสอบได้) → ② ปิดช่องโหว่ (ลบออกจาก members) · ระบบเงินเดือน/สลิปทำงานเหมือนเดิมทุกอย่าง (โหลดข้อมูลมารวมให้อัตโนมัติ) · ⚠️ ต้องอัป Firestore rules ด้วย (เพิ่มบล็อก memberSecure) · วิธีทำ: อัปแอป → กด ① → เช็คเงินเดือนถูกต้อง → กด ② → อัป rules']},
   {v:'4.3.0',date:'2026-07-10',changes:['🔐 เพิ่มความปลอดภัย: "แจ้งเตือนเข้าระบบจากอุปกรณ์ใหม่" — เมื่อมีการล็อกอินบัญชีจากเครื่อง/เบราว์เซอร์ที่ไม่เคยใช้ ระบบจะบันทึกลง "ประวัติใช้งาน" (แอดมินเห็น แก้ไม่ได้) พร้อมบอกชนิดเครื่อง (เช่น iPhone·Safari) และเตือนเจ้าตัวว่า "ถ้าไม่ใช่คุณ รีบเปลี่ยนรหัสผ่าน/แจ้งแอดมิน" · เครื่องเดิมไม่เตือนซ้ำ · ⚠️ ต้องอัปเดต Firestore rules ด้วย (ไฟล์ firestore-rules-ใหม่.txt — เพิ่มสิทธิ์ให้พนักงานบันทึกรายชื่ออุปกรณ์ของตัวเองได้ ไม่กระทบข้อมูลอื่น)']},
   {v:'4.2.9',date:'2026-07-08',changes:['🧹 จัดระเบียบโค้ดภายในเล็กน้อย (ลบตัวแปรที่ไม่ได้ใช้ในรายงานรายวัน) — ไม่กระทบการใช้งาน/ตัวเลข/หน้าตาใดๆ']},
   {v:'4.2.8',date:'2026-07-08',changes:['📉 การ์ด "ยอดขายเงินสดวันนี้ (3 สาขา)" ช่วงเย็น — เดิมถ้ายอดยังเป็น ฿0 (ยังไม่มีขาย/ยังไม่ปิดร้าน) จะขึ้น "▼ -100% จากวันปกติ" ดูน่าตกใจเกินจริง · ตอนนี้ถ้ายัง ฿0 จะโชว์บรรทัดอ้างอิงเฉยๆ ("วัน...ปกติทั้งวัน ~฿X") พอเริ่มมียอดขายจริงค่อยโชว์ %เทียบ']},
@@ -3855,12 +3857,97 @@ window.scChangeMonth=function(d){
   scRender();
 };
 
+// ===== ความปลอดภัยข้อมูลอ่อนไหว: เก็บ เงินเดือน/ธนาคาร/บัตรปชช./ที่อยู่/เบอร์ แยกใน memberSecure =====
+// (เปิดอ่านเฉพาะแอดมิน+เจ้าตัว — กันพนักงานอ่านข้อมูลกันเองผ่านช่องทางเทคนิค)
+const SECURE_FIELDS=['salary','bankAccount','bankName','nationalId','address','phone'];
+// โหลดข้อมูลอ่อนไหว merge เข้า allMembers ให้โค้ดเดิม (เงินเดือน/สลิป) อ่าน m.salary ได้เหมือนเดิม
+async function mergeMemberSecure(){
+  if(!currentUser)return;
+  try{
+    if(isAdmin){
+      const s=await getDocs(collection(db,'memberSecure'));
+      const map={};s.docs.forEach(d=>map[d.id]=d.data());
+      allMembers.forEach(m=>{const u=m.uid;if(u&&map[u])Object.assign(m,map[u]);});
+    }else{
+      const d=await getDoc(doc(db,'memberSecure',currentUser.uid));
+      if(d.exists()){
+        const me=allMembers.find(m=>m.uid===currentUser.uid);if(me)Object.assign(me,d.data());
+        if(profile)Object.assign(profile,d.data());
+      }
+    }
+  }catch(e){/* โหลด secure ไม่ได้ ก็ยังอ่านค่าเดิมจาก members (ช่วงก่อนย้าย/ก่อนอัป rules) */}
+}
+// 🔐 ขั้น A — คัดลอกข้อมูลอ่อนไหวไป memberSecure (ยังไม่ลบของเดิม → ปลอดภัย ทดสอบก่อนได้)
+window.secureMigrateCopy=async function(){
+  if(!isAdmin){showToast('เฉพาะแอดมิน','err');return;}
+  if(!await capsuleConfirm('คัดลอกข้อมูลอ่อนไหว (เงินเดือน/ธนาคาร/บัตรปชช./ที่อยู่/เบอร์) ของทุกคนไปเก็บใน memberSecure? ยังไม่ลบของเดิม — ทดสอบก่อนได้'))return;
+  loading(true);
+  try{
+    const snap=await getDocs(collection(db,'members'));
+    let n=0;
+    for(const d of snap.docs){
+      const m=d.data();
+      const existing=(await getDoc(doc(db,'memberSecure',d.id))).data()||{};
+      const sec={};let has=false;
+      SECURE_FIELDS.forEach(f=>{if(existing[f]===undefined&&m[f]!==undefined){sec[f]=m[f];has=true;}}); // ไม่ทับของใหม่ที่อาจมีอยู่แล้ว
+      if(has){await setDoc(doc(db,'memberSecure',d.id),sec,{merge:true});n++;}
+    }
+    await mergeMemberSecure();
+    showToast(`คัดลอกแล้ว ${n} คน ✓ — ทดสอบเงินเดือน/สลิปให้ครบก่อนกด "ปิดช่องโหว่"`);
+    logActivity('secure_copy',`คัดลอกข้อมูลอ่อนไหวไป memberSecure ${n} คน`);
+    if(typeof renderSecurityCard==='function')renderSecurityCard();
+  }catch(e){showToast('ผิดพลาด: '+(e?.message||e),'err');}
+  loading(false);
+};
+// 🔐 ขั้น B — ปิดช่องโหว่: ลบฟิลด์อ่อนไหวออกจาก members (เหลือเฉพาะใน memberSecure)
+window.secureMigrateCloseHole=async function(){
+  if(!isAdmin){showToast('เฉพาะแอดมิน','err');return;}
+  if(!await capsuleConfirm('⚠️ ปิดช่องโหว่: ลบข้อมูลอ่อนไหวออกจาก members (เหลือเฉพาะใน memberSecure)? ทำหลังทดสอบว่าเงินเดือน/สลิปยังถูกต้องแล้วเท่านั้น'))return;
+  loading(true);
+  try{
+    const snap=await getDocs(collection(db,'memberSecure'));
+    if(!snap.size){showToast('ยังไม่มีข้อมูลใน memberSecure — กดขั้น "คัดลอก" ก่อน','err');loading(false);return;}
+    const del={};SECURE_FIELDS.forEach(f=>{del[f]=deleteField();});
+    let n=0;
+    for(const d of snap.docs){await updateDoc(doc(db,'members',d.id),del);n++;}
+    showToast(`ปิดช่องโหว่แล้ว ${n} คน 🔐 — อย่าลืมอัป Firestore rules (เพิ่มบล็อก memberSecure)`);
+    logActivity('secure_close',`ปิดช่องโหว่: ลบข้อมูลอ่อนไหวออกจาก members ${n} คน`);
+    if(typeof renderSecurityCard==='function')renderSecurityCard();
+  }catch(e){showToast('ผิดพลาด: '+(e?.message||e),'err');}
+  loading(false);
+};
+
+// การ์ด "ความปลอดภัยข้อมูล" ในหน้าจัดการสมาชิก (แอดมิน) — ปุ่มย้ายข้อมูล + สถานะ
+async function renderSecurityCard(){
+  const el=document.getElementById('member-sec-card');if(!el)return;
+  if(!isAdmin){el.innerHTML='';return;}
+  el.innerHTML=`<div class="card" style="border-left:3px solid var(--amber);margin-bottom:1rem">
+    <div style="font-weight:800;font-size:14px;color:var(--text);margin-bottom:4px">🔐 ความปลอดภัยข้อมูลอ่อนไหว</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:9px">ย้าย เงินเดือน/ธนาคาร/บัตรปชช./ที่อยู่/เบอร์ ไปเก็บแยก (เห็นเฉพาะแอดมิน+เจ้าตัว) — กันพนักงานอ่านข้อมูลกันเอง</div>
+    <div id="sec-status" style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--text3)">กำลังตรวจสถานะ…</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="secureMigrateCopy()">① คัดลอกไปที่ปลอดภัย</button>
+      <button class="btn" onclick="secureMigrateCloseHole()">② ปิดช่องโหว่</button>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:8px;line-height:1.5">ลำดับ: กด ① → ทดสอบเงินเดือน/สลิปให้ครบ → กด ② → อัป Firestore rules (เพิ่มบล็อก memberSecure)</div>
+  </div>`;
+  try{
+    const [sec,mem]=await Promise.all([getDocs(collection(db,'memberSecure')),getDocs(collection(db,'members'))]);
+    const stillInMembers=mem.docs.some(d=>SECURE_FIELDS.some(f=>d.data()[f]!==undefined));
+    const st=document.getElementById('sec-status');if(!st)return;
+    if(!sec.size){st.innerHTML='⬜ ยังไม่เริ่ม — ข้อมูลอ่อนไหวยังอยู่ใน members (ช่องโหว่เปิดอยู่)';st.style.color='var(--amber-t)';}
+    else if(stillInMembers){st.innerHTML=`🟡 คัดลอกแล้ว ${sec.size} คน · ยังไม่ปิดช่องโหว่ — ทดสอบเงินเดือนแล้วกด ②`;st.style.color='var(--amber-t)';}
+    else{st.innerHTML=`🟢 ปิดช่องโหว่แล้ว (${sec.size} คน) — ข้อมูลอ่อนไหวอยู่ใน memberSecure เท่านั้น · อย่าลืมอัป rules`;st.style.color='var(--green-d)';}
+  }catch(e){const st=document.getElementById('sec-status');if(st){st.textContent='(ตรวจสถานะไม่ได้)';}}
+}
+
 async function loadMemberBdays(){
   if(memberBdays.length>0)return;
   if(allMembers.length>0){memberBdays=allMembers.filter(m=>m.dateOfBirth&&m.status==='active');return;}
   try{
     const snap=await getDocs(collection(db,'members'));
     allMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));
+    await mergeMemberSecure();
     memberBdays=allMembers.filter(m=>m.dateOfBirth&&m.status==='active');
   }catch(e){console.error('loadMemberBdays error:',e);}
 }
@@ -7543,7 +7630,9 @@ window.loadMembers=async function(){
   try{
     const snap=await getDocs(collection(db,'members'));
     allMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));
+    await mergeMemberSecure();
     filterMembers();
+    renderSecurityCard();
   }catch(e){
     console.error('loadMembers error:',e);
     tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red-t)">โหลดไม่ได้: ${e.code||e.message}<br><small style="color:var(--text3)">${e.code==='permission-denied'?'กรุณาตรวจสอบ Firestore Rules':''}</small></td></tr>`;
@@ -7889,7 +7978,9 @@ window.saveMemberSettings=async function(uid){
   const address=document.getElementById('m-address')?.value.trim()||'';
   const reportsTo=document.getElementById('m-reportsto')?.value||'';
   try{
-    await updateDoc(doc(db,'members',uid),{firstName,lastName,role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address,reportsTo});
+    // แยกเขียน: ข้อมูลทั่วไป→members (ทุกคนอ่านได้) · ข้อมูลอ่อนไหว→memberSecure (แอดมิน+เจ้าตัวเท่านั้น)
+    await updateDoc(doc(db,'members',uid),{firstName,lastName,role,nickname,permissions:perms,empId,position,reportsTo});
+    await setDoc(doc(db,'memberSecure',uid),{salary,phone,bankAccount,bankName,nationalId,address},{merge:true});
     const m=allMembers.find(x=>x.uid===uid);
     if(m){Object.assign(m,{firstName,lastName,role,nickname,permissions:perms,salary,empId,position,phone,bankAccount,bankName,nationalId,address,reportsTo});}
     if(uid===currentUser?.uid){
@@ -8647,7 +8738,7 @@ let adminHistRecords=[];
 async function populateHistMemberSelect(){
   const sel=document.getElementById('pr-hist-member');if(!sel)return;
   if(allMembers.length===0){
-    try{const snap=await getDocs(collection(db,'members'));allMembers=snap.docs.map(d=>d.data());}catch(e){}
+    try{const snap=await getDocs(collection(db,'members'));allMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));await mergeMemberSecure();}catch(e){}
   }
   const current=sel.value;
   sel.innerHTML='<option value="all">ทุกคน</option>'+allMembers.filter(m=>m.status==='active').map(m=>`<option value="${m.uid}">${m.firstName||''} ${m.lastName||''}</option>`).join('');
@@ -11182,7 +11273,7 @@ window.renderAnnouncements=async function(){
   if(card)card.style.display=canAnnounce?'':'none';
   if(!canAnnounce)return;
   // โหลดสมาชิกไว้สำหรับเลือกผู้รับ (ถ้ายังไม่มี)
-  if(!allMembers.length){try{const ms=await getDocs(collection(db,'members'));allMembers=ms.docs.map(d=>({...d.data(),uid:d.id}));}catch(e){}}
+  if(!allMembers.length){try{const ms=await getDocs(collection(db,'members'));allMembers=ms.docs.map(d=>({...d.data(),uid:d.id}));await mergeMemberSecure();}catch(e){}}
   // เติมวันที่เริ่มต้นเป็นวันนี้ (ถ้ายังว่าง) + สร้าง dropdown เวลา
   const fd=document.getElementById('ann-from-date'),td=document.getElementById('ann-to-date');
   if(fd&&!fd.value)fd.value=todayStr();
@@ -13549,6 +13640,8 @@ let allActivityLogs=[];
 const ACTION_LABELS={
   login:['เข้าสู่ระบบ','#3B8EEA','🔑'],
   login_newdevice:['เข้าระบบ • อุปกรณ์ใหม่','#C2410C','🔐'],
+  secure_copy:['คัดลอกข้อมูลอ่อนไหว','#7A4E06','🔐'],
+  secure_close:['ปิดช่องโหว่ข้อมูล','#217A54','🔐'],
   checkin:['เช็คอิน','#16B981','🟢'],
   checkout:['เช็คเอาท์','#1E63B5','🔵'],
   sales_save:['บันทึกยอดขาย','#0F8A63','💰'],
