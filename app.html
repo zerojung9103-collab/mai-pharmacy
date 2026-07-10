@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.7';
+const APP_VERSION='4.2.8';
 const CHANGELOG=[
+  {v:'4.2.8',date:'2026-07-08',changes:['📉 การ์ด "ยอดขายเงินสดวันนี้ (3 สาขา)" ช่วงเย็น — เดิมถ้ายอดยังเป็น ฿0 (ยังไม่มีขาย/ยังไม่ปิดร้าน) จะขึ้น "▼ -100% จากวันปกติ" ดูน่าตกใจเกินจริง · ตอนนี้ถ้ายัง ฿0 จะโชว์บรรทัดอ้างอิงเฉยๆ ("วัน...ปกติทั้งวัน ~฿X") พอเริ่มมียอดขายจริงค่อยโชว์ %เทียบ']},
   {v:'4.2.7',date:'2026-07-08',changes:['🕑 หน้าเงินสด: ข้อความ "วันนี้ ... เปิดร้านสาขานี้ไปแล้ว" เอาเวลาออก (เดิมโชว์ "(12:44 น.)") — บอกแค่ว่ามีคนเปิด/ปิดร้านแล้วก็พอ · ใช้กับข้อความปิดร้านด้วย']},
   {v:'4.2.6',date:'2026-07-08',changes:['🐞 แก้บั๊กโหมดทดสอบ (🧪 tester): กรอกยอด "รับชำระอื่นๆ" (บัตร/โอน) แล้วหาย — เวลากลับมาแก้ขึ้น ฿0 · เดิมโหมดจำลองเก็บแต่ยอดเงินสด ไม่เก็บช่องทางอื่น+จำนวนบิล · ตอนนี้เก็บครบ (เงินสด/อื่นๆ/บิล) ทั้งตอนลงยอดในขั้นปิดร้านและตอนแก้ยอด · (โหมดจริงไม่มีปัญหานี้อยู่แล้ว)']},
   {v:'4.2.5',date:'2026-07-08',changes:['🔒 ปุ่ม "แก้ยอดขาย" (หน้าเงินสด) แก้ได้เฉพาะ "หลังปิดร้านแล้ว" เท่านั้น — เพราะยอดขายจริงเพิ่งถูกกรอกในขั้นตอนปิดร้าน · ก่อนปิดร้านปุ่มจะจาง+มีแม่กุญแจ 🔒 กดแล้วบอกว่า "แก้ยอดขายได้หลังปิดร้านแล้วเท่านั้น" · พอปิดร้านเสร็จปุ่มจะปลดล็อกให้แก้ได้ (กติกาแก้ใน 5 นาที/แอดมินแก้ได้เสมอ เหมือนเดิม)']},
@@ -5647,7 +5648,8 @@ function cashAdminSummary(){
     const wdName=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'][now.getDay()];
     let subLine='';
     if(avg){
-      if(slot==='evening'){const pctB=Math.round((salesCash-avg)/avg*100);subLine=`<div style="display:inline-block;font-size:11px;font-weight:800;border-radius:12px;padding:2px 10px;margin-top:4px;background:${pctB>=0?'var(--green-l)':'var(--red-l)'};color:${pctB>=0?'var(--green-d)':'var(--red-t)'}">${pctB>=0?'▲ +':'▼ '}${pctB}% จากวัน${wdName}ปกติ</div>`;}
+      // โชว์ %เทียบเฉพาะช่วงเย็น "และมียอดขายแล้ว" — ถ้ายัง ฿0 (ยังไม่มีขาย/ยังไม่ปิดร้าน) อย่าขึ้น -100% ให้ตกใจ ใช้บรรทัดอ้างอิงปกติแทน
+      if(slot==='evening'&&salesCash>0){const pctB=Math.round((salesCash-avg)/avg*100);subLine=`<div style="display:inline-block;font-size:11px;font-weight:800;border-radius:12px;padding:2px 10px;margin-top:4px;background:${pctB>=0?'var(--green-l)':'var(--red-l)'};color:${pctB>=0?'var(--green-d)':'var(--red-t)'}">${pctB>=0?'▲ +':'▼ '}${pctB}% จากวัน${wdName}ปกติ</div>`;}
       else subLine=`<div style="font-size:10.5px;color:var(--text3);margin-top:3px">วัน${wdName}ปกติทั้งวัน ~฿${fmt(avg)}</div>`;
     }
     headline=`<div style="text-align:center;margin:10px 0 4px"><div style="font-size:11px;color:var(--text2)">ยอดขายเงินสดวันนี้ (${BRANCHES.length} สาขา)</div><div style="font-family:var(--disp);font-size:34px;font-weight:800;letter-spacing:-1px">฿${fmt(salesCash)}</div>${subLine}</div>`;
