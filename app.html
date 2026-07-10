@@ -1624,8 +1624,9 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.2.6';
+const APP_VERSION='4.2.7';
 const CHANGELOG=[
+  {v:'4.2.7',date:'2026-07-08',changes:['🕑 หน้าเงินสด: ข้อความ "วันนี้ ... เปิดร้านสาขานี้ไปแล้ว" เอาเวลาออก (เดิมโชว์ "(12:44 น.)") — บอกแค่ว่ามีคนเปิด/ปิดร้านแล้วก็พอ · ใช้กับข้อความปิดร้านด้วย']},
   {v:'4.2.6',date:'2026-07-08',changes:['🐞 แก้บั๊กโหมดทดสอบ (🧪 tester): กรอกยอด "รับชำระอื่นๆ" (บัตร/โอน) แล้วหาย — เวลากลับมาแก้ขึ้น ฿0 · เดิมโหมดจำลองเก็บแต่ยอดเงินสด ไม่เก็บช่องทางอื่น+จำนวนบิล · ตอนนี้เก็บครบ (เงินสด/อื่นๆ/บิล) ทั้งตอนลงยอดในขั้นปิดร้านและตอนแก้ยอด · (โหมดจริงไม่มีปัญหานี้อยู่แล้ว)']},
   {v:'4.2.5',date:'2026-07-08',changes:['🔒 ปุ่ม "แก้ยอดขาย" (หน้าเงินสด) แก้ได้เฉพาะ "หลังปิดร้านแล้ว" เท่านั้น — เพราะยอดขายจริงเพิ่งถูกกรอกในขั้นตอนปิดร้าน · ก่อนปิดร้านปุ่มจะจาง+มีแม่กุญแจ 🔒 กดแล้วบอกว่า "แก้ยอดขายได้หลังปิดร้านแล้วเท่านั้น" · พอปิดร้านเสร็จปุ่มจะปลดล็อกให้แก้ได้ (กติกาแก้ใน 5 นาที/แอดมินแก้ได้เสมอ เหมือนเดิม)']},
   {v:'4.2.4',date:'2026-07-08',changes:['✏️ เปลี่ยนชื่อปุ่ม "ลงยอดขาย" บนหน้าเงินสด → "แก้ยอดขาย" — เดิมชื่อ "ลงยอดขาย" ทำให้พนักงานสับสน (นึกว่าต้องลงเอง ทั้งที่ตอนปิดร้านลงยอดอยู่แล้ว) · ตอนนี้ปุ่มนี้ไว้ "แก้ยอดตอนกรอกผิด" ชัดเจน (ยอดขายจริงกรอกในขั้นปิดร้าน)']},
@@ -5836,9 +5837,8 @@ function renderCashPage(){
   // แจ้งว่าวันนี้สาขานี้มีคนบันทึกไปแล้ว (ใคร/เวลาไหน) — กันบันทึกซ้ำ
   const _openEv=cashEvents.find(ev=>ev.branch===branch&&ev.date===todayStr()&&ev.type==='open');
   if(opened&&_openEv){
-    const _ot=new Date(_openEv.ts||Date.now()).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-    let _txt=`วันนี้ <b>${_openEv.by||st.openBy||'—'}</b> เปิดร้านสาขานี้ไปแล้ว (${_ot} น.)`;
-    if(closeEv){const _ct=new Date(closeEv.ts||Date.now()).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});_txt+=` · <b>${closeEv.by||'—'}</b> ปิดร้านแล้ว (${_ct} น.)`;}
+    let _txt=`วันนี้ <b>${_openEv.by||st.openBy||'—'}</b> เปิดร้านสาขานี้ไปแล้ว`;
+    if(closeEv){_txt+=` · <b>${closeEv.by||'—'}</b> ปิดร้านแล้ว`;}
     html+=`<div style="display:flex;align-items:center;gap:10px;background:var(--blue-l);border:1px solid var(--blue);color:var(--blue-t);border-radius:13px;padding:11px 14px;margin-bottom:1.1rem;font-size:12.5px;line-height:1.5">
       <span style="font-size:18px;flex-shrink:0">ℹ️</span><span>${_txt}</span>
     </div>`;
