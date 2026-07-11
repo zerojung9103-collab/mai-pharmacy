@@ -496,6 +496,12 @@ textarea{resize:vertical;min-height:64px}
 .cab-pool .v{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
 .cab-ev{display:flex;gap:7px;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px dashed var(--border)}
 .cab-ev:last-child{border-bottom:none}
+/* 🆕 v4.11: แถบแท็บรายงานรวม (ทุกหน้ารายงานใช้ตัวเดียวกัน — สลับเหมือนหน้าเดียว) */
+.rp-bar{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;padding:6px;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);margin-bottom:1.1rem;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.rp-bar::-webkit-scrollbar{display:none}
+.rp-tab{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border-radius:11px;border:none;background:transparent;font-family:var(--font);font-size:12.5px;font-weight:600;color:var(--text2);cursor:pointer;white-space:nowrap;transition:.15s;flex-shrink:0}
+.rp-tab:hover{background:var(--bg)}
+.rp-tab.on{background:linear-gradient(140deg,#5FD3A0,#3FA877);color:#fff;font-weight:800;box-shadow:0 4px 12px rgba(63,168,119,.35)}
 /* ===== Elegant theme (Serif headings) ===== */
 .page-title{font-family:var(--disp);font-weight:600;letter-spacing:0}
 .sb-brand h1,.tbd-brand-name{font-family:var(--disp);font-weight:600}
@@ -640,9 +646,10 @@ input,select,textarea{border-radius:14px}
   <!-- DASHBOARD -->
   <div class="page" id="page-dashboard">
     <div class="topbar">
-      <div><div class="page-title">ยอดขาย &amp; รายงาน</div><div class="page-sub">ภาพรวม · สรุปเดือน · ส่งออกเก็บเป็น Excel</div></div>
+      <div><div class="page-title">📊 รายงาน</div><div class="page-sub">ทุกรายงานในที่เดียว — สลับด้วยแท็บด้านล่าง</div></div>
       <button class="btn btn-sm" onclick="openWeeklySummary(1)" style="flex-shrink:0">🗓 สรุปสัปดาห์</button>
     </div>
+    <div id="rp-bar-dashboard"></div>
     <div class="tabs" id="dash-outer-tabs" style="margin-bottom:1.1rem">
       <button class="tab active" onclick="dashSetTab('overview',this)">📈 ภาพรวม</button>
       <button class="tab" onclick="dashSetTab('summary',this)">📋 สรุปเดือน</button>
@@ -1084,6 +1091,7 @@ input,select,textarea{border-radius:14px}
         <label style="font-size:13px;color:var(--text2);display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="cih-late" onchange="cihApplyFilter()">เฉพาะมาสาย</label>
       </div>
     </div>
+    <div id="rp-bar-checkinhistory"></div>
     <div class="metric-grid" id="cih-metrics"></div>
     <div class="card">
       <div style="overflow-x:auto">
@@ -1137,6 +1145,7 @@ input,select,textarea{border-radius:14px}
     <div class="topbar"><div><div class="page-title">บันทึกการใช้งาน</div><div class="page-sub">ดูว่าใครเข้ามาทำอะไรในระบบบ้าง</div></div>
       <button class="btn" onclick="loadActivityLog()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>รีเฟรช</button>
     </div>
+    <div id="rp-bar-activity"></div>
     <div class="card" style="margin-bottom:1rem">
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <label style="font-size:13px;color:var(--text2);font-weight:600">กรอง:</label>
@@ -1514,6 +1523,7 @@ input,select,textarea{border-radius:14px}
     <div class="topbar">
       <div><div class="page-title">ประวัติการขาย</div><div class="page-sub">ยอดขายย้อนหลัง — แก้ไขได้ (admin เท่านั้น)</div></div>
     </div>
+    <div id="rp-bar-saleshistory"></div>
     <!-- Filter bar -->
     <div class="card" style="margin-bottom:1rem;padding:1rem 1.25rem">
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
@@ -1710,8 +1720,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.10.0';
+const APP_VERSION='4.11.0';
 const CHANGELOG=[
+  {v:'4.11.0',date:'2026-07-11',changes:[
+    '📊 รายงานรวมเป็นหน้าเดียว (แบบแท็บ) — กดเมนู "รายงาน" เข้าหน้ายอดขายทันที มีแถบแท็บสวยๆ ด้านบน: 📈 ยอดขาย · 🗓️ รายเดือน · 📅 รายวัน · 🧾 ประวัติขาย · 📍 ลงเวลา · 📜 กิจกรรม · 📥 ส่งออก — กดสลับได้ทันทีไม่ต้องย้อนไปมา (แถบเดียวกันโผล่ทุกหน้ารายงาน · มือถือเลื่อนแถบซ้ายขวาได้)',
+    'หน้ารวมการ์ดรายงานแบบเดิมถูกแทนด้วยแถบแท็บนี้ — เนื้อหารายงานทุกตัวเหมือนเดิมทุกประการ']},
   {v:'4.10.0',date:'2026-07-11',changes:[
     '🖥️ หน้าเงินสดบนจอคอม (แอดมิน): ยังไม่เลือกสาขา = เห็นการ์ด 3 สาขาเรียงข้างกัน — สถานะเปิด/ปิด+ผลต่าง · ยอด 3 กอง · ควรมีตอนปิด · รายการล่าสุดวันนี้ 3 รายการ · ปุ่ม "เปิดดูสาขานี้" (มือถือเรียงลงมา)',
     '👥 หน้าจัดการสมาชิกโฉมใหม่: จากตารางเป็นการ์ด — เห็น รูป/บทบาท/สาขา/แบบเงินเดือน ครบในใบเดียว ค้นหาด้วยชื่อเล่นได้ · คนถูกระงับจางลงชัดเจน',
@@ -2070,46 +2083,37 @@ function renderCatPage(catId){
 }
 
 // ===== หน้ารวม "รายงาน" — แตกย่อยเป็นการ์ด =====
-function _rhCard(icon,bg,name,desc,stat,statColor,onclick){
-  return `<button onclick="${onclick}" style="display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px;width:100%;cursor:pointer;font-family:var(--font);text-align:left;box-shadow:var(--shadow);margin-bottom:11px">
-    <span style="width:48px;height:48px;border-radius:14px;background:${bg};display:flex;align-items:center;justify-content:center;font-size:23px;flex-shrink:0">${icon}</span>
-    <span style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;color:var(--text)">${name}</div><div style="font-size:11px;color:var(--text3);margin-top:2px;line-height:1.5">${desc}</div>${stat?`<div style="font-size:12px;font-weight:700;color:${statColor||'var(--green-d)'};margin-top:3px">${stat}</div>`:''}</span>
-    <span style="color:var(--text3);font-size:18px;flex-shrink:0">›</span>
-  </button>`;
-}
-function renderReportHub(){
-  const el=document.getElementById('report-hub-grid');if(!el)return;
-  const canSales=isAdmin||hasPerm('dashboard_admin');
-  const _mo=todayStr().slice(0,7);
-  const todayT=(salesEntries||[]).filter(e=>e.date===todayStr()).reduce((a,e)=>a+(parseFloat(e.total)||0),0);
-  const moT=(salesEntries||[]).filter(e=>(e.date||'').startsWith(_mo)).reduce((a,e)=>a+(parseFloat(e.total)||0),0);
-  let h='<div style="max-width:680px;margin:0 auto">';
-  if(canSales){
-    h+=_rhCard('📅','var(--green-l)','รายงานรายวัน','สรุปทั้ง 3 สาขาในหน้าเดียว — ยอดขาย · ปิดร้าน · เข้างาน · ออก PDF',todayT?`วันนี้ ฿${fmt(todayT)}`:'','var(--green-d)',"dailyReportPrompt()");
-    h+=_rhCard('📈','#E3F5EF','ยอดขาย & กราฟ','กราฟรายวัน/สัปดาห์ · เทียบสาขา · ช่องทางชำระ',todayT?`วันนี้ ฿${fmt(todayT)}`:'','var(--green-d)',"reportGo('sales')");
-    h+=_rhCard('🗓️','#E7F0FB','รายงานรายเดือน','สรุปทั้งเดือนทุกสาขา + ส่งออก Excel/CSV',moT?`${MONTHS_TH[new Date().getMonth()]} ฿${fmt(moT)}`:'','var(--blue-t)',"reportGo('monthly')");
-  }
-  if(isAdmin) h+=_rhCard('🧾','#F8EFDD','ประวัติการขาย','ดู/แก้ยอดขายย้อนหลัง รายวันแต่ละสาขา','','',"goto('sales-history')");
-  if(isAdmin||hasPerm('checkin_all')) h+=_rhCard('📍','#FBE9EE','ประวัติลงเวลา','ใครเข้า-ออกงานเมื่อไหร่ + สถิติมาสาย','','',"goto('checkin-history')");
-  if(isAdmin||hasPerm('activity_admin')) h+=_rhCard('📋','#EEEAFB','ประวัติใช้งาน','ใครทำอะไรในระบบบ้าง (บันทึกทุกการกระทำ)','','',"goto('activity')");
-  h+='</div>';
-  el.innerHTML=h;
-}
 // เข้าหน้าย่อยของรายงานยอดขาย — ซ่อนแท็บด้านบนให้เหลือมุมมองเดียว (ไม่มีแท็บซ้อนแท็บ)
+// 🆕 v4.11: รายงานรวมหน้าเดียว — แถบแท็บตัวเดียวกันโผล่ทุกหน้ารายงาน กดสลับได้ทันที
+const RP_TABS=[
+  {k:'sales',ic:'📈',lb:'ยอดขาย',need:()=>isAdmin||hasPerm('dashboard_admin'),go:"reportGo('sales')"},
+  {k:'monthly',ic:'🗓️',lb:'รายเดือน',need:()=>isAdmin||hasPerm('dashboard_admin'),go:"reportGo('monthly')"},
+  {k:'daily',ic:'📅',lb:'รายวัน',need:()=>isAdmin||hasPerm('dashboard_admin'),go:"dailyReportPrompt()"},
+  {k:'sales-history',ic:'🧾',lb:'ประวัติขาย',need:()=>isAdmin,go:"goto('sales-history')"},
+  {k:'checkin-history',ic:'📍',lb:'ลงเวลา',need:()=>isAdmin||hasPerm('checkin_all'),go:"goto('checkin-history')"},
+  {k:'activity',ic:'📜',lb:'กิจกรรม',need:()=>isAdmin||hasPerm('activity_admin'),go:"goto('activity')"},
+  {k:'export',ic:'📥',lb:'ส่งออก',need:()=>isAdmin||hasPerm('dashboard_admin'),go:"reportGo('export')"},
+];
+function renderReportBar(){
+  const act=window._rpActive||'sales';
+  const html=`<div class="rp-bar">${RP_TABS.filter(t=>t.need()).map(t=>
+    `<button class="rp-tab${t.k===act?' on':''}" onclick="${t.go}">${t.ic} <span>${t.lb}</span></button>`).join('')}</div>`;
+  ['rp-bar-dashboard','rp-bar-saleshistory','rp-bar-checkinhistory','rp-bar-activity'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML=html;
+  });
+  // แถบในของ dashboard เดิม (ภาพรวม/สรุปเดือน/ส่งออก) ถูกแทนด้วยแถบรวมนี้แล้ว
+  const dt=document.getElementById('dash-outer-tabs');if(dt)dt.style.display='none';
+}
 window.reportGo=function(which){
+  window._rpActive=which;
   goto('dashboard');
   setTimeout(()=>{
     const bar=document.getElementById('dash-outer-tabs');
     const tabs=bar?[...bar.querySelectorAll('.tab')]:[];
-    if(which==='sales'){
-      if(bar)bar.style.display='none';
-      if(tabs[0])dashSetTab('overview',tabs[0]);
-    }else{ // monthly: โชว์เฉพาะแท็บ สรุปเดือน + ส่งออก (ซ่อน ภาพรวม)
-      if(bar)bar.style.display='flex';
-      if(tabs[0])tabs[0].style.display='none';
-      if(tabs[1]){tabs[1].style.display='';dashSetTab('summary',tabs[1]);}
-      if(tabs[2])tabs[2].style.display='';
-    }
+    if(which==='monthly'){if(tabs[1])dashSetTab('summary',tabs[1]);}
+    else if(which==='export'){if(tabs[2])dashSetTab('export',tabs[2]);}
+    else{if(tabs[0])dashSetTab('overview',tabs[0]);}
+    renderReportBar();
   },70);
 };
 
@@ -3317,16 +3321,18 @@ window.goto=function(page){
   // ปุ่มย้อนกลับหน้าแรก (แสดงทุกหน้ายกเว้นหน้าแรกและหน้าหมวดหมู่ระดับบนสุด)
   const backBtn=document.getElementById('home-back-btn');
   const topLevel=page==='home'||page.startsWith('cat-');
-  const _rptSub=['dashboard','sales-history','checkin-history','activity'].includes(page);
   if(backBtn){
     backBtn.style.display=topLevel?'none':'inline-flex';
-    backBtn.setAttribute('onclick',_rptSub?"goto('report')":"goto('home')");
-    const _lb=document.getElementById('hb-label');if(_lb)_lb.textContent=_rptSub?'รายงาน':'หน้าแรก';
+    backBtn.setAttribute('onclick',"goto('home')");
+    const _lb=document.getElementById('hb-label');if(_lb)_lb.textContent='หน้าแรก';
   }
   if(page==='home'){renderHome();if(isAdmin||hasPerm('dashboard_admin'))loadSalesFromCloud();}
   if(page.startsWith('cat-'))renderCatPage(page.slice(4));
-  if(page==='report'){renderReportHub();loadSalesFromCloud().then(()=>{if(currentPage==='report')renderReportHub();}).catch(()=>{});}
-  if(page==='dashboard')dashInit();
+  // 🆕 v4.11: เมนู "รายงาน" = เข้าหน้ารวมแท็บทันที (แท็บแรก: ยอดขาย)
+  if(page==='report'){setTimeout(()=>reportGo('sales'),0);return;}
+  if(page==='dashboard'){if(!['sales','monthly','export'].includes(window._rpActive))window._rpActive='sales';dashInit();renderReportBar();}
+  if(page==='sales-history'){window._rpActive='sales-history';renderReportBar();}
+  if(page==='activity'){window._rpActive='activity';renderReportBar();}
   if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   if(page==='cash'){startCashLive();loadCashPage();loadSalesFromCloud().then(()=>{if(document.getElementById('page-cash')?.classList.contains('active')&&typeof renderCashPage==='function')renderCashPage();});}
@@ -3336,7 +3342,7 @@ window.goto=function(page){
   if(page==='my-payroll')loadMyPayroll();
   if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAppearanceSettings();renderAlertSettings();setTimeout(buildSettingsNav,80);loadTodoTemplates().then(renderTodoTemplateSettings);}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
-  if(page==='checkin-history')loadCheckinHistory();
+  if(page==='checkin-history'){window._rpActive='checkin-history';renderReportBar();loadCheckinHistory();}
   if(page==='leave')loadMyLeaves();
   if(page==='leave-admin')loadLeaveAdmin();
   if(page==='activity')loadActivityLog();
