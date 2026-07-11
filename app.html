@@ -700,6 +700,7 @@ input,select,textarea{border-radius:14px}
           <option value="all">ทุกคน</option>
         </select>
         <button class="btn btn-sm" id="sc-view-btn" onclick="scToggleView()">📋 รายวัน</button>
+        <button class="btn btn-sm" id="sc-meeting-btn" style="display:none" onclick="meetingDaysPrompt()">📣 วันประชุม</button>
         <button class="btn btn-sm" id="sc-bday-btn" onclick="toggleBdayPanel()">🎂 วันเกิด</button>
         <button class="btn btn-sm" id="sc-temp-btn" style="display:none" onclick="manageTempStaff()">👤 พนักงานชั่วคราว</button>
         <button class="btn btn-sm" id="sc-bulk-btn" style="display:none" onclick="scBulkAssign()">📋 จัดเวรหลายวัน</button>
@@ -1729,8 +1730,15 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.12.1';
+const APP_VERSION='4.13.1';
 const CHANGELOG=[
+  {v:'4.13.1',date:'2026-07-11',changes:[
+    '⛔ เข้มขึ้นตามที่สั่ง: เช็คอินไม่ตรงสาขากับตารางเวร = เช็คอินไม่ได้เลย (ไม่มีปุ่มยืนยันผ่านแล้ว) — ระบบแจ้งให้ติดต่อ admin ลงเวลาให้ หรือให้ admin แก้ตารางเวร/ตั้งวันประชุม · ทุกครั้งที่มีคนถูกกัน ระบบบันทึกลงประวัติใช้งานให้ admin เห็นว่าใครพยายามเช็คอินที่ไหน',
+    '📣 วันประชุมยังยกเว้นได้เหมือนเดิม (เช็คอินสาขาไหนก็ได้)']},
+  {v:'4.13.0',date:'2026-07-11',changes:[
+    '📍 เช็คอินเทียบกับตารางเวรแล้ว — ถ้า GPS อยู่คนละสาขากับเวรวันนี้ ระบบเด้งถาม "เวรคุณอยู่สาขา X แต่กำลังเช็คอินที่ Y" ต้องกดยืนยันถึงเช็คอินได้ และติดป้าย ⚠️ ต่างจากเวร ให้ admin เห็นในประวัติลงเวลา + ประวัติใช้งาน',
+    '📣 "วันประชุม" — admin ตั้งได้ที่หน้าตารางเวร (ปุ่ม 📣 วันประชุม): วันที่ตั้งไว้ พนักงานเช็คอินสาขาไหนก็ได้โดยไม่เตือน (เช่น ประชุมรวม/อบรม) บันทึกป้าย 📣 ไว้ในประวัติ',
+    'คนไม่มีเวรในตารางวันนั้น เช็คอินได้ตามปกติเหมือนเดิม']},
   {v:'4.12.1',date:'2026-07-11',changes:[
     '🔍 แก้ค้นหานิติบุคคลค้าง/ไม่เจอ — เพิ่มเวลาหมด (ไม่ค้างที่ กำลังค้นหา... อีก) และเรียกผ่านตัวกลางบนเว็บเราเองอัตโนมัติ · ต้องอัปโหลดโฟลเดอร์ functions/ (ไฟล์ juristic.js) ขึ้น GitHub ด้วย — Cloudflare Pages เปิดใช้ให้เองฟรี']},
   {v:'4.12.0',date:'2026-07-11',changes:[
@@ -4137,6 +4145,45 @@ window.scBranchChanged=async function(){
   _scBranchBusy=false;
 };
 
+// ===== 🆕 v4.13: วันประชุม — วันที่เช็คอินต่างสาขาจากเวรได้โดยไม่เตือน (admin ตั้ง) =====
+window.meetingDaysPrompt=async function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  let dates=[];
+  try{const md=await getDoc(doc(db,'config','meetingDays'));if(md.exists())dates=md.data().dates||[];}catch(e){}
+  window._mtDates=dates.sort();
+  _mtRender();
+};
+function _mtRender(){
+  const dates=window._mtDates||[];
+  const today=todayStr();
+  openModal(`<div class="modal-title">📣 วันประชุม</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px;line-height:1.6">วันที่อยู่ในลิสต์นี้ พนักงานเช็คอินสาขาไหนก็ได้ ระบบจะไม่เตือน "ต่างจากเวร" (เช่น วันประชุมรวม/อบรม) — วันที่ผ่านไปแล้วลบออกได้</div>
+    ${dates.length?dates.map((d,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>📅 ${new Date(d+'T12:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}${d===today?' <b style="color:var(--green-d);font-size:11px">· วันนี้</b>':''}${d<today?' <span style="color:var(--text3);font-size:11px">(ผ่านแล้ว)</span>':''}</span>
+      <button class="btn btn-sm btn-danger" onclick="mtDel(${i})">ลบ</button>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--text3);padding:8px 0">ยังไม่มีวันประชุม</div>'}
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input type="date" id="mt-new" style="flex:1">
+      <button class="btn btn-primary btn-sm" onclick="mtAdd()">+ เพิ่ม</button>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="mtSave()">💾 บันทึก</button></div>`);
+}
+window.mtAdd=function(){
+  const v=document.getElementById('mt-new')?.value;if(!v)return;
+  window._mtDates=window._mtDates||[];
+  if(!window._mtDates.includes(v))window._mtDates.push(v);
+  window._mtDates.sort();_mtRender();
+};
+window.mtDel=function(i){window._mtDates.splice(i,1);_mtRender();};
+window.mtSave=async function(){
+  try{
+    await setDoc(doc(db,'config','meetingDays'),{dates:window._mtDates||[],updatedAt:new Date().toISOString()});
+    showToast('บันทึกวันประชุมแล้ว ✅');
+    logActivity('meeting_days','ตั้งวันประชุม: '+((window._mtDates||[]).join(', ')||'(ว่าง)'));
+    closeMD();
+  }catch(e){showToast('บันทึกไม่ได้: '+(e?.message||e),'err');}
+};
+
 // ===== 🆕 v4.10: มุมมองรายวัน (เหมาะกับมือถือ — ไม่ต้องเลื่อนตารางใหญ่) =====
 let _scViewMode=localStorage.getItem('nm_scView')||((typeof window!=='undefined'&&window.innerWidth<700)?'day':'grid');
 let _scDayDate=null;
@@ -4214,6 +4261,8 @@ function scRender(){
   if(cwBtn)cwBtn.style.display=isAdmin?'':'none';
   const clrBtn=document.getElementById('sc-clear-btn');
   if(clrBtn)clrBtn.style.display=isAdmin?'':'none';
+  const mtBtn=document.getElementById('sc-meeting-btn');
+  if(mtBtn)mtBtn.style.display=isAdmin?'':'none';
   const impBtn=document.getElementById('sc-import-btn');
   if(impBtn)impBtn.style.display=isAdmin?'':'none';
   const osBtn=document.getElementById('sc-opensheet-btn');
@@ -11689,6 +11738,25 @@ window.doCheckin=function(type){
         return;
       }
     }
+    // 🆕 v4.13: เทียบสาขาที่เช็คอินกับตารางเวรวันนี้ (ยกเว้น "วันประชุม" ที่ admin ตั้งไว้)
+    let _mm=null; // ถ้าเช็คอินคนละสาขากับเวร: {shiftBranch, meeting}
+    if(type==='in'){
+      try{if(!shifts.length)await loadShiftsFromCloud();}catch(e){}
+      const _sh=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayStr());
+      if(_sh&&_sh.branch!=null&&+_sh.branch!==+matchedBranch){
+        let _meet=false;
+        try{const md=await getDoc(doc(db,'config','meetingDays'));_meet=md.exists()&&(md.data().dates||[]).includes(todayStr());}catch(e){}
+        if(_meet){
+          _mm={shiftBranch:_sh.branch,meeting:true};
+        }else{
+          // ⛔ ไม่ตรงตารางเวร = เช็คอินไม่ได้เลย — ให้ติดต่อ admin ลงเวลาให้ (admin แก้/เพิ่มได้ในประวัติลงเวลา)
+          msg.innerHTML=`<span style="color:var(--red-t)">⛔ เช็คอินไม่ได้ — วันนี้ตารางเวรของคุณอยู่สาขา "<b>${BRANCHES[_sh.branch]}</b>" แต่คุณอยู่ที่ "<b>${BRANCHES[matchedBranch]}</b>"<br>ถ้าถูกย้ายสาขา/มาช่วยงานที่นี่จริง กรุณาติดต่อ admin ให้ลงเวลาให้ (หรือให้ admin แก้ตารางเวร/ตั้งวันประชุม แล้วค่อยเช็คอินใหม่)</span>`;
+          showToast('เช็คอินไม่ได้ — สาขาไม่ตรงตารางเวร กรุณาแจ้ง admin','err');
+          logActivity('checkin_blocked',`ถูกกันเช็คอินต่างสาขา: เวรอยู่${BRANCHES[_sh.branch]} แต่พยายามเช็คอินที่${BRANCHES[matchedBranch]}`);
+          return;
+        }
+      }
+    }
     // บันทึก
     const now=new Date();
     const timeStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
@@ -11699,6 +11767,8 @@ window.doCheckin=function(type){
       const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'';
       if(type==='in'){
         rec.checkIn=timeStr;rec.branchIn=matchedBranch;rec.checkInInRadius=true;
+        if(_mm){rec.shiftBranch=_mm.shiftBranch;rec.branchMismatch=!_mm.meeting;rec.meetingDay=!!_mm.meeting;}
+        else{rec.branchMismatch=false;rec.meetingDay=false;}
       }else{
         rec.checkOut=timeStr;rec.branchOut=matchedBranch;
         rec.checkOutInRadius=inRadius;
@@ -11724,7 +11794,8 @@ window.doCheckin=function(type){
       // toast บอกสถานะรัศมีตอนเช็คเอาท์
       const radiusNote=(type==='out'&&!inRadius)?` (นอกรัศมี${outDist?' ~'+outDist+'ม.':''})`:'';
       showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}`);
-      logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}${type==='in'&&rec.isLate?` (สาย ${rec.lateMinutes} นาที)`:''}`);
+      const mmNote=type==='in'&&_mm?(_mm.meeting?' · 📣 วันประชุม (ต่างสาขาได้)':` · ⚠️ ต่างจากเวร (เวรอยู่${BRANCHES[_mm.shiftBranch]})`):'';
+      logActivity(type==='in'?'checkin':'checkout',`${type==='in'?'เข้างาน':'ออกงาน'} ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}${type==='in'&&rec.isLate?` (สาย ${rec.lateMinutes} นาที)`:''}${mmNote}`);
       renderCheckinPage();
       // ===== หลังเช็คอิน: พาไปขั้นต่อไป (เปิดร้าน) หรือโชว์งานวันนี้ =====
       if(type==='in') setTimeout(()=>afterCheckinNext(matchedBranch),500);
@@ -11805,7 +11876,7 @@ window.cihApplyFilter=function(){
   document.getElementById('cih-tbody').innerHTML=shown.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่พบรายการตามตัวกรอง</td></tr>':shown.map(r=>`<tr>
       <td style="font-weight:600">${r.uid?staffNameLink(r.name||'—',r.uid):(r.name||'—')}</td>
       <td>${r.date}</td>
-      <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}${r.isLate?`<div style="font-size:9px;color:#D4690E;font-weight:700">⏰ สาย ${r.lateMinutes} นาที</div>`:''}</td>
+      <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}${r.isLate?`<div style="font-size:9px;color:#D4690E;font-weight:700">⏰ สาย ${r.lateMinutes} นาที</div>`:''}${r.branchMismatch?`<div style="font-size:9px;color:var(--red-t);font-weight:700">⚠️ ต่างจากเวร (เวรอยู่${BRANCHES[r.shiftBranch]??'?'})</div>`:''}${r.meetingDay?`<div style="font-size:9px;color:var(--purple-t);font-weight:700">📣 วันประชุม</div>`:''}</td>
       <td style="color:var(--blue-t)">${r.checkOut||'—'}${r.branchOut!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchOut]}</div>`:''}${r.checkOut&&r.checkOutInRadius===false?`<div style="font-size:9px;color:#D4690E;font-weight:700">📍 นอกรัศมี${r.checkOutDistance?' ~'+r.checkOutDistance+'ม.':''}</div>`:r.checkOut&&r.checkOutInRadius===true?`<div style="font-size:9px;color:var(--green-d)">✓ ในรัศมี</div>`:''}</td>
       <td>${r.checkIn&&r.checkOut?calcWorkTime(r.checkIn,r.checkOut):'—'}</td>
       <td>${r.checkOut?'<span class="sta-on">เสร็จสิ้น</span>':r.checkIn?'<span class="badge badge-amber">ทำงานอยู่</span>':'<span class="sta-off">ยังไม่เข้า</span>'}${r.editHistory?.length?`<div style="font-size:9px;color:#D4690E;margin-top:2px">✎ แก้ไข ${r.editHistory.length} ครั้ง</div>`:''}</td>
