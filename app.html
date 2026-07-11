@@ -1730,8 +1730,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.13.1';
+const APP_VERSION='4.13.2';
 const CHANGELOG=[
+  {v:'4.13.2',date:'2026-07-11',changes:[
+    '📍 เช็คเอาท์เข้มเหมือนเช็คอินแล้ว — ต้องอยู่ในรัศมีร้าน และตรงสาขากับตารางเวรเท่านั้น (เดิมเช็คเอาท์นอกรัศมีได้) ไม่ตรง = ลงเวลาไม่ได้ ให้ติดต่อ admin',
+    '📣 วันประชุมมีสัญลักษณ์ครบแล้ว: ป้าย "📣 ประชุม" บนช่องวันในตารางเวร · แถบม่วงบนหัวมุมมองรายวัน · แถบแจ้งบนหน้าลงเวลา "วันนี้เป็นวันประชุม เช็คอิน/เอาท์สาขาไหนก็ได้" · ตั้งวันประชุมแล้วป้ายขึ้นทันที']},
   {v:'4.13.1',date:'2026-07-11',changes:[
     '⛔ เข้มขึ้นตามที่สั่ง: เช็คอินไม่ตรงสาขากับตารางเวร = เช็คอินไม่ได้เลย (ไม่มีปุ่มยืนยันผ่านแล้ว) — ระบบแจ้งให้ติดต่อ admin ลงเวลาให้ หรือให้ admin แก้ตารางเวร/ตั้งวันประชุม · ทุกครั้งที่มีคนถูกกัน ระบบบันทึกลงประวัติใช้งานให้ admin เห็นว่าใครพยายามเช็คอินที่ไหน',
     '📣 วันประชุมยังยกเว้นได้เหมือนเดิม (เช็คอินสาขาไหนก็ได้)']},
@@ -3363,7 +3366,7 @@ window.goto=function(page){
   if(page==='dashboard'){if(!['sales','monthly','export'].includes(window._rpActive))window._rpActive='sales';dashInit();renderReportBar();}
   if(page==='sales-history'){window._rpActive='sales-history';renderReportBar();}
   if(page==='activity'){window._rpActive='activity';renderReportBar();}
-  if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule()]).then(scRender);scRender();}
+  if(page==='schedule'){startScheduleLive();Promise.all([loadShiftsFromCloud(),loadLeavesForSchedule(),loadCheckinsForSchedule(),loadMeetingDays(true)]).then(scRender);scRender();}
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   if(page==='cash'){startCashLive();loadCashPage();loadSalesFromCloud().then(()=>{if(document.getElementById('page-cash')?.classList.contains('active')&&typeof renderCashPage==='function')renderCashPage();});}
   startRealtimeAll();
@@ -4146,6 +4149,13 @@ window.scBranchChanged=async function(){
 };
 
 // ===== 🆕 v4.13: วันประชุม — วันที่เช็คอินต่างสาขาจากเวรได้โดยไม่เตือน (admin ตั้ง) =====
+let meetingDaysCache=null;
+async function loadMeetingDays(force){
+  if(meetingDaysCache&&!force)return meetingDaysCache;
+  try{const md=await getDoc(doc(db,'config','meetingDays'));meetingDaysCache=md.exists()?(md.data().dates||[]):[];}
+  catch(e){meetingDaysCache=meetingDaysCache||[];}
+  return meetingDaysCache;
+}
 window.meetingDaysPrompt=async function(){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
   let dates=[];
@@ -4178,9 +4188,11 @@ window.mtDel=function(i){window._mtDates.splice(i,1);_mtRender();};
 window.mtSave=async function(){
   try{
     await setDoc(doc(db,'config','meetingDays'),{dates:window._mtDates||[],updatedAt:new Date().toISOString()});
+    meetingDaysCache=[...(window._mtDates||[])];
     showToast('บันทึกวันประชุมแล้ว ✅');
     logActivity('meeting_days','ตั้งวันประชุม: '+((window._mtDates||[]).join(', ')||'(ว่าง)'));
     closeMD();
+    if(currentPage==='schedule')scRender();  // ให้ป้าย 📣 ขึ้นทันที
   }catch(e){showToast('บันทึกไม่ได้: '+(e?.message||e),'err');}
 };
 
@@ -4239,6 +4251,7 @@ function renderScDayView(){
       <button class="btn btn-sm" onclick="scDayShift(-1)">◀</button>
       <div style="flex:1;text-align:center">
         <div style="font-weight:700;font-size:13.5px">${lbl}${isToday?' <span style="font-size:10.5px;color:var(--green-d);font-weight:800">· วันนี้</span>':''}</div>
+        ${(meetingDaysCache||[]).includes(d)?'<div style="font-size:10px;color:var(--purple-t);font-weight:800">📣 วันประชุม — เช็คอินสาขาไหนก็ได้</div>':''}
       </div>
       <button class="btn btn-sm" onclick="scDayShift(1)">▶</button>
       <input type="date" value="${d}" onchange="scDayPick(this.value)" style="width:40px;padding:6px;border:1px solid var(--border2);border-radius:9px;font-family:var(--font);font-size:12px;color:transparent">
@@ -4357,9 +4370,10 @@ function scRender(){
     // เช็คอินนอกเวร (คนที่ไม่มีเวรวันนั้น) — แสดงแบบกระชับ รายละเอียดดูในป๊อปอัพ
     const ciExtraHtml=orphanCheckins.length?`<div class="cal-checkin" title="${orphanCheckins.map(c=>(c.name||memberShort(c.uid))+' '+c.checkIn).join(', ')}">✓ เช็คอินนอกเวร ${orphanCheckins.length} คน</div>`:'';
     const addBtn=canEdit?`<div class="cal-add" onclick="event.stopPropagation();scAddShift('','${ds}')">+</div>`:'';
+    const meetHtml=(meetingDaysCache||[]).includes(ds)?`<div style="font-size:9px;background:var(--purple-l);color:var(--purple-t);font-weight:800;border-radius:6px;padding:1px 5px;width:fit-content" title="วันประชุม — เช็คอินสาขาไหนก็ได้">📣 ประชุม</div>`:'';
     html+=`<div class="cal-cell${isToday?' today':''}" data-ds="${ds}" ${canEdit?`onclick="scDayDetail('${ds}')"`:''} style="cursor:${canEdit?'pointer':'default'}">
       <div class="cal-date${isToday?' is-today':''}">${day}${isToday?'<span style="font-size:9px;background:var(--green);color:#fff;padding:1px 5px;border-radius:8px">วันนี้</span>':''}</div>
-      ${bdayHtml}${leaveHtml}${shiftCards}${ciExtraHtml}${moreHtml}${addBtn}
+      ${meetHtml}${bdayHtml}${leaveHtml}${shiftCards}${ciExtraHtml}${moreHtml}${addBtn}
     </div>`;
   }
   // ช่องว่างท้ายเดือน
@@ -11529,6 +11543,9 @@ async function renderCheckinPage(){
   let rec=null;
   try{const d=await getDoc(doc(db,'checkins',todayCheckinId()));if(d.exists())rec=d.data();}catch(e){}
   window._myCheckinToday=rec; // cache สำหรับ todo auto-check
+  // 📣 วันนี้เป็นวันประชุมไหม (เช็คอินสาขาไหนก็ได้)
+  let _isMeetToday=false;
+  try{_isMeetToday=(await loadMeetingDays(true)).includes(todayStr());}catch(e){}
 
   const hasIn=rec&&rec.checkIn;
   const hasOut=rec&&rec.checkOut;
@@ -11538,7 +11555,7 @@ async function renderCheckinPage(){
   const _off=(_circ*(1-_pct/100)).toFixed(1);
   const _ringTxt=hasOut?'ลงเวลาครบแล้ว':(hasIn?'กำลังทำงาน':'พร้อมเช็คอิน');
   const _ringSub=hasIn?('เข้างาน '+rec.checkIn):('เวลา '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
-  card.innerHTML=`<div class="card" style="text-align:center;border-radius:26px;padding:24px 20px">
+  card.innerHTML=`${_isMeetToday?`<div style="display:flex;gap:9px;align-items:center;background:var(--purple-l);border:1.5px dashed var(--purple);color:var(--purple-t);border-radius:13px;padding:10px 13px;margin-bottom:10px;font-size:12.5px;font-weight:600">📣 วันนี้เป็น "วันประชุม" — เช็คอิน/เช็คเอาท์ที่สาขาไหนก็ได้ (แต่ต้องอยู่ในรัศมีร้าน)</div>`:''}<div class="card" style="text-align:center;border-radius:26px;padding:24px 20px">
     <div style="width:160px;height:160px;margin:0 auto 16px;position:relative">
       <svg width="160" height="160" viewBox="0 0 160 160" style="transform:rotate(-90deg)">
         <circle cx="80" cy="80" r="66" fill="none" stroke="var(--border)" stroke-width="11"/>
@@ -11721,38 +11738,30 @@ window.doCheckin=function(type){
     let inRadius=matchedBranch!==null;   // อยู่ในรัศมีไหม
     let outDist=null;                     // ระยะห่าง (ถ้านอกรัศมี)
     if(matchedBranch===null){
-      // หาสาขาใกล้สุด + ระยะ
+      // 🆕 v4.13.2: ทั้งเช็คอินและเช็คเอาท์ ต้องอยู่ในรัศมีร้านเท่านั้น
       let nearest=null,nd=Infinity;
       branchLocations.forEach((loc,i)=>{if(!loc)return;const d=distanceM(latitude,longitude,loc.lat,loc.lng);if(d<nd){nd=d;nearest=i;}});
-      if(type==='out'){
-        // เช็คเอาท์: นอกรัศมีก็ได้ — ใช้สาขาที่เช็คอินไว้ หรือสาขาใกล้สุด
-        let rec0={};
-        try{const ex0=await getDoc(doc(db,'checkins',todayCheckinId()));if(ex0.exists())rec0=ex0.data();}catch(e){}
-        matchedBranch=rec0.branchIn!=null?rec0.branchIn:(nearest!=null?nearest:0);
-        outDist=nearest!=null?Math.round(nd):null;
-        inRadius=false;
-      }else{
-        // เช็คอินเข้างาน: ต้องอยู่ในรัศมีเท่านั้น
-        if(nearest===null)msg.innerHTML='<span style="color:var(--red-t)">⚠️ ยังไม่ได้ตั้งพิกัดสาขา กรุณาแจ้ง admin</span>';
-        else msg.innerHTML=`<span style="color:var(--red-t)">⚠️ คุณอยู่ห่างจากสาขา${BRANCHES[nearest]} ${Math.round(nd)} เมตร (ต้องอยู่ในรัศมีร้าน)</span>`;
-        return;
-      }
+      const actLbl=type==='in'?'เช็คอิน':'เช็คเอาท์';
+      if(nearest===null)msg.innerHTML='<span style="color:var(--red-t)">⚠️ ยังไม่ได้ตั้งพิกัดสาขา กรุณาแจ้ง admin</span>';
+      else msg.innerHTML=`<span style="color:var(--red-t)">⚠️ ${actLbl}ไม่ได้ — คุณอยู่ห่างจากสาขา${BRANCHES[nearest]} ${Math.round(nd)} เมตร (ต้องอยู่ในรัศมีร้าน)</span>`;
+      return;
     }
-    // 🆕 v4.13: เทียบสาขาที่เช็คอินกับตารางเวรวันนี้ (ยกเว้น "วันประชุม" ที่ admin ตั้งไว้)
-    let _mm=null; // ถ้าเช็คอินคนละสาขากับเวร: {shiftBranch, meeting}
-    if(type==='in'){
+    // 🆕 v4.13: เทียบสาขากับตารางเวรวันนี้ — ทั้งเช็คอินและเช็คเอาท์ (ยกเว้น "วันประชุม" ที่ admin ตั้งไว้)
+    let _mm=null; // ถ้าอยู่คนละสาขากับเวร: {shiftBranch, meeting}
+    {
       try{if(!shifts.length)await loadShiftsFromCloud();}catch(e){}
       const _sh=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayStr());
       if(_sh&&_sh.branch!=null&&+_sh.branch!==+matchedBranch){
         let _meet=false;
-        try{const md=await getDoc(doc(db,'config','meetingDays'));_meet=md.exists()&&(md.data().dates||[]).includes(todayStr());}catch(e){}
+        try{_meet=(await loadMeetingDays(true)).includes(todayStr());}catch(e){}
         if(_meet){
           _mm={shiftBranch:_sh.branch,meeting:true};
         }else{
-          // ⛔ ไม่ตรงตารางเวร = เช็คอินไม่ได้เลย — ให้ติดต่อ admin ลงเวลาให้ (admin แก้/เพิ่มได้ในประวัติลงเวลา)
-          msg.innerHTML=`<span style="color:var(--red-t)">⛔ เช็คอินไม่ได้ — วันนี้ตารางเวรของคุณอยู่สาขา "<b>${BRANCHES[_sh.branch]}</b>" แต่คุณอยู่ที่ "<b>${BRANCHES[matchedBranch]}</b>"<br>ถ้าถูกย้ายสาขา/มาช่วยงานที่นี่จริง กรุณาติดต่อ admin ให้ลงเวลาให้ (หรือให้ admin แก้ตารางเวร/ตั้งวันประชุม แล้วค่อยเช็คอินใหม่)</span>`;
-          showToast('เช็คอินไม่ได้ — สาขาไม่ตรงตารางเวร กรุณาแจ้ง admin','err');
-          logActivity('checkin_blocked',`ถูกกันเช็คอินต่างสาขา: เวรอยู่${BRANCHES[_sh.branch]} แต่พยายามเช็คอินที่${BRANCHES[matchedBranch]}`);
+          // ⛔ ไม่ตรงตารางเวร = ลงเวลาไม่ได้เลย — ให้ติดต่อ admin ลงเวลาให้ (admin แก้/เพิ่มได้ในประวัติลงเวลา)
+          const actLbl=type==='in'?'เช็คอิน':'เช็คเอาท์';
+          msg.innerHTML=`<span style="color:var(--red-t)">⛔ ${actLbl}ไม่ได้ — วันนี้ตารางเวรของคุณอยู่สาขา "<b>${BRANCHES[_sh.branch]}</b>" แต่คุณอยู่ที่ "<b>${BRANCHES[matchedBranch]}</b>"<br>ถ้าถูกย้ายสาขา/มาช่วยงานที่นี่จริง กรุณาติดต่อ admin ให้ลงเวลาให้ (หรือให้ admin แก้ตารางเวร/ตั้งวันประชุม แล้วค่อยลงเวลาใหม่)</span>`;
+          showToast(`${actLbl}ไม่ได้ — สาขาไม่ตรงตารางเวร กรุณาแจ้ง admin`,'err');
+          logActivity('checkin_blocked',`ถูกกัน${actLbl}ต่างสาขา: เวรอยู่${BRANCHES[_sh.branch]} แต่พยายาม${actLbl}ที่${BRANCHES[matchedBranch]}`);
           return;
         }
       }
