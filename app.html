@@ -1730,8 +1730,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.13.2';
+const APP_VERSION='4.13.3';
 const CHANGELOG=[
+  {v:'4.13.3',date:'2026-07-11',changes:[
+    '🔍 เปลี่ยนแหล่งค้นหานิติบุคคลเป็น "ระบบตรวจผู้ประกอบการ VAT กรมสรรพากร" — ครอบคลุมทุกรายที่จด VAT (ตรงกับงานใบกำกับภาษี) แสดงชื่อ+ที่อยู่+สำนักงานใหญ่/สาขา · กระทรวงพาณิชย์เป็นตัวสำรอง · ต้องอัปเดตไฟล์ worker-entry.js บน GitHub ด้วย']},
   {v:'4.13.2',date:'2026-07-11',changes:[
     '📍 เช็คเอาท์เข้มเหมือนเช็คอินแล้ว — ต้องอยู่ในรัศมีร้าน และตรงสาขากับตารางเวรเท่านั้น (เดิมเช็คเอาท์นอกรัศมีได้) ไม่ตรง = ลงเวลาไม่ได้ ให้ติดต่อ admin',
     '📣 วันประชุมมีสัญลักษณ์ครบแล้ว: ป้าย "📣 ประชุม" บนช่องวันในตารางเวร · แถบม่วงบนหัวมุมมองรายวัน · แถบแจ้งบนหน้าลงเวลา "วันนี้เป็นวันประชุม เช็คอิน/เอาท์สาขาไหนก็ได้" · ตั้งวันประชุมแล้วป้ายขึ้นทันที']},
@@ -10206,35 +10208,22 @@ window.docJuristicLookup=async function(){
   const id=(document.getElementById('doc-taxid')?.value||'').replace(/\D/g,'');
   const st=document.getElementById('doc-lookup-status');
   if(id.length!==13){showToast('เลขนิติบุคคลต้องมี 13 หลัก','err');return;}
-  if(st)st.innerHTML='⏳ กำลังค้นหา...';
+  if(st)st.innerHTML='⏳ กำลังค้นหาจากกรมสรรพากร (ผู้ประกอบการ VAT)...';
   try{
-    let j=null;
-    // ทางที่ 1: เรียกกรมพัฒน์ตรง (บางเครื่อง/บางเครือข่ายได้) → ทางที่ 2: ผ่านตัวกลางบนเว็บเราเอง (functions/juristic.js)
-    try{j=await _docFetchJson('https://dataapi.moc.go.th/juristic?juristic_id='+id,7000);}
-    catch(e1){
-      if(st)st.innerHTML='⏳ ลองผ่านตัวกลางของเว็บเรา...';
-      j=await _docFetchJson('/juristic?id='+id,10000);
-    }
-    if(j&&j.error)throw new Error(j.error);
-    const d=(Array.isArray(j)?j[0]:(j?.data?.[0]||j?.data||j))||{};
-    const name=d.juristicNameTH||d.juristic_name_th||d.jP_TNAME||d.name||'';
-    // ประกอบที่อยู่จากช่องที่มี (โครงสร้าง API อาจต่างกันไป)
-    const adr=d.addressInfo||d.address||{};
-    const addrText=[adr.houseNumber||adr.house_no,adr.villageName,adr.soi,adr.street||adr.road,
-      adr.subDistrict?('ต.'+adr.subDistrict):'',adr.district?('อ.'+adr.district):'',adr.province?('จ.'+adr.province):'',adr.zipcode||adr.postCode]
-      .filter(Boolean).join(' ')||(typeof adr==='string'?adr:'');
-    const status=d.juristicStatus||d.juristic_status||d.statusName||'';
-    if(!name)throw new Error('ไม่พบข้อมูล');
-    docForm.customer.name=name;
-    if(addrText)docForm.customer.address=addrText;
+    // ผ่านตัวกลางบนเว็บเราเอง (worker-entry.js) — คำตอบ normalize แล้ว {ok,name,address,branch,source}
+    const j=await _docFetchJson('/juristic?id='+id,18000);
+    if(!j||!j.ok)throw new Error(j?.error||'ไม่พบข้อมูล');
+    docForm.customer.name=j.name||'';
+    if(j.address)docForm.customer.address=j.address;
+    if(j.branch)docForm.customer.branchLabel=/สำนักงานใหญ่/.test(j.branch)?'สำนักงานใหญ่':'สาขา';
     docForm.customer.taxId=id;
     renderDocForm();
     const st2=document.getElementById('doc-lookup-status');
-    if(st2)st2.innerHTML=`✅ พบ: <b>${slipEsc(name)}</b>${status?' · สถานะ: '+slipEsc(status):''} — ตรวจ/แก้ที่อยู่ได้ด้านล่าง`;
-    showToast('ดึงข้อมูลนิติบุคคลสำเร็จ ✅');
+    if(st2)st2.innerHTML=`✅ พบ: <b>${slipEsc(j.name)}</b>${j.branch?' · '+slipEsc(j.branch):''} <span style="color:var(--text3)">(ที่มา: ${slipEsc(j.source||'')})</span> — ตรวจ/แก้ที่อยู่ได้ด้านล่าง`;
+    showToast('ดึงข้อมูลสำเร็จ ✅');
   }catch(e){
-    if(st)st.innerHTML='⚠️ ดึงข้อมูลอัตโนมัติไม่ได้ ('+(e.message||e)+') — <b>กรอกชื่อ/ที่อยู่เองได้เลย</b><br><span style="font-size:10px">ถ้าขึ้นแบบนี้ตลอด: ตรวจว่าอัปโหลดโฟลเดอร์ functions/juristic.js ขึ้น GitHub แล้วหรือยัง</span>';
-    showToast('ค้นหาไม่สำเร็จ — กรอกเองได้เลย','err');
+    if(st)st.innerHTML='⚠️ '+slipEsc(e.message||String(e))+' — <b>กรอกชื่อ/ที่อยู่เองได้เลย</b>';
+    showToast('ไม่พบข้อมูล — กรอกเองได้เลย','err');
   }
 };
 
