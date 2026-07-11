@@ -1689,8 +1689,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.9.0';
+const APP_VERSION='4.9.1';
 const CHANGELOG=[
+  {v:'4.9.1',date:'2026-07-11',changes:[
+    '🎛️ สวิตช์ "รายละเอียดวิธีคิด" บนสลิป แยกเป็น 3 ตัวอิสระ: 📐 ชม.บังคับ/ชม.จริง · ⬆️ จำนวนชั่วโมง OT · ⬇️ จำนวนชั่วโมงขาด — เลือกโชว์/ซ่อนทีละอย่างได้ (ค่าเดิมที่เคยตั้งไว้ยังใช้ได้)']},
   {v:'4.9.0',date:'2026-07-10',changes:[
     '💰 หน้า "เงินสด & ตู้เซฟ" โฉมใหม่ทั้งหน้า (ระบบเงินเดิมทุกอย่าง ไม่กระทบตัวเลข):',
     '🟩 การ์ดสถานะใหญ่บนสุด — แถบขั้นตอน 1→2→3 (เปิดร้าน→ระหว่างวัน→ปิดร้าน) รู้ทันทีว่าต้องทำอะไรต่อ · ปุ่มใหญ่ปุ่มเดียวเปลี่ยนตามช่วงเวลา (เช้า=เปิดร้าน เย็น=ปิดร้าน) · บอกใครเปิด/ปิดร้านบนหัวการ์ด · ปิดร้านแล้วโชว์ผลตรง/ขาด/เกินเด่นๆ',
@@ -9290,6 +9292,8 @@ function empCode(uid){
 
 function buildMonthSlip(r, memberName, memberRole, uid){
   const _sv=k=>!(slipCfg.show&&slipCfg.show[k]===false); // 🆕 สวิตช์ แสดง/ซ่อน บนสลิป
+  // สวิตช์รายละเอียดชั่วโมง แยก 3 ตัว (ตั้งค่าเก่าที่เคยเป็นตัวเดียว 'calc' ยังใช้ได้)
+  const _svc=k=>(slipCfg.show&&k in slipCfg.show)?slipCfg.show[k]!==false:_sv('calc');
   const typeLabel=r.salaryType==='fixed'?'เงินเดือนประจำ':r.salaryType==='hourly'?'รายชั่วโมง':r.salaryType==='hourly_actual'?'ตามชั่วโมงจริง':(r.salaryType==='req_sun'||r.salaryType==='req_fix6')?'ชั่วโมงบังคับ':'ประจำ + รายชั่วโมง';
   const statusLabel=r.status==='paid'?'จ่ายเงินแล้ว':'รอดำเนินการ';
   // หาข้อมูลพนักงานเพิ่มเติม (รหัสกำหนดเอง, ตำแหน่ง, บัญชีธนาคาร)
@@ -9323,7 +9327,7 @@ function buildMonthSlip(r, memberName, memberRole, uid){
   // req_sun/req_fix6: ส่วนต่างจากชั่วโมงบังคับ — เกิน = OT (รายรับ) · ขาด = หัก (รายหัก)
   const reqDiff=r.reqDiffAmt||0;
   const _diffH=(r.mandatoryHours!=null)?Math.round((nmActual-(r.mandatoryHours||0))*10)/10:0;
-  if(reqDiff<0)dedItems.push({name:`หักชั่วโมงขาด${_sv('calc')?` (${Math.abs(_diffH)} ชม.)`:''}`,amount:-reqDiff});
+  if(reqDiff<0)dedItems.push({name:`หักชั่วโมงขาด${_svc('calcDef')?` (${Math.abs(_diffH)} ชม.)`:''}`,amount:-reqDiff});
   const grossEarnings=r.baseAmt+(r.hourlyAmt||0)+otAmt+(reqDiff>0?reqDiff:0)+addItems.reduce((a,x)=>a+x.amount,0);
   const totalDed=dedItems.reduce((a,x)=>a+x.amount,0);
 
@@ -9401,11 +9405,11 @@ function buildMonthSlip(r, memberName, memberRole, uid){
       <thead><tr><th style="text-align:left">รายการ</th><th class="r">รายรับ (บาท)</th><th class="r">รายหัก (บาท)</th></tr></thead>
       <tbody>
         ${r.salaryType==='hourly_actual'
-          ?`<tr><td>ค่าแรงตามชั่วโมงจริง${_sv('calc')?` (${nmActual} ชม. × ${fmt(r.rate||r.hourlyRate||0)})`:''}</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`
+          ?`<tr><td>ค่าแรงตามชั่วโมงจริง${_svc('calcMand')?` (${nmActual} ชม. × ${fmt(r.rate||r.hourlyRate||0)})`:''}</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`
           :(r.salaryType==='req_sun'||r.salaryType==='req_fix6')
-          ?`<tr><td>เงินเดือน${_sv('calc')?` (ครบชั่วโมงบังคับ ${r.mandatoryHours||0} ชม.)`:''}</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>${reqDiff>0?`<tr><td>ทำงานเกิน OT${_sv('calc')?` (${_diffH} ชม.)`:''}</td><td class="r">${fmt(reqDiff)}</td><td class="r"></td></tr>`:''}`
-          :`${r.salaryType!=='hourly'?`<tr><td>เงินเดือนฐาน</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>`:''}${r.salaryType!=='fixed'?`<tr><td>ค่าแรงรายชั่วโมง${_sv('calc')?` (${r.hours||0} ชม.)`:''}</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`:''}`}
-        ${otAmt>0?`<tr><td>ค่าล่วงเวลา OT (${r.otHours||0} ชม.)</td><td class="r">${fmt(otAmt)}</td><td class="r"></td></tr>`:''}
+          ?`<tr><td>เงินเดือน${_svc('calcMand')?` (ครบชั่วโมงบังคับ ${r.mandatoryHours||0} ชม.)`:''}</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>${reqDiff>0?`<tr><td>ทำงานเกิน OT${_svc('calcOt')?` (${_diffH} ชม.)`:''}</td><td class="r">${fmt(reqDiff)}</td><td class="r"></td></tr>`:''}`
+          :`${r.salaryType!=='hourly'?`<tr><td>เงินเดือนฐาน</td><td class="r">${fmt(r.baseAmt)}</td><td class="r"></td></tr>`:''}${r.salaryType!=='fixed'?`<tr><td>ค่าแรงรายชั่วโมง${_svc('calcMand')?` (${r.hours||0} ชม.)`:''}</td><td class="r">${fmt(r.hourlyAmt||0)}</td><td class="r"></td></tr>`:''}`}
+        ${otAmt>0?`<tr><td>ค่าล่วงเวลา OT${_svc('calcOt')?` (${r.otHours||0} ชม.)`:''}</td><td class="r">${fmt(otAmt)}</td><td class="r"></td></tr>`:''}
         ${addItems.map(x=>`<tr><td>${x.name}</td><td class="r">${fmt(x.amount)}</td><td class="r"></td></tr>`).join('')}
         ${dedItems.map(x=>`<tr><td>${x.name}</td><td class="r"></td><td class="r">${fmt(x.amount)}</td></tr>`).join('')}
         <tr class="total"><td>รวม</td><td class="r">${fmt(grossEarnings)}</td><td class="r">${fmt(totalDed)}</td></tr>
@@ -9798,7 +9802,9 @@ function slipCfgFieldsHtml(live){
     </div>
     <div style="font-size:12px;font-weight:700;margin:12px 0 2px">🎛️ แสดง / ซ่อน บนสลิป</div>
     ${tgl('bank','🏦','บัญชีธนาคาร')}
-    ${tgl('calc','🧮','รายละเอียดวิธีคิด (ชม.บังคับ/ขาด/OT)')}
+    ${tgl('calcMand','📐','ชม.บังคับ / ชม.จริง (บนบรรทัดเงินเดือน)')}
+    ${tgl('calcOt','⬆️','จำนวนชั่วโมง OT')}
+    ${tgl('calcDef','⬇️','จำนวนชั่วโมงขาด')}
     ${tgl('leave','🌴','สิทธิ์วันลา')}
     ${tgl('sign','✍️','ช่องลายเซ็น')}
     ${tgl('status','🏷️','ป้ายสถานะ (จ่ายแล้ว/รอ)')}
@@ -9811,7 +9817,7 @@ function collectSlipCfgFromDom(){
   if(g('slip-header'))slipCfg.headerNote=g('slip-header').value.trim();
   if(g('slip-footer'))slipCfg.footerNote=g('slip-footer').value.trim();
   slipCfg.show=slipCfg.show||{};
-  ['bank','calc','leave','sign','status','logo'].forEach(k=>{const el=g('slip-show-'+k);if(el)slipCfg.show[k]=el.checked;});
+  ['bank','calcMand','calcOt','calcDef','leave','sign','status','logo'].forEach(k=>{const el=g('slip-show-'+k);if(el)slipCfg.show[k]=el.checked;});
 }
 async function persistSlipCfg(quiet){
   localStorage.setItem('nm_slipCfg',JSON.stringify(slipCfg));
