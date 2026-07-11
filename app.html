@@ -1729,8 +1729,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.12.0';
+const APP_VERSION='4.12.1';
 const CHANGELOG=[
+  {v:'4.12.1',date:'2026-07-11',changes:[
+    '🔍 แก้ค้นหานิติบุคคลค้าง/ไม่เจอ — เพิ่มเวลาหมด (ไม่ค้างที่ กำลังค้นหา... อีก) และเรียกผ่านตัวกลางบนเว็บเราเองอัตโนมัติ · ต้องอัปโหลดโฟลเดอร์ functions/ (ไฟล์ juristic.js) ขึ้น GitHub ด้วย — Cloudflare Pages เปิดใช้ให้เองฟรี']},
   {v:'4.12.0',date:'2026-07-11',changes:[
     '🗂️ ฟีเจอร์ใหม่ "เอกสารการค้า" — ออกใบเสนอราคา / ใบแจ้งหนี้ / ใบส่งของ / ใบกำกับภาษีเต็มรูป (ร้านจด VAT) พิมพ์ A4 ต้นฉบับ+สำเนา มีช่องเซ็น ผู้ขาย/ผู้รับสินค้า/ผู้จ่ายเงิน · เลขที่วิ่งอัตโนมัติแยกชนิดต่อปี (เช่น QT-2569-001)',
     '📦 ฐานข้อมูลสินค้าจากระบบ POS ของร้าน 3,415 รายการฝังมาในแอป — พิมพ์ชื่อสินค้า 2-3 ตัวอักษรแล้วเลือก ราคา/หน่วยเติมให้เอง · อัปเดตราคาได้เองด้วยปุ่ม "นำเข้าสินค้าจาก CSV" (ไฟล์ export ชุดเดิมจาก POS)',
@@ -10128,15 +10130,29 @@ window.docImportProducts=function(inp){
 };
 
 // ===== ค้นหานิติบุคคล (กรมพัฒนาธุรกิจการค้า / MOC Open Data) =====
+// fetch แบบมีเวลาหมด (กันค้าง "กำลังค้นหา..." ไม่จบ)
+async function _docFetchJson(url,ms){
+  const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms||8000);
+  try{
+    const r=await fetch(url,{headers:{'Accept':'application/json'},signal:ac.signal});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return await r.json();
+  }finally{clearTimeout(t);}
+}
 window.docJuristicLookup=async function(){
   const id=(document.getElementById('doc-taxid')?.value||'').replace(/\D/g,'');
   const st=document.getElementById('doc-lookup-status');
   if(id.length!==13){showToast('เลขนิติบุคคลต้องมี 13 หลัก','err');return;}
   if(st)st.innerHTML='⏳ กำลังค้นหา...';
   try{
-    const r=await fetch('https://dataapi.moc.go.th/juristic?juristic_id='+id,{headers:{'Accept':'application/json'}});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const j=await r.json();
+    let j=null;
+    // ทางที่ 1: เรียกกรมพัฒน์ตรง (บางเครื่อง/บางเครือข่ายได้) → ทางที่ 2: ผ่านตัวกลางบนเว็บเราเอง (functions/juristic.js)
+    try{j=await _docFetchJson('https://dataapi.moc.go.th/juristic?juristic_id='+id,7000);}
+    catch(e1){
+      if(st)st.innerHTML='⏳ ลองผ่านตัวกลางของเว็บเรา...';
+      j=await _docFetchJson('/juristic?id='+id,10000);
+    }
+    if(j&&j.error)throw new Error(j.error);
     const d=(Array.isArray(j)?j[0]:(j?.data?.[0]||j?.data||j))||{};
     const name=d.juristicNameTH||d.juristic_name_th||d.jP_TNAME||d.name||'';
     // ประกอบที่อยู่จากช่องที่มี (โครงสร้าง API อาจต่างกันไป)
@@ -10154,7 +10170,7 @@ window.docJuristicLookup=async function(){
     if(st2)st2.innerHTML=`✅ พบ: <b>${slipEsc(name)}</b>${status?' · สถานะ: '+slipEsc(status):''} — ตรวจ/แก้ที่อยู่ได้ด้านล่าง`;
     showToast('ดึงข้อมูลนิติบุคคลสำเร็จ ✅');
   }catch(e){
-    if(st)st.innerHTML='⚠️ ดึงข้อมูลอัตโนมัติไม่ได้ ('+(e.message||e)+') — กรอกชื่อ/ที่อยู่เองได้เลย';
+    if(st)st.innerHTML='⚠️ ดึงข้อมูลอัตโนมัติไม่ได้ ('+(e.message||e)+') — <b>กรอกชื่อ/ที่อยู่เองได้เลย</b><br><span style="font-size:10px">ถ้าขึ้นแบบนี้ตลอด: ตรวจว่าอัปโหลดโฟลเดอร์ functions/juristic.js ขึ้น GitHub แล้วหรือยัง</span>';
     showToast('ค้นหาไม่สำเร็จ — กรอกเองได้เลย','err');
   }
 };
