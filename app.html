@@ -192,6 +192,12 @@ textarea{resize:vertical;min-height:64px}
 .mem-table th{background:var(--bg);padding:10px 12px;text-align:left;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.04em;border-bottom:1px solid var(--border)}.mem-table td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
 .mem-table tr:last-child td{border-bottom:none}
 .mem-table tr:hover td{background:var(--bg)}
+/* 🆕 v4.10: รายชื่อสมาชิกแบบการ์ด */
+.mem-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:11px}
+.mem-card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px}
+.mem-card.suspended{opacity:.6;background:var(--bg)}
+.mem-card .chips{display:flex;gap:5px;flex-wrap:wrap}
+.mem-card .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:4px;border-top:1px dashed var(--border)}
 .mem-av{width:34px;height:34px;border-radius:50%;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
 .sta-on{background:var(--green-l);color:var(--green-dd);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;display:inline-block}
 .sta-off{background:var(--red-l);color:var(--red-t);font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;display:inline-block}
@@ -481,6 +487,15 @@ textarea{resize:vertical;min-height:64px}
 .cash-rcpt{background:linear-gradient(180deg,var(--green-ll),var(--surface));border:1px solid var(--green-l);border-radius:16px;padding:6px 14px 10px;margin-bottom:12px;box-shadow:var(--shadow)}
 .cash-rcpt .rh{font-size:12.5px;font-weight:800;color:var(--green-dd);margin:10px 0 2px}
 .cash-notice{display:flex;gap:9px;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:9px 12px;margin-bottom:9px;font-size:11.5px;box-shadow:var(--shadow);flex-wrap:wrap}
+/* 🆕 v4.10: จอคอมแอดมิน — การ์ด 3 สาขาเรียงข้างกัน */
+.cash-admin-grid{display:grid;gap:12px;grid-template-columns:1fr;margin-bottom:1.1rem}
+@media(min-width:1024px){.cash-admin-grid{grid-template-columns:repeat(3,1fr)}}
+.cab-pools{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.cab-pool{background:var(--bg);border-radius:10px;padding:7px 4px;text-align:center}
+.cab-pool .l{font-size:9.5px;color:var(--text3);font-weight:700}
+.cab-pool .v{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+.cab-ev{display:flex;gap:7px;align-items:center;font-size:11px;padding:5px 0;border-bottom:1px dashed var(--border)}
+.cab-ev:last-child{border-bottom:none}
 /* ===== Elegant theme (Serif headings) ===== */
 .page-title{font-family:var(--disp);font-weight:600;letter-spacing:0}
 .sb-brand h1,.tbd-brand-name{font-family:var(--disp);font-weight:600}
@@ -677,6 +692,7 @@ input,select,textarea{border-radius:14px}
         <select id="sc-person-filter" onchange="scRender()" style="width:auto;padding:7px 12px;font-size:13px;margin-left:4px">
           <option value="all">ทุกคน</option>
         </select>
+        <button class="btn btn-sm" id="sc-view-btn" onclick="scToggleView()">📋 รายวัน</button>
         <button class="btn btn-sm" id="sc-bday-btn" onclick="toggleBdayPanel()">🎂 วันเกิด</button>
         <button class="btn btn-sm" id="sc-temp-btn" style="display:none" onclick="manageTempStaff()">👤 พนักงานชั่วคราว</button>
         <button class="btn btn-sm" id="sc-bulk-btn" style="display:none" onclick="scBulkAssign()">📋 จัดเวรหลายวัน</button>
@@ -722,6 +738,7 @@ input,select,textarea{border-radius:14px}
     </div>
 
     <div class="card" style="padding:1.25rem">
+      <div id="sc-day-view" style="display:none"></div>
       <div class="cal-grid" id="sc-cal-dow" style="margin-bottom:6px">
         <div class="cal-dow"><span class="dow-full">จันทร์</span><span class="dow-short">จ.</span></div><div class="cal-dow"><span class="dow-full">อังคาร</span><span class="dow-short">อ.</span></div><div class="cal-dow"><span class="dow-full">พุธ</span><span class="dow-short">พ.</span></div><div class="cal-dow"><span class="dow-full">พฤหัส</span><span class="dow-short">พฤ.</span></div><div class="cal-dow"><span class="dow-full">ศุกร์</span><span class="dow-short">ศ.</span></div><div class="cal-dow"><span class="dow-full">เสาร์</span><span class="dow-short">ส.</span></div><div class="cal-dow"><span class="dow-full">อาทิตย์</span><span class="dow-short">อา.</span></div>
       </div>
@@ -800,12 +817,7 @@ input,select,textarea{border-radius:14px}
           <option value="inactive">ระงับแล้ว</option>
         </select>
       </div>
-      <div style="overflow-x:auto">
-        <table class="mem-table">
-          <thead><tr><th>สมาชิก</th><th>อีเมล</th><th>วันเกิด</th><th>บทบาท</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
-          <tbody id="mem-tbody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr></tbody>
-        </table>
-      </div>
+      <div class="mem-cards" id="mem-cards"><div style="text-align:center;padding:2rem;color:var(--text3);grid-column:1/-1">กำลังโหลด...</div></div>
       <div id="mem-count" style="font-size:12px;color:var(--text3);margin-top:1rem;text-align:right"></div>
     </div>
   </div>
@@ -1698,8 +1710,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.9.2';
+const APP_VERSION='4.10.0';
 const CHANGELOG=[
+  {v:'4.10.0',date:'2026-07-11',changes:[
+    '🖥️ หน้าเงินสดบนจอคอม (แอดมิน): ยังไม่เลือกสาขา = เห็นการ์ด 3 สาขาเรียงข้างกัน — สถานะเปิด/ปิด+ผลต่าง · ยอด 3 กอง · ควรมีตอนปิด · รายการล่าสุดวันนี้ 3 รายการ · ปุ่ม "เปิดดูสาขานี้" (มือถือเรียงลงมา)',
+    '👥 หน้าจัดการสมาชิกโฉมใหม่: จากตารางเป็นการ์ด — เห็น รูป/บทบาท/สาขา/แบบเงินเดือน ครบในใบเดียว ค้นหาด้วยชื่อเล่นได้ · คนถูกระงับจางลงชัดเจน',
+    '📋 ตารางเวรเพิ่ม "มุมมองรายวัน" — กดปุ่มสลับ ตารางเดือน ↔ รายวัน · รายวันเห็นทีละวันว่าใครเข้าเวรสาขาไหนกี่โมง เวรของคุณไฮไลต์ ⭐ · สาขาไหนไม่มีคนเข้าเวรขึ้นเตือน · มือถือเปิดครั้งแรกได้มุมมองรายวันอัตโนมัติ']},
   {v:'4.9.2',date:'2026-07-11',changes:[
     '🛡️ ย้ายปุ่ม "ล้างข้อมูลเงินสดทั้งหมด" ออกจากหน้าเงินสด → ไปอยู่ "ตั้งค่า → ⚠️ โซนอันตราย" (admin เท่านั้น) และก่อนลบต้องพิมพ์คำว่า "ล้างเงินสด" ยืนยันเอง — กันกดพลาดจากหน้าที่ใช้ทุกวัน']},
   {v:'4.9.1',date:'2026-07-11',changes:[
@@ -4092,6 +4108,69 @@ window.scBranchChanged=async function(){
   _scBranchBusy=false;
 };
 
+// ===== 🆕 v4.10: มุมมองรายวัน (เหมาะกับมือถือ — ไม่ต้องเลื่อนตารางใหญ่) =====
+let _scViewMode=localStorage.getItem('nm_scView')||((typeof window!=='undefined'&&window.innerWidth<700)?'day':'grid');
+let _scDayDate=null;
+window.scToggleView=function(){
+  _scViewMode=_scViewMode==='day'?'grid':'day';
+  localStorage.setItem('nm_scView',_scViewMode);
+  scApplyViewMode();
+};
+function scApplyViewMode(){
+  const day=_scViewMode==='day';
+  ['sc-cal','sc-cal-dow'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=day?'none':'';});
+  if(day){const dnd=document.getElementById('sc-dnd-bar');if(dnd)dnd.style.display='none';}
+  const dv=document.getElementById('sc-day-view');if(dv)dv.style.display=day?'':'none';
+  const btn=document.getElementById('sc-view-btn');if(btn)btn.textContent=day?'🗓️ ตารางเดือน':'📋 รายวัน';
+  if(day)renderScDayView();
+}
+window.scDayShift=function(delta){
+  const dt=new Date((_scDayDate||todayStr())+'T12:00:00');
+  dt.setDate(dt.getDate()+delta);
+  _scDayDate=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  renderScDayView();
+};
+window.scDayPick=function(v){if(v){_scDayDate=v;renderScDayView();}};
+function renderScDayView(){
+  const el=document.getElementById('sc-day-view');if(!el)return;
+  const d=_scDayDate||todayStr();_scDayDate=d;
+  const dt=new Date(d+'T12:00:00');
+  const isToday=d===todayStr();
+  const lbl=dt.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long'});
+  const branchFilter=document.getElementById('sc-branch-filter')?.value||'all';
+  const dayShifts=shifts.filter(s=>s.date===d);
+  const bCards=BRANCHES.map((bn,b)=>{
+    if(branchFilter!=='all'&&+branchFilter!==b)return '';
+    const list=dayShifts.filter(s=>+s.branch===+b).sort((a,c)=>(a.start||'').localeCompare(c.start||''));
+    const rows=list.length?list.map(s=>{
+      const nm=s.staffId?(memberName(s.staffId)||'—'):(s.tempName?`${s.tempName} <span style="font-size:10px;color:var(--text3)">(ชั่วคราว)</span>`:'—');
+      const mine=s.staffId&&currentUser&&s.staffId===currentUser.uid;
+      return `<div style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:10px;margin-bottom:5px;${mine?'background:var(--green-ll);border:1px solid var(--green)':'background:var(--bg)'}">
+        <span>${mine?'⭐':'👤'}</span>
+        <span style="flex:1;font-size:12.5px;font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}${mine?' <span style="font-size:10px;color:var(--green-dd)">(คุณ)</span>':''}</span>
+        <b style="font-size:12px;font-variant-numeric:tabular-nums">${s.start||''}–${s.end||''}</b>
+      </div>`;
+    }).join(''):`<div style="font-size:12px;color:var(--amber-t);background:var(--amber-l);border-radius:10px;padding:9px 11px">⚠️ ยังไม่มีคนเข้าเวรวันนี้</div>`;
+    return `<div class="card" style="margin-bottom:10px;padding:1rem">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+        <span style="width:9px;height:9px;border-radius:50%;background:${BCOLORS[b]}"></span>
+        <span style="font-weight:700;font-size:13.5px;flex:1">${bn}</span>
+        <span style="font-size:11px;color:var(--text3)">${list.length} คน</span>
+      </div>${rows}</div>`;
+  }).join('');
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:8px 10px;margin-bottom:12px;box-shadow:var(--shadow)">
+      <button class="btn btn-sm" onclick="scDayShift(-1)">◀</button>
+      <div style="flex:1;text-align:center">
+        <div style="font-weight:700;font-size:13.5px">${lbl}${isToday?' <span style="font-size:10.5px;color:var(--green-d);font-weight:800">· วันนี้</span>':''}</div>
+      </div>
+      <button class="btn btn-sm" onclick="scDayShift(1)">▶</button>
+      <input type="date" value="${d}" onchange="scDayPick(this.value)" style="width:40px;padding:6px;border:1px solid var(--border2);border-radius:9px;font-family:var(--font);font-size:12px;color:transparent">
+    </div>
+    ${isToday?'':`<div style="text-align:center;margin-bottom:10px"><button class="btn btn-sm" onclick="_scDayDate=todayStr();renderScDayView()">↩︎ กลับมาวันนี้</button></div>`}
+    ${bCards}`;
+}
+
 function scRender(){
   const canEdit=isAdmin;
   const autoBtn=document.getElementById('sc-auto-btn');
@@ -4231,6 +4310,7 @@ function scRender(){
     }
   }
   scInitDnD();
+  scApplyViewMode(); // 🆕 มุมมองรายวัน/ตารางเดือน — คุมการแสดงหลัง render เสร็จ
 }
 
 // ===== Drag-and-drop จัดเวร =====
@@ -5712,6 +5792,47 @@ window.cashDoSafeCount=async function(branch){
   finally{_cashBusy=false;}
 };
 // สรุปเงินภาพรวมทุกสาขา (เฉพาะแอดมิน) — ไว้ monitor เงินสำรอง/ลิ้นชัก/เซฟ + ความเคลื่อนไหว + ขาด/เกิน วันนี้
+// 🆕 v4.10: การ์ดรายสาขา (จอคอมเรียง 3 คอลัมน์ · มือถือเรียงลงมา) — โชว์ตอนแอดมินยังไม่เลือกสาขา
+function cashAdminBranchCards(){
+  if(!isAdmin)return '';
+  const EV_LBL={open:['🌅','เปิดร้าน'],close:['🌙','ปิดร้าน'],r2d:['💼','เบิกสำรองเข้าลิ้นชัก'],topup:['➕','เติมเงินเข้า'],deposit:['🔒','เก็บเข้าตู้เซฟ'],safeout:['🏦','นำออกจากเซฟ'],expense:['🛒','เบิกซื้อของ'],adjust:['⚖️','ปรับยอด'],reservecount:['🪙','นับเงินสำรอง'],safecount:['🔐','นับตู้เซฟ']};
+  const cards=BRANCHES.map((bn,b)=>{
+    const st=cashGet(b);
+    const opened=cashOpenedToday(b), closeEv=cashTodayClose(b);
+    const _openEv=cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='open');
+    let chip,chipStyle;
+    if(closeEv){
+      const d=cashCloseCalc(b,closeEv).diff;
+      chip=d===0?'🌙 ปิดแล้ว · ✓ ตรง':(d>0?`🌙 ปิดแล้ว · เกิน ฿${fmt(d)}`:`🌙 ปิดแล้ว · ขาด ฿${fmt(-d)}`);
+      chipStyle=d===0?'background:var(--green-l);color:var(--green-dd)':(d>0?'background:var(--blue-l);color:var(--blue-t)':'background:var(--red-l);color:var(--red-t)');
+    }else if(opened){chip=`● เปิดอยู่${_openEv?.by?' · '+_openEv.by:''}`;chipStyle='background:var(--amber-l);color:var(--amber-t)';}
+    else{chip='— ยังไม่เปิดร้าน';chipStyle='background:var(--bg);color:var(--text3)';}
+    const expect=closeEv?cashCloseCalc(b,closeEv).expected:cashExpectedClose(b);
+    const evs=cashEvents.filter(e=>+e.branch===+b&&e.date===todayStr()).sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,3);
+    const evHtml=evs.length?evs.map(e=>{
+      const [ic,lb]=EV_LBL[e.type]||['•',e.type];
+      const t=e.ts?new Date(e.ts).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
+      return `<div class="cab-ev"><span>${ic}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${lb}${e.by?' · '+e.by:''}</span><span style="color:var(--text3)">${t}</span><b style="font-variant-numeric:tabular-nums">฿${fmt(e.amount||0)}</b></div>`;
+    }).join(''):'<div style="font-size:11px;color:var(--text3);padding:5px 0">ยังไม่มีรายการวันนี้</div>';
+    return `<div class="card" style="padding:1rem;margin-bottom:0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="width:10px;height:10px;border-radius:50%;background:${BCOLORS[b]}"></span>
+        <span style="font-weight:700;font-size:14px;flex:1">${bn}</span>
+        <span style="font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;${chipStyle};white-space:nowrap">${chip}</span>
+      </div>
+      <div class="cab-pools">
+        <div class="cab-pool"><div class="l">💼 สำรอง</div><div class="v" style="${st.reserve<0?'color:var(--red-t)':''}">฿${fmt(st.reserve)}</div></div>
+        <div class="cab-pool"><div class="l">🧰 ลิ้นชัก</div><div class="v" style="${st.drawer<0?'color:var(--red-t)':''}">฿${fmt(st.drawer)}</div></div>
+        <div class="cab-pool"><div class="l">🔒 เซฟ</div><div class="v" style="${st.safe<0?'color:var(--red-t)':''}">฿${fmt(st.safe)}</div></div>
+      </div>
+      ${opened&&!closeEv?`<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);margin-bottom:8px"><span>🧮 ควรมีตอนปิดร้าน</span><b>฿${fmt(expect)}</b></div>`:''}
+      ${evHtml}
+      <button class="btn btn-sm" style="width:100%;margin-top:9px" onclick="cashSetBranch(${b})">เปิดดูสาขานี้ ›</button>
+    </div>`;
+  }).join('');
+  return `<div class="cash-admin-grid">${cards}</div>`;
+}
+
 function cashAdminSummary(){
   if(!isAdmin)return '';
   let totR=0,totD=0,totS=0, salesCash=0,expTot=0,depTot=0,topupTot=0,r2dTot=0,safeoutTot=0, diffTot=0, closedCount=0, openedCount=0, hasClose=false;
@@ -6038,10 +6159,10 @@ function renderCashPage(){
   const _braw=document.getElementById('cash-branch')?.value;
   // ต้องเลือกสาขาก่อน ถึงจะดู/กรอกข้อมูลได้
   if(_braw===''||_braw==null){
-    el.innerHTML=(isAdmin?cashAdminSummary():'')+`<div class="card" style="text-align:center;padding:2.5rem 1.5rem;color:var(--text3)">
+    el.innerHTML=(isAdmin?cashAdminBranchCards()+cashAdminSummary():'')+`<div class="card" style="text-align:center;padding:2.5rem 1.5rem;color:var(--text3)">
       <div style="font-size:34px;margin-bottom:10px">🏪</div>
       <div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px">เลือกสาขาก่อน</div>
-      <div style="font-size:13px">แตะเลือกสาขาด้านบน เพื่อดูและบันทึกเงินสด${isAdmin?' · หรือดูสรุปภาพรวมด้านบน':''}</div>
+      <div style="font-size:13px">แตะเลือกสาขาด้านบน เพื่อดูและบันทึกเงินสด${isAdmin?' · หรือดูภาพรวม 3 สาขาด้านบน (กด "เปิดดูสาขานี้" เพื่อทำรายการ)':''}</div>
     </div>`;
     return;
   }
@@ -7749,10 +7870,10 @@ window.salesDelete=async function(date,branch){
 
 // ===== MEMBERS =====
 window.loadMembers=async function(){
-  const tbody=document.getElementById('mem-tbody');
-  if(!tbody)return;
-  if(!isAdmin&&!hasPerm('members')){tbody.innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
-  tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
+  const box=document.getElementById('mem-cards');
+  if(!box)return;
+  if(!isAdmin&&!hasPerm('members')){box.innerHTML=`<div style="grid-column:1/-1">${accessDenied()}</div>`;return;}
+  box.innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3);grid-column:1/-1">กำลังโหลด...</div>';
   try{
     const snap=await getDocs(collection(db,'members'));
     allMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));
@@ -7761,27 +7882,43 @@ window.loadMembers=async function(){
     renderSecurityCard();
   }catch(e){
     console.error('loadMembers error:',e);
-    tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--red-t)">โหลดไม่ได้: ${e.code||e.message}<br><small style="color:var(--text3)">${e.code==='permission-denied'?'กรุณาตรวจสอบ Firestore Rules':''}</small></td></tr>`;
+    box.innerHTML=`<div style="text-align:center;padding:2rem;color:var(--red-t);grid-column:1/-1">โหลดไม่ได้: ${e.code||e.message}<br><small style="color:var(--text3)">${e.code==='permission-denied'?'กรุณาตรวจสอบ Firestore Rules':''}</small></div>`;
   }
 };
+// 🆕 v4.10: รายชื่อสมาชิกแบบการ์ด — เห็นสาขา/ตำแหน่ง/แบบเงินเดือนในใบเดียว
 window.filterMembers=function(){
   const q=document.getElementById('mem-search')?.value.toLowerCase()||'';
   const f=document.getElementById('mem-filter')?.value||'all';
   const filtered=allMembers.filter(m=>{
-    const n=`${m.firstName||''} ${m.lastName||''} ${m.email||''}`.toLowerCase();
+    const n=`${m.firstName||''} ${m.lastName||''} ${m.nickname||''} ${m.email||''}`.toLowerCase();
     return(!q||n.includes(q))&&(f==='all'||m.status===f);
   });
   document.getElementById('mem-count').textContent=`แสดง ${filtered.length} จาก ${allMembers.length} รายการ`;
-  document.getElementById('mem-tbody').innerHTML=filtered.length===0?'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">ไม่พบรายการ</td></tr>':filtered.map(m=>{
+  const _SALTYPE={hourly_actual:'ตามชั่วโมงจริง',req_sun:'ชั่วโมงบังคับ',req_fix6:'ชั่วโมงบังคับ (6วัน)',fixed:'เงินเดือนประจำ',hourly:'รายชั่วโมง',both:'ผสม'};
+  document.getElementById('mem-cards').innerHTML=filtered.length===0?'<div style="text-align:center;padding:2rem;color:var(--text3);grid-column:1/-1">ไม่พบรายการ</div>':filtered.map(m=>{
     const name=`${m.firstName||''} ${m.lastName||''}`.trim()||m.email;
-    const dob=m.dateOfBirth?new Date(m.dateOfBirth).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}):'—';
-    const roleBadge=m.role==='admin'?'<span class="badge badge-purple">Admin</span>':'<span class="badge badge-green">สมาชิก</span>';
-    const sta=m.status==='active'?'<span class="sta-on">ใช้งาน</span>':'<span class="sta-off">ระงับ</span>';
-    const cloneBadge=m.isClone?'<span class="badge" style="background:#F59E0B;color:#1C1917;font-size:10px;font-weight:700;margin-left:6px">🧪 ทดสอบ</span>':'';
+    const roleBadge=m.role==='admin'?'<span class="badge badge-purple">Admin</span>':m.role==='tester'?'<span class="badge badge-amber">Tester</span>':'<span class="badge badge-green">สมาชิก</span>';
+    const branchChip=(m.branch!=null&&BRANCHES[m.branch])?`<span class="badge" style="background:${BCOLORS[m.branch]}22;color:${BCOLORS[m.branch]};font-weight:700">● ${BRANCHES[m.branch]}</span>`:'';
+    const salChip=m.salary?.type?`<span class="badge" style="background:var(--bg);color:var(--text2)">💵 ${_SALTYPE[m.salary.type]||m.salary.type}</span>`:'<span class="badge" style="background:var(--bg);color:var(--text3)">ยังไม่ตั้งเงินเดือน</span>';
+    const cloneBadge=m.isClone?'<span class="badge" style="background:#F59E0B;color:#1C1917;font-weight:700">🧪 ทดสอบ</span>':'';
+    const sta=m.status==='active'?'':'<span class="badge badge-red">ระงับอยู่</span>';
+    const av=m.photoUrl
+      ?`<div class="mem-av" style="background:#eee url('${m.photoUrl}') center/cover;color:transparent">.</div>`
+      :`<div class="mem-av">${name.charAt(0)}</div>`;
     const actions=isAdmin?(m.isClone
       ?`<button class="btn btn-sm btn-danger" onclick="deleteMemberClone('${m.uid}')">🗑 ลบโคลน</button>`
-      :`<button class="btn btn-sm" onclick="cloneMember('${m.uid}')" title="โคลนไว้ทดสอบ">📋 โคลน</button><button class="btn btn-sm ${m.status==='active'?'btn-danger':'btn-primary'}" onclick="toggleMember('${m.uid}','${m.status}')">${m.status==='active'?'ระงับ':'เปิดใช้'}</button>`):'';
-    return`<tr><td><div style="display:flex;align-items:center;gap:10px"><div class="mem-av">${name.charAt(0)}</div><div style="font-weight:600">${name}${cloneBadge}</div></div></td><td style="font-size:12px;color:var(--text2)">${m.email||'—'}</td><td>${dob}</td><td>${roleBadge}</td><td>${sta}</td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-sm btn-blue" onclick="viewMember('${m.uid}')">จัดการ</button>${actions}</div></td></tr>`;
+      :`<button class="btn btn-sm" onclick="cloneMember('${m.uid}')" title="โคลนไว้ทดสอบ">📋</button><button class="btn btn-sm ${m.status==='active'?'btn-danger':'btn-primary'}" onclick="toggleMember('${m.uid}','${m.status}')">${m.status==='active'?'ระงับ':'เปิดใช้'}</button>`):'';
+    return`<div class="mem-card${m.status==='active'?'':' suspended'}">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        ${av}
+        <div style="min-width:0;flex:1">
+          <div style="font-weight:700;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+          <div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.position||m.nickname||m.email||'—'}</div>
+        </div>
+      </div>
+      <div class="chips">${roleBadge}${branchChip}${salChip}${cloneBadge}${sta}</div>
+      <div class="acts"><button class="btn btn-sm btn-blue" style="flex:1" onclick="viewMember('${m.uid}')">จัดการ</button>${actions}</div>
+    </div>`;
   }).join('');
 };
 // 📋 โคลนพนักงานเป็น "พนักงานทดสอบ" (สำเนา config ไม่มีล็อกอิน) — ไว้ทดสอบเงินเดือน/สิทธิ์/หน้าตา
