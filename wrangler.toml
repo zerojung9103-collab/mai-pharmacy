@@ -1,6 +1,10 @@
 name = "mai-pharmacy"
 compatibility_date = "2025-06-01"
 
-# เว็บนี้เป็นไฟล์ static ล้วน (ไม่มี build) — บอก Cloudflare Workers ให้เสิร์ฟไฟล์ทั้งโฟลเดอร์
+# v4.12.2: เพิ่มตัวรันโค้ด (worker-entry.js) สำหรับเส้นทาง /juristic (ค้นหานิติบุคคล)
+# ไฟล์เว็บ static ยังเสิร์ฟเหมือนเดิมทุกอย่าง — ถ้าเส้นทางตรงกับไฟล์ ไฟล์มาก่อนเสมอ
+main = "worker-entry.js"
+
 [assets]
 directory = "."
+binding = "ASSETS"
