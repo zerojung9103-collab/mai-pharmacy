@@ -1730,8 +1730,13 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.13.4';
+const APP_VERSION='4.14.0';
 const CHANGELOG=[
+  {v:'4.14.0',date:'2026-07-12',changes:[
+    '🏠 หน้าแรกโฉมใหม่ (พนักงาน): การ์ด "ขั้นต่อไปของคุณ" โชว์ครบ 5 ขั้นของวัน — เช็คอิน → เปิดร้าน → ลงยอด → ปิดร้าน → เช็คเอาท์ · ขั้นที่ทำแล้วขีดออก+โชว์เวลา · ปุ่มใหญ่พาไปทำขั้นถัดไปเลย · วันไม่มีเวรขึ้น "พักผ่อนได้เลย 🌴" · ใต้การ์ดมีสรุปวันนี้ (ยอดขาย/เงินลิ้นชัก/งานวันนี้) + ทางลัด 4 ปุ่ม',
+    '👥 หน้าแรกแอดมิน: การ์ด "ทีมวันนี้" เห็นงานของแต่ละคนแยกสาขา — ใครกำลังทำงาน/เข้าสาย/ยังไม่เช็คอิน/ลา/ยังไม่ถึงเวร + ความคืบหน้างานประจำวันของสาขา · สาขาไหนไม่มีเวรขึ้นเตือนแดง กดไปจัดเวรได้เลย',
+    '🕑 ปุ่ม "ลงเวลาให้" — พนักงานลืมลงเวลา/ระบบกันไว้ แอดมินกดลงเวลาแทนได้จากการ์ดทีมวันนี้ (บันทึกเป็นการทำโดยแอดมิน มีประวัติให้พนักงานเห็น เหมือนการแก้เวลา)',
+    '⏳ การ์ด "รออนุมัติ" บนหน้าแรกแอดมิน — รวมคำขอลา + คำขอแก้ยอดขายที่ค้าง กดเข้าไปจัดการได้ทันที']},
   {v:'4.13.4',date:'2026-07-12',changes:[
     '🔍 แก้ค้นหานิติบุคคลติดผลเก่า — เดิมถ้าเคยค้นเลขไหนแล้ว "ไม่เจอ" เบราว์เซอร์จะจำคำตอบนั้นไว้ทั้งวัน แม้ระบบฝั่งเซิร์ฟเวอร์แก้แล้วก็ยังขึ้นไม่เจอ ตอนนี้ขอข้อมูลสดใหม่ทุกครั้ง (ใครค้นแล้วไม่เจอทั้งที่ควรเจอ ลองค้นซ้ำได้เลย)']},
   {v:'4.13.3',date:'2026-07-11',changes:[
@@ -3814,6 +3819,121 @@ async function renderStaffStatus(targetId='db-staff-status'){
     </table></div>
   </div>`;
 }
+
+// 🆕 v4.14: การ์ด "ทีมวันนี้" บนหน้าแรกแอดมิน — เห็นงานของแต่ละคนแยกสาขา + ลงเวลาแทนคนที่ลืม
+async function renderHomeTeam(targetId='home-staff-status'){
+  const el=document.getElementById(targetId);
+  if(!el)return;
+  const today=todayStr();
+  // เติมข้อมูลที่ยังไม่มี: เช็คอินวันนี้ / วันลา / คำขอแก้ไข
+  try{
+    const snap=await getDocs(query(collection(db,'checkins'),where('date','==',today)));
+    snap.docs.forEach(d=>{const c={...d.data(),id:d.id};if(isTestCheckin(c))return;if(!allCheckins.find(x=>x.uid===c.uid&&x.date===c.date))allCheckins.push(c);});
+  }catch(e){}
+  if(!allLeaves.length){try{await loadLeavesForSchedule();}catch(e){}}
+  try{if(typeof loadEditRequests==='function')await loadEditRequests();}catch(e){}
+  const el2=document.getElementById(targetId);
+  if(!el2)return; // ออกจากหน้าแล้ว
+  const now=new Date(),nowM=now.getHours()*60+now.getMinutes();
+  const dayShifts=shifts.filter(s=>s.date===today);
+  const leavesToday=allLeaves.filter(l=>l.status==='approved'&&l.from&&today>=l.from&&today<=(l.to||l.from));
+  const esc=s=>String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/'/g,'');
+  const durTxt=m=>m>=60?Math.floor(m/60)+' ชม. '+(m%60?(m%60)+' น.':''):m+' นาที';
+  const pill=(bg,c,t)=>`<span style="display:inline-block;font-size:10px;font-weight:800;border-radius:10px;padding:3px 9px;background:${bg};color:${c};white-space:nowrap">${t}</span>`;
+  const branchBlocks=BRANCHES.map((bName,b)=>{
+    const bs=dayShifts.filter(s=>+s.branch===b).slice().sort((a,c)=>(a.start||'').localeCompare(c.start||''));
+    const td=(window._todoStatus||[]).find(p=>+p.branch===b);
+    const tdChip=td&&td.total?`<span style="font-size:10.5px;font-weight:700;color:${td.pending?'var(--amber-t)':'var(--green-d)'}">งาน ${td.done}/${td.total}</span>`:'';
+    let rows;
+    if(!bs.length){
+      rows=`<div onclick="goto('schedule')" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-top:1px solid var(--border);background:var(--red-l);cursor:pointer">
+        <span style="width:32px;height:32px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0">!</span>
+        <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700">วันนี้ไม่มีเวรในตาราง</div><div style="font-size:10.5px;color:var(--text3)">กดเพื่อไปจัดเวร</div></div>
+        <span style="color:var(--text3)">›</span></div>`;
+    }else{
+      rows=bs.map(s=>{
+        const nm=shiftFullName(s);
+        const initials=(shiftShortName(s)||'?').slice(0,2);
+        const ci=s.tempName?null:allCheckins.find(c=>c.uid===s.staffId&&c.date===today&&c.checkIn);
+        const lv=!s.tempName&&leavesToday.find(l=>l.uid===s.staffId);
+        const[sh,sm]=(s.start||'0:0').split(':').map(Number);
+        const startM=sh*60+sm;
+        let st,sub=`เวร ${s.start}–${s.end}`,act='';
+        if(s.tempName)st=pill('var(--bg)','var(--text2)','ชั่วคราว');
+        else if(lv)st=pill('var(--blue-l)','var(--blue-t)','🌴 ลาวันนี้');
+        else if(ci&&ci.checkOut){st=pill('var(--bg)','var(--text2)','ออกงานแล้ว '+ci.checkOut);sub=`เข้า ${ci.checkIn} · ออก ${ci.checkOut}`;}
+        else if(ci){
+          let late=false;
+          if(s.start){const[ch,cm]=ci.checkIn.split(':').map(Number);late=(ch*60+cm)-startM>10;}
+          st=late?pill('var(--amber-l)','var(--amber-t)','กำลังทำงาน · เข้าสาย'):pill('var(--green-l)','var(--green-dd)','กำลังทำงาน');
+          sub=`เข้า ${ci.checkIn} · เวรถึง ${s.end}`;
+        }
+        else if(nowM<startM)st=pill('var(--bg)','var(--text2)','ยังไม่ถึงเวร');
+        else{
+          st=pill('var(--amber-l)','var(--amber-t)','⚠️ ยังไม่เช็คอิน (สาย '+durTxt(nowM-startM)+')');
+          act=`<button onclick="adminAddCheckin('${s.staffId}','${esc(nm)}')" style="background:var(--green-l);color:var(--green-dd);border:none;border-radius:9px;padding:5px 10px;font-family:var(--font);font-weight:800;font-size:10.5px;cursor:pointer;white-space:nowrap">🕑 ลงเวลาให้</button>`;
+        }
+        const fix=(!s.tempName&&ci)?`<button onclick="editCheckin('${ci.id||s.staffId+'_'+today}')" style="background:none;border:none;color:var(--text3);font-family:var(--font);font-size:10.5px;cursor:pointer;padding:2px 4px">แก้เวลา</button>`:'';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:9px 14px;border-top:1px solid var(--border)">
+          <span style="width:32px;height:32px;border-radius:50%;background:${BCOLORS[b]};color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">${initials}</span>
+          <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</div><div style="font-size:10.5px;color:var(--text3)">${sub}</div></div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">${st}${act||fix}</div>
+        </div>`;
+      }).join('');
+    }
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px 8px"><b style="font-family:var(--disp);font-size:14px;color:${BCOLORS[b]}">🏪 ${bName}</b><span style="display:flex;gap:9px;align-items:center"><span style="font-size:10.5px;color:var(--text3)">เวรวันนี้ ${bs.length} คน</span>${tdChip}</span></div>
+      ${rows}
+    </div>`;
+  }).join('');
+  // การ์ดรออนุมัติ
+  const pendLv=allLeaves.filter(l=>(l.status||'pending')==='pending').length;
+  const pendEr=(typeof editRequests!=='undefined'?editRequests:[]).filter(r=>r.status==='pending').length;
+  const chips=[];
+  if(pendLv>0)chips.push(`<button onclick="goto('leave-admin')" style="background:var(--blue-l);color:var(--blue-t);border:none;border-radius:11px;padding:8px 13px;font-family:var(--font);font-weight:800;font-size:12px;cursor:pointer">🌴 ขอลา ${pendLv} รายการ ›</button>`);
+  if(pendEr>0)chips.push(`<button onclick="openEditRequests()" style="background:var(--amber-l);color:var(--amber-t);border:none;border-radius:11px;padding:8px 13px;font-family:var(--font);font-weight:800;font-size:12px;cursor:pointer">✏️ ขอแก้ยอดขาย ${pendEr} รายการ ›</button>`);
+  const pendCard=chips.length?`<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;box-shadow:var(--shadow);margin-top:12px"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:9px">⏳ รออนุมัติ</div><div style="display:flex;gap:9px;flex-wrap:wrap">${chips.join('')}</div></div>`:'';
+  el2.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem"><div style="font-family:var(--disp);font-weight:600;font-size:16px">👥 ทีมวันนี้</div><span style="font-size:11px;color:var(--text3)">${dayShifts.length} เวร · ตามตารางเวร</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">${branchBlocks}</div>${pendCard}`;
+}
+// 🆕 v4.14: แอดมินลงเวลาแทน (กรณีพนักงานลืมลงเวลา / ระบบกันไว้)
+window.adminAddCheckin=async function(uid,name){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  const today=todayStr(),id=`${uid}_${today}`;
+  try{const d=await getDoc(doc(db,'checkins',id));if(d.exists()){editCheckin(id);return;}}catch(e){}
+  const sh=(shifts||[]).find(s=>s.staffId===uid&&s.date===today);
+  const branchOpts=BRANCHES.map((b,i)=>`<option value="${i}" ${sh&&+sh.branch===i?'selected':''}>${b}</option>`).join('');
+  openModal(`<div class="modal-title">🕑 ลงเวลาแทน — ${name||''}</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ ${today} · ใช้เมื่อพนักงานลืมลงเวลา หรือระบบกันไว้ (ไม่ตรงตารางเวร/GPS) — บันทึกเป็นการทำโดยแอดมิน มีประวัติให้พนักงานเห็น</div>
+    <div class="field-row">
+      <div class="field"><label class="fl">เวลาเข้างาน</label>${time24Picker('aac-in',sh?.start||'09:00')}</div>
+      <div class="field"><label class="fl">สาขา</label><select id="aac-b">${branchOpts}</select></div>
+    </div>
+    <div class="field"><label class="fl">เวลาออกงาน (เว้นว่างได้ ถ้ายังไม่เลิกงาน)</label>${time24Picker('aac-out','')}</div>
+    <div class="field"><label class="fl">เหตุผล (พนักงานจะเห็น)</label><input type="text" id="aac-reason" placeholder="เช่น ลืมเช็คอิน / มาประชุมต่างสาขา"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveAdminAddCheckin('${uid}','${String(name||'').replace(/'/g,'')}')">บันทึกลงเวลา</button></div>`);
+};
+window.saveAdminAddCheckin=async function(uid,name){
+  const tIn=readTime24('aac-in'),tOut=readTime24('aac-out');
+  const bRaw=document.getElementById('aac-b')?.value;
+  const b=bRaw!==''&&!isNaN(parseInt(bRaw))?parseInt(bRaw):null;
+  const reason=(document.getElementById('aac-reason')?.value||'').trim();
+  if(!tIn){showToast('ใส่เวลาเข้างานก่อน','err');return;}
+  const today=todayStr(),id=`${uid}_${today}`;
+  const rec={uid,name:name||'',date:today,checkIn:tIn,checkOut:tOut||'',branchIn:b,branchOut:tOut?b:null,editedByAdmin:true,
+    editHistory:[{at:new Date().toISOString(),by:profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin',byUid:currentUser.uid,
+      reason:reason||'ลงเวลาแทน (พนักงานลืมลงเวลา)',
+      old:{checkIn:'',checkOut:'',branchIn:null,branchOut:null},
+      new:{checkIn:tIn,checkOut:tOut||'',branchIn:b,branchOut:tOut?b:null}}]};
+  try{
+    await setDoc(doc(db,'checkins',id),rec);
+    if(!allCheckins.find(c=>c.id===id))allCheckins.push({...rec,id});
+    closeMD();
+    logActivity('checkin_edit',`ลงเวลาแทน ${name||''} (${today} ${tIn}${tOut?'–'+tOut:''})`);
+    showToast('ลงเวลาแทนเรียบร้อย ✓');
+    if(typeof renderHomeTeam==='function')renderHomeTeam();
+  }catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
+};
 
 // สถิติการชำระเงิน แยกตามประเภท (กราฟวงกลม + รายการ)
 let payStatChart=null;
@@ -10778,24 +10898,72 @@ async function renderHomeGuide(){
   const opened=cashOpenedToday(branch), closed=!!cashTodayClose(branch);
   const se=salesEntries.find(e=>e.date===todayStr()&&+e.branch===+branch);
   const salesLogged=!!(se&&se.total>0);
-  const steps=[{k:'เช็คอิน',done:checkedIn},{k:'เปิดร้าน',done:opened},{k:'ลงยอด',done:salesLogged},{k:'ปิดร้าน',done:closed},{k:'เช็คเอาท์',done:checkedOut}];
+  // 🆕 v4.14 แบบ ก — การ์ดไกด์เต็ม 5 ขั้นของวัน (เคาะจาก mockup)
+  const today=todayStr();
+  const myShift=(shifts||[]).find(s=>s.staffId===currentUser?.uid&&s.date===today);
+  const closeEv=cashTodayClose(branch);
+  const openEv=cashEvents.find(ev=>+ev.branch===+branch&&ev.date===today&&ev.type==='open');
+  const evT=ev=>ev&&ev.ts?new Date(ev.ts).toTimeString().slice(0,5)+' น.':'';
+  const steps=[
+    {t:'เช็คอินเข้างาน',done:checkedIn,act:'checkin',
+     sub:checkedIn?`${ci.checkIn} น.${ci.branchIn!=null&&BRANCHES[ci.branchIn]?' · '+BRANCHES[ci.branchIn]:''}`:(myShift?`เวรวันนี้ ${myShift.start}–${myShift.end}`:'ลงเวลาเมื่อมาถึงร้าน')},
+    {t:'เปิดร้าน — นับเงินลิ้นชัก',done:opened,act:'open',
+     sub:opened?`${evT(openEv)}${openEv&&openEv.amount!=null?' · ฿'+fmt(openEv.amount):''}`:'นับเงินตั้งต้นก่อนเริ่มขาย'},
+    {t:'ลงยอดขาย',done:salesLogged,act:'sales',
+     sub:salesLogged?`วันนี้ ฿${fmt(se.total||0)}`:'ปกติลงตอนปิดร้าน — ลงก่อนได้ถ้าพร้อม'},
+    {t:'ปิดร้าน — นับเงิน + เข้าเซฟ',done:closed,act:'close',
+     sub:closed?evT(closeEv)||'ปิดแล้ว':'ช่วงเย็นก่อนกลับ'},
+    {t:'เช็คเอาท์กลับบ้าน',done:checkedOut,act:'checkout',
+     sub:checkedOut?`${ci.checkOut} น.`:(myShift?`เวรถึง ${myShift.end}`:'ลงเวลาออกก่อนกลับ')},
+  ];
+  const nd=steps.filter(s=>s.done).length;
   const nowIdx=steps.findIndex(s=>!s.done);
-  // v4.0 layout B — แถบ "ถึงคิวทำ" แบบบาง (แทนการ์ดใหญ่)
-  let st;
-  if(!checkedIn) st={em:'📍',lbl:'ถึงคิวทำ · เช็คอิน',title:'เช็คอินเข้างาน',cta:'เช็คอิน',act:'checkin'};
-  else if(!opened) st={em:'☀️',lbl:'ถึงคิวทำ · เปิดร้าน',title:'เปิดร้าน — นับเงินลิ้นชัก',cta:'เปิดร้าน',act:'open'};
-  else if(!closed) st=salesLogged?{em:'🌙',lbl:'เปิดร้านแล้ว · กำลังขาย',title:'ตอนเลิกงาน มาปิดร้าน',cta:'ปิดร้าน',act:'close'}:{em:'💰',lbl:'เปิดร้านแล้ว · กำลังขาย',title:'ลงยอดขายวันนี้',cta:'ลงยอด',act:'sales'};
-  else if(!checkedOut) st={em:'📍',lbl:'ขั้นสุดท้าย',title:'เช็คเอาท์ออกงาน',cta:'เช็คเอาท์',act:'checkout'};
-  else st=null;
-  if(!st){
-    box.innerHTML=`<div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:16px;padding:14px 15px;margin-bottom:1.1rem;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🎉</span><div><div style="font-size:15px;font-weight:800;font-family:var(--disp);color:var(--green-dd)">วันนี้เรียบร้อยแล้ว!</div><div style="font-size:12px;color:var(--green-d)">ทำครบทุกอย่างแล้ว เก่งมาก ขอบคุณนะ 💚</div></div></div>`;
-    return;
+  // ทำครบ 5 ขั้น = การ์ดฉลอง
+  let guideCard;
+  if(nd===5){
+    guideCard=`<div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:16px;padding:14px 15px;margin-bottom:1.1rem;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🎉</span><div><div style="font-size:15px;font-weight:800;font-family:var(--disp);color:var(--green-dd)">วันนี้เรียบร้อยแล้ว!</div><div style="font-size:12px;color:var(--green-d)">ทำครบทุกอย่างแล้ว เก่งมาก ขอบคุณนะ 💚</div></div></div>`;
+  } else if(!myShift&&nd===0){
+    // ไม่มีเวร + ยังไม่เริ่มอะไร = วันพัก (ถ้ามาทำงานก็เช็คอินได้ตามปกติ)
+    guideCard=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:1.1rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:13px">
+      <span style="font-size:30px">🌴</span>
+      <div style="flex:1;min-width:0"><div style="font-size:15px;font-weight:800;font-family:var(--disp)">วันนี้คุณไม่มีเวร</div><div style="font-size:12px;color:var(--text3);margin-top:2px">พักผ่อนได้เลย — แต่ถ้ามาทำงาน ก็เช็คอินได้ตามปกติ</div></div>
+      <button onclick="guideGo('checkin',${branch})" style="background:var(--green-l);color:var(--green-dd);border:none;border-radius:11px;padding:9px 13px;font-family:var(--font);font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap">📍 เช็คอิน</button>
+    </div>`;
+  } else {
+    const CTA={checkin:'📍 ไปเช็คอิน',open:'☀️ ไปเปิดร้าน',sales:'💰 ไปลงยอดขาย',close:'🌙 ไปปิดร้าน',checkout:'📍 ไปเช็คเอาท์'};
+    const rows=steps.map((s,i)=>{
+      const isNow=i===nowIdx;
+      const dot=s.done
+        ?`<span style="width:26px;height:26px;border-radius:50%;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;flex-shrink:0">✓</span>`
+        :isNow
+        ?`<span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;flex-shrink:0;box-shadow:0 0 0 4px var(--green-l)">${i+1}</span>`
+        :`<span style="width:26px;height:26px;border-radius:50%;border:2px dashed var(--border2);color:var(--text3);display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:800;flex-shrink:0">${i+1}</span>`;
+      return `<div style="display:flex;gap:11px;align-items:flex-start;padding:6px 0;${isNow?'':'opacity:'+(s.done?'.72':'.85')}">
+        ${dot}
+        <div style="flex:1;min-width:0;padding-top:3px">
+          <div style="font-size:13px;font-weight:${isNow?800:600};${s.done?'color:var(--text2);text-decoration:line-through;text-decoration-thickness:1px;':''}">${s.t}</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:1px">${s.sub}</div>
+        </div>
+      </div>`;
+    }).join('');
+    guideCard=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:15px;margin-bottom:1.1rem;box-shadow:var(--shadow)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px"><div style="font-family:var(--disp);font-size:15.5px;font-weight:700">ขั้นต่อไปของคุณ</div><span style="font-size:11px;color:var(--text3)">ทำแล้ว ${nd}/5</span></div>
+      <div style="height:7px;background:var(--border);border-radius:5px;overflow:hidden;margin-bottom:12px"><div style="height:100%;width:${nd/5*100}%;background:linear-gradient(140deg,#23B895,#127C62);border-radius:5px;transition:width .4s"></div></div>
+      ${rows}
+      <button onclick="guideGo('${steps[nowIdx].act}',${branch})" style="display:block;width:100%;border:none;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;font-family:var(--font);font-size:14.5px;font-weight:800;border-radius:14px;padding:13px;margin-top:10px;box-shadow:0 6px 14px rgba(18,124,98,.3);cursor:pointer">${CTA[steps[nowIdx].act]||'ทำขั้นต่อไป'}</button>
+    </div>`;
   }
-  box.innerHTML=`<div onclick="guideGo('${st.act}',${branch})" style="background:linear-gradient(140deg,#26C29D,#0F6E56);border-radius:16px;padding:14px 15px;color:#fff;margin-bottom:1.1rem;box-shadow:0 10px 24px rgba(15,110,86,.26);display:flex;align-items:center;gap:12px;cursor:pointer">
-    <span style="font-size:26px;flex-shrink:0">${st.em}</span>
-    <div style="flex:1;min-width:0"><div style="font-size:10.5px;font-weight:700;letter-spacing:.4px;opacity:.9">● ${st.lbl}</div><div style="font-size:16px;font-weight:800;font-family:var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${st.title}</div></div>
-    <span style="background:#fff;color:var(--green-dd);border-radius:11px;padding:9px 14px;font-weight:800;font-size:13px;white-space:nowrap;flex-shrink:0">${st.cta} →</span>
+  // สรุปวันนี้ 3 ช่อง + ทางลัด 4 ปุ่ม (เฉพาะจอพนักงาน)
+  const tile=(l,v,s)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 11px;box-shadow:var(--shadow)"><div style="font-size:10.5px;color:var(--text3);font-weight:700">${l}</div><div style="font-size:16px;font-weight:800;margin-top:2px;font-family:var(--disp)">${v}</div><div style="font-size:10px;color:var(--green-d);font-weight:700;min-height:14px">${s}</div></div>`;
+  const tdSt=(window._todoStatus||[]).find(p=>+p.branch===+branch);
+  const tiles=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:1.1rem">
+    ${tile('ยอดขายวันนี้',salesLogged?'฿'+fmt(se.total||0):'—',BRANCHES[branch]||'')}
+    ${tile('เงินลิ้นชัก',opened?'฿'+fmt(cashGet(branch).drawer):'—',opened?'':'ยังไม่เปิดร้าน')}
+    <div id="home-tile-todo">${tile('งานวันนี้',tdSt&&tdSt.total?tdSt.done+'/'+tdSt.total:'—',tdSt&&tdSt.pending?'เหลือ '+tdSt.pending+' งาน':'')}</div>
   </div>`;
+  const scBtn=(pg,ic,lbl)=>`<button onclick="goto('${pg}')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:11px 6px;text-align:center;box-shadow:var(--shadow);cursor:pointer;font-family:var(--font)"><div style="font-size:20px">${ic}</div><div style="font-size:10.5px;font-weight:700;color:var(--text2);margin-top:4px">${lbl}</div></button>`;
+  const shortcuts=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:1.1rem">${scBtn('checkin','📍','ลงเวลา')}${scBtn('todo','✅','งานวันนี้')}${scBtn('schedule','📅','ตารางเวร')}${scBtn('leave','🌴','ขอลา')}</div>`;
+  box.innerHTML=guideCard+tiles+shortcuts;
 }
 window.guideGo=function(act,branch){
   // โหมดแอดมิน "ดูระบบแบบพนักงาน" = ดูเฉยๆ ไม่ทำงานจริง (กันบันทึกข้อมูลจริงโดยไม่ตั้งใจ)
@@ -11106,7 +11274,7 @@ function renderHome(){
 
   el.innerHTML=html+'</div>';
   if(typeof animateHomeStats==='function')animateHomeStats();
-  if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderStaffStatus('home-staff-status');}
+  if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderHomeTeam('home-staff-status');}
   if(typeof refreshTodoStatus==='function')refreshTodoStatus();
   if(typeof renderHomeGuide==='function')renderHomeGuide();
   checkMySlipBanner(); // 🆕 แจ้ง "สลิปเงินเดือนออกแล้ว"
@@ -12594,6 +12762,12 @@ function updateTodoNavBadge(per){
   });
 }
 function renderTodoHomeCard(per){
+  // 🆕 v4.14: อัปเดตช่อง "งานวันนี้" ในสรุปวันนี้ของการ์ดไกด์ (ถ้ามี)
+  const tEl=document.getElementById('home-tile-todo');
+  if(tEl&&per.length){
+    const p=per[0];
+    tEl.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:10px 11px;box-shadow:var(--shadow)"><div style="font-size:10.5px;color:var(--text3);font-weight:700">งานวันนี้</div><div style="font-size:16px;font-weight:800;margin-top:2px;font-family:var(--disp)">${p.total?p.done+'/'+p.total:'—'}</div><div style="font-size:10px;color:${p.pending?'var(--amber-t)':'var(--green-d)'};font-weight:700;min-height:14px">${p.total?(p.pending?'เหลือ '+p.pending+' งาน':'ครบแล้ว ✓'):''}</div></div>`;
+  }
   const el=document.getElementById('home-todo-card');
   if(!el)return;
   if(!per.some(p=>p.total>0)){el.innerHTML='';return;}
