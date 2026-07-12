@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Itim&family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Itim&family=Mali:wght@400;600&family=Kanit:wght@400;600;700&family=Prompt:wght@300;400;600&family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -94,6 +94,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 @keyframes pageIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .topbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:12px}
 .page-title{font-size:24px;font-weight:700;color:var(--text);letter-spacing:-.02em}
+.page-title,.card-title{color:var(--head-col,var(--text))}
+.sidebar{background:var(--nav-bg,var(--sidebar-grad,var(--surface)))!important}
+.bottom-nav{background:var(--nav-bg,var(--surface))!important}
+/* v4.18 ลูกเล่นปุ่มเด้ง/เปลี่ยนหน้า */
+.fx-bounce-soft button:active{transform:scale(.96);transition:transform .1s}
+.fx-bounce-big button:active{transform:scale(.9);transition:transform .12s}
+@keyframes fxSlideIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:none}}
+@keyframes fxFadeIn{from{opacity:0}to{opacity:1}}
+.fx-page-slide .page.active{animation:fxSlideIn .22s ease}
+.fx-page-fade .page.active{animation:fxFadeIn .25s ease}
 .page-sub{font-size:13px;color:var(--text3);margin-top:3px}
 .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.5rem;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
 .card-title{font-size:15px;font-weight:600;margin-bottom:.25rem}
@@ -1412,151 +1422,10 @@ input,select,textarea{border-radius:14px}
       .fl-sb-item.selected{background:var(--green-ll)}
     </style>
   </div>
-  <!-- ===== หน้าธีมส่วนตัว ===== -->
+  <!-- ===== หน้าธีมส่วนตัว (v4.18 แกลเลอรีธีม) ===== -->
   <div class="page" id="page-theme">
-    <div class="topbar">
-      <div><div class="page-title">ธีมของฉัน</div><div class="page-sub">ปรับแต่งการแสดงผลเฉพาะบัญชีของคุณ — ไม่กระทบคนอื่น</div></div>
-    </div>
-    <div class="thm-cols">
-      <div class="thm-pvcol">
-        <div class="card" style="border:1.5px solid var(--green);background:var(--green-ll)">
-          <div style="font-size:12.5px;font-weight:800;color:var(--green-dd);margin-bottom:8px">👁️ ตัวอย่างสด — แตะปรับด้านล่างแล้วภาพนี้เปลี่ยนทันที</div>
-          <div style="background:var(--bg);border:1px solid var(--border2);border-radius:16px;padding:12px">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
-              <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(140deg,var(--green),var(--green-dd));color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">ฉัน</span>
-              <span style="font-size:11.5px;font-weight:700">สวัสดี 👋 นี่คือหน้าแรกของคุณ</span>
-            </div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:var(--shadow);margin-bottom:8px">
-              <b style="font-size:11px;font-family:var(--disp)">ขั้นต่อไปของคุณ</b>
-              <div style="height:5px;background:var(--border);border-radius:4px;margin:6px 0;overflow:hidden"><span style="display:block;height:100%;width:40%;background:linear-gradient(140deg,var(--green),var(--green-dd))"></span></div>
-              <div style="background:linear-gradient(140deg,var(--green),var(--green-dd));border-radius:9px;color:#fff;font-size:10.5px;font-weight:800;text-align:center;padding:8px">▶ ไปลงยอดขาย</div>
-            </div>
-            <div style="display:flex;gap:7px">
-              <span style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:7px 9px;font-size:9px;color:var(--text3)">ยอดขายวันนี้<b style="display:block;font-size:12px;color:var(--text);font-family:var(--disp)">฿12,480</b></span>
-              <span style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:7px 9px;font-size:9px;color:var(--text3)">งานวันนี้<b style="display:block;font-size:12px;color:var(--green-d);font-family:var(--disp)">6/9</b></span>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="thm-ctrlcol">
-      <!-- Preset themes -->
-      <div class="card" style="margin-bottom:1rem">
-        <div style="font-weight:600;font-size:14px;margin-bottom:.4rem">✨ ธีมสำเร็จรูป</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">แตะเลือกชุดแต่งสำเร็จ แล้วปรับเพิ่มเองด้านล่างได้</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px" id="theme-preset-grid">
-          <button class="theme-preset-btn" onclick="applyThemePreset('mint')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
-            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#1FAE8B,#0E7E5C);flex-shrink:0"></span><span><b style="font-size:13px">มินต์หรู</b><br><span style="font-size:10.5px;color:var(--text3)">สว่าง · มีหัว · มน</span></span>
-          </button>
-          <button class="theme-preset-btn" onclick="applyThemePreset('cute')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
-            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#D06A86,#C96F4A);flex-shrink:0"></span><span><b style="font-size:13px">พีชน่ารัก</b><br><span style="font-size:10.5px;color:var(--text3)">สว่าง · กลม · มนมาก</span></span>
-          </button>
-          <button class="theme-preset-btn" onclick="applyThemePreset('modern')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
-            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#3A6EA5,#5A5BB8);flex-shrink:0"></span><span><b style="font-size:13px">ฟ้าโมเดิร์น</b><br><span style="font-size:10.5px;color:var(--text3)">สว่าง · เรียบ · เหลี่ยม</span></span>
-          </button>
-          <button class="theme-preset-btn" onclick="applyThemePreset('dark')" style="border:1.5px solid var(--border2);background:var(--surface);border-radius:12px;padding:11px;cursor:pointer;font-family:var(--font);text-align:left;display:flex;align-items:center;gap:10px">
-            <span style="width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,#2FE0A4,#10302A);flex-shrink:0"></span><span><b style="font-size:13px">ดาร์กมินต์</b><br><span style="font-size:10.5px;color:var(--text3)">มืด · เรียบ · ปกติ</span></span>
-          </button>
-        </div>
-      </div>
-      <!-- Mode -->
-      <div class="card" style="margin-bottom:1rem">
-        <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">🌓 โหมดแสดงผล</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-mode-grid">
-          <div class="theme-mode-btn active" data-mode="light" onclick="selectThemeMode('light')">
-            <i class="ti ti-sun" style="font-size:22px" aria-hidden="true"></i>
-            <div style="font-size:12px;margin-top:4px">สว่าง</div>
-          </div>
-          <div class="theme-mode-btn" data-mode="dark" onclick="selectThemeMode('dark')">
-            <i class="ti ti-moon" style="font-size:22px" aria-hidden="true"></i>
-            <div style="font-size:12px;margin-top:4px">มืด</div>
-          </div>
-          <div class="theme-mode-btn" data-mode="system" onclick="selectThemeMode('system')">
-            <i class="ti ti-device-mobile" style="font-size:22px" aria-hidden="true"></i>
-            <div style="font-size:12px;margin-top:4px">ตามเครื่อง</div>
-          </div>
-        </div>
-      </div>
-      <!-- Accent color -->
-      <div class="card" style="margin-bottom:1rem">
-        <div style="font-weight:600;font-size:14px;margin-bottom:.25rem">🎨 สีเน้น (Accent)</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:.75rem">เปลี่ยนสีปุ่ม ไอคอน active และ highlight ให้เป็นสีของคุณเอง</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:1rem" id="theme-accent-grid">
-          <div class="theme-color-dot active" data-color="#1FAE8B" onclick="selectAccent('#1FAE8B')" style="background:#1FAE8B" title="มินต์ (ค่าเริ่มต้น)"></div>
-          <div class="theme-color-dot" data-color="#0E8C8C" onclick="selectAccent('#0E8C8C')" style="background:#0E8C8C" title="เทอร์คอยซ์"></div>
-          <div class="theme-color-dot" data-color="#3E8E5A" onclick="selectAccent('#3E8E5A')" style="background:#3E8E5A" title="เขียวป่า"></div>
-          <div class="theme-color-dot" data-color="#3A6EA5" onclick="selectAccent('#3A6EA5')" style="background:#3A6EA5" title="น้ำเงินหม่น"></div>
-          <div class="theme-color-dot" data-color="#5A5BB8" onclick="selectAccent('#5A5BB8')" style="background:#5A5BB8" title="คราม"></div>
-          <div class="theme-color-dot" data-color="#8E5A9E" onclick="selectAccent('#8E5A9E')" style="background:#8E5A9E" title="พลัม"></div>
-          <div class="theme-color-dot" data-color="#D06A86" onclick="selectAccent('#D06A86')" style="background:#D06A86" title="โรส"></div>
-          <div class="theme-color-dot" data-color="#C96F4A" onclick="selectAccent('#C96F4A')" style="background:#C96F4A" title="ดินเผา"></div>
-          <div class="theme-color-dot" data-color="#C99A3F" onclick="selectAccent('#C99A3F')" style="background:#C99A3F" title="อำพัน"></div>
-          <!-- custom color -->
-          <label style="cursor:pointer" title="กำหนดสีเอง">
-            <div class="theme-color-dot" id="theme-custom-dot" style="background:conic-gradient(red,yellow,green,blue,red);position:relative">
-              <i class="ti ti-plus" style="font-size:12px;color:#fff;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)" aria-hidden="true"></i>
-            </div>
-            <input type="color" id="theme-custom-color" style="position:absolute;opacity:0;width:0;height:0" onchange="selectAccent(this.value)">
-          </label>
-        </div>
-        <!-- preview -->
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:10px 14px">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:6px">ตัวอย่าง</div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <button class="btn btn-primary btn-sm" style="pointer-events:none">บันทึก</button>
-            <span class="badge" id="theme-preview-badge" style="background:var(--green-l);color:var(--green-d)">active</span>
-            <span style="font-size:12px;color:var(--green)">ลิงก์สีเน้น</span>
-          </div>
-        </div>
-      </div>
-      <!-- Size -->
-      <div class="card" style="margin-bottom:1rem">
-        <div style="font-weight:600;font-size:14px;margin-bottom:.75rem">📐 ขนาดเนื้อหา</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-size-grid">
-          <div class="theme-mode-btn" data-size="compact" onclick="selectThemeSize('compact')">
-            <i class="ti ti-layout-grid" style="font-size:18px" aria-hidden="true"></i>
-            <div style="font-size:12px;margin-top:4px">กะทัดรัด</div>
-          </div>
-          <div class="theme-mode-btn active" data-size="normal" onclick="selectThemeSize('normal')">
-            <i class="ti ti-layout-grid-add" style="font-size:20px" aria-hidden="true"></i>
-            <div style="font-size:12px;margin-top:4px">ปกติ</div>
-          </div>
-          <div class="theme-mode-btn" data-size="large" onclick="selectThemeSize('large')">
-            <i class="ti ti-layout-grid" style="font-size:24px" aria-hidden="true"></i>
-            <div style="font-size:12px;margin-top:4px">ใหญ่</div>
-          </div>
-        </div>
-      </div>
-      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">⬜ ความมนของมุม</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-radius-grid">
-        <div class="theme-mode-btn" data-radius="sharp" onclick="selectThemeRadius('sharp')"><div style="width:22px;height:22px;border-radius:4px;background:var(--green);margin:0 auto"></div><div style="font-size:12px;margin-top:6px">เหลี่ยม</div></div>
-        <div class="theme-mode-btn active" data-radius="normal" onclick="selectThemeRadius('normal')"><div style="width:22px;height:22px;border-radius:8px;background:var(--green);margin:0 auto"></div><div style="font-size:12px;margin-top:6px">ปกติ</div></div>
-        <div class="theme-mode-btn" data-radius="round" onclick="selectThemeRadius('round')"><div style="width:22px;height:22px;border-radius:11px;background:var(--green);margin:0 auto"></div><div style="font-size:12px;margin-top:6px">มนมาก</div></div>
-      </div>
-      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">🔤 ฟอนต์หัวข้อ</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-font-grid">
-        <div class="theme-mode-btn active" data-font="serif" onclick="selectThemeFont('serif')"><div style="font-family:'Noto Serif Thai',serif;font-size:18px">กก</div><div style="font-size:11px;margin-top:4px">มีหัว (หรู)</div></div>
-        <div class="theme-mode-btn" data-font="rounded" onclick="selectThemeFont('rounded')"><div style="font-family:'Itim',cursive;font-size:18px">กก</div><div style="font-size:11px;margin-top:4px">กลม (น่ารัก)</div></div>
-        <div class="theme-mode-btn" data-font="sans" onclick="selectThemeFont('sans')"><div style="font-family:'IBM Plex Sans Thai',sans-serif;font-weight:700;font-size:18px">กก</div><div style="font-size:11px;margin-top:4px">เรียบ (โมเดิร์น)</div></div>
-      </div>
-      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">🎨 โทนพื้นหลัง</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="theme-bg-grid">
-        <div class="theme-mode-btn active" data-bg="auto" onclick="selectThemeBg('auto')"><div style="width:22px;height:22px;border-radius:6px;background:var(--green-l);margin:0 auto"></div><div style="font-size:11px;margin-top:5px">ตามสี</div></div>
-        <div class="theme-mode-btn" data-bg="cream" onclick="selectThemeBg('cream')"><div style="width:22px;height:22px;border-radius:6px;background:#FAF6F1;border:1px solid #E3DACE;margin:0 auto"></div><div style="font-size:11px;margin-top:5px">ครีม</div></div>
-        <div class="theme-mode-btn" data-bg="white" onclick="selectThemeBg('white')"><div style="width:22px;height:22px;border-radius:6px;background:#fff;border:1px solid #ddd;margin:0 auto"></div><div style="font-size:11px;margin-top:5px">ขาว</div></div>
-        <div class="theme-mode-btn" data-bg="gray" onclick="selectThemeBg('gray')"><div style="width:22px;height:22px;border-radius:6px;background:#EEF0F2;border:1px solid #d8dbe0;margin:0 auto"></div><div style="font-size:11px;margin-top:5px">เทา</div></div>
-      </div>
-      <div style="font-weight:600;font-size:14px;margin:1.25rem 0 .75rem">📝 ฟอนต์เนื้อหา</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="theme-bodyfont-grid">
-        <div class="theme-mode-btn active" data-bodyfont="plex" onclick="selectThemeBodyFont('plex')"><div style="font-family:'IBM Plex Sans Thai',sans-serif;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">มาตรฐาน</div></div>
-        <div class="theme-mode-btn" data-bodyfont="noto" onclick="selectThemeBodyFont('noto')"><div style="font-family:'Noto Sans Thai',sans-serif;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">โน้ต</div></div>
-        <div class="theme-mode-btn" data-bodyfont="rounded" onclick="selectThemeBodyFont('rounded')"><div style="font-family:'Itim',cursive;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">กลม</div></div>
-      </div>
-      <div class="thm-save">
-        <button style="flex:1;border:none;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:11px;padding:12px;font-family:var(--font);font-size:13.5px;font-weight:800;cursor:pointer" onclick="saveUserTheme()">💾 ใช้ธีมนี้ (บันทึก)</button>
-        <button class="btn" style="border-radius:11px" onclick="resetUserTheme()">↺ คืนค่า</button>
-      </div>
-      </div>
-    </div>
+    <div class="topbar"><div><div class="page-title">🎨 ธีมของฉัน</div><div class="page-sub">มีผลเฉพาะเครื่อง/บัญชีของคุณ — ไม่กระทบคนอื่น</div></div></div>
+    <div id="thm-body"></div>
   </div>
   <!-- ===== หน้า To Do List วันนี้ ===== -->
   <div class="page" id="page-todo">
@@ -1703,57 +1572,109 @@ const USER_THEME_DEFAULT={mode:'light',accent:'#4FBE8A',size:'normal'};
 let userThemeCfg={...USER_THEME_DEFAULT};
 let _systemDarkMQ=window.matchMedia('(prefers-color-scheme: dark)');
 
+// 🆕 v4.18: เช็คว่า "ตอนนี้" อยู่ในช่วงมืดตามเวลาไหม (เช่น 19:00→07:00 ข้ามคืน)
+function _timeDarkNow(cfg){
+  const f=cfg.darkFrom||'19:00',t=cfg.darkTo||'07:00';
+  const m=x=>{const[a,b]=x.split(':').map(Number);return a*60+(b||0);};
+  const now=new Date(),n=now.getHours()*60+now.getMinutes(),F=m(f),T=m(t);
+  return F<=T?(n>=F&&n<T):(n>=F||n<T);
+}
 function applyUserThemeCfg(cfg){
   const mode=cfg.mode||'light';
-  const isDark=mode==='dark'||(mode==='system'&&_systemDarkMQ.matches);
+  const isDark=mode==='dark'||(mode==='system'&&_systemDarkMQ.matches)||(mode==='time'&&_timeDarkNow(cfg));
   document.body.classList.toggle('dark',isDark);
-  // accent color — override --green และ derived vars
+  // โหมดตามเวลา: เช็คซ้ำทุกนาที
+  if(window._themeTimeTimer)clearInterval(window._themeTimeTimer);
+  if(mode==='time')window._themeTimeTimer=setInterval(()=>applyUserThemeCfg(userThemeCfg),60000);
+  // accent color — override --green และ derived vars · v4.18: accent2 = สีปลายไล่เฉด (เลือกเองได้)
   const accent=cfg.accent||'#4FBE8A';
+  const accent2=cfg.accent2||shadeColor(accent,-12);
   const root=document.documentElement.style;
   root.setProperty('--green',accent);
   root.setProperty('--green-d',shadeColor(accent,-15));
   root.setProperty('--green-dd',shadeColor(accent,-28));
   root.setProperty('--green-l',shadeColor(accent,72));
   root.setProperty('--green-ll',shadeColor(accent,88));
-  root.setProperty('--grad-green',`linear-gradient(135deg,${accent},${shadeColor(accent,-12)})`);
-  // ===== พื้นหลังตามธีม: โทนสีอ่อนมากของ accent (เฉพาะโหมดสว่าง) =====
+  root.setProperty('--grad-green',`linear-gradient(135deg,${accent},${accent2})`);
+  // ===== พื้นหลัง: โทนสำเร็จ / สีอ่อนตาม accent / กำหนดเอง =====
   if(isDark){root.removeProperty('--bg');root.removeProperty('--surface');}
   else{
     const tone=cfg.bgTone||'auto';
     if(tone==='white'){root.setProperty('--bg','#F4F5F6');root.setProperty('--surface','#FFFFFF');}
     else if(tone==='cream'){root.setProperty('--bg','#FAF6F1');root.setProperty('--surface','#FFFDFA');}
     else if(tone==='gray'){root.setProperty('--bg','#EEF0F2');root.setProperty('--surface','#FBFBFC');}
+    else if(tone==='custom'&&cfg.bgCustom){root.setProperty('--bg',cfg.bgCustom);root.setProperty('--surface',shadeColor(cfg.bgCustom,60));}
     else{root.setProperty('--bg',shadeColor(accent,93));root.setProperty('--surface',shadeColor(accent,98));}
   }
-  // ===== ตกแต่งตามธีม: แถบเมนูซ้ายเป็นสีขาวสะอาด (v4) — ไม่ตั้ง --sidebar-grad ให้ใช้ค่าพื้นผิว (ขาว) =====
-  root.removeProperty('--sidebar-grad');
-  root.setProperty('--accent-tint',shadeColor(accent,90));   // พื้นนวลโทนสีอ่อนมาก
-  root.setProperty('--accent-soft',shadeColor(accent,80));   // ขอบ/แถบบางๆ
-  // อัปเดตสี theme-color ของเบราว์เซอร์ (แถบ status มือถือ)
+  // ===== 🆕 โหมดจัดเต็ม: กำหนดสีรายส่วน (ทับค่าข้างบน) — มี guard กันอ่านไม่ออกที่ CSS (--head-col/--nav-bg มี fallback) =====
+  const pc=cfg.pc||{};
+  if(pc.bg&&!isDark)root.setProperty('--bg',pc.bg);
+  if(pc.card&&!isDark)root.setProperty('--surface',pc.card);
+  if(pc.text&&!isDark)root.setProperty('--text',pc.text);else root.removeProperty('--text');
+  if(pc.head)root.setProperty('--head-col',pc.head);else root.removeProperty('--head-col');
+  if(pc.nav&&!isDark)root.setProperty('--nav-bg',pc.nav);else root.removeProperty('--nav-bg');
+  // ===== 🆕 ลายพื้นหลังจางๆ =====
+  const op=Math.max(.05,Math.min(1,cfg.patternOp==null?0.5:+cfg.patternOp));
+  const pcol=encodeURIComponent(accent);
+  const PATS={
+    dots:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Ccircle cx='4' cy='4' r='1.6' fill='${pcol}' fill-opacity='${.16*op}'/%3E%3Ccircle cx='17' cy='17' r='1.6' fill='${pcol}' fill-opacity='${.16*op}'/%3E%3C/svg%3E")`,
+    diag:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M-2 18 18 -2M-2 10 10 -2M6 18 18 6' stroke='${pcol}' stroke-opacity='${.1*op}' stroke-width='1.5'/%3E%3C/svg%3E")`,
+    leaf:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ctext x='6' y='30' font-size='15' opacity='${.14*op}'%3E%F0%9F%8C%BF%3C/text%3E%3C/svg%3E")`,
+    pill:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ctext x='8' y='34' font-size='14' opacity='${.13*op}'%3E%F0%9F%92%8A%3C/text%3E%3C/svg%3E")`
+  };
+  document.body.style.backgroundImage=PATS[cfg.pattern]||'';
+  root.setProperty('--sidebar-grad','');root.removeProperty('--sidebar-grad');
+  root.setProperty('--accent-tint',shadeColor(accent,90));
+  root.setProperty('--accent-soft',shadeColor(accent,80));
   const tc=document.querySelector('meta[name="theme-color"]');if(tc)tc.setAttribute('content',accent);
-  // size
+  // ===== ขนาด: slider (sizePct) มาก่อน แบบเก่า (size) เป็นสำรอง =====
   const mainEl=document.querySelector('.main');
   const sizeMap={compact:'.9',normal:'1',large:'1.12'};
-  if(mainEl)mainEl.style.zoom=sizeMap[cfg.size||'normal']||'1';
-  // ===== ความมนของมุม (radius) =====
-  const radMap={sharp:['8px','11px'],normal:['18px','22px'],round:['26px','32px']};
-  const rad=radMap[cfg.radius||'normal']||radMap.normal;
-  root.setProperty('--r',rad[0]); root.setProperty('--rl',rad[1]);
-  // ===== ฟอนต์หัวข้อ (heading) =====
+  if(mainEl)mainEl.style.zoom=cfg.sizePct?String(cfg.sizePct):(sizeMap[cfg.size||'normal']||'1');
+  // ===== มุม: slider (radiusPx) มาก่อน =====
+  if(cfg.radiusPx!=null){root.setProperty('--r',cfg.radiusPx+'px');root.setProperty('--rl',Math.round(cfg.radiusPx*1.25)+'px');}
+  else{const radMap={sharp:['8px','11px'],normal:['18px','22px'],round:['26px','32px']};const rad=radMap[cfg.radius||'normal']||radMap.normal;root.setProperty('--r',rad[0]);root.setProperty('--rl',rad[1]);}
+  // ===== 🆕 เงาการ์ด =====
+  const shMap={flat:'none',soft:'0 1px 2px rgba(60,80,68,.05),0 6px 16px rgba(60,80,68,.07)',float:'0 4px 10px rgba(40,60,50,.12),0 14px 34px rgba(40,60,50,.16)'};
+  if(cfg.shadow&&shMap[cfg.shadow])root.setProperty('--shadow',shMap[cfg.shadow]);else root.removeProperty('--shadow');
+  // ===== ฟอนต์หัวข้อ (5 แบบ) =====
   const fontMap={
     serif:"'Noto Serif Thai',serif",
     rounded:"'Itim','IBM Plex Sans Thai',cursive",
-    sans:"'IBM Plex Sans Thai','Noto Sans Thai',sans-serif"
+    sans:"'IBM Plex Sans Thai','Noto Sans Thai',sans-serif",
+    hand:"'Mali','Itim',cursive",
+    kanit:"'Kanit','IBM Plex Sans Thai',sans-serif"
   };
   root.setProperty('--disp',fontMap[cfg.headFont||'serif']||fontMap.serif);
-  // ===== ฟอนต์เนื้อหา (body) =====
+  // ===== ฟอนต์เนื้อหา (4 แบบ) =====
   const bodyMap={
     plex:"'IBM Plex Sans Thai','Noto Sans Thai',sans-serif",
     noto:"'Noto Sans Thai',sans-serif",
-    rounded:"'Itim','IBM Plex Sans Thai',sans-serif"
+    rounded:"'Itim','IBM Plex Sans Thai',sans-serif",
+    prompt:"'Prompt','IBM Plex Sans Thai',sans-serif"
   };
   root.setProperty('--font',bodyMap[cfg.bodyFont||'plex']||bodyMap.plex);
+  // ===== 🆕 ความหนาตัวหนังสือ =====
+  document.body.style.fontWeight=({light:'300',bold:'600'})[cfg.fontWeight]||'';
+  // ===== 🆕 ลูกเล่น: ปุ่มเด้ง / เอฟเฟกต์เปลี่ยนหน้า (คลาสบน body + CSS) =====
+  document.body.classList.remove('fx-bounce-soft','fx-bounce-big','fx-page-slide','fx-page-fade');
+  if(cfg.btnBounce==='soft')document.body.classList.add('fx-bounce-soft');
+  if(cfg.btnBounce==='big')document.body.classList.add('fx-bounce-big');
+  if(cfg.pageFx==='slide')document.body.classList.add('fx-page-slide');
+  if(cfg.pageFx==='fade')document.body.classList.add('fx-page-fade');
 }
+// 🆕 v4.18: พลุกระดาษฉลอง (ทำครบ 5 ขั้นของวัน) — CSS ล้วน ฟรี
+window.throwConfetti=function(){
+  if(userThemeCfg.fxConfetti===false)return;
+  const cols=['#4FBE8A','#5B91D6','#D8A657','#D9596B','#8C7AE6','#F0A5B8'];
+  for(let i=0;i<36;i++){
+    const s=document.createElement('span');
+    s.style.cssText=`position:fixed;z-index:9999;top:-12px;left:${Math.random()*100}vw;width:${6+Math.random()*6}px;height:${9+Math.random()*7}px;background:${cols[i%cols.length]};border-radius:2px;pointer-events:none;transform:rotate(${Math.random()*360}deg);transition:top ${1.6+Math.random()}s cubic-bezier(.2,.6,.4,1),transform 2s,opacity 2.2s`;
+    document.body.appendChild(s);
+    requestAnimationFrame(()=>{s.style.top=(70+Math.random()*30)+'vh';s.style.transform=`rotate(${Math.random()*720}deg)`;s.style.opacity='0';});
+    setTimeout(()=>s.remove(),2600);
+  }
+};
 // listen for system dark mode change
 _systemDarkMQ.addEventListener('change',()=>{
   if(userThemeCfg.mode==='system')applyUserThemeCfg(userThemeCfg);
@@ -1775,8 +1696,13 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.17.0';
+const APP_VERSION='4.18.0';
 const CHANGELOG=[
+  {v:'4.18.0',date:'2026-07-12',changes:[
+    '🎨 "ธีมของฉัน" โฉมใหม่ทั้งหน้า — แกลเลอรี 12 ธีมเป็นภาพหน้าแอปย่อส่วน แตะแล้วทั้งแอปเปลี่ยนให้ดูทันที · ขั้นตอน 1 เลือกจากภาพ → 2 ปรับเพิ่ม (ไม่บังคับ) → 3 บันทึก',
+    '🌈 สีจัดเต็ม: จานสีเน้น 24 สี + ผสมเอง · ไล่เฉดปุ่มเลือกสีต้น-ปลายเอง · พื้นหลังเลือกสีเองได้ + ลายพื้นจางๆ (จุด/เส้น/🌿/💊 พร้อมปรับความชัด) · โหมดจัดเต็มกำหนดสีรายส่วน 6 จุด · 🎲 ปุ่มสุ่มชุดสี · 💾 เก็บชุดที่แต่งเป็น "ธีมของฉันเอง" ใบที่ 13',
+    '🕰️ โหมดมืดตามเวลา (ตั้งช่วงเอง เช่น 19:00→07:00) · ฟอนต์หัวข้อ 5 แบบ + เนื้อหา 4 แบบ (เพิ่ม ลายมือ/คม/พร้อมต์) · ขนาดตัวหนังสือ+ความมนมุมแบบตัวลาก · ความหนาตัวหนังสือ · เงาการ์ด แบน/นุ่ม/ลอยชัด',
+    '✨ ลูกเล่น: ปุ่มเด้งตอนแตะ · เอฟเฟกต์เปลี่ยนหน้า (สไลด์/จาง) · 🎉 พลุกระดาษฉลองเมื่อทำงานครบ 5 ขั้นของวัน (ปิดได้)']},
   {v:'4.17.0',date:'2026-07-12',changes:[
     '📍 หน้า "ลงเวลา" โฉมใหม่ — นาฬิกาใหญ่เดินสด + ชิปเวรวันนี้ของคุณ + เส้นเวลา เข้า→ทำมาแล้วกี่ชม.→ออก · ปุ่ม "🔍 เช็คตำแหน่งก่อนกด" รู้ทันทีว่าอยู่ในรัศมีร้าน/ตรงสาขาตามเวรไหม ไม่ต้องกดลงเวลาแล้วค่อยโดนกัน (กติกาเข้มเหมือนเดิมทุกอย่าง) · จอคอมแบ่ง 2 คอลัมน์ ประวัติอยู่ขวา',
     '🎨 หน้า "ธีมของฉัน" โฉมใหม่ — การ์ด "ตัวอย่างสด" จำลองหน้าแรกจริง แตะเปลี่ยนสี/มุม/ฟอนต์แล้วภาพเปลี่ยนทันที · ปุ่ม "ใช้ธีมนี้" ลอยติดขอบจอ ไม่ต้องเลื่อนหา · จอคอมแบ่งซ้ายปรับ-ขวาดูตัวอย่าง']},
@@ -3458,89 +3384,162 @@ window.goto=function(page){
 };
 
 // ===== หน้าธีมส่วนตัว =====
+// ===== 🆕 v4.18 ธีมของฉัน — แกลเลอรีธีม + ปรับละเอียดจัดเต็ม =====
+const THEME_PRESETS=[
+ {k:'mint',nm:'🌿 มินต์หรู',cfg:{mode:'light',accent:'#1FAE8B',accent2:'#127C62',bgTone:'auto',radius:'round',headFont:'serif'},pv:['#EDF4EF','#5FD3A0','#127C62','#fff']},
+ {k:'peach',nm:'🌸 พีชน่ารัก',cfg:{mode:'light',accent:'#D06A86',accent2:'#C96F4A',bgTone:'cream',radius:'round',headFont:'rounded'},pv:['#FAF3EE','#E8899E','#C96F4A','#fff']},
+ {k:'blue',nm:'💠 ฟ้าโมเดิร์น',cfg:{mode:'light',accent:'#3A6EA5',accent2:'#2D4E9E',bgTone:'white',radius:'sharp',headFont:'sans'},pv:['#F2F5F9','#5B91D6','#3A6EA5','#fff']},
+ {k:'dark',nm:'🌙 ดาร์กมินต์',cfg:{mode:'dark',accent:'#2FE0A4',accent2:'#127C62',radius:'normal',headFont:'sans'},pv:['#131C18','#2FE0A4','#127C62','#1D2A24']},
+ {k:'plum',nm:'🍇 พลัมหวาน',cfg:{mode:'light',accent:'#8C7AE6',accent2:'#5F4BC7',bgTone:'auto',radius:'round',headFont:'rounded'},pv:['#F5F0F9','#B9A8FF','#5F4BC7','#fff']},
+ {k:'cream',nm:'🌾 ครีมอบอุ่น',cfg:{mode:'light',accent:'#C99A3F',accent2:'#A9772F',bgTone:'cream',radius:'normal',headFont:'serif'},pv:['#FAF6ED','#E0B25C','#A9772F','#fff']},
+ {k:'sea',nm:'🌊 ทะเลลึก',cfg:{mode:'light',accent:'#2A9DA8',accent2:'#0B5E66',bgTone:'auto',radius:'normal',headFont:'sans'},pv:['#EDF5F6','#4FBBC4','#0B5E66','#fff']},
+ {k:'lemon',nm:'🍋 เลมอนสดใส',cfg:{mode:'light',accent:'#A9B33C',accent2:'#7A8A1F',bgTone:'auto',radius:'round',headFont:'rounded'},pv:['#FAFAEC','#D8DE5A','#7A8A1F','#fff']},
+ {k:'sunset',nm:'🌅 อัสดง',cfg:{mode:'light',accent:'#E8794F',accent2:'#D0532E',bgTone:'cream',radius:'round',headFont:'sans'},pv:['#FBF1EC','#FF9E7A','#D0532E','#fff']},
+ {k:'pine',nm:'🌲 ป่าสน',cfg:{mode:'light',accent:'#4E7D4A',accent2:'#2C5230',bgTone:'auto',radius:'sharp',headFont:'serif'},pv:['#EEF2EE','#5F8E5A','#2C5230','#fff']},
+ {k:'midnight',nm:'🌌 มิดไนท์บลู',cfg:{mode:'dark',accent:'#63A8F0',accent2:'#2D4E9E',radius:'normal',headFont:'sans'},pv:['#10141F','#63A8F0','#2D4E9E','#1A2233']},
+ {k:'mono',nm:'🖤 ดาร์กมินิมอล',cfg:{mode:'dark',accent:'#9E9E9E',accent2:'#4A4A4A',radius:'sharp',headFont:'sans'},pv:['#161616','#9E9E9E','#4A4A4A','#242424']},
+];
+const THM_PALETTE=['#1FAE8B','#0E8C8C','#3E8E5A','#6BA33A','#3A6EA5','#2D9BC4','#5A5BB8','#8E5A9E','#B14FA8','#D06A86','#D9596B','#C96F4A','#C99A3F','#A98A2F','#7A6A4F','#5F6F7F','#37474F','#8B6F5C','#E091B9','#74B49B','#4A90A4','#9575CD','#607D8B','#2FE0A4'];
+function thmSeg(key,opts,cur){
+  return '<div style="display:flex;gap:5px;flex-wrap:wrap">'+opts.map(o=>`<button onclick="thmSet('${key}','${o.v}')" style="border:1px solid ${cur===o.v?'var(--green)':'var(--border2)'};background:${cur===o.v?'var(--green-l)':'var(--surface)'};color:${cur===o.v?'var(--green-dd)':'var(--text2)'};border-radius:9px;padding:6px 10px;font-family:var(--font);font-size:11px;font-weight:${cur===o.v?800:600};cursor:pointer">${o.t}</button>`).join('')+'</div>';
+}
+function thmRow(label,inner){return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--border);flex-wrap:wrap"><span style="flex:1;min-width:110px;font-size:12px;font-weight:700">${label}</span>${inner}</div>`;}
+function thmSec(icon,title,inner,open){
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);margin-top:10px;overflow:hidden">
+    <div onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'':'none'" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;font-size:13px;font-weight:800;cursor:pointer">${icon} ${title}<span style="color:var(--text3)">▾</span></div>
+    <div style="border-top:1px solid var(--border);padding:4px 14px 11px;${open?'':'display:none'}">${inner}</div>
+  </div>`;
+}
 function renderThemePage(){
-  selectThemeMode(userThemeCfg.mode||'light');
-  selectAccentUI(userThemeCfg.accent||'#16B981');
-  selectThemeSize(userThemeCfg.size||'normal');
-  selectThemeRadius(userThemeCfg.radius||'normal');
-  selectThemeFont(userThemeCfg.headFont||'serif');
-  selectThemeBg(userThemeCfg.bgTone||'auto');
-  selectThemeBodyFont(userThemeCfg.bodyFont||'plex');
+  const el=document.getElementById('thm-body');if(!el)return;
+  const c=userThemeCfg;
+  const custom=c.custom||null;
+  // แกลเลอรี
+  const cards=THEME_PRESETS.map(p=>{
+    const on=c.presetKey===p.k;
+    const[bg,g1,g2,card]=p.pv;
+    return `<div onclick="applyThemePreset('${p.k}')" style="background:var(--surface);border:2px solid ${on?'var(--green)':'transparent'};border-radius:14px;padding:6px;cursor:pointer;position:relative;box-shadow:var(--shadow)">
+      ${on?'<span style="position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:var(--green);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;font-weight:900">✓</span>':''}
+      <div style="background:${bg};border-radius:9px;padding:7px;min-height:62px">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:5px"><span style="width:12px;height:12px;border-radius:50%;background:linear-gradient(140deg,${g1},${g2})"></span><span style="height:4px;border-radius:3px;flex:1;background:${g2};opacity:.3"></span></div>
+        <div style="background:${card};border-radius:7px;padding:5px"><div style="height:4px;border-radius:3px;width:60%;background:${g1};margin-bottom:4px"></div><div style="height:11px;border-radius:5px;background:linear-gradient(140deg,${g1},${g2})"></div></div>
+      </div>
+      <div style="font-size:9.5px;font-weight:800;text-align:center;margin-top:5px">${p.nm}${on?' ✓':''}</div>
+    </div>`;
+  }).join('')+(custom?`<div onclick="thmApplyCustom()" style="background:var(--surface);border:2px solid ${c.presetKey==='custom'?'var(--green)':'transparent'};border-radius:14px;padding:6px;cursor:pointer;box-shadow:var(--shadow)">
+      <div style="background:${custom.bgCustom||'#F4F5F6'};border-radius:9px;padding:7px;min-height:62px;display:flex;align-items:center;justify-content:center"><span style="width:30px;height:30px;border-radius:50%;background:linear-gradient(140deg,${custom.accent||'#888'},${custom.accent2||'#555'})"></span></div>
+      <div style="font-size:9.5px;font-weight:800;text-align:center;margin-top:5px">💾 ธีมของฉันเอง</div>
+    </div>`:'');
+  const step=(n,t,s2)=>`<div style="display:flex;align-items:center;gap:8px;margin:14px 2px 8px"><span style="width:22px;height:22px;border-radius:50%;background:var(--grad-green,linear-gradient(140deg,#23B895,#127C62));color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">${n}</span><b style="font-family:var(--disp);font-size:14.5px">${t}</b><small style="font-size:10px;color:var(--text3)">${s2}</small></div>`;
+  // สี & พื้นหลัง
+  const dots=THM_PALETTE.map(col=>`<span onclick="thmSet('accent','${col}')" style="width:20px;height:20px;border-radius:50%;background:${col};cursor:pointer;display:inline-block;${c.accent===col?'box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--green)':''}"></span>`).join('')+
+    `<label style="cursor:pointer;position:relative;display:inline-block;width:20px;height:20px;border-radius:50%;background:conic-gradient(red,yellow,green,blue,red);text-align:center;color:#fff;font-size:11px;line-height:20px">＋<input type="color" value="${c.accent||'#1FAE8B'}" onchange="thmSet('accent',this.value)" style="position:absolute;opacity:0;width:0;height:0"></label>`;
+  const grads=[['#5FD3A0','#127C62'],['#63A8F0','#2D4E9E'],['#F0A5B8','#B04A66'],['#FFD37A','#D0722E'],['#B9A8FF','#5F4BC7']].map(g=>`<span onclick="thmGrad('${g[0]}','${g[1]}')" style="width:32px;height:20px;border-radius:7px;background:linear-gradient(140deg,${g[0]},${g[1]});cursor:pointer;display:inline-block;${(c.accent===g[0]&&c.accent2===g[1])?'box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--green)':''}"></span>`).join('');
+  const colorSec=
+    `<div style="font-size:11px;font-weight:800;margin:9px 0 6px">จานสีเน้น — 24 สี + ผสมเอง</div><div style="display:flex;gap:6px;flex-wrap:wrap">${dots}</div>`+
+    thmRow('ไล่เฉดปุ่ม/หัวการ์ด',`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${grads}<span style="font-size:10px;color:var(--text3)">ผสมเอง:</span><input type="color" value="${c.accent||'#1FAE8B'}" onchange="thmSet('accent',this.value)" style="width:26px;height:24px;padding:1px;border:1px solid var(--border2);border-radius:6px">→<input type="color" value="${c.accent2||'#127C62'}" onchange="thmSet('accent2',this.value)" style="width:26px;height:24px;padding:1px;border:1px solid var(--border2);border-radius:6px"></div>`)+
+    thmRow('โทนพื้นหลัง',thmSeg('bgTone',[{v:'auto',t:'ตามสี'},{v:'cream',t:'ครีม'},{v:'white',t:'ขาว'},{v:'gray',t:'เทา'},{v:'custom',t:'🎨 เลือกเอง'}],c.bgTone||'auto')+(c.bgTone==='custom'?`<input type="color" value="${c.bgCustom||'#EDF4EF'}" onchange="thmSet('bgCustom',this.value)" style="width:26px;height:24px;padding:1px;border:1px solid var(--border2);border-radius:6px">`:''))+
+    thmRow('✨ ลายพื้นหลังจางๆ',thmSeg('pattern',[{v:'',t:'เรียบ'},{v:'dots',t:'จุด'},{v:'diag',t:'เส้น'},{v:'leaf',t:'🌿'},{v:'pill',t:'💊'}],c.pattern||''))+
+    (c.pattern?thmRow('ความชัดของลาย',`<input type="range" min="0.1" max="1" step="0.1" value="${c.patternOp==null?0.5:c.patternOp}" oninput="thmSet('patternOp',this.value,true)" style="flex:1;max-width:170px">`):'')+
+    `<div style="background:var(--purple-l,#EFECFB);border-radius:11px;padding:9px 11px;margin-top:9px">
+      <div style="font-size:11.5px;font-weight:800;margin-bottom:2px">🧑‍🎨 โหมดจัดเต็ม — กำหนดสีรายส่วน</div>
+      ${[['btn','สีปุ่ม/ไฮไลต์'],['head','สีหัวข้อ'],['nav','สีแถบเมนู'],['card','สีการ์ด'],['bg','สีพื้นหลังแอป'],['text','สีตัวหนังสือ']].map(x=>thmRow(x[1],`<input type="color" value="${(c.pc||{})[x[0]]||'#888888'}" onchange="thmPc('${x[0]}',this.value)" style="width:26px;height:24px;padding:1px;border:1px solid var(--border2);border-radius:6px">${(c.pc||{})[x[0]]?`<button onclick="thmPc('${x[0]}',null)" style="border:none;background:none;color:var(--text3);font-size:10px;cursor:pointer;font-family:var(--font)">ล้าง</button>`:''}`)).join('')}
+      <div style="font-size:9.5px;color:var(--text3);margin-top:5px">🛡️ โหมดมืดจะไม่ใช้สีการ์ด/พื้น/ตัวหนังสือที่ตั้งเอง (กันอ่านไม่ออก)</div>
+    </div>`+
+    thmRow('🎲 สุ่มชุดสี',`<button onclick="thmRandom()" style="border:1px solid var(--border2);border-radius:9px;padding:6px 13px;font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;background:var(--surface);color:var(--text)">สุ่มเลย!</button>`)+
+    thmRow('💾 เก็บเป็น "ธีมของฉันเอง"',`<button onclick="thmSaveCustom()" style="border:1px solid var(--green);border-radius:9px;padding:6px 13px;font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;background:var(--green-l);color:var(--green-dd)">เก็บชุดปัจจุบัน</button>`);
+  const modeSec=thmRow('โหมด',thmSeg('mode',[{v:'light',t:'☀️ สว่าง'},{v:'dark',t:'🌙 มืด'},{v:'system',t:'📱 ตามเครื่อง'},{v:'time',t:'🕰️ ตามเวลา'}],c.mode||'light'))+
+    (c.mode==='time'?thmRow('มืดช่วง',`<input type="time" value="${c.darkFrom||'19:00'}" onchange="thmSet('darkFrom',this.value)" style="width:auto;padding:5px 8px"> → <input type="time" value="${c.darkTo||'07:00'}" onchange="thmSet('darkTo',this.value)" style="width:auto;padding:5px 8px">`):'');
+  const fontSec=thmRow('ฟอนต์หัวข้อ',thmSeg('headFont',[{v:'serif',t:'หรู'},{v:'sans',t:'เรียบ'},{v:'rounded',t:'กลม'},{v:'hand',t:'ลายมือ'},{v:'kanit',t:'คม'}],c.headFont||'serif'))+
+    thmRow('ฟอนต์เนื้อหา',thmSeg('bodyFont',[{v:'plex',t:'มาตรฐาน'},{v:'noto',t:'โน้ต'},{v:'rounded',t:'กลม'},{v:'prompt',t:'พร้อมต์'}],c.bodyFont||'plex'))+
+    thmRow('ขนาดตัวหนังสือ',`<input type="range" min="0.85" max="1.2" step="0.05" value="${c.sizePct||1}" oninput="thmSet('sizePct',this.value,true)" style="flex:1;max-width:170px">`)+
+    thmRow('ความหนา',thmSeg('fontWeight',[{v:'light',t:'บาง'},{v:'',t:'ปกติ'},{v:'bold',t:'หนา'}],c.fontWeight||''));
+  const shapeSec=thmRow('ความมนมุม',`<input type="range" min="4" max="28" step="2" value="${c.radiusPx||18}" oninput="thmSet('radiusPx',this.value,true)" style="flex:1;max-width:170px">`)+
+    thmRow('เงาการ์ด',thmSeg('shadow',[{v:'flat',t:'แบน'},{v:'',t:'นุ่ม'},{v:'float',t:'ลอยชัด'}],c.shadow||''));
+  const fxSec=thmRow('ปุ่มเด้งตอนแตะ',thmSeg('btnBounce',[{v:'',t:'ปิด'},{v:'soft',t:'เบาๆ'},{v:'big',t:'เด้งสุด'}],c.btnBounce||''))+
+    thmRow('เอฟเฟกต์เปลี่ยนหน้า',thmSeg('pageFx',[{v:'',t:'ไม่มี'},{v:'slide',t:'สไลด์'},{v:'fade',t:'จางเข้า'}],c.pageFx||''))+
+    thmRow('🎉 พลุฉลองครบ 5 ขั้น',thmSeg('fxConfetti',[{v:'true',t:'เปิด'},{v:'false',t:'ปิด'}],String(c.fxConfetti!==false))+`<button onclick="throwConfetti()" style="border:none;background:none;font-size:11px;cursor:pointer;font-family:var(--font);color:var(--green-d);font-weight:700">ลองดู!</button>`);
+  el.innerHTML=`<div style="max-width:640px">
+    ${step(1,'เลือกธีมจากภาพ (12 ธีม)','· แตะใบไหน แอปเปลี่ยนให้ดูทันที')}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px">${cards}</div>
+    ${step(2,'ปรับเพิ่มเอง','· ไม่บังคับ — ข้ามไปกดบันทึกได้เลย')}
+    ${thmSec('🎨','สี & พื้นหลัง',colorSec,true)}
+    ${thmSec('🌓','โหมดสว่าง/มืด',modeSec,false)}
+    ${thmSec('🔤','ตัวหนังสือ',fontSec,false)}
+    ${thmSec('⬜','รูปทรง & เงา',shapeSec,false)}
+    ${thmSec('✨','ลูกเล่น',fxSec,false)}
+    ${step(3,'บันทึก','· ปุ่มลอยติดจอ')}
+    <div class="thm-save">
+      <button style="flex:1;border:none;background:var(--grad-green,linear-gradient(140deg,#23B895,#127C62));color:#fff;border-radius:11px;padding:12px;font-family:var(--font);font-size:13.5px;font-weight:800;cursor:pointer" onclick="saveUserTheme()">💾 ใช้ธีมนี้ (บันทึก)</button>
+      <button class="btn" style="border-radius:11px" onclick="resetUserTheme()">↺ คืนค่า</button>
+    </div>
+  </div>`;
 }
-window.selectThemeBodyFont=function(f){
-  userThemeCfg.bodyFont=f;
-  document.querySelectorAll('#theme-bodyfont-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.bodyfont===f));
+window.renderThemePage=renderThemePage;
+window.thmSet=function(k,v,noRender){
+  if(k==='fxConfetti')v=(v==='true');
+  else if(k==='sizePct'||k==='radiusPx'||k==='patternOp')v=+v;
+  if(v===''||v==null)delete userThemeCfg[k];else userThemeCfg[k]=v;
+  delete userThemeCfg.presetKey;
   applyUserThemeCfg(userThemeCfg);
+  if(!noRender)renderThemePage();
 };
-window.selectThemeBg=function(bg){
-  userThemeCfg.bgTone=bg;
-  document.querySelectorAll('#theme-bg-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.bg===bg));
-  applyUserThemeCfg(userThemeCfg);
+window.thmGrad=function(a,b){userThemeCfg.accent=a;userThemeCfg.accent2=b;delete userThemeCfg.presetKey;applyUserThemeCfg(userThemeCfg);renderThemePage();};
+window.thmPc=function(k,v){
+  userThemeCfg.pc=userThemeCfg.pc||{};
+  if(v)userThemeCfg.pc[k]=v;else delete userThemeCfg.pc[k];
+  if(k==='btn'&&v)userThemeCfg.accent=v;
+  if(!Object.keys(userThemeCfg.pc).length)delete userThemeCfg.pc;
+  applyUserThemeCfg(userThemeCfg);renderThemePage();
 };
-window.selectThemeRadius=function(radius){
-  userThemeCfg.radius=radius;
-  document.querySelectorAll('#theme-radius-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.radius===radius));
-  applyUserThemeCfg(userThemeCfg);
+window.thmRandom=function(){
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  userThemeCfg.accent=pick(THM_PALETTE);
+  userThemeCfg.accent2=shadeColor(userThemeCfg.accent,-25);
+  userThemeCfg.bgTone=pick(['auto','auto','cream','white']);
+  userThemeCfg.radiusPx=pick([8,14,18,24]);
+  userThemeCfg.headFont=pick(['serif','sans','rounded','kanit']);
+  delete userThemeCfg.presetKey;
+  applyUserThemeCfg(userThemeCfg);renderThemePage();
+  showToast('🎲 สุ่มแล้ว! ไม่ชอบกดสุ่มใหม่ได้เรื่อยๆ');
 };
-window.selectThemeFont=function(font){
-  userThemeCfg.headFont=font;
-  document.querySelectorAll('#theme-font-grid .theme-mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.font===font));
-  applyUserThemeCfg(userThemeCfg);
-};
-window.applyThemePreset=function(name){
-  const presets={
-    mint:{mode:'light',accent:'#1FAE8B',size:'normal',radius:'round',headFont:'serif',bgTone:'auto'},
-    cute:{mode:'light',accent:'#D06A86',size:'normal',radius:'round',headFont:'rounded',bgTone:'cream'},
-    modern:{mode:'light',accent:'#3A6EA5',size:'normal',radius:'sharp',headFont:'sans',bgTone:'white'},
-    dark:{mode:'dark',accent:'#2FE0A4',size:'normal',radius:'normal',headFont:'sans',bgTone:'auto'}
-  };
-  const p=presets[name];if(!p)return;
-  userThemeCfg={...userThemeCfg,...p};
+window.thmSaveCustom=function(){
+  const{custom,...cur}=userThemeCfg;
+  userThemeCfg.custom={...cur};
   renderThemePage();
-  applyUserThemeCfg(userThemeCfg);
-  showToast('ใช้ธีมสำเร็จรูปแล้ว · กด “บันทึกธีม” เพื่อจำไว้');
+  showToast('เก็บเป็น "ธีมของฉันเอง" แล้ว — โผล่ท้ายแกลเลอรี (อย่าลืมกดบันทึก)');
 };
-window.selectThemeMode=function(mode){
-  userThemeCfg.mode=mode;
-  document.querySelectorAll('#theme-mode-grid .theme-mode-btn').forEach(b=>
-    b.classList.toggle('active',b.dataset.mode===mode));
-  applyUserThemeCfg(userThemeCfg);
+window.thmApplyCustom=function(){
+  if(!userThemeCfg.custom)return;
+  userThemeCfg={...userThemeCfg.custom,custom:userThemeCfg.custom,presetKey:'custom'};
+  applyUserThemeCfg(userThemeCfg);renderThemePage();
 };
-function selectAccentUI(color){
-  document.querySelectorAll('#theme-accent-grid .theme-color-dot[data-color]').forEach(d=>
-    d.classList.toggle('active',d.dataset.color===color));
-  const custom=document.getElementById('theme-custom-dot');
-  const isPreset=['#1FAE8B','#534AB7','#D4537E','#378ADD','#EF9F27','#E24B4A'].includes(color);
-  if(custom)custom.classList.toggle('active',!isPreset);
-}
-window.selectAccent=function(color){
-  userThemeCfg.accent=color;
-  selectAccentUI(color);
+window.applyThemePreset=function(key){
+  const p=THEME_PRESETS.find(x=>x.k===key);if(!p)return;
+  const keep=userThemeCfg.custom;
+  userThemeCfg={...p.cfg,presetKey:key};
+  if(keep)userThemeCfg.custom=keep;
   applyUserThemeCfg(userThemeCfg);
-};
-window.selectThemeSize=function(size){
-  userThemeCfg.size=size;
-  document.querySelectorAll('#theme-size-grid .theme-mode-btn').forEach(b=>
-    b.classList.toggle('active',b.dataset.size===size));
-  applyUserThemeCfg(userThemeCfg);
+  renderThemePage();
+  showToast('ลองธีม '+p.nm+' — ถูกใจกด "ใช้ธีมนี้" เพื่อจำไว้');
 };
 window.saveUserTheme=async function(){
-  // บันทึกลง localStorage (ใช้ได้ทันที) + Firestore (sync ข้ามเครื่อง)
   localStorage.setItem('userThemeLocal',JSON.stringify(userThemeCfg));
   try{
     await updateDoc(doc(db,'members',auth.currentUser?.uid),{userTheme:userThemeCfg});
-    showToast('บันทึกธีมแล้ว — ใช้งานทุกอุปกรณ์ที่ล็อกอินด้วยบัญชีนี้');
-  }catch(e){showToast('บันทึก local แล้ว (sync cloud ไม่สำเร็จ)','warn');}
+    showToast('บันทึกธีมแล้ว — ใช้งานทุกอุปกรณ์ที่ล็อกอินด้วยบัญชีนี้ ✓');
+  }catch(e){showToast('บันทึกในเครื่องแล้ว (sync cloud ไม่สำเร็จ)','err');}
 };
 window.resetUserTheme=async function(){
   if(!await capsuleConfirm('คืนค่าธีมกลับเป็นค่าเริ่มต้น?'))return;
   userThemeCfg={...USER_THEME_DEFAULT};
-  renderThemePage();
   applyUserThemeCfg(userThemeCfg);
+  renderThemePage();
   localStorage.removeItem('userThemeLocal');
   try{await updateDoc(doc(db,'members',auth.currentUser?.uid),{userTheme:USER_THEME_DEFAULT});}catch(e){}
   showToast('คืนค่าเริ่มต้นแล้ว');
 };
+
 let currentPage='home';
 window.refreshCurrentPage=async function(){
   const btn=document.getElementById('refresh-fab');
@@ -11055,6 +11054,8 @@ async function renderHomeGuide(){
   let guideCard;
   if(nd===5){
     guideCard=`<div style="background:var(--green-ll);border:1px solid var(--green-l);border-radius:16px;padding:14px 15px;margin-bottom:1.1rem;display:flex;align-items:center;gap:12px"><span style="font-size:26px">🎉</span><div><div style="font-size:15px;font-weight:800;font-family:var(--disp);color:var(--green-dd)">วันนี้เรียบร้อยแล้ว!</div><div style="font-size:12px;color:var(--green-d)">ทำครบทุกอย่างแล้ว เก่งมาก ขอบคุณนะ 💚</div></div></div>`;
+    // 🎉 v4.18: พลุฉลองครั้งเดียวต่อวัน (ปิดได้ในธีมของฉัน → ลูกเล่น)
+    try{const ck='nm_confetti_'+todayStr();if(!sessionStorage.getItem(ck)&&typeof throwConfetti==='function'){sessionStorage.setItem(ck,'1');setTimeout(throwConfetti,350);}}catch(e){}
   } else if(!myShift&&nd===0){
     // ไม่มีเวร + ยังไม่เริ่มอะไร = วันพัก (ถ้ามาทำงานก็เช็คอินได้ตามปกติ)
     guideCard=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:1.1rem;box-shadow:var(--shadow);display:flex;align-items:center;gap:13px">
