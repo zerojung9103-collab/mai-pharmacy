@@ -970,8 +970,18 @@ input,select,textarea{border-radius:14px}
         </div>
       </div>
     </div>
-    <div id="settings-nav" style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:1rem"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem" id="settings-grid">
+    <!-- 🆕 v4.16 ตั้งค่าแบบ ก: ศูนย์รวมรายการ + ค้นหา · แตะหัวข้อเพื่อเปิดตั้งค่าเรื่องนั้น -->
+    <div id="settings-hub-wrap">
+      <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:4px 13px;margin-bottom:13px;box-shadow:var(--shadow)">
+        <span style="font-size:14px">🔍</span>
+        <input type="text" id="settings-search" oninput="renderSettingsHub(this.value)" placeholder='ค้นหาการตั้งค่า… เช่น "โลโก้", "GPS", "สลิป"' style="border:none;background:transparent;flex:1;padding:8px 0;font-size:13px">
+      </div>
+      <div id="settings-hub"></div>
+    </div>
+    <div id="settings-back" style="display:none;margin-bottom:1rem">
+      <button class="btn" onclick="settingsBack()">← กลับหน้าตั้งค่า</button>
+    </div>
+    <div style="display:none;grid-template-columns:1fr;gap:1rem" id="settings-grid">
       <div class="card" id="appearance-card" style="grid-column:1/-1;display:none">
         <div class="card-title">🎨 ปรับแต่งหน้าตาแอป</div>
         <div class="card-sub">เปลี่ยนแล้วเห็นผลทันทีทุกคนในร้าน (เฉพาะผู้ดูแลระบบแก้ได้)</div>
@@ -1038,7 +1048,7 @@ input,select,textarea{border-radius:14px}
           <button class="btn btn-primary btn-sm" onclick="addPayType()">+ เพิ่ม</button>
         </div>
       </div>
-      <div class="card">
+      <div class="card" id="profile-card">
         <div class="card-title">โปรไฟล์ของฉัน</div>
         <div class="card-sub">ข้อมูลบัญชีที่ลงทะเบียนไว้</div>
         <div id="my-profile"></div>
@@ -1728,8 +1738,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.15.0';
+const APP_VERSION='4.16.0';
 const CHANGELOG=[
+  {v:'4.16.0',date:'2026-07-12',changes:[
+    '⚙️ หน้า "ตั้งค่า" โฉมใหม่ (แบบศูนย์รวมรายการ) — จัดเป็นหมวด: ของฉัน / ร้าน&หน้าตาแอป / เวลา&งาน / เงิน&เอกสาร / โซนอันตราย · แตะหัวข้อแล้วเปิดตั้งค่าเรื่องนั้นเรื่องเดียว ไม่ต้องเลื่อนหน้ายาวๆ อีก · มีปุ่ม "← กลับหน้าตั้งค่า"',
+    '🔍 ช่องค้นหาการตั้งค่า — พิมพ์ "โลโก้" "GPS" "สลิป" เจอทันที',
+    '🚪 รวมทางเข้าตั้งค่าที่เคยกระจายอยู่หน้าอื่นมาไว้ที่เดียว: ธีมของฉัน · ตรวจอัปเดต · วันประชุม (เดิมอยู่หน้าตารางเวร) · สลิปเงินเดือน (เดิมอยู่หน้าเงินเดือน) · เอกสารการค้า (เดิมอยู่หน้าเอกสาร) — ของเดิมที่หน้าเดิมยังกดได้เหมือนเดิม']},
   {v:'4.15.0',date:'2026-07-12',changes:[
     '🌴 หน้า "ขอลา" โฉมใหม่ — เลือกประเภทการลาได้เลย (ลากิจ/ลาป่วย/ลาพักร้อน/อื่นๆ) · เลือกวันแล้วระบบบอกทันทีว่ารวมกี่วัน · ปุ่มส่งใหญ่ชัดเจน (เดิมประเภทการลาต้องให้แอดมินมากรอกทีหลัง)',
     '✅ หน้า "อนุมัติลา" โฉมใหม่ — จากตารางเป็นการ์ด: คำขอที่รอขึ้นก่อนพร้อมปุ่ม อนุมัติ/ปฏิเสธ ใหญ่กดง่ายบนมือถือ · ประวัติที่พิจารณาแล้วอยู่ด้านล่าง · เพิ่มช่อง "รอพิจารณา" ในสรุปตัวเลข',
@@ -3385,7 +3399,7 @@ window.goto=function(page){
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
   if(page==='documents')docInit();
-  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAppearanceSettings();renderAlertSettings();setTimeout(buildSettingsNav,80);loadTodoTemplates().then(renderTodoTemplateSettings);}
+  if(page==='settings'){renderPayTypeSettings();renderMyProfile();renderGpsSettings();renderAppearanceSettings();renderAlertSettings();loadTodoTemplates().then(renderTodoTemplateSettings);settingsBack();renderSettingsHub(document.getElementById('settings-search')?.value||'');}
   if(page==='checkin'){renderCheckinPage();if(!shifts.length)loadShiftsFromCloud();}
   if(page==='checkin-history'){window._rpActive='checkin-history';renderReportBar();loadCheckinHistory();}
   if(page==='leave')loadMyLeaves();
@@ -10586,7 +10600,77 @@ window.docSettingsSave=async function(){
 
 
 // ===== SETTINGS =====
-// แถบลัดหมวดตั้งค่า — สแกนการ์ดที่แสดงอยู่ แล้วทำชิปกระโดดไปแต่ละหัวข้อ
+// 🆕 v4.16 ตั้งค่าแบบ ก — ศูนย์รวมรายการ (hub) + ค้นหา · แตะแล้วเปิดการ์ดเรื่องนั้นเรื่องเดียว
+const SETTINGS_DEFS=[
+  {sec:'👤 ของฉัน'},
+  {key:'profile',card:'profile-card',ic:'👤',bg:'var(--green-l)',t:'โปรไฟล์ของฉัน',d:'ชื่อ · อีเมล · ข้อมูลบัญชีที่ลงทะเบียน'},
+  {key:'theme',act:'theme',ic:'🎨',bg:'var(--purple-l)',t:'ธีมของฉัน',d:'สี · โหมดมืด · ขนาดตัวหนังสือ (เฉพาะเครื่องคุณ)'},
+  {key:'update',act:'update',ic:'🔄',bg:'var(--blue-l)',t:'ตรวจอัปเดต',d:'เวอร์ชันปัจจุบัน '},
+  {sec:'🏪 ร้าน & หน้าตาแอป (แอดมิน)',admin:true},
+  {key:'appearance',card:'appearance-card',admin:true,ic:'🖼️',bg:'var(--green-l)',t:'ชื่อร้าน & โลโก้ & สี & เมนู',d:'เปลี่ยนแล้วเห็นทุกคนในร้าน · จัดลำดับ/เปลี่ยนชื่อเมนู'},
+  {sec:'⏰ เวลา & งาน (แอดมิน)',admin:true},
+  {key:'gps',card:'gps-settings-card',admin:true,ic:'📍',bg:'var(--red-l)',t:'พิกัด GPS สาขา',d:'จุดเช็คอิน + รัศมีแต่ละสาขา'},
+  {key:'meeting',act:'meeting',admin:true,ic:'📣',bg:'var(--purple-l)',t:'วันประชุม',d:'วันที่เช็คอิน/เอาท์ข้ามสาขาได้ (เช่น ประชุมรวม อบรม)'},
+  {key:'todo',card:'todo-template-card',admin:true,ic:'✅',bg:'var(--green-l)',t:'งานประจำวัน (Template)',d:'งานที่ขึ้นให้พนักงานทำทุกวัน แยกตามสาขาได้'},
+  {sec:'💰 เงิน & เอกสาร (แอดมิน)',admin:true},
+  {key:'money',card:'paytype-card',admin:true,ic:'💵',bg:'var(--amber-l)',t:'เงินสด & ช่องทางชำระ',d:'เงินเปิดร้าน · EDC ขั้นต่ำ · เป้ายอดขาย · เงินสำรองขั้นต่ำ'},
+  {key:'slip',act:'slip',admin:true,ic:'🧾',bg:'var(--green-l)',t:'สลิปเงินเดือน',d:'โลโก้ · ข้อความ · รายละเอียดที่โชว์บนสลิป'},
+  {key:'docs',act:'docs',admin:true,ic:'🗂️',bg:'var(--purple-l)',t:'เอกสารการค้า',d:'ที่อยู่ร้าน · เลขผู้เสียภาษี · นำเข้าฐานสินค้า'},
+  {key:'alerts',card:'alert-settings-card',admin:true,ic:'🔔',bg:'var(--amber-l)',t:'เกณฑ์แจ้งเตือนผู้ดูแล',d:'เซฟเกิน · สายบ่อย · ยอดผิดปกติ · แบงค์ย่อยใกล้หมด'},
+  {sec:'⚠️ โซนอันตราย',admin:true,danger:true},
+  {key:'danger',card:'danger-card',admin:true,danger:true,ic:'🧹',bg:'var(--surface)',t:'ล้างข้อมูลเงินสดทั้งหมด',d:'ย้อนกลับไม่ได้ — ต้องพิมพ์ยืนยัน'},
+];
+window.renderSettingsHub=function(filter){
+  const el=document.getElementById('settings-hub');if(!el)return;
+  const q=(filter||'').trim().toLowerCase();
+  let html='',rows='',curSec=null,anyRow=false;
+  const flush=()=>{if(curSec&&rows){const r=rows.replace('border-top:1px solid var(--border);','');html+=`<div style="font-size:11px;font-weight:800;color:${curSec.danger?'var(--red-t)':'var(--text3)'};margin:16px 4px 7px;letter-spacing:.4px">${curSec.t}</div><div style="background:var(--surface);border:1px solid ${curSec.danger?'var(--red)':'var(--border)'};${curSec.danger?'border-style:dashed;background:var(--red-l);':''}border-radius:16px;box-shadow:var(--shadow);overflow:hidden">${r}</div>`;}rows='';};
+  for(const def of SETTINGS_DEFS){
+    if(def.sec!==undefined){flush();curSec=(def.admin&&!isAdmin)?null:{t:def.sec,danger:def.danger};continue;}
+    if(!curSec)continue;
+    if(def.admin&&!isAdmin)continue;
+    const d=def.key==='update'?def.d+APP_VERSION:def.d;
+    if(q&&!(def.t+' '+d).toLowerCase().includes(q))continue;
+    anyRow=true;
+    const click=def.card?`settingsOpen('${def.card}')`:`settingsAction('${def.key}')`;
+    rows+=`<div onclick="${click}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-top:1px solid var(--border);cursor:pointer" onmousedown="this.style.background='var(--bg)'" onmouseup="this.style.background=''" onmouseleave="this.style.background=''">
+      <span style="width:36px;height:36px;border-radius:11px;background:${def.bg};display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${def.ic}</span>
+      <span style="flex:1;min-width:0"><b style="font-size:13px;display:block;${def.danger?'color:var(--red-t)':''}">${def.t}</b><small style="font-size:10.5px;color:${def.danger?'var(--red-t)':'var(--text3)'};display:block;margin-top:1px">${d}</small></span>
+      <span style="color:var(--text3);font-size:17px">›</span>
+    </div>`;
+  }
+  flush();
+  el.innerHTML=anyRow?html:`<div style="text-align:center;padding:2.5rem;color:var(--text3)"><div style="font-size:34px;margin-bottom:8px">🔍</div>ไม่พบการตั้งค่าที่ค้นหา</div>`;
+};
+window.settingsOpen=function(cardId){
+  const grid=document.getElementById('settings-grid');if(!grid)return;
+  [...grid.children].forEach(c=>{c.style.display=(c.id===cardId)?'':'none';});
+  grid.style.display='grid';
+  const hub=document.getElementById('settings-hub-wrap');if(hub)hub.style.display='none';
+  const back=document.getElementById('settings-back');if(back)back.style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+window.settingsBack=function(){
+  const grid=document.getElementById('settings-grid');if(grid)grid.style.display='none';
+  const hub=document.getElementById('settings-hub-wrap');if(hub)hub.style.display='';
+  const back=document.getElementById('settings-back');if(back)back.style.display='none';
+};
+window.settingsAction=function(key){
+  if(key==='theme'){goto('theme');return;}
+  if(key==='meeting'){if(typeof meetingDaysPrompt==='function')meetingDaysPrompt();return;}
+  if(key==='slip'){if(typeof openSlipSettings==='function')openSlipSettings();return;}
+  if(key==='docs'){if(typeof docSettingsPrompt==='function')docSettingsPrompt();return;}
+  if(key==='update'){
+    showToast('กำลังตรวจอัปเดต...');
+    _updLastCheck=0;
+    Promise.resolve(autoCheckUpdate()).then(()=>{setTimeout(()=>{
+      const bar=document.getElementById('upd-banner');
+      if(!bar||bar.style.display==='none')showToast(`คุณใช้เวอร์ชันล่าสุดแล้ว ✓ (${APP_VERSION})`);
+    },900);});
+    return;
+  }
+};
+// (ของเดิม — ไม่ใช้แล้วใน v4.16 แต่คงไว้เผื่ออ้างอิง)
 window.buildSettingsNav=function(){
   const nav=document.getElementById('settings-nav');const grid=document.getElementById('settings-grid');
   if(!nav||!grid)return;
