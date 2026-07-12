@@ -1699,8 +1699,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.18.1';
+const APP_VERSION='4.19.0';
 const CHANGELOG=[
+  {v:'4.19.0',date:'2026-07-12',changes:[
+    '🔐 หน้าเข้าสู่ระบบโฉมใหม่ — การ์ดแก้วบนพื้นไล่เฉดเขียว→ฟ้า→ม่วง · ปุ่ม 👁 กดดูรหัสผ่านได้ · ติ๊ก "จำอีเมลไว้" ครั้งหน้าไม่ต้องพิมพ์ใหม่ · จอคอมมีฝั่งแนะนำแอปด้านซ้าย',
+    '🔒 บัญชีเข้าใช้ได้ทีละเครื่อง (ทุกคนรวมแอดมิน) — ถ้ามีคน login บัญชีเดียวกันที่เครื่องอื่น เครื่องเก่าจะออกจากระบบอัตโนมัติ พร้อมจอแจ้งว่าถูกเข้าใช้จากเครื่องไหน เมื่อไหร่ · ถ้าไม่ใช่คุณให้รีบเปลี่ยนรหัสผ่าน · มีบันทึกในประวัติใช้งานให้แอดมินตรวจได้']},
   {v:'4.18.1',date:'2026-07-12',changes:[
     '🌌 แก้ธีมมืด 3 ตัวหน้าตาเหมือนกัน — ตอนนี้พื้นหลังต่างกันจริง: ดาร์กมินต์=เขียวเข้ม · มิดไนท์บลู=น้ำเงินเข้ม · ดาร์กมินิมอล=เทาดำล้วน (เดิมต่างแค่สีปุ่ม)']},
   {v:'4.18.0',date:'2026-07-12',changes:[
@@ -2968,8 +2971,71 @@ document.addEventListener('visibilitychange',()=>{
   }
 });
 
+// ===== 🔐 ระบบ 1 บัญชี 1 เครื่อง (v4.19) =====
+// index.html จะบันทึก "รหัสประจำเครื่อง" (token) ไว้ที่ members/{uid}.activeSession ตอน login
+// ที่นี่เฝ้าดูค่านั้นแบบเรียลไทม์ — ถ้ามีเครื่องอื่น login ทับ (token ไม่ตรงกับเครื่องนี้)
+// เครื่องนี้จะถูกออกจากระบบอัตโนมัติ พร้อมจอแจ้งว่าโดนเข้าใช้จากที่ไหน (เข้มทุกคน รวมแอดมิน)
+let _sessionKicked=false;
+function _nmDeviceLabel(){
+  const ua=navigator.userAgent||'';
+  if(/iPhone|iPad|iPod/i.test(ua))return 'iPhone/iPad';
+  if(/Android/i.test(ua))return 'Android';
+  if(/Windows/i.test(ua))return 'คอมพิวเตอร์ (Windows)';
+  if(/Macintosh/i.test(ua))return 'คอมพิวเตอร์ (Mac)';
+  if(/Linux/i.test(ua))return 'คอมพิวเตอร์ (Linux)';
+  return 'ไม่ทราบรุ่น';
+}
+function _nmNewToken(){return Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,10);}
+function _nmClaimSession(tok){
+  updateDoc(doc(db,'members',currentUser.uid),{
+    activeSession:{token:tok,device:_nmDeviceLabel(),at:new Date().toISOString()}
+  }).catch(()=>{});
+}
+// คืนค่า true = เครื่องนี้ถูกเด้งออกแล้ว (หยุดประมวลผลต่อ)
+function sessionGuard(p){
+  if(_sessionKicked)return true;
+  if(!currentUser)return false;
+  const as=p&&p.activeSession;
+  const myTok=localStorage.getItem('nm_session_token');
+  if(!as||!as.token){
+    // ระบบยังไม่มี session (เพิ่งอัปเดตแอปเวอร์ชันนี้) → เครื่องนี้จองไว้เอง
+    let t=myTok;
+    if(!t){t=_nmNewToken();localStorage.setItem('nm_session_token',t);}
+    _nmClaimSession(t);
+    return false;
+  }
+  if(as.token===myTok)return false; // เครื่องนี้เป็นเครื่องล่าสุดที่ login — ใช้ต่อได้
+  sessionKick(as); // มีเครื่องอื่น login ทับ → เด้งออก
+  return true;
+}
+async function sessionKick(as){
+  if(_sessionKicked)return;
+  _sessionKicked=true;
+  localStorage.removeItem('nm_session_token');
+  const dev=(as&&as.device)||'เครื่องอื่น';
+  let when='';
+  try{if(as&&as.at)when=new Date(as.at).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+' น.';}catch(e){}
+  const ov=document.createElement('div');
+  ov.id='session-kick-ov';
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#63D3A6,#2A7FA5 60%,#5F4BC7);display:flex;align-items:center;justify-content:center;padding:1.2rem';
+  ov.innerHTML=`
+    <div style="width:100%;max-width:400px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.45);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);border-radius:22px;padding:1.8rem 1.5rem;color:#fff;text-align:center;box-shadow:0 20px 60px rgba(10,40,60,.28)">
+      <div style="font-size:52px;line-height:1">🔒</div>
+      <div style="font-family:var(--disp,serif);font-size:19px;font-weight:700;margin-top:.8rem;text-shadow:0 1px 8px rgba(0,0,0,.18)">บัญชีถูกใช้เข้าสู่ระบบที่เครื่องอื่น</div>
+      <div style="font-size:13.5px;margin-top:.7rem;line-height:1.7;opacity:.95">มีการเข้าสู่ระบบจาก <b>${dev}</b>${when?'<br>เมื่อ '+when:''}<br>เครื่องนี้จึงออกจากระบบให้อัตโนมัติ</div>
+      <div style="font-size:12.5px;background:rgba(0,0,0,.18);border-radius:12px;padding:10px 12px;margin-top:1rem;line-height:1.65">⚠️ ถ้าไม่ใช่คุณ ให้รีบเปลี่ยนรหัสผ่านทันที<br>และแจ้งแอดมิน</div>
+      <button onclick="window.location.href='index.html'" style="width:100%;margin-top:1.1rem;padding:13px;background:#fff;border:none;border-radius:14px;color:#0F6E56;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(6,40,30,.22)">เข้าสู่ระบบอีกครั้ง</button>
+    </div>`;
+  document.body.appendChild(ov);
+  try{await logActivity('session_kick','ถูกออกจากระบบอัตโนมัติ เพราะมีการเข้าใช้บัญชีที่ '+dev);}catch(e){}
+  try{await signOut(auth);}catch(e){}
+}
+
 onAuthStateChanged(auth,async user=>{
-  if(!user){window.location.href='index.html';return;}
+  if(!user){
+    if(_sessionKicked)return; // ค้างที่จอแจ้ง "ถูกเข้าใช้ที่เครื่องอื่น" — ไม่เด้งไป index ทันที
+    window.location.href='index.html';return;
+  }
   loading(true);
   currentUser=user;
   try{
@@ -2984,6 +3050,7 @@ onAuthStateChanged(auth,async user=>{
     onSnapshot(doc(db,'members',user.uid),(d)=>{
       if(!d.exists())return;
       const newProfile=d.data();
+      if(sessionGuard(newProfile))return; // 🔐 มีเครื่องอื่น login ทับ → เด้งออกแล้ว หยุดที่นี่
       const permChanged=JSON.stringify(newProfile.permissions||{})!==JSON.stringify(profile?.permissions||{});
       const roleChanged=newProfile.role!==profile?.role;
       profile=newProfile;
@@ -15436,6 +15503,7 @@ let allActivityLogs=[];
 const ACTION_LABELS={
   login:['เข้าสู่ระบบ','#3B8EEA','🔑'],
   login_newdevice:['เข้าระบบ • อุปกรณ์ใหม่','#C2410C','🔐'],
+  session_kick:['ถูกออกจากระบบ (เข้าใช้ที่เครื่องอื่น)','#C2410C','🔒'],
   secure_copy:['คัดลอกข้อมูลอ่อนไหว','#7A4E06','🔐'],
   secure_close:['ปิดช่องโหว่ข้อมูล','#217A54','🔐'],
   member_clone:['โคลนพนักงานทดสอบ','#8A6418','🧪'],
