@@ -786,7 +786,7 @@ input,select,textarea{border-radius:14px}
     <div class="topbar"><div><div class="page-title">บันทึกยอดขายรายวัน</div><div class="page-sub">กรอกยอดขายแยกตามสาขาและประเภทการชำระ</div></div></div>
     <div class="tabs" id="sales-tabs" style="margin-bottom:1.1rem">
       <button class="tab active" onclick="salesSetView('entry',this)">บันทึกยอด</button>
-      <button class="tab" onclick="salesSetView('overview',this)">ภาพรวมเดือน</button>
+      <button class="tab" id="sales-ov-tab" onclick="salesSetView('overview',this)">ภาพรวมเดือน</button>
       <button class="tab" id="sales-stats-tab" style="display:none" onclick="salesSetView('history',this)">📈 สถิติ</button>
     </div>
     <div id="sales-entry">
@@ -805,7 +805,7 @@ input,select,textarea{border-radius:14px}
       <div style="margin-top:14px;display:flex;flex-direction:column;gap:9px">
         <button id="sales-save-btn" onclick="salesSave()" style="display:flex;align-items:center;justify-content:space-between;width:100%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;border-radius:14px;padding:15px 20px;font-family:var(--font);font-weight:700;font-size:15px;cursor:pointer;box-shadow:0 6px 16px rgba(31,174,139,.3)"><span>💾 บันทึกยอด</span><span id="sales-save-amt" style="font-family:var(--disp);font-size:18px">฿0</span></button>
         <button id="sales-req-btn" style="display:none;width:100%;background:var(--rose,#D9596B);color:#fff;border:none;border-radius:14px;padding:15px;font-family:var(--font);font-weight:700;font-size:15px;cursor:pointer" onclick="salesRequestEdit()">🔒 ขอแอดมินแก้</button>
-        <button class="btn" onclick="salesViewDay()" style="width:100%">👁️ ดูสรุปยอดวันนี้ (ทุกสาขา)</button>
+        <button class="btn" id="sales-viewday-btn" onclick="salesViewDay()" style="width:100%">👁️ ดูสรุปยอดวันนี้ (ทุกสาขา)</button>
       </div>
     </div>
     <div id="sales-history" style="display:none">
@@ -1711,8 +1711,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.19.1';
+const APP_VERSION='4.20.0';
 const CHANGELOG=[
+  {v:'4.20.0',date:'2026-07-12',changes:[
+    '🔒 ป้องกันข้อมูลยอดขายรั่ว — พนักงานยังกรอกยอดขายได้ตามปกติ แต่ "ดูภาพรวมไม่ได้": ซ่อนแท็บ ภาพรวมเดือน · สถิติ/กราฟ · ปุ่มดูสรุปทุกสาขา · การ์ดผู้ช่วย "ยอดขายทุกสาขา" (เห็นเฉพาะแอดมิน)',
+    '📅 หน้าบันทึกยอด: พนักงานย้อนกรอกได้ 3 วัน (เผื่อลืมกรอก) เก่ากว่านั้นต้องให้แอดมินแก้ · แอดมินยังดู/แก้ได้ทุกวันทุกอย่างเหมือนเดิม',
+    '🏪 หน้าเข้าสู่ระบบใช้ "โลโก้ร้าน" จริงที่ตั้งไว้ในแอป (แทนไอคอนเดิม) + แสดงชื่อร้านตามที่ตั้ง — เปลี่ยนโลโก้ในตั้งค่า หน้า login เปลี่ยนตามเอง']},
   {v:'4.19.1',date:'2026-07-12',changes:[
     '🌙 แก้ธีมกลุ่มดำ (ดาร์กมินต์/มิดไนท์บลู/ดาร์กมินิมอล) สีปุ่ม แถบเมนู และพื้นหลังไม่เปลี่ยนตามธีม — ตอนนี้ทุกส่วนเปลี่ยนตามสีของธีมที่เลือกจริง เหมือนธีมกลุ่มสว่าง']},
   {v:'4.19.0',date:'2026-07-12',changes:[
@@ -7775,7 +7779,24 @@ function salesRenderBranchSeg(){
 }
 window.salesSetBranch=function(i){salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';salesBillCounts[salesBranch]=document.getElementById('sales-billcount')?.value||'';salesEdc[salesBranch]={black:document.getElementById('sales-edc-black')?.value||'',white:document.getElementById('sales-edc-white')?.value||''};salesBranch=i;salesRenderForm();};
 // เลื่อนวัน / ไปวันนี้ (date stepper)
-window.salesDateStep=function(d){const inp=document.getElementById('sales-date');if(!inp)return;const cur=inp.value?new Date(inp.value+'T00:00:00'):new Date();cur.setDate(cur.getDate()+d);inp.value=dateStr(cur);salesOnDateChange();};
+// พนักงานย้อนได้แค่ 3 วัน (กันย้อนดูยอดทั้งเดือน) และห้ามล่วงหน้า — แอดมินไปได้ทุกวัน
+const SALES_MEMBER_BACK_DAYS=3;
+function salesMemberDateBounds(){
+  const max=new Date();max.setHours(0,0,0,0);
+  const min=new Date();min.setDate(min.getDate()-SALES_MEMBER_BACK_DAYS);min.setHours(0,0,0,0);
+  return{min,max};
+}
+window.salesDateStep=function(d){
+  const inp=document.getElementById('sales-date');if(!inp)return;
+  const cur=inp.value?new Date(inp.value+'T00:00:00'):new Date();
+  cur.setDate(cur.getDate()+d);cur.setHours(0,0,0,0);
+  if(!isAdmin){
+    const {min,max}=salesMemberDateBounds();
+    if(cur>max){showToast('กรอกยอดล่วงหน้าไม่ได้');return;}
+    if(cur<min){showToast('พนักงานย้อนได้ '+SALES_MEMBER_BACK_DAYS+' วัน — เก่ากว่านี้ต้องให้แอดมินแก้','err');return;}
+  }
+  inp.value=dateStr(cur);salesOnDateChange();
+};
 window.salesDateToday=function(){const inp=document.getElementById('sales-date');if(inp)inp.value=todayStr();salesOnDateChange();};
 function salesDateRel(v){
   if(!v)return '';
@@ -7806,6 +7827,7 @@ function salesApplyLockUI(lock){
   }
 }
 function salesRenderForm(){
+  salesApplyRole();
   salesRenderBranchSeg();
   const dInp=document.getElementById('sales-date');
   if(dInp&&!dInp.value)dInp.value=todayStr();
@@ -7965,9 +7987,35 @@ window.salesLoadForDate=function(){
 };
 // เปลี่ยนวันที่ → โหลดค่าของวันนั้นมาแสดงทันที (auto refresh)
 window.salesOnDateChange=function(){
+  const inp=document.getElementById('sales-date');
+  if(inp&&!isAdmin&&inp.value){
+    const {min,max}=salesMemberDateBounds();
+    const v=new Date(inp.value+'T00:00:00');v.setHours(0,0,0,0);
+    if(v>max){inp.value=dateStr(max);showToast('กรอกยอดล่วงหน้าไม่ได้');}
+    else if(v<min){inp.value=dateStr(min);showToast('พนักงานย้อนได้ '+SALES_MEMBER_BACK_DAYS+' วัน — เก่ากว่านี้ต้องให้แอดมินแก้','err');}
+  }
   salesLoadForDate();
   salesRenderForm();
 };
+// ปรับหน้ายอดขายตามสิทธิ์: พนักงานเห็นแค่ "บันทึกยอด" — ซ่อนภาพรวมเดือน/สถิติ/ปุ่มดูทุกสาขา
+// และล็อกช่วงวันที่ให้ย้อนได้แค่ 3 วัน (แอดมินเห็น/ทำได้ทุกอย่างเหมือนเดิม)
+function salesApplyRole(){
+  const ovTab=document.getElementById('sales-ov-tab');if(ovTab)ovTab.style.display=isAdmin?'':'none';
+  const stab=document.getElementById('sales-stats-tab');if(stab)stab.style.display=isAdmin?'':'none';
+  const vd=document.getElementById('sales-viewday-btn');if(vd)vd.style.display=isAdmin?'':'none';
+  const dInp=document.getElementById('sales-date');
+  if(dInp){
+    if(isAdmin){dInp.removeAttribute('min');dInp.removeAttribute('max');}
+    else{const {min,max}=salesMemberDateBounds();dInp.min=dateStr(min);dInp.max=dateStr(max);}
+  }
+  // ถ้าพนักงานค้างอยู่แท็บภาพรวม/สถิติ (เช่น เคยเปิดตอนเป็นแอดมิน) → เด้งกลับแท็บบันทึกยอด
+  if(!isAdmin){
+    const ov=document.getElementById('sales-overview'),hi=document.getElementById('sales-history');
+    if((ov&&ov.style.display!=='none')||(hi&&hi.style.display!=='none')){
+      const t0=document.querySelector('#sales-tabs .tab');if(t0)salesSetView('entry',t0);
+    }
+  }
+}
 window.salesSave=function(){
   if(isTester){showToast('🧪 ผู้ทดสอบ: หน้านี้ไม่บันทึกจริง — ทดสอบลงยอดผ่านปุ่ม "🌙 ปิดร้าน" ในหน้าเงินสดได้เลย','err');return;}
   salesNotes[salesBranch]=document.getElementById('sales-note')?.value||'';
@@ -11646,12 +11694,13 @@ function renderHome(){
 
 // ===== ผู้ช่วยส่วนตัว (แตะการ์ดทักทาย) — ตอบจากข้อมูลจริงในระบบ ไม่ใช่ AI ภายนอก =====
 function assistantChipDefs(){
-  const canSales=isAdmin||hasPerm('sales')||hasPerm('dashboard_admin');
+  // ภาพรวมยอดขายทุกสาขา = เฉพาะแอดมิน/ผู้มีสิทธิ์แดชบอร์ด (พนักงานที่กรอกยอดได้ ไม่เห็นภาพรวม)
+  const canSalesOverview=isAdmin||hasPerm('dashboard_admin');
   return [
     {id:'shift_mine',ic:'📅',label:'เวรของฉัน 7 วันนี้',show:true},
     {id:'shift_today_all',ic:'👥',label:'ใครเข้าเวรวันนี้บ้าง',show:true},
-    {id:'sales_today',ic:'📊',label:'ยอดขายวันนี้ (ทุกสาขา)',show:canSales},
-    {id:'sales_month',ic:'📈',label:'ยอดขายเดือนนี้ (ทุกสาขา)',show:canSales},
+    {id:'sales_today',ic:'📊',label:'ยอดขายวันนี้ (ทุกสาขา)',show:canSalesOverview},
+    {id:'sales_month',ic:'📈',label:'ยอดขายเดือนนี้ (ทุกสาขา)',show:canSalesOverview},
     {id:'cash_balance',ic:'💰',label:'ตู้เซฟ & กระเป๋าเก็บเงิน',show:true},
     {id:'checkin_me',ic:'🕐',label:'ฉันเข้างาน/มาสายกี่ครั้งเดือนนี้',show:true},
   ].filter(c=>c.show);

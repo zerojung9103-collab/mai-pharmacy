@@ -93,21 +93,14 @@ body{font-family:var(--font);min-height:100vh;min-height:100dvh;display:flex;ali
 <div class="shell">
   <!-- ฝั่งแบรนด์ (จอคอม) -->
   <div class="brand">
-    <div class="b-logo"><svg width="40" height="40" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="น้องเม็ดยา"><g transform="rotate(-18 50 50)"><rect x="26" y="20" width="48" height="62" rx="24" fill="#fff"/><path d="M26 51 h48 v7 a24 24 0 0 1 -24 24 h0 a24 24 0 0 1 -24 -24 z" fill="#4FBE8A"/><rect x="26" y="20" width="48" height="62" rx="24" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2.5"/><line x1="26" y1="51" x2="74" y2="51" stroke="rgba(0,0,0,.18)" stroke-width="2.5"/></g><circle cx="43" cy="46" r="3.5" fill="#1D1D1F"/><circle cx="59" cy="42" r="3.5" fill="#1D1D1F"/><circle cx="44.5" cy="45" r="1.2" fill="#fff"/><circle cx="60.5" cy="41" r="1.2" fill="#fff"/><path d="M46 52 q5 5 11 1.5" fill="none" stroke="#1D1D1F" stroke-width="2.2" stroke-linecap="round"/><circle cx="38" cy="51" r="3" fill="#FF9EB1" opacity=".55"/><circle cx="64" cy="47" r="3" fill="#FF9EB1" opacity=".55"/></svg></div>
-    <h1>ใหม่เภสัช</h1>
-    <div class="b-sub">ระบบจัดการร้านยา 3 สาขา — ครบทุกงานในแอปเดียว</div>
-    <div class="b-chips">
-      <span>📍 ลงเวลา GPS</span>
-      <span>💰 เปิด-ปิดร้านเป็นขั้นตอน</span>
-      <span>🧾 สลิปออนไลน์</span>
-    </div>
+    <div class="b-logo nm-logo-slot"><img src="icon-192.png" alt="โลโก้ร้าน" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></div>
+    <h1 class="nm-shop-name">ใหม่เภสัช</h1>
   </div>
 
   <div class="card">
   <div class="logo">
-    <div class="logo-icon"><svg width="44" height="44" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-label="น้องเม็ดยา"><g transform="rotate(-18 50 50)"><rect x="26" y="20" width="48" height="62" rx="24" fill="#fff"/><path d="M26 51 h48 v7 a24 24 0 0 1 -24 24 h0 a24 24 0 0 1 -24 -24 z" fill="#4FBE8A"/><rect x="26" y="20" width="48" height="62" rx="24" fill="none" stroke="rgba(0,0,0,.18)" stroke-width="2.5"/><line x1="26" y1="51" x2="74" y2="51" stroke="rgba(0,0,0,.18)" stroke-width="2.5"/></g><circle cx="43" cy="46" r="3.5" fill="#1D1D1F"/><circle cx="59" cy="42" r="3.5" fill="#1D1D1F"/><circle cx="44.5" cy="45" r="1.2" fill="#fff"/><circle cx="60.5" cy="41" r="1.2" fill="#fff"/><path d="M46 52 q5 5 11 1.5" fill="none" stroke="#1D1D1F" stroke-width="2.2" stroke-linecap="round"/><circle cx="38" cy="51" r="3" fill="#FF9EB1" opacity=".55"/><circle cx="64" cy="47" r="3" fill="#FF9EB1" opacity=".55"/></svg></div>
-    <h1>ใหม่เภสัช</h1>
-    <p>ระบบจัดการร้าน 3 สาขา</p>
+    <div class="logo-icon nm-logo-slot"><img src="icon-192.png" alt="โลโก้ร้าน" style="width:100%;height:100%;object-fit:cover;border-radius:inherit"></div>
+    <h1 class="nm-shop-name">ใหม่เภสัช</h1>
   </div>
 
   <!-- LOGIN -->
@@ -127,7 +120,7 @@ body{font-family:var(--font);min-height:100vh;min-height:100dvh;display:flex;ali
     <div class="divider">หรือ</div>
     <div class="link-row" style="margin-top:0">ยังไม่มีบัญชี? <a onclick="show('register')">สมัครสมาชิก</a></div>
     <div class="lock-note">🔒 บัญชีเข้าใช้ได้ทีละเครื่อง — เข้าที่อื่น เครื่องนี้จะออกอัตโนมัติ</div>
-    <div class="foot">เวอร์ชัน 4.19.0 · 📲 ติดตั้งเป็นแอปได้</div>
+    <div class="foot">เวอร์ชัน 4.20.0 · 📲 ติดตั้งเป็นแอปได้</div>
   </div>
 
   <!-- REGISTER -->
@@ -166,7 +159,7 @@ body{font-family:var(--font);min-height:100vh;min-height:100dvh;display:flex;ali
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { getFirestore, doc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const app = initializeApp({
   apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
@@ -178,6 +171,15 @@ const app = initializeApp({
 });
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// ดึงโลโก้ + ชื่อร้านจากตั้งค่าแอป (config/appearance เปิดให้อ่านก่อนล็อกอิน)
+// ตั้งค่าเปลี่ยนโลโก้ในแอป → หน้า login เปลี่ยนตามอัตโนมัติ ไม่ต้องแก้โค้ด
+getDoc(doc(db,'config','appearance')).then(d=>{
+  if(!d.exists())return;
+  const c=d.data();
+  if(c.logoUrl){document.querySelectorAll('.nm-logo-slot').forEach(el=>{el.innerHTML='<img src="'+c.logoUrl+'" alt="โลโก้ร้าน" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';});}
+  if(c.shopName){document.querySelectorAll('.nm-shop-name').forEach(el=>{el.textContent=c.shopName;});document.title=c.shopName+' — เข้าสู่ระบบ';}
+}).catch(()=>{});
 
 function loading(v){document.getElementById('loading').classList.toggle('show',v);}
 function showAlert(id,msg,type='err'){const e=document.getElementById(id);e.textContent=msg;e.className='alert '+type;e.style.display='block';}
