@@ -194,6 +194,9 @@ textarea{resize:vertical;min-height:64px}
 .mem-table tr:hover td{background:var(--bg)}
 /* 🆕 v4.10: รายชื่อสมาชิกแบบการ์ด */
 .mem-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:11px}
+/* 🆕 v4.15 ชิปเลือกประเภทการลา */
+.lv-chip{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:20px;padding:8px 14px;font-family:var(--font);font-size:12.5px;font-weight:700;cursor:pointer}
+.lv-chip.on{background:var(--green-l);border-color:var(--green);color:var(--green-dd)}
 .mem-card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px}
 .mem-card.suspended{opacity:.6;background:var(--bg)}
 .mem-card .chips{display:flex;gap:5px;flex-wrap:wrap}
@@ -950,14 +953,7 @@ input,select,textarea{border-radius:14px}
       ⚠️ คุณสามารถดูประวัติเงินเดือนได้เฉพาะปีปัจจุบันเท่านั้น
     </div>
     <div class="metric-grid" id="mpr-metrics"></div>
-    <div class="card">
-      <div style="overflow-x:auto">
-        <table class="payroll-table" id="mpr-table">
-          <thead><tr><th>เดือน</th><th>รายได้รวม</th><th style="text-align:right">สถานะ</th></tr></thead>
-          <tbody id="mpr-tbody"><tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text3)">กด "ดูประวัติ" เพื่อโหลดข้อมูล</td></tr></tbody>
-        </table>
-      </div>
-    </div>
+    <div id="mpr-list"><div style="text-align:center;padding:2rem;color:var(--text3)">กด "ดูประวัติ" เพื่อโหลดข้อมูล</div></div>
   </div>
 
   <!-- SETTINGS -->
@@ -1115,15 +1111,24 @@ input,select,textarea{border-radius:14px}
 
   <!-- LEAVE REQUEST (member) -->
   <div class="page" id="page-leave">
-    <div class="topbar"><div><div class="page-title">ขอลา</div><div class="page-sub">แจ้งวันลาของคุณ ระบบจะตัดเวรวันนั้นออกให้อัตโนมัติ</div></div></div>
-    <div class="card" style="margin-bottom:1rem">
+    <div class="topbar"><div><div class="page-title">🌴 ขอลา</div><div class="page-sub">แจ้งวันลาของคุณ ระบบจะตัดเวรวันนั้นออกให้อัตโนมัติ</div></div></div>
+    <div class="card" style="margin-bottom:1rem;border-radius:18px">
       <div class="card-title">ยื่นคำขอลา</div>
-      <div class="field-row">
-        <div class="field"><label class="fl">วันที่เริ่มลา</label><input type="date" id="leave-from"></div>
-        <div class="field"><label class="fl">ถึงวันที่</label><input type="date" id="leave-to"></div>
+      <div class="field"><label class="fl">ประเภทการลา</label>
+        <div id="leave-type-chips" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="lv-chip" data-t="ลากิจ" onclick="leavePickType(this)">💼 ลากิจ</button>
+          <button type="button" class="lv-chip" data-t="ลาป่วย" onclick="leavePickType(this)">🤒 ลาป่วย</button>
+          <button type="button" class="lv-chip" data-t="ลาพักร้อน" onclick="leavePickType(this)">🏖️ ลาพักร้อน</button>
+          <button type="button" class="lv-chip" data-t="อื่นๆ" onclick="leavePickType(this)">📝 อื่นๆ</button>
+        </div>
       </div>
-      <div class="field"><label class="fl">เหตุผล</label><input type="text" id="leave-reason" placeholder="เช่น มีธุระ, ไม่สบาย, ลากิจ"></div>
-      <button class="btn btn-primary" style="width:100%" onclick="submitLeave()">📩 ส่งคำขอลา</button>
+      <div class="field-row">
+        <div class="field"><label class="fl">วันที่เริ่มลา</label><input type="date" id="leave-from" onchange="leaveUpdateDays()"></div>
+        <div class="field"><label class="fl">ถึงวันที่ (เว้นว่าง = ลาวันเดียว)</label><input type="date" id="leave-to" onchange="leaveUpdateDays()"></div>
+      </div>
+      <div id="leave-days-note" style="display:none;background:var(--green-ll);border:1px solid var(--green-l);color:var(--green-dd);border-radius:12px;padding:10px 13px;font-size:12.5px;font-weight:700;margin-bottom:12px"></div>
+      <div class="field"><label class="fl">เหตุผล/รายละเอียด</label><input type="text" id="leave-reason" placeholder="เช่น มีธุระที่อำเภอ, ไปหาหมอ"></div>
+      <button onclick="submitLeave()" style="display:block;width:100%;border:none;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;font-family:var(--font);font-size:14.5px;font-weight:800;border-radius:14px;padding:14px;box-shadow:0 6px 14px rgba(18,124,98,.3);cursor:pointer">📩 ส่งคำขอลา</button>
     </div>
     <div class="card">
       <div class="card-title">ประวัติการลาของคุณ</div>
@@ -1140,14 +1145,7 @@ input,select,textarea{border-radius:14px}
       </div>
     </div>
     <div class="metric-grid" id="la-metrics"></div>
-    <div class="card">
-      <div style="overflow-x:auto">
-        <table class="payroll-table">
-          <thead><tr><th>พนักงาน</th><th>วันที่ลา</th><th>จำนวนวัน</th><th>เหตุผล</th><th>สถานะ</th><th>พิจารณา</th><th>ลบ</th></tr></thead>
-          <tbody id="la-tbody"><tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
+    <div id="la-list"><div style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</div></div>
   </div>
 
   <!-- ACTIVITY LOG (admin) -->
@@ -1730,8 +1728,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.14.0';
+const APP_VERSION='4.15.0';
 const CHANGELOG=[
+  {v:'4.15.0',date:'2026-07-12',changes:[
+    '🌴 หน้า "ขอลา" โฉมใหม่ — เลือกประเภทการลาได้เลย (ลากิจ/ลาป่วย/ลาพักร้อน/อื่นๆ) · เลือกวันแล้วระบบบอกทันทีว่ารวมกี่วัน · ปุ่มส่งใหญ่ชัดเจน (เดิมประเภทการลาต้องให้แอดมินมากรอกทีหลัง)',
+    '✅ หน้า "อนุมัติลา" โฉมใหม่ — จากตารางเป็นการ์ด: คำขอที่รอขึ้นก่อนพร้อมปุ่ม อนุมัติ/ปฏิเสธ ใหญ่กดง่ายบนมือถือ · ประวัติที่พิจารณาแล้วอยู่ด้านล่าง · เพิ่มช่อง "รอพิจารณา" ในสรุปตัวเลข',
+    '💵 หน้า "เงินเดือนฉัน" โฉมใหม่ — รายเดือนเป็นการ์ดอ่านง่าย จ่ายแล้ว/รอจ่ายเห็นชัด + ปุ่มดูสลิปใหญ่ขึ้น (การ์ดรอบล่าสุด + สรุปรายปีเหมือนเดิม)']},
   {v:'4.14.0',date:'2026-07-12',changes:[
     '🏠 หน้าแรกโฉมใหม่ (พนักงาน): การ์ด "ขั้นต่อไปของคุณ" โชว์ครบ 5 ขั้นของวัน — เช็คอิน → เปิดร้าน → ลงยอด → ปิดร้าน → เช็คเอาท์ · ขั้นที่ทำแล้วขีดออก+โชว์เวลา · ปุ่มใหญ่พาไปทำขั้นถัดไปเลย · วันไม่มีเวรขึ้น "พักผ่อนได้เลย 🌴" · ใต้การ์ดมีสรุปวันนี้ (ยอดขาย/เงินลิ้นชัก/งานวันนี้) + ทางลัด 4 ปุ่ม',
     '👥 หน้าแรกแอดมิน: การ์ด "ทีมวันนี้" เห็นงานของแต่ละคนแยกสาขา — ใครกำลังทำงาน/เข้าสาย/ยังไม่เช็คอิน/ลา/ยังไม่ถึงเวร + ความคืบหน้างานประจำวันของสาขา · สาขาไหนไม่มีเวรขึ้นเตือนแดง กดไปจัดเวรได้เลย',
@@ -9489,7 +9491,7 @@ window.loadMyPayroll=async function(){
   const warning=document.getElementById('mpr-year-warning');
   if(!isAdmin && selectedYear!==currentYear){
     warning.style.display='block';
-    document.getElementById('mpr-tbody').innerHTML='<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--amber-t)">ไม่สามารถดูประวัติปีอื่นได้</td></tr>';
+    document.getElementById('mpr-list').innerHTML='<div style="text-align:center;padding:2rem;color:var(--amber-t)">ไม่สามารถดูประวัติปีอื่นได้</div>';
     document.getElementById('mpr-metrics').innerHTML='';
     return;
   }
@@ -9507,13 +9509,20 @@ window.loadMyPayroll=async function(){
       <div class="mcard c-green"><div class="mcard-label">รายได้รวมปี ${selectedYear}</div><div class="mcard-val">฿${fmt(totalNet)}</div><div class="mcard-sub">${myPayrollRecords.length} เดือน</div></div>
       <div class="mcard c-blue"><div class="mcard-label">ได้รับแล้ว</div><div class="mcard-val">฿${fmt(totalPaid)}</div><div class="mcard-sub">${myPayrollRecords.filter(r=>r.status==='paid').length} เดือน</div></div>
     `;
-    document.getElementById('mpr-tbody').innerHTML=myPayrollRecords.length===0
-      ?`<tr><td colspan="3" style="text-align:center;padding:2rem;color:var(--text3)">ยังไม่มีประวัติเงินเดือนในปี ${selectedYear}</td></tr>`
-      :myPayrollRecords.slice().reverse().map((r)=>{const i=myPayrollRecords.indexOf(r);return `<tr>
-        <td style="font-weight:600">${MONTHS_TH[r.month-1]} ${r.year}</td>
-        <td style="font-family:var(--disp);font-weight:700;font-size:16px;color:var(--green-dd)">฿${fmt(r.net)}</td>
-        <td style="text-align:right"><span class="${r.status==='paid'?'sta-on':'sta-off'}">${r.status==='paid'?'จ่ายแล้ว':'รอจ่าย'}</span>${r.status==='paid'?` <button class="btn btn-sm btn-blue" style="margin-left:6px" onclick="downloadMonthSlip(${i})">สลิป</button>`:''}</td>
-      </tr>`;}).join('');
+    // 🆕 v4.15: รายเดือนแบบการ์ด (แทนตาราง)
+    document.getElementById('mpr-list').innerHTML=myPayrollRecords.length===0
+      ?`<div style="text-align:center;padding:2.5rem;color:var(--text3)"><div style="font-size:38px;margin-bottom:8px">💵</div>ยังไม่มีประวัติเงินเดือนในปี ${selectedYear}</div>`
+      :myPayrollRecords.slice().reverse().map((r)=>{const i=myPayrollRecords.indexOf(r);const paid=r.status==='paid';return `<div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;margin-bottom:9px;box-shadow:var(--shadow)">
+        <span style="width:40px;height:40px;border-radius:12px;background:${paid?'var(--green-l)':'var(--amber-l)'};display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0">${paid?'💰':'🕒'}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13.5px">${MONTHS_TH[r.month-1]} ${r.year}</div>
+          <div style="font-size:11px;margin-top:1px"><span style="font-weight:800;color:${paid?'var(--green-d)':'var(--amber-t)'}">${paid?'✓ จ่ายแล้ว':'รอจ่าย'}</span>${r.docNo?` <span style="color:var(--text3)">· เลขที่ ${r.docNo}</span>`:''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-family:var(--disp);font-weight:700;font-size:18px;color:var(--green-dd)">฿${fmt(r.net)}</div>
+          ${paid?`<button class="btn btn-sm btn-blue" style="margin-top:4px" onclick="downloadMonthSlip(${i})">📄 ดูสลิป</button>`:''}
+        </div>
+      </div>`;}).join('');
   }catch(e){showToast('เกิดข้อผิดพลาด: '+e.message,'err');}
   loading(false);
 };
@@ -15038,17 +15047,39 @@ window.deleteWarn=async function(id){
 
 // ===== LEAVE REQUESTS =====
 // เก็บใน Firestore: leaves/{id} = {uid, name, from, to, reason, type, createdAt}
+// 🆕 v4.15: ชิปประเภทการลา + นับจำนวนวันสด
+window.leavePickType=function(btn){
+  document.querySelectorAll('#leave-type-chips .lv-chip').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  window._leaveType=btn.dataset.t||'';
+};
+window.leaveUpdateDays=function(){
+  const el=document.getElementById('leave-days-note');if(!el)return;
+  const from=document.getElementById('leave-from')?.value;
+  const to=document.getElementById('leave-to')?.value||from;
+  if(!from){el.style.display='none';return;}
+  if(to<from){el.style.display='block';el.style.color='var(--red-t)';el.textContent='⚠️ วันสิ้นสุดต้องไม่ก่อนวันเริ่ม';return;}
+  el.style.display='block';el.style.color='var(--green-dd)';
+  const n=leaveDayCount(from,to);
+  el.textContent=`🗓️ รวม ${n} วัน (${fmtLeaveDate(from,to)}) — ถ้ามีเวรช่วงนี้ ระบบจะตัดออกให้เมื่อส่งคำขอ`;
+};
 window.submitLeave=async function(){
   const from=document.getElementById('leave-from').value;
   const to=document.getElementById('leave-to').value||from;
   const reason=document.getElementById('leave-reason').value.trim();
+  const ltype=window._leaveType||'';
   if(!from){showToast('เลือกวันที่เริ่มลา','err');return;}
   if(to<from){showToast('วันสิ้นสุดต้องไม่ก่อนวันเริ่ม','err');return;}
+  const _clearForm=()=>{
+    document.getElementById('leave-from').value='';document.getElementById('leave-to').value='';document.getElementById('leave-reason').value='';
+    window._leaveType='';document.querySelectorAll('#leave-type-chips .lv-chip').forEach(c=>c.classList.remove('on'));
+    leaveUpdateDays();
+  };
   const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():currentUser.email;
   if(isTester){ // 🧪 คำขอลาจำลอง — ไม่เขียน Firestore/ไม่ตัดเวรจริง
-    testerLeavesGet().unshift({id:'tlv_'+Date.now(),uid:currentUser.uid,name,from,to,reason,type:'',status:'pending',createdAt:new Date().toISOString(),isTest:true});
+    testerLeavesGet().unshift({id:'tlv_'+Date.now(),uid:currentUser.uid,name,from,to,reason,type:ltype,status:'pending',createdAt:new Date().toISOString(),isTest:true});
     testerLeavesSave();
-    document.getElementById('leave-from').value='';document.getElementById('leave-to').value='';document.getElementById('leave-reason').value='';
+    _clearForm();
     showToast('🧪 ส่งคำขอลา (จำลอง) แล้ว — ไม่กระทบระบบจริง');
     loadMyLeaves();
     return;
@@ -15056,14 +15087,12 @@ window.submitLeave=async function(){
   loading(true);
   try{
     const id='leave_'+Date.now();
-    await setDoc(doc(db,'leaves',id),{uid:currentUser.uid,name,from,to,reason,type:'',createdAt:new Date().toISOString()});
+    await setDoc(doc(db,'leaves',id),{uid:currentUser.uid,name,from,to,reason,type:ltype,createdAt:new Date().toISOString()});
     // ตัดเวรในช่วงวันลาออกจากตาราง
     const removed=await removeShiftsForLeave(currentUser.uid,from,to);
     await loadLeavesForSchedule();
-    document.getElementById('leave-from').value='';
-    document.getElementById('leave-to').value='';
-    document.getElementById('leave-reason').value='';
-    logActivity('leave_request',`ขอลา ${from}${to!==from?' ถึง '+to:''}`);
+    _clearForm();
+    logActivity('leave_request',`ขอลา ${from}${to!==from?' ถึง '+to:''}${ltype?' ('+ltype+')':''}`);
     showToast(`ส่งคำขอลาแล้ว${removed>0?` (ตัดเวร ${removed} วันออก)`:''}`);
     loadMyLeaves();
   }catch(e){showToast('ส่งไม่ได้: '+e.message,'err');}
@@ -15129,8 +15158,8 @@ function fmtLeaveDate(from,to){
 
 // Admin: รายการขอลาทั้งหมด
 window.loadLeaveAdmin=async function(){
-  if(!isAdmin&&!hasPerm('leave_admin')){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="6">${accessDenied()}</td></tr>`;return;}
-  document.getElementById('la-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</td></tr>';
+  if(!isAdmin&&!hasPerm('leave_admin')){document.getElementById('la-list').innerHTML=accessDenied();return;}
+  document.getElementById('la-list').innerHTML='<div style="text-align:center;padding:2rem;color:var(--text3)">กำลังโหลด...</div>';
   try{
     const snap=await getDocs(collection(db,'leaves'));
     const list=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.from||'').localeCompare(a.from||''));
@@ -15138,14 +15167,17 @@ window.loadLeaveAdmin=async function(){
     const thisMonth=new Date().toISOString().slice(0,7);
     const thisMonthLeaves=list.filter(l=>l.from?.startsWith(thisMonth));
     const totalDays=thisMonthLeaves.reduce((a,l)=>a+leaveDayCount(l.from,l.to),0);
+    const pendingN=list.filter(l=>(l.status||'pending')==='pending').length;
     document.getElementById('la-metrics').innerHTML=`
+      <div class="mcard c-red"><div class="mcard-label">รอพิจารณา</div><div class="mcard-val">${pendingN}</div><div class="mcard-sub">รายการ</div></div>
       <div class="mcard c-amber"><div class="mcard-label">คำขอลาเดือนนี้</div><div class="mcard-val">${thisMonthLeaves.length}</div><div class="mcard-sub">รายการ</div></div>
       <div class="mcard c-blue"><div class="mcard-label">รวมวันลาเดือนนี้</div><div class="mcard-val">${totalDays}</div><div class="mcard-sub">วัน</div></div>
       <div class="mcard c-green"><div class="mcard-label">คำขอทั้งหมด</div><div class="mcard-val">${list.length}</div><div class="mcard-sub">รายการ</div></div>`;
     window._laList=list;
     laApplyFilter();
-  }catch(e){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+  }catch(e){document.getElementById('la-list').innerHTML=`<div style="text-align:center;color:var(--red-t);padding:1.5rem">${e.message}</div>`;}
 };
+// 🆕 v4.15: รายการขอลาแบบการ์ด — รอพิจารณาขึ้นก่อนพร้อมปุ่มใหญ่
 window.laApplyFilter=function(){
   try{
     const list=window._laList||[];
@@ -15154,21 +15186,47 @@ window.laApplyFilter=function(){
     let shown=list;
     if(st)shown=shown.filter(l=>(l.status||'pending')===st);
     if(q)shown=shown.filter(l=>(l.name||'').toLowerCase().includes(q));
-    document.getElementById('la-tbody').innerHTML=shown.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่พบรายการตามตัวกรอง</td></tr>':shown.map(l=>{
-      const statusBadge=l.status==='approved'?'<span class="badge badge-green">อนุมัติแล้ว</span>':l.status==='rejected'?'<span class="badge badge-red">ปฏิเสธ</span>':'<span class="badge badge-amber">รอพิจารณา</span>';
-      return `<tr>
-      <td style="font-weight:600">${l.uid?staffNameLink(l.name||'—',l.uid):(l.name||'—')}</td>
-      <td>${fmtLeaveDate(l.from,l.to)}</td>
-      <td>${leaveDayCount(l.from,l.to)} วัน</td>
-      <td style="font-size:12px">${l.reason||'—'}</td>
-      <td>${statusBadge}</td>
-      <td><div style="display:flex;gap:4px">
-        ${l.status!=='approved'?`<button class="btn btn-sm btn-primary" style="padding:3px 8px" onclick="decideLeave('${l.id}','approved')">อนุมัติ</button>`:''}
-        ${l.status!=='rejected'?`<button class="btn btn-sm" style="padding:3px 8px;color:var(--red-t);border-color:#F5C0C0" onclick="decideLeave('${l.id}','rejected')">ปฏิเสธ</button>`:''}
-      </div></td>
-      <td><button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${l.id}')">ลบ</button></td>
-    </tr>`;}).join('');
-  }catch(e){document.getElementById('la-tbody').innerHTML=`<tr><td colspan="7" style="text-align:center;color:var(--red-t)">${e.message}</td></tr>`;}
+    const el=document.getElementById('la-list');
+    if(!shown.length){el.innerHTML='<div style="text-align:center;padding:2.5rem;color:var(--text3)"><div style="font-size:38px;margin-bottom:8px">🌴</div>ไม่พบรายการตามตัวกรอง</div>';return;}
+    const secHead=(t)=>`<div style="font-size:12px;font-weight:800;color:var(--text3);margin:14px 2px 8px;letter-spacing:.3px">${t}</div>`;
+    const laCard=(l)=>{
+      const stt=l.status||'pending';
+      const days=leaveDayCount(l.from,l.to);
+      const init=(l.name||'?').trim().slice(0,2);
+      const pill=stt==='approved'?`<span style="font-size:10.5px;font-weight:800;background:var(--green-l);color:var(--green-dd);border-radius:10px;padding:3px 9px">✓ อนุมัติแล้ว</span>`
+        :stt==='rejected'?`<span style="font-size:10.5px;font-weight:800;background:var(--red-l);color:var(--red-t);border-radius:10px;padding:3px 9px">✖ ปฏิเสธ</span>`
+        :`<span style="font-size:10.5px;font-weight:800;background:var(--amber-l);color:var(--amber-t);border-radius:10px;padding:3px 9px">⏳ รอพิจารณา</span>`;
+      const btns=stt==='pending'
+        ?`<div style="display:flex;gap:8px;margin-top:11px">
+            <button onclick="decideLeave('${l.id}','approved')" style="flex:1;border:none;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:12px;padding:11px;font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer">✅ อนุมัติ</button>
+            <button onclick="decideLeave('${l.id}','rejected')" style="flex:1;border:1px solid #F5C0C0;background:var(--surface);color:var(--red-t);border-radius:12px;padding:11px;font-family:var(--font);font-weight:800;font-size:13px;cursor:pointer">✖ ปฏิเสธ</button>
+          </div>`
+        :`<div style="display:flex;gap:6px;margin-top:9px;justify-content:flex-end">
+            ${stt!=='approved'?`<button class="btn btn-sm" onclick="decideLeave('${l.id}','approved')">เปลี่ยนเป็นอนุมัติ</button>`:''}
+            ${stt!=='rejected'?`<button class="btn btn-sm" style="color:var(--red-t);border-color:#F5C0C0" onclick="decideLeave('${l.id}','rejected')">เปลี่ยนเป็นปฏิเสธ</button>`:''}
+            <button class="btn btn-sm btn-danger" onclick="deleteLeaveAdmin('${l.id}')">🗑</button>
+          </div>`;
+      return `<div style="background:var(--surface);border:1px solid ${stt==='pending'?'var(--amber)':'var(--border)'};border-radius:16px;padding:13px 15px;margin-bottom:9px;box-shadow:var(--shadow)">
+        <div style="display:flex;align-items:flex-start;gap:11px">
+          <span style="width:36px;height:36px;border-radius:50%;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">${init}</span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <span style="font-weight:700;font-size:13.5px">${l.uid?staffNameLink(l.name||'—',l.uid):(l.name||'—')}</span>
+              ${l.type?`<span style="font-size:10.5px;color:var(--blue-t);background:var(--blue-l);border-radius:9px;padding:2px 8px;font-weight:700">${l.type}</span>`:''}
+              ${pill}
+            </div>
+            <div style="font-size:12.5px;margin-top:4px"><b>${fmtLeaveDate(l.from,l.to)}</b> <span style="color:var(--text3)">· ${days} วัน</span></div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">${l.reason||'ไม่ระบุเหตุผล'}</div>
+          </div>
+        </div>
+        ${btns}
+      </div>`;
+    };
+    const pending=shown.filter(l=>(l.status||'pending')==='pending');
+    const decided=shown.filter(l=>(l.status||'pending')!=='pending');
+    el.innerHTML=(pending.length?secHead(`⏳ รอพิจารณา (${pending.length})`)+pending.map(laCard).join(''):'')
+      +(decided.length?secHead('ประวัติที่พิจารณาแล้ว')+decided.map(laCard).join(''):'');
+  }catch(e){const el=document.getElementById('la-list');if(el)el.innerHTML=`<div style="text-align:center;color:var(--red-t);padding:1.5rem">${e.message}</div>`;}
 };
 
 // admin อนุมัติ/ปฏิเสธคำขอลา → พนักงานจะได้รับแจ้งเตือน
