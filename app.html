@@ -529,7 +529,7 @@ textarea{resize:vertical;min-height:64px}
 .btn{border-radius:13px}.btn-sm{border-radius:11px}
 .tbd-icon{background:var(--green-l)}
 body.dark .sidebar{background:linear-gradient(180deg,#10302A,#0A1E1A)}
-body.dark .sb-item.active{background:rgba(47,224,164,.16);color:#7FEDC9;box-shadow:0 0 18px rgba(47,224,164,.18)}
+body.dark .sb-item.active{background:var(--green-l);color:var(--green-dd);box-shadow:none}
 input,select,textarea{border-radius:14px}
 .cmdk-input{border-radius:16px}
 .tabs{border-radius:16px;padding:4px}
@@ -1590,32 +1590,44 @@ function applyUserThemeCfg(cfg){
   const accent=cfg.accent||'#4FBE8A';
   const accent2=cfg.accent2||shadeColor(accent,-12);
   const root=document.documentElement.style;
-  root.setProperty('--green',accent);
-  root.setProperty('--green-d',shadeColor(accent,-15));
-  root.setProperty('--green-dd',shadeColor(accent,-28));
-  root.setProperty('--green-l',shadeColor(accent,72));
-  root.setProperty('--green-ll',shadeColor(accent,88));
-  root.setProperty('--grad-green',`linear-gradient(135deg,${accent},${accent2})`);
+  // ⚠️ ต้องตั้งค่าซ้ำที่ <body> ด้วย — เพราะ CSS body.dark{--green:...} กำหนดตัวแปรไว้ที่ body
+  // ซึ่งชนะค่าที่ตั้งบน <html> เสมอ → โหมดมืดสีปุ่ม/พื้นหลังไม่เปลี่ยนตามธีม (บั๊กธีมกลุ่มดำ)
+  const bodyS=document.body.style;
+  const setv=(k,v)=>{root.setProperty(k,v);bodyS.setProperty(k,v);};
+  const remv=(k)=>{root.removeProperty(k);bodyS.removeProperty(k);};
+  setv('--green',accent);
+  setv('--green-d',shadeColor(accent,-15));
+  if(isDark){
+    // โหมดมืด: สีเข้ม(ตัวหนังสือ)ต้องกลายเป็นสีอ่อน และพื้นจางต้องเป็นโทนมืดของสีเน้น
+    setv('--green-dd',shadeColor(accent,42));
+    setv('--green-l',shadeColor(accent,-68));
+    setv('--green-ll',shadeColor(accent,-78));
+  }else{
+    setv('--green-dd',shadeColor(accent,-28));
+    setv('--green-l',shadeColor(accent,72));
+    setv('--green-ll',shadeColor(accent,88));
+  }
+  setv('--grad-green',`linear-gradient(135deg,${accent},${accent2})`);
   // ===== พื้นหลัง: โทนสำเร็จ / สีอ่อนตาม accent / กำหนดเอง =====
   if(isDark){
-    if(cfg.darkBg){root.setProperty('--bg',cfg.darkBg);root.setProperty('--surface',cfg.darkSurface||shadeColor(cfg.darkBg,12));}
-    else{root.removeProperty('--bg');root.removeProperty('--surface');}
+    if(cfg.darkBg){setv('--bg',cfg.darkBg);setv('--surface',cfg.darkSurface||shadeColor(cfg.darkBg,12));}
+    else{remv('--bg');remv('--surface');}
   }
   else{
     const tone=cfg.bgTone||'auto';
-    if(tone==='white'){root.setProperty('--bg','#F4F5F6');root.setProperty('--surface','#FFFFFF');}
-    else if(tone==='cream'){root.setProperty('--bg','#FAF6F1');root.setProperty('--surface','#FFFDFA');}
-    else if(tone==='gray'){root.setProperty('--bg','#EEF0F2');root.setProperty('--surface','#FBFBFC');}
-    else if(tone==='custom'&&cfg.bgCustom){root.setProperty('--bg',cfg.bgCustom);root.setProperty('--surface',shadeColor(cfg.bgCustom,60));}
-    else{root.setProperty('--bg',shadeColor(accent,93));root.setProperty('--surface',shadeColor(accent,98));}
+    if(tone==='white'){setv('--bg','#F4F5F6');setv('--surface','#FFFFFF');}
+    else if(tone==='cream'){setv('--bg','#FAF6F1');setv('--surface','#FFFDFA');}
+    else if(tone==='gray'){setv('--bg','#EEF0F2');setv('--surface','#FBFBFC');}
+    else if(tone==='custom'&&cfg.bgCustom){setv('--bg',cfg.bgCustom);setv('--surface',shadeColor(cfg.bgCustom,60));}
+    else{setv('--bg',shadeColor(accent,93));setv('--surface',shadeColor(accent,98));}
   }
   // ===== 🆕 โหมดจัดเต็ม: กำหนดสีรายส่วน (ทับค่าข้างบน) — มี guard กันอ่านไม่ออกที่ CSS (--head-col/--nav-bg มี fallback) =====
   const pc=cfg.pc||{};
-  if(pc.bg&&!isDark)root.setProperty('--bg',pc.bg);
-  if(pc.card&&!isDark)root.setProperty('--surface',pc.card);
-  if(pc.text&&!isDark)root.setProperty('--text',pc.text);else root.removeProperty('--text');
-  if(pc.head)root.setProperty('--head-col',pc.head);else root.removeProperty('--head-col');
-  if(pc.nav&&!isDark)root.setProperty('--nav-bg',pc.nav);else root.removeProperty('--nav-bg');
+  if(pc.bg&&!isDark)setv('--bg',pc.bg);
+  if(pc.card&&!isDark)setv('--surface',pc.card);
+  if(pc.text&&!isDark)setv('--text',pc.text);else remv('--text');
+  if(pc.head)setv('--head-col',pc.head);else remv('--head-col');
+  if(pc.nav&&!isDark)setv('--nav-bg',pc.nav);else remv('--nav-bg');
   // ===== 🆕 ลายพื้นหลังจางๆ =====
   const op=Math.max(.05,Math.min(1,cfg.patternOp==null?0.5:+cfg.patternOp));
   const pcol=encodeURIComponent(accent);
@@ -1639,7 +1651,7 @@ function applyUserThemeCfg(cfg){
   else{const radMap={sharp:['8px','11px'],normal:['18px','22px'],round:['26px','32px']};const rad=radMap[cfg.radius||'normal']||radMap.normal;root.setProperty('--r',rad[0]);root.setProperty('--rl',rad[1]);}
   // ===== 🆕 เงาการ์ด =====
   const shMap={flat:'none',soft:'0 1px 2px rgba(60,80,68,.05),0 6px 16px rgba(60,80,68,.07)',float:'0 4px 10px rgba(40,60,50,.12),0 14px 34px rgba(40,60,50,.16)'};
-  if(cfg.shadow&&shMap[cfg.shadow])root.setProperty('--shadow',shMap[cfg.shadow]);else root.removeProperty('--shadow');
+  if(cfg.shadow&&shMap[cfg.shadow])setv('--shadow',shMap[cfg.shadow]);else remv('--shadow');
   // ===== ฟอนต์หัวข้อ (5 แบบ) =====
   const fontMap={
     serif:"'Noto Serif Thai',serif",
@@ -1699,8 +1711,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.19.0';
+const APP_VERSION='4.19.1';
 const CHANGELOG=[
+  {v:'4.19.1',date:'2026-07-12',changes:[
+    '🌙 แก้ธีมกลุ่มดำ (ดาร์กมินต์/มิดไนท์บลู/ดาร์กมินิมอล) สีปุ่ม แถบเมนู และพื้นหลังไม่เปลี่ยนตามธีม — ตอนนี้ทุกส่วนเปลี่ยนตามสีของธีมที่เลือกจริง เหมือนธีมกลุ่มสว่าง']},
   {v:'4.19.0',date:'2026-07-12',changes:[
     '🔐 หน้าเข้าสู่ระบบโฉมใหม่ — การ์ดแก้วบนพื้นไล่เฉดเขียว→ฟ้า→ม่วง · ปุ่ม 👁 กดดูรหัสผ่านได้ · ติ๊ก "จำอีเมลไว้" ครั้งหน้าไม่ต้องพิมพ์ใหม่ · จอคอมมีฝั่งแนะนำแอปด้านซ้าย',
     '🔒 บัญชีเข้าใช้ได้ทีละเครื่อง (ทุกคนรวมแอดมิน) — ถ้ามีคน login บัญชีเดียวกันที่เครื่องอื่น เครื่องเก่าจะออกจากระบบอัตโนมัติ พร้อมจอแจ้งว่าถูกเข้าใช้จากเครื่องไหน เมื่อไหร่ · ถ้าไม่ใช่คุณให้รีบเปลี่ยนรหัสผ่าน · มีบันทึกในประวัติใช้งานให้แอดมินตรวจได้']},
