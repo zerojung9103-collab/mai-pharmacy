@@ -1730,8 +1730,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.13.3';
+const APP_VERSION='4.13.4';
 const CHANGELOG=[
+  {v:'4.13.4',date:'2026-07-12',changes:[
+    '🔍 แก้ค้นหานิติบุคคลติดผลเก่า — เดิมถ้าเคยค้นเลขไหนแล้ว "ไม่เจอ" เบราว์เซอร์จะจำคำตอบนั้นไว้ทั้งวัน แม้ระบบฝั่งเซิร์ฟเวอร์แก้แล้วก็ยังขึ้นไม่เจอ ตอนนี้ขอข้อมูลสดใหม่ทุกครั้ง (ใครค้นแล้วไม่เจอทั้งที่ควรเจอ ลองค้นซ้ำได้เลย)']},
   {v:'4.13.3',date:'2026-07-11',changes:[
     '🔍 เปลี่ยนแหล่งค้นหานิติบุคคลเป็น "ระบบตรวจผู้ประกอบการ VAT กรมสรรพากร" — ครอบคลุมทุกรายที่จด VAT (ตรงกับงานใบกำกับภาษี) แสดงชื่อ+ที่อยู่+สำนักงานใหญ่/สาขา · กระทรวงพาณิชย์เป็นตัวสำรอง · ต้องอัปเดตไฟล์ worker-entry.js บน GitHub ด้วย']},
   {v:'4.13.2',date:'2026-07-11',changes:[
@@ -10199,7 +10201,8 @@ window.docImportProducts=function(inp){
 async function _docFetchJson(url,ms){
   const ac=new AbortController();const t=setTimeout(()=>ac.abort(),ms||8000);
   try{
-    const r=await fetch(url,{headers:{'Accept':'application/json'},signal:ac.signal});
+    // cache:'no-store' = ขอของสดเสมอ — กันเบราว์เซอร์จำคำตอบ "ไม่เจอ" เก่าค้างไว้เป็นวัน
+    const r=await fetch(url,{headers:{'Accept':'application/json'},signal:ac.signal,cache:'no-store'});
     if(!r.ok)throw new Error('HTTP '+r.status);
     return await r.json();
   }finally{clearTimeout(t);}
@@ -10211,7 +10214,7 @@ window.docJuristicLookup=async function(){
   if(st)st.innerHTML='⏳ กำลังค้นหาจากกรมสรรพากร (ผู้ประกอบการ VAT)...';
   try{
     // ผ่านตัวกลางบนเว็บเราเอง (worker-entry.js) — คำตอบ normalize แล้ว {ok,name,address,branch,source}
-    const j=await _docFetchJson('/juristic?id='+id,18000);
+    const j=await _docFetchJson('/juristic?id='+id+'&_='+Date.now(),18000);
     if(!j||!j.ok)throw new Error(j?.error||'ไม่พบข้อมูล');
     docForm.customer.name=j.name||'';
     if(j.address)docForm.customer.address=j.address;
