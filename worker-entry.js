@@ -1,4 +1,4 @@
-// ตัวรันโค้ดของเว็บ (Cloudflare Worker entry) — v4.13.4
+// ตัวรันโค้ดของเว็บ (Cloudflare Worker entry) — v4.13.5
 // เส้นทาง /juristic = ค้นหาข้อมูลผู้เสียภาษี/นิติบุคคล ให้ฟอร์มเอกสารการค้า
 //   แหล่งหลัก: ระบบตรวจผู้ประกอบการ VAT กรมสรรพากร (ครอบคลุมทุกรายที่จด VAT — ตรงกับงานใบกำกับภาษี)
 //   แหล่งสำรอง: MOC Open Data กระทรวงพาณิชย์ (ช้า/ไม่ครบ แต่มีบ้าง)
@@ -38,10 +38,20 @@ export default {
     ), { status: 200, headers: mkHeaders(false) });
 
     // ===== 1) กรมสรรพากร (VAT) =====
-    const soap = `<?xml version="1.0" encoding="utf-8"?>
+    // เซิร์ฟเวอร์ .NET ของกรมฯ เลือกงานตาม SOAPAction ที่ต้องตรงเป๊ะกับ namespace ของระบบ
+    // ลองทีละ namespace ที่เป็นไปได้ จนกว่าจะเจอตัวที่เซิร์ฟเวอร์รู้จัก
+    const NSS = [
+      'https://rdws.rd.go.th/serviceRD3/vatserviceRD3',
+      'https://rdws.rd.go.th/JserviceRD3/vatserviceRD3',
+      'https://rdws.rd.go.th/VATService',
+      'http://tempuri.org'
+    ];
+    for (const ns of NSS) {
+      try {
+        const soap = `<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
-    <Service xmlns="https://rdws.rd.go.th/JserviceRD3/vatserviceRD3">
+    <Service xmlns="${ns}">
       <username>anonymous</username>
       <password>anonymous</password>
       <TIN>${id}</TIN>
@@ -52,18 +62,14 @@ export default {
     </Service>
   </soap:Body>
 </soap:Envelope>`;
-    // ลอง 2 แบบ: SOAPAction มีเครื่องหมายคำพูดครอบ (ตามมาตรฐาน) แล้วค่อยแบบไม่ครอบ
-    const actions = ['"https://rdws.rd.go.th/JserviceRD3/vatserviceRD3/Service"',
-                     'https://rdws.rd.go.th/JserviceRD3/vatserviceRD3/Service'];
-    for (const act of actions) {
-      try {
         const r = await fetchT('https://rdws.rd.go.th/serviceRD3/vatserviceRD3.asmx', {
           method: 'POST',
-          headers: { 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': act },
+          headers: { 'Content-Type': 'text/xml; charset=utf-8', 'SOAPAction': '"' + ns + '/Service"' },
           body: soap
         }, 12000);
         const xml = await r.text();
-        if (debug) debug.push('RD [' + act.slice(0, 1) + '] HTTP ' + r.status + ' → ' + xml.slice(0, 700));
+        if (debug) debug.push('RD ns=' + ns + ' HTTP ' + r.status + ' → ' + xml.slice(0, 500));
+        if (/did not recognize/i.test(xml)) continue; // SOAPAction ไม่ตรง → ลอง namespace ถัดไป
         const err = tag(xml, 'vmsgerr');
         const vName = tag(xml, 'vName');
         if (vName && !err) {
@@ -88,10 +94,9 @@ export default {
           if (debug) body.debug = debug;
           return new Response(JSON.stringify(body), { status: 200, headers: mkHeaders(true) });
         }
-        if (err) break; // เจอระบบแต่ไม่พบเลขนี้ (เช่น ไม่ได้จด VAT) → ไม่ต้องลองซ้ำ ไปแหล่งสำรอง
-        if (r.status === 200) break; // ตอบปกติแต่ไม่มีชื่อ → ลองซ้ำก็ได้ผลเดิม
+        break; // เซิร์ฟเวอร์รู้จักคำสั่งแล้ว (แต่ไม่พบชื่อ/แจ้ง error) → ไม่ต้องลอง namespace อื่น
       } catch (e) {
-        if (debug) debug.push('RD [' + act.slice(0, 1) + '] ผิดพลาด: ' + String(e));
+        if (debug) debug.push('RD ns=' + ns + ' ผิดพลาด: ' + String(e));
       }
     }
 
