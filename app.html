@@ -1597,7 +1597,10 @@ function applyUserThemeCfg(cfg){
   root.setProperty('--green-ll',shadeColor(accent,88));
   root.setProperty('--grad-green',`linear-gradient(135deg,${accent},${accent2})`);
   // ===== พื้นหลัง: โทนสำเร็จ / สีอ่อนตาม accent / กำหนดเอง =====
-  if(isDark){root.removeProperty('--bg');root.removeProperty('--surface');}
+  if(isDark){
+    if(cfg.darkBg){root.setProperty('--bg',cfg.darkBg);root.setProperty('--surface',cfg.darkSurface||shadeColor(cfg.darkBg,12));}
+    else{root.removeProperty('--bg');root.removeProperty('--surface');}
+  }
   else{
     const tone=cfg.bgTone||'auto';
     if(tone==='white'){root.setProperty('--bg','#F4F5F6');root.setProperty('--surface','#FFFFFF');}
@@ -1696,8 +1699,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.18.0';
+const APP_VERSION='4.18.1';
 const CHANGELOG=[
+  {v:'4.18.1',date:'2026-07-12',changes:[
+    '🌌 แก้ธีมมืด 3 ตัวหน้าตาเหมือนกัน — ตอนนี้พื้นหลังต่างกันจริง: ดาร์กมินต์=เขียวเข้ม · มิดไนท์บลู=น้ำเงินเข้ม · ดาร์กมินิมอล=เทาดำล้วน (เดิมต่างแค่สีปุ่ม)']},
   {v:'4.18.0',date:'2026-07-12',changes:[
     '🎨 "ธีมของฉัน" โฉมใหม่ทั้งหน้า — แกลเลอรี 12 ธีมเป็นภาพหน้าแอปย่อส่วน แตะแล้วทั้งแอปเปลี่ยนให้ดูทันที · ขั้นตอน 1 เลือกจากภาพ → 2 ปรับเพิ่ม (ไม่บังคับ) → 3 บันทึก',
     '🌈 สีจัดเต็ม: จานสีเน้น 24 สี + ผสมเอง · ไล่เฉดปุ่มเลือกสีต้น-ปลายเอง · พื้นหลังเลือกสีเองได้ + ลายพื้นจางๆ (จุด/เส้น/🌿/💊 พร้อมปรับความชัด) · โหมดจัดเต็มกำหนดสีรายส่วน 6 จุด · 🎲 ปุ่มสุ่มชุดสี · 💾 เก็บชุดที่แต่งเป็น "ธีมของฉันเอง" ใบที่ 13',
@@ -3389,15 +3394,15 @@ const THEME_PRESETS=[
  {k:'mint',nm:'🌿 มินต์หรู',cfg:{mode:'light',accent:'#1FAE8B',accent2:'#127C62',bgTone:'auto',radius:'round',headFont:'serif'},pv:['#EDF4EF','#5FD3A0','#127C62','#fff']},
  {k:'peach',nm:'🌸 พีชน่ารัก',cfg:{mode:'light',accent:'#D06A86',accent2:'#C96F4A',bgTone:'cream',radius:'round',headFont:'rounded'},pv:['#FAF3EE','#E8899E','#C96F4A','#fff']},
  {k:'blue',nm:'💠 ฟ้าโมเดิร์น',cfg:{mode:'light',accent:'#3A6EA5',accent2:'#2D4E9E',bgTone:'white',radius:'sharp',headFont:'sans'},pv:['#F2F5F9','#5B91D6','#3A6EA5','#fff']},
- {k:'dark',nm:'🌙 ดาร์กมินต์',cfg:{mode:'dark',accent:'#2FE0A4',accent2:'#127C62',radius:'normal',headFont:'sans'},pv:['#131C18','#2FE0A4','#127C62','#1D2A24']},
+ {k:'dark',nm:'🌙 ดาร์กมินต์',cfg:{mode:'dark',accent:'#2FE0A4',accent2:'#127C62',darkBg:'#111D17',darkSurface:'#1B2B22',radius:'normal',headFont:'sans'},pv:['#131C18','#2FE0A4','#127C62','#1D2A24']},
  {k:'plum',nm:'🍇 พลัมหวาน',cfg:{mode:'light',accent:'#8C7AE6',accent2:'#5F4BC7',bgTone:'auto',radius:'round',headFont:'rounded'},pv:['#F5F0F9','#B9A8FF','#5F4BC7','#fff']},
  {k:'cream',nm:'🌾 ครีมอบอุ่น',cfg:{mode:'light',accent:'#C99A3F',accent2:'#A9772F',bgTone:'cream',radius:'normal',headFont:'serif'},pv:['#FAF6ED','#E0B25C','#A9772F','#fff']},
  {k:'sea',nm:'🌊 ทะเลลึก',cfg:{mode:'light',accent:'#2A9DA8',accent2:'#0B5E66',bgTone:'auto',radius:'normal',headFont:'sans'},pv:['#EDF5F6','#4FBBC4','#0B5E66','#fff']},
  {k:'lemon',nm:'🍋 เลมอนสดใส',cfg:{mode:'light',accent:'#A9B33C',accent2:'#7A8A1F',bgTone:'auto',radius:'round',headFont:'rounded'},pv:['#FAFAEC','#D8DE5A','#7A8A1F','#fff']},
  {k:'sunset',nm:'🌅 อัสดง',cfg:{mode:'light',accent:'#E8794F',accent2:'#D0532E',bgTone:'cream',radius:'round',headFont:'sans'},pv:['#FBF1EC','#FF9E7A','#D0532E','#fff']},
  {k:'pine',nm:'🌲 ป่าสน',cfg:{mode:'light',accent:'#4E7D4A',accent2:'#2C5230',bgTone:'auto',radius:'sharp',headFont:'serif'},pv:['#EEF2EE','#5F8E5A','#2C5230','#fff']},
- {k:'midnight',nm:'🌌 มิดไนท์บลู',cfg:{mode:'dark',accent:'#63A8F0',accent2:'#2D4E9E',radius:'normal',headFont:'sans'},pv:['#10141F','#63A8F0','#2D4E9E','#1A2233']},
- {k:'mono',nm:'🖤 ดาร์กมินิมอล',cfg:{mode:'dark',accent:'#9E9E9E',accent2:'#4A4A4A',radius:'sharp',headFont:'sans'},pv:['#161616','#9E9E9E','#4A4A4A','#242424']},
+ {k:'midnight',nm:'🌌 มิดไนท์บลู',cfg:{mode:'dark',accent:'#63A8F0',accent2:'#2D4E9E',darkBg:'#0E1526',darkSurface:'#182238',radius:'normal',headFont:'sans'},pv:['#10141F','#63A8F0','#2D4E9E','#1A2233']},
+ {k:'mono',nm:'🖤 ดาร์กมินิมอล',cfg:{mode:'dark',accent:'#B9B9B9',accent2:'#5A5A5A',darkBg:'#141414',darkSurface:'#212121',radius:'sharp',headFont:'sans'},pv:['#161616','#9E9E9E','#4A4A4A','#242424']},
 ];
 const THM_PALETTE=['#1FAE8B','#0E8C8C','#3E8E5A','#6BA33A','#3A6EA5','#2D9BC4','#5A5BB8','#8E5A9E','#B14FA8','#D06A86','#D9596B','#C96F4A','#C99A3F','#A98A2F','#7A6A4F','#5F6F7F','#37474F','#8B6F5C','#E091B9','#74B49B','#4A90A4','#9575CD','#607D8B','#2FE0A4'];
 function thmSeg(key,opts,cur){
