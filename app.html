@@ -197,6 +197,13 @@ textarea{resize:vertical;min-height:64px}
 /* 🆕 v4.15 ชิปเลือกประเภทการลา */
 .lv-chip{border:1px solid var(--border2);background:var(--surface);color:var(--text2);border-radius:20px;padding:8px 14px;font-family:var(--font);font-size:12.5px;font-weight:700;cursor:pointer}
 .lv-chip.on{background:var(--green-l);border-color:var(--green);color:var(--green-dd)}
+/* 🆕 v4.17 หน้าลงเวลา: จอคอม 2 คอลัมน์ */
+.ci-cols{display:block}
+@media(min-width:900px){.ci-cols{display:grid;grid-template-columns:5fr 6fr;gap:1rem;align-items:start}.ci-cols>div>.card:first-child{margin-top:0!important}}
+/* 🆕 v4.17 ธีมของฉัน: ตัวอย่างสด + จอคอม 2 คอลัมน์ + ปุ่มบันทึกลอย */
+.thm-cols{display:grid;grid-template-columns:1fr;gap:1rem;max-width:960px}
+@media(min-width:900px){.thm-cols{grid-template-columns:1fr 360px}.thm-pvcol{order:2;position:sticky;top:76px}.thm-ctrlcol{order:1}}
+.thm-save{position:sticky;bottom:10px;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:9px;box-shadow:var(--shadow);margin-top:1rem;z-index:5}
 .mem-card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px}
 .mem-card.suspended{opacity:.6;background:var(--bg)}
 .mem-card .chips{display:flex;gap:5px;flex-wrap:wrap}
@@ -1072,27 +1079,33 @@ input,select,textarea{border-radius:14px}
 
   <!-- CHECK-IN -->
   <div class="page" id="page-checkin">
-    <div class="topbar"><div><div class="page-title">เช็คอินเข้างาน</div><div class="page-sub">ลงเวลาเข้า-ออกงาน ต้องอยู่ในบริเวณร้าน</div></div></div>
+    <div class="topbar"><div><div class="page-title">📍 ลงเวลา</div><div class="page-sub">เข้า-ออกงาน · ต้องอยู่ในรัศมีร้าน + ตรงสาขาตามตารางเวร</div></div></div>
     <div id="my-shifts-card"></div>
-    <div id="checkin-status-card"></div>
-    <div class="card" style="margin-top:1rem">
-      <div class="card-title">บันทึกเวลาวันนี้</div>
-      <div id="checkin-today"></div>
-    </div>
-    <div class="card" style="margin-top:1rem">
-      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
-        <div><div class="card-title" style="margin:0">⏱️ สรุปชั่วโมงการทำงานของฉัน</div><div class="card-sub" style="margin:0">เฉพาะข้อมูลของคุณเท่านั้น</div></div>
-        <div style="display:flex;gap:6px;align-items:center">
-          <input type="month" id="my-hours-month" onchange="loadMyCheckinHistory()" style="font-size:13px;padding:7px 12px;width:auto">
-          <button class="btn btn-sm btn-primary" onclick="loadMyCheckinHistory()" style="font-size:13px">ดู</button>
+    <div class="ci-cols">
+      <div>
+        <div id="checkin-status-card"></div>
+        <div class="card" style="margin-top:1rem">
+          <div class="card-title">บันทึกเวลาวันนี้</div>
+          <div id="checkin-today"></div>
+        </div>
+        <div class="card" style="margin-top:1rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:1rem">
+            <div><div class="card-title" style="margin:0">⏱️ สรุปชั่วโมงการทำงานของฉัน</div><div class="card-sub" style="margin:0">เฉพาะข้อมูลของคุณเท่านั้น</div></div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="month" id="my-hours-month" onchange="loadMyCheckinHistory()" style="font-size:13px;padding:7px 12px;width:auto">
+              <button class="btn btn-sm btn-primary" onclick="loadMyCheckinHistory()" style="font-size:13px">ดู</button>
+            </div>
+          </div>
+          <div id="my-hours-summary" class="metric-grid"></div>
         </div>
       </div>
-      <div id="my-hours-summary" class="metric-grid"></div>
-    </div>
-    <div class="card" style="margin-top:1rem">
-      <div class="card-title">ประวัติการลงเวลาของฉัน</div>
-      <div class="card-sub">หากผู้ดูแลแก้เวลา จะมีปุ่มแสดงประวัติให้ตรวจสอบ</div>
-      <div id="my-checkin-history"></div>
+      <div>
+        <div class="card" style="margin-top:1rem">
+          <div class="card-title">ประวัติการลงเวลาของฉัน</div>
+          <div class="card-sub">หากผู้ดูแลแก้เวลา จะมีปุ่มแสดงประวัติให้ตรวจสอบ</div>
+          <div id="my-checkin-history"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1404,7 +1417,28 @@ input,select,textarea{border-radius:14px}
     <div class="topbar">
       <div><div class="page-title">ธีมของฉัน</div><div class="page-sub">ปรับแต่งการแสดงผลเฉพาะบัญชีของคุณ — ไม่กระทบคนอื่น</div></div>
     </div>
-    <div style="max-width:560px">
+    <div class="thm-cols">
+      <div class="thm-pvcol">
+        <div class="card" style="border:1.5px solid var(--green);background:var(--green-ll)">
+          <div style="font-size:12.5px;font-weight:800;color:var(--green-dd);margin-bottom:8px">👁️ ตัวอย่างสด — แตะปรับด้านล่างแล้วภาพนี้เปลี่ยนทันที</div>
+          <div style="background:var(--bg);border:1px solid var(--border2);border-radius:16px;padding:12px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px">
+              <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(140deg,var(--green),var(--green-dd));color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">ฉัน</span>
+              <span style="font-size:11.5px;font-weight:700">สวัสดี 👋 นี่คือหน้าแรกของคุณ</span>
+            </div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:var(--shadow);margin-bottom:8px">
+              <b style="font-size:11px;font-family:var(--disp)">ขั้นต่อไปของคุณ</b>
+              <div style="height:5px;background:var(--border);border-radius:4px;margin:6px 0;overflow:hidden"><span style="display:block;height:100%;width:40%;background:linear-gradient(140deg,var(--green),var(--green-dd))"></span></div>
+              <div style="background:linear-gradient(140deg,var(--green),var(--green-dd));border-radius:9px;color:#fff;font-size:10.5px;font-weight:800;text-align:center;padding:8px">▶ ไปลงยอดขาย</div>
+            </div>
+            <div style="display:flex;gap:7px">
+              <span style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:7px 9px;font-size:9px;color:var(--text3)">ยอดขายวันนี้<b style="display:block;font-size:12px;color:var(--text);font-family:var(--disp)">฿12,480</b></span>
+              <span style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);padding:7px 9px;font-size:9px;color:var(--text3)">งานวันนี้<b style="display:block;font-size:12px;color:var(--green-d);font-family:var(--disp)">6/9</b></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="thm-ctrlcol">
       <!-- Preset themes -->
       <div class="card" style="margin-bottom:1rem">
         <div style="font-weight:600;font-size:14px;margin-bottom:.4rem">✨ ธีมสำเร็จรูป</div>
@@ -1517,8 +1551,11 @@ input,select,textarea{border-radius:14px}
         <div class="theme-mode-btn" data-bodyfont="noto" onclick="selectThemeBodyFont('noto')"><div style="font-family:'Noto Sans Thai',sans-serif;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">โน้ต</div></div>
         <div class="theme-mode-btn" data-bodyfont="rounded" onclick="selectThemeBodyFont('rounded')"><div style="font-family:'Itim',cursive;font-size:15px">กขค</div><div style="font-size:11px;margin-top:4px">กลม</div></div>
       </div>
-      <button class="btn btn-primary" style="width:100%;margin-top:1.25rem" onclick="saveUserTheme()">บันทึกธีม</button>
-      <button class="btn" style="width:100%;margin-top:8px" onclick="resetUserTheme()">↺ คืนค่าเริ่มต้น</button>
+      <div class="thm-save">
+        <button style="flex:1;border:none;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:11px;padding:12px;font-family:var(--font);font-size:13.5px;font-weight:800;cursor:pointer" onclick="saveUserTheme()">💾 ใช้ธีมนี้ (บันทึก)</button>
+        <button class="btn" style="border-radius:11px" onclick="resetUserTheme()">↺ คืนค่า</button>
+      </div>
+      </div>
     </div>
   </div>
   <!-- ===== หน้า To Do List วันนี้ ===== -->
@@ -1738,8 +1775,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.16.0';
+const APP_VERSION='4.17.0';
 const CHANGELOG=[
+  {v:'4.17.0',date:'2026-07-12',changes:[
+    '📍 หน้า "ลงเวลา" โฉมใหม่ — นาฬิกาใหญ่เดินสด + ชิปเวรวันนี้ของคุณ + เส้นเวลา เข้า→ทำมาแล้วกี่ชม.→ออก · ปุ่ม "🔍 เช็คตำแหน่งก่อนกด" รู้ทันทีว่าอยู่ในรัศมีร้าน/ตรงสาขาตามเวรไหม ไม่ต้องกดลงเวลาแล้วค่อยโดนกัน (กติกาเข้มเหมือนเดิมทุกอย่าง) · จอคอมแบ่ง 2 คอลัมน์ ประวัติอยู่ขวา',
+    '🎨 หน้า "ธีมของฉัน" โฉมใหม่ — การ์ด "ตัวอย่างสด" จำลองหน้าแรกจริง แตะเปลี่ยนสี/มุม/ฟอนต์แล้วภาพเปลี่ยนทันที · ปุ่ม "ใช้ธีมนี้" ลอยติดขอบจอ ไม่ต้องเลื่อนหา · จอคอมแบ่งซ้ายปรับ-ขวาดูตัวอย่าง']},
   {v:'4.16.0',date:'2026-07-12',changes:[
     '⚙️ หน้า "ตั้งค่า" โฉมใหม่ (แบบศูนย์รวมรายการ) — จัดเป็นหมวด: ของฉัน / ร้าน&หน้าตาแอป / เวลา&งาน / เงิน&เอกสาร / โซนอันตราย · แตะหัวข้อแล้วเปิดตั้งค่าเรื่องนั้นเรื่องเดียว ไม่ต้องเลื่อนหน้ายาวๆ อีก · มีปุ่ม "← กลับหน้าตั้งค่า"',
     '🔍 ช่องค้นหาการตั้งค่า — พิมพ์ "โลโก้" "GPS" "สลิป" เจอทันที',
@@ -11803,23 +11843,30 @@ async function renderCheckinPage(){
   const hasIn=rec&&rec.checkIn;
   const hasOut=rec&&rec.checkOut;
 
-  const _pct=hasOut?100:(hasIn?66:25);
-  const _circ=(2*Math.PI*66).toFixed(1);
-  const _off=(_circ*(1-_pct/100)).toFixed(1);
-  const _ringTxt=hasOut?'ลงเวลาครบแล้ว':(hasIn?'กำลังทำงาน':'พร้อมเช็คอิน');
-  const _ringSub=hasIn?('เข้างาน '+rec.checkIn):('เวลา '+new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}));
-  card.innerHTML=`${_isMeetToday?`<div style="display:flex;gap:9px;align-items:center;background:var(--purple-l);border:1.5px dashed var(--purple);color:var(--purple-t);border-radius:13px;padding:10px 13px;margin-bottom:10px;font-size:12.5px;font-weight:600">📣 วันนี้เป็น "วันประชุม" — เช็คอิน/เช็คเอาท์ที่สาขาไหนก็ได้ (แต่ต้องอยู่ในรัศมีร้าน)</div>`:''}<div class="card" style="text-align:center;border-radius:26px;padding:24px 20px">
-    <div style="width:160px;height:160px;margin:0 auto 16px;position:relative">
-      <svg width="160" height="160" viewBox="0 0 160 160" style="transform:rotate(-90deg)">
-        <circle cx="80" cy="80" r="66" fill="none" stroke="var(--border)" stroke-width="11"/>
-        <circle cx="80" cy="80" r="66" fill="none" stroke="var(--green)" stroke-width="11" stroke-linecap="round" stroke-dasharray="${_circ}" stroke-dashoffset="${_off}"/>
-      </svg>
-      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1116 0z"/><circle cx="12" cy="10" r="2.6"/></svg>
-        <div style="font-family:var(--disp);font-weight:600;font-size:17px;margin-top:6px;color:var(--text)">${_ringTxt}</div>
-        <div style="font-size:11px;color:var(--text3);margin-top:1px">${_ringSub}</div>
-      </div>
+  // 🆕 v4.17: hero นาฬิกาใหญ่ + ชิปเวรวันนี้ + ปุ่มเช็คตำแหน่งก่อนกด + เส้นเวลา เข้า→ทำมาแล้ว→ออก
+  const _myShift=(shifts||[]).find(s=>s.staffId===currentUser?.uid&&s.date===todayStr());
+  const _nowT=new Date();
+  const _clk=`${String(_nowT.getHours()).padStart(2,'0')}:${String(_nowT.getMinutes()).padStart(2,'0')}`;
+  const _dateTxt=_nowT.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'short',year:'numeric'});
+  const _elapsed=(hasIn&&!hasOut)?(()=>{const[ih,im]=rec.checkIn.split(':').map(Number);let m=(_nowT.getHours()*60+_nowT.getMinutes())-(ih*60+im);if(m<0)m+=1440;return `${Math.floor(m/60)}:${String(m%60).padStart(2,'0')} ชม.`;})():'';
+  const _nd=(state,txt)=>state==='done'?`<span style="width:26px;height:26px;border-radius:50%;background:var(--green-l);color:var(--green-dd);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${txt}</span>`
+    :state==='now'?`<span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 0 0 4px var(--green-l)">${txt}</span>`
+    :`<span style="width:26px;height:26px;border-radius:50%;border:2px dashed var(--border2);color:var(--text3);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${txt}</span>`;
+  const _ln=(on)=>`<span style="flex:1;height:3px;background:${on?'var(--green)':'var(--border2)'}"></span>`;
+  const _timeline=`<div style="display:flex;align-items:center;margin:12px 0 4px">${_nd(hasIn?'done':'now','📍')}${_ln(hasIn)}${_nd(hasOut?'done':(hasIn?'now':'off'),'⏱')}${_ln(hasOut)}${_nd(hasOut?'done':'off','🏁')}</div>
+    <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--text3);padding:0 2px;margin-bottom:12px">
+      <span>เข้า ${hasIn?`<b style="color:var(--text)">${rec.checkIn}</b>`:'—'}</span>
+      <span>${hasOut?`รวม <b style="color:var(--green-d)">${calcWorkTime(rec.checkIn,rec.checkOut)}</b>`:(hasIn?`ทำมาแล้ว <b style="color:var(--green-d)" id="ci-elapsed">${_elapsed}</b>`:'')}</span>
+      <span>ออก ${hasOut?`<b style="color:var(--text)">${rec.checkOut}</b>`:(_myShift?`(เวรถึง ${_myShift.end})`:'—')}</span>
+    </div>`;
+  card.innerHTML=`${_isMeetToday?`<div style="display:flex;gap:9px;align-items:center;background:var(--purple-l);border:1.5px dashed var(--purple);color:var(--purple-t);border-radius:13px;padding:10px 13px;margin-bottom:10px;font-size:12.5px;font-weight:600">📣 วันนี้เป็น "วันประชุม" — เช็คอิน/เช็คเอาท์ที่สาขาไหนก็ได้ (แต่ต้องอยู่ในรัศมีร้าน)</div>`:''}<div class="card" style="text-align:center;border-radius:26px;padding:22px 18px">
+    <div id="ci-clock" style="font-family:var(--disp);font-size:44px;font-weight:700;letter-spacing:.5px;line-height:1.1">${_clk}</div>
+    <div style="font-size:12px;color:var(--text3);margin:2px 0 11px">${_dateTxt}</div>
+    <div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-bottom:6px">
+      ${_myShift?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;border-radius:11px;padding:5px 11px;background:var(--blue-l);color:var(--blue-t)">🗓️ เวรวันนี้ ${_myShift.start}–${_myShift.end} · ${BRANCHES[_myShift.branch]||''}</span>`:`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;border-radius:11px;padding:5px 11px;background:var(--bg);color:var(--text3)">🌴 วันนี้ไม่มีเวรในตาราง</span>`}
+      <button id="ci-gps-chip" onclick="ciCheckLocation()" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;border-radius:11px;padding:5px 11px;background:var(--surface);color:var(--text2);border:1.5px dashed var(--border2);cursor:pointer;font-family:var(--font)">🔍 เช็คตำแหน่งก่อนกด</button>
     </div>
+    ${_timeline}
     ${!hasIn?`
       ${isTester?`<div style="margin-bottom:10px">
         <div style="font-size:11px;color:#F59E0B;font-weight:600;margin-bottom:6px">🧪 โหมดทดสอบ — เลือกสาขาเอง</div>
@@ -11844,7 +11891,51 @@ async function renderCheckinPage(){
 
   // โหลดประวัติการลงเวลาของตัวเอง (ย้อนหลัง) + แสดงการแก้ไข
   loadMyCheckinHistory();
+  // 🆕 v4.17: นาฬิกา + "ทำมาแล้ว" เดินสดทุก 20 วิ (เฉพาะตอนอยู่หน้านี้)
+  if(window._ciClockTimer)clearInterval(window._ciClockTimer);
+  window._ciClockTimer=setInterval(()=>{
+    const c=document.getElementById('ci-clock');
+    if(!c||!document.getElementById('page-checkin')?.classList.contains('active')){clearInterval(window._ciClockTimer);return;}
+    const n=new Date();
+    c.textContent=`${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}`;
+    const el=document.getElementById('ci-elapsed');
+    const r=window._myCheckinToday;
+    if(el&&r&&r.checkIn&&!r.checkOut){const[ih,im]=r.checkIn.split(':').map(Number);let m=(n.getHours()*60+n.getMinutes())-(ih*60+im);if(m<0)m+=1440;el.textContent=`${Math.floor(m/60)}:${String(m%60).padStart(2,'0')} ชม.`;}
+  },20000);
 }
+// 🆕 v4.17: เช็คตำแหน่งก่อนกดลงเวลา — บอกเลยว่าอยู่ในรัศมีไหม/ตรงเวรไหม (ไม่บันทึกอะไร)
+window.ciCheckLocation=function(){
+  const chip=document.getElementById('ci-gps-chip');if(!chip)return;
+  const set=(bg,col,border,txt)=>{chip.style.background=bg;chip.style.color=col;chip.style.border=border;chip.innerHTML=txt;};
+  set('var(--surface)','var(--text3)','1.5px dashed var(--border2)','📡 กำลังระบุตำแหน่ง...');
+  if(!navigator.geolocation){set('var(--red-l)','var(--red-t)','1.5px solid var(--red)','เบราว์เซอร์ไม่รองรับ GPS');return;}
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    const{latitude,longitude}=pos.coords;
+    let matched=null,minD=Infinity,nearest=null,nd=Infinity;
+    (branchLocations||[]).forEach((loc,i)=>{
+      if(!loc)return;
+      const d=distanceM(latitude,longitude,loc.lat,loc.lng);
+      if(d<nd){nd=d;nearest=i;}
+      if(d<=(loc.radius||100)&&d<minD){minD=d;matched=i;}
+    });
+    if(nearest===null){set('var(--red-l)','var(--red-t)','1.5px solid var(--red)','⚠️ ยังไม่ได้ตั้งพิกัดสาขา — แจ้งแอดมิน');return;}
+    if(matched===null){set('var(--red-l)','var(--red-t)','1.5px solid var(--red)',`⚠️ นอกรัศมีร้าน — ใกล้สุด ${BRANCHES[nearest]} ${Math.round(nd)} ม.`);return;}
+    // เทียบกับตารางเวรวันนี้ (กติกาเดียวกับตอนกดจริง)
+    let ok=true,note='';
+    try{
+      if(!shifts.length)await loadShiftsFromCloud();
+      const sh=shifts.find(s=>s.staffId===currentUser.uid&&s.date===todayStr());
+      if(sh&&sh.branch!=null&&+sh.branch!==+matched){
+        let meet=false;
+        try{meet=(await loadMeetingDays(true)).includes(todayStr());}catch(e){}
+        if(meet)note=' · 📣 วันประชุม ลงได้';
+        else{ok=false;note=` — แต่เวรอยู่ ${BRANCHES[sh.branch]} (ติดต่อแอดมินให้ลงเวลาให้)`;}
+      }
+    }catch(e){}
+    if(ok)set('var(--green-l)','var(--green-dd)','1.5px solid var(--green)',`✓ อยู่ในรัศมี · ${BRANCHES[matched]}${note} — กดลงเวลาได้เลย`);
+    else set('var(--amber-l)','var(--amber-t)','1.5px solid var(--amber)',`⛔ อยู่ที่ ${BRANCHES[matched]}${note}`);
+  },err=>{set('var(--red-l)','var(--red-t)','1.5px solid var(--red)','ขอตำแหน่งไม่ได้ — เปิดอนุญาต GPS แล้วลองใหม่');},{enableHighAccuracy:true,timeout:12000});
+};
 
 // ประวัติการลงเวลาของพนักงานเอง (เห็นการแก้ไขของ admin)
 // แปลงเวลาทำงานเป็นจำนวนนาที (สำหรับรวมยอด)
