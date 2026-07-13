@@ -1722,8 +1722,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.22.0';
+const APP_VERSION='4.22.1';
 const CHANGELOG=[
+  {v:'4.22.1',date:'2026-07-13',changes:[
+    '⌨️ เอกสารการค้า: คีย์สินค้าเร็วขึ้น — กด Enter เลื่อนช่องถัดไปเอง (ชื่อ→จำนวน→ราคา→แถวถัดไป) และเพิ่มแถวใหม่ให้อัตโนมัติ · พิมพ์ชื่อแล้วมีรายการแนะนำโผล่ กด Enter เลือกตัวแรกให้เลย']},
   {v:'4.22.0',date:'2026-07-13',changes:[
     '🧾 เอกสารการค้า: เวลาพิมพ์แล้วยาวขึ้นหน้า 2 หัวกระดาษ (ชื่อร้าน · ข้อมูลลูกค้า · หัวคอลัมน์) จะตามไปทุกหน้าอัตโนมัติ ยอดรวม+ลายเซ็นอยู่ท้ายสุดหน้าเดียว — พิมพ์สวยเป็นระเบียบ',
     '✏️ แก้ไขเอกสารที่ออกไปแล้วได้ — เปิดเอกสารในประวัติ → กด "แก้ไข" → แก้รายการ/ราคา/ลูกค้า แล้วบันทึกทับเลขเดิม (ไม่ออกเลขใหม่) · ค้นหาเอกสารเดิมด้วยเลขที่/ชื่อลูกค้าเพื่อพิมพ์ซ้ำได้เหมือนเดิม']},
@@ -10435,10 +10437,10 @@ function renderDocForm(){
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px">💡 พิมพ์ชื่อสินค้า 2-3 ตัวอักษร ระบบค้นจากฐานสินค้าร้าน ${docGetProducts().length.toLocaleString('th-TH')} รายการ — เลือกแล้วเติมหน่วย/ราคาให้เอง (พิมพ์เองก็ได้)</div>
       ${f.items.map((it,i)=>`
         <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-          <input type="text" value="${(it.name||'').replace(/"/g,'&quot;')}" placeholder="รายการที่ ${i+1} — พิมพ์เพื่อค้นหา..." autocomplete="off" oninput="docItemName(${i},this)" onfocus="docItemName(${i},this)" style="flex:2;min-width:110px">
-          <input type="number" value="${it.qty}" min="0" step="any" oninput="docItemUpd(${i},'qty',this.value)" style="width:56px;text-align:right" title="จำนวน">
+          <input type="text" data-di="${i}" data-df="name" value="${(it.name||'').replace(/"/g,'&quot;')}" placeholder="รายการที่ ${i+1} — พิมพ์เพื่อค้นหา..." autocomplete="off" oninput="docItemName(${i},this)" onfocus="docItemName(${i},this)" onkeydown="docItemKey(event,${i},'name')" style="flex:2;min-width:110px">
+          <input type="number" data-di="${i}" data-df="qty" value="${it.qty}" min="0" step="any" oninput="docItemUpd(${i},'qty',this.value)" onkeydown="docItemKey(event,${i},'qty')" style="width:56px;text-align:right" title="จำนวน">
           <span style="font-size:10px;color:var(--text3);min-width:22px">${slipEsc(it.unit||'')}</span>
-          <input type="number" value="${it.price}" min="0" step="any" oninput="docItemUpd(${i},'price',this.value)" style="width:82px;text-align:right" title="ราคา/หน่วย">
+          <input type="number" data-di="${i}" data-df="price" value="${it.price}" min="0" step="any" oninput="docItemUpd(${i},'price',this.value)" onkeydown="docItemKey(event,${i},'price')" style="width:82px;text-align:right" title="ราคา/หน่วย">
           <button class="btn btn-sm btn-danger" onclick="docItemDel(${i})" style="padding:5px 9px">×</button>
         </div>`).join('')}
       <button class="btn btn-sm" onclick="docItemAdd()">+ เพิ่มรายการ</button>
@@ -10506,6 +10508,31 @@ window.docPickProduct=function(i,k){
   if((p[2]||0)>0)docForm.items[i].price=p[2];
   const b=document.getElementById('doc-ac');if(b)b.style.display='none';
   renderDocForm();
+};
+// โฟกัสช่องของแถวสินค้า (ชื่อ/จำนวน/ราคา) — เลือกข้อความไว้ให้พิมพ์ทับได้เลย
+function docFocusItem(i,field){
+  const inp=document.querySelector(`#doc-content input[data-di="${i}"][data-df="${field}"]`);
+  if(inp){inp.focus();try{inp.select();}catch(e){}}
+}
+// กด Enter ในช่องสินค้า → เลื่อนไปช่องถัดไป (ชื่อ→จำนวน→ราคา→แถวถัดไป, เพิ่มแถวใหม่ถ้าอยู่แถวสุดท้าย)
+window.docItemKey=function(e,i,field){
+  if(e.key!=='Enter'&&e.keyCode!==13)return;
+  e.preventDefault();
+  if(field==='name'){
+    // ถ้ามีรายการแนะนำโผล่อยู่ → เลือกตัวแรกให้ก่อน แล้วไปช่องจำนวน
+    const box=document.getElementById('doc-ac');
+    const first=box&&box.style.display!=='none'?box.querySelector('[onmousedown]'):null;
+    if(first){first.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));setTimeout(()=>docFocusItem(i,'qty'),30);}
+    else docFocusItem(i,'qty');
+    return;
+  }
+  if(field==='qty'){docFocusItem(i,'price');return;}
+  if(field==='price'){
+    if(!docForm)return;
+    if(i>=docForm.items.length-1){docItemAdd();setTimeout(()=>docFocusItem(i+1,'name'),30);}
+    else docFocusItem(i+1,'name');
+    return;
+  }
 };
 // นำเข้าสินค้า CSV ใหม่จาก POS (รูปแบบเดียวกับไฟล์ hygeia: คอลัมน์ 1=ชื่อ, 3=หน่วย, 6=ราคาขาย)
 window.docImportProducts=function(inp){
