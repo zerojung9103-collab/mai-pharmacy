@@ -1003,8 +1003,8 @@ input,select,textarea{border-radius:14px}
         <div class="card-title">🎨 ปรับแต่งหน้าตาแอป</div>
         <div class="card-sub">เปลี่ยนแล้วเห็นผลทันทีทุกคนในร้าน (เฉพาะผู้ดูแลระบบแก้ได้)</div>
         <div class="field-row">
-          <div class="field"><label class="fl">ชื่อร้าน</label><input type="text" id="ap-name" placeholder="ใหม่เภสัช" maxlength="40"></div>
-          <div class="field"><label class="fl">ข้อความใต้ชื่อร้าน</label><input type="text" id="ap-tagline" placeholder="ระบบจัดการร้าน 3 สาขา" maxlength="60"></div>
+          <div class="field"><label class="fl">ชื่อร้าน</label><input type="text" id="ap-name" placeholder="ใหม่เภสัช" maxlength="40" oninput="apLoginPreview()"></div>
+          <div class="field"><label class="fl">ข้อความใต้ชื่อร้าน <span style="font-size:11px;color:var(--text3)">(โชว์บนหน้า login · เว้นว่างได้)</span></label><input type="text" id="ap-tagline" placeholder="เช่น ร้านยาคุณภาพ ใกล้บ้านคุณ" maxlength="60" oninput="apLoginPreview()"></div>
         </div>
         <div class="field-row">
           <div class="field"><label class="fl">สีหลักของแอป</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="ap-color" value="#1FAE8B" style="width:48px;height:38px;padding:2px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer"><input type="text" id="ap-color-text" placeholder="#16B981" style="flex:1" oninput="document.getElementById('ap-color').value=this.value"></div></div>
@@ -1022,6 +1022,17 @@ input,select,textarea{border-radius:14px}
         <div class="field-row">
           <div class="field"><label class="fl">ขนาดเนื้อหาเริ่มต้นทั้งร้าน <span style="font-size:11px;color:var(--text3)">(พนักงานปรับเองได้ที่ "ธีมของฉัน")</span></label><select id="ap-size"><option value="compact">กะทัดรัด</option><option value="normal" selected>ปกติ</option><option value="large">ใหญ่</option></select></div>
         </div>
+        <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1.25rem 0 .5rem;padding-top:1rem;border-top:1px dashed var(--border2)">🏪 หน้าเข้าสู่ระบบ (Login)</div>
+        <div style="font-size:11.5px;color:var(--text3);margin-bottom:.8rem">โลโก้ · ชื่อร้าน · ข้อความใต้ชื่อร้าน (ด้านบน) จะโชว์บนหน้า login — ปรับขนาดโลโก้ได้ที่นี่</div>
+        <div class="field">
+          <label class="fl">ขนาดโลโก้หน้า login</label>
+          <div style="display:flex;align-items:center;gap:12px">
+            <input type="range" id="ap-loginlogo" min="48" max="140" value="80" oninput="apLoginPreview()" style="flex:1;accent-color:var(--green)">
+            <span id="ap-loginlogo-val" style="font-family:var(--disp);font-weight:700;font-size:14px;color:var(--green-d);min-width:56px;text-align:right">80 px</span>
+          </div>
+        </div>
+        <div style="font-size:11.5px;font-weight:600;color:var(--text2);margin:.2rem 0 .5rem;display:flex;align-items:center;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(31,174,139,.2)"></span> ตัวอย่างหน้า login (อัปเดตทันที)</div>
+        <div id="ap-login-preview" style="border-radius:14px;overflow:hidden;background:linear-gradient(135deg,#63D3A6,#2A7FA5 60%,#5F4BC7);padding:22px 16px;display:flex;justify-content:center;margin-bottom:1rem"></div>
         <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1rem 0 .5rem">ลำดับหมวดหมู่ในแถบล่าง (มือถือ)</div>
         <div id="ap-navorder-list" style="margin-bottom:1rem"></div>
         <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1rem 0 .5rem">ลำดับเมนูในหน้าแรก (ลากที่ไอคอน ⠿ เพื่อจัดเรียง)</div>
@@ -1711,8 +1722,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.20.0';
+const APP_VERSION='4.21.0';
 const CHANGELOG=[
+  {v:'4.21.0',date:'2026-07-12',changes:[
+    '🖼️ ปรับหน้า login เองได้ในตั้งค่า (แอดมิน) — ที่ "ตั้งค่า → หน้าตาแอป" เพิ่มแถบเลื่อนปรับขนาดโลโก้ + ช่องข้อความคำโปรยใต้ชื่อร้าน พร้อม "ตัวอย่างสด" เห็นหน้า login เปลี่ยนทันทีก่อนกดบันทึก']},
   {v:'4.20.0',date:'2026-07-12',changes:[
     '🔒 ป้องกันข้อมูลยอดขายรั่ว — พนักงานยังกรอกยอดขายได้ตามปกติ แต่ "ดูภาพรวมไม่ได้": ซ่อนแท็บ ภาพรวมเดือน · สถิติ/กราฟ · ปุ่มดูสรุปทุกสาขา · การ์ดผู้ช่วย "ยอดขายทุกสาขา" (เห็นเฉพาะแอดมิน)',
     '📅 หน้าบันทึกยอด: พนักงานย้อนกรอกได้ 3 วัน (เผื่อลืมกรอก) เก่ากว่านั้นต้องให้แอดมินแก้ · แอดมินยังดู/แก้ได้ทุกวันทุกอย่างเหมือนเดิม',
@@ -2376,7 +2389,7 @@ function updateCapsuleFabBadge(){
 // ===== ปรับแต่งหน้าตาแอป (config/appearance) — ชื่อร้าน/สี/โลโก้/ทรงมุม/ขนาด/ลำดับเมนู =====
 const APPEARANCE_DEFAULT={
   shopName:'ใหม่เภสัช',shopTagline:'ระบบจัดการร้าน 3 สาขา',
-  primaryColor:'#1FAE8B',logoEmoji:'💊',
+  primaryColor:'#1FAE8B',logoEmoji:'💊',loginLogoSize:80,
   size:'normal',
   navOrder:['mywork','sales','admin','more'],navEnabled:{mywork:true,sales:true,admin:true,more:true}
 };
@@ -2447,6 +2460,7 @@ function renderAppearanceSettings(){
   document.getElementById('ap-emoji').value=appearanceCfg.logoEmoji||'';
   
   document.getElementById('ap-size').value=appearanceCfg.size||'normal';
+  const llEl=document.getElementById('ap-loginlogo');if(llEl)llEl.value=appearanceCfg.loginLogoSize||80;
   // ช่องเปลี่ยนชื่อเมนู
   const mlEl=document.getElementById('ap-menulabels-list');
   if(mlEl){
@@ -2454,9 +2468,30 @@ function renderAppearanceSettings(){
     mlEl.innerHTML=FEATURE_DEFS.map(f=>`<div style="display:flex;align-items:center;gap:6px"><span style="font-size:15px;flex-shrink:0">${f.icon}</span><input type="text" data-page="${f.page}" value="${(ml[f.page]||'').replace(/"/g,'&quot;')}" placeholder="${f._defLabel||f.label}" style="flex:1;min-width:0;font-size:12px;padding:5px 8px"></div>`).join('');
   }
   renderLogoPreview();
+  apLoginPreview();
   renderNavOrderList();
   renderMenuOrderList(currentMenuOrder());
 }
+// ตัวอย่างหน้า login สด — จำลองการ์ดแก้วจากค่าที่กรอกในตั้งค่า (โลโก้/ชื่อร้าน/คำโปรย/ขนาดโลโก้)
+window.apLoginPreview=function(){
+  const box=document.getElementById('ap-login-preview');if(!box)return;
+  const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const size=parseInt(document.getElementById('ap-loginlogo')?.value)||80;
+  const sv=document.getElementById('ap-loginlogo-val');if(sv)sv.textContent=size+' px';
+  const name=(document.getElementById('ap-name')?.value||'').trim()||APPEARANCE_DEFAULT.shopName;
+  const tag=(document.getElementById('ap-tagline')?.value||'').trim();
+  const emoji=(document.getElementById('ap-emoji')?.value||'').trim()||appearanceCfg.logoEmoji||APPEARANCE_DEFAULT.logoEmoji;
+  const logoInner=appearanceCfg.logoUrl
+    ? `<img src="${appearanceCfg.logoUrl}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">`
+    : `<span style="font-size:${Math.round(size*.5)}px;line-height:1">${emoji}</span>`;
+  box.innerHTML=`<div style="background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);border-radius:16px;padding:18px 16px;width:100%;max-width:240px;color:#fff;text-align:center">
+    <div style="width:${size}px;height:${size}px;border-radius:20px;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;overflow:hidden">${logoInner}</div>
+    <div style="font-family:var(--disp);font-size:19px;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.18)">${esc(name)}</div>
+    ${tag?`<div style="font-size:11.5px;opacity:.92;margin-top:5px;line-height:1.5">${esc(tag)}</div>`:''}
+    <div style="background:rgba(255,255,255,.85);border-radius:9px;padding:8px;font-size:10px;color:#79837C;margin-top:12px;text-align:left">✉️ อีเมล</div>
+    <div style="background:#fff;color:#0F6E56;border-radius:10px;padding:9px;font-size:12px;font-weight:700;margin-top:7px">เข้าสู่ระบบ →</div>
+  </div>`;
+};
 function renderLogoPreview(){
   const prev=document.getElementById('ap-logo-preview');
   const removeBtn=document.getElementById('ap-logo-remove');
@@ -2496,7 +2531,7 @@ window.onLogoFileChange=async function(){
       fr.readAsDataURL(file);
     });
     appearanceCfg.logoUrl=dataUrl;
-    renderLogoPreview();
+    renderLogoPreview();apLoginPreview();
     showToast('เพิ่มโลโก้แล้ว — กด "บันทึกการปรับแต่ง" เพื่อใช้งานจริง');
   }catch(e){showToast('เพิ่มโลโก้ไม่สำเร็จ: '+(e?.message||e),'err');}
   loading(false);
@@ -2504,7 +2539,7 @@ window.onLogoFileChange=async function(){
 };
 window.removeLogoImage=function(){
   appearanceCfg.logoUrl='';
-  renderLogoPreview();
+  renderLogoPreview();apLoginPreview();
 };
 function renderNavOrderList(){
   const el=document.getElementById('ap-navorder-list');
@@ -2598,10 +2633,10 @@ window.saveAppearance=async function(){
   appearanceCfg={
     ...appearanceCfg,
     shopName:document.getElementById('ap-name').value.trim()||APPEARANCE_DEFAULT.shopName,
-    shopTagline:document.getElementById('ap-tagline').value.trim()||APPEARANCE_DEFAULT.shopTagline,
+    shopTagline:document.getElementById('ap-tagline').value.trim(),   // เว้นว่างได้ = ไม่โชว์คำโปรยหน้า login
     primaryColor:color,
     logoEmoji:document.getElementById('ap-emoji').value.trim()||APPEARANCE_DEFAULT.logoEmoji,
-    
+    loginLogoSize:parseInt(document.getElementById('ap-loginlogo').value)||80,
     size:document.getElementById('ap-size').value,
   };
   // เก็บชื่อเมนูที่ตั้งเอง
