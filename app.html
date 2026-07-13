@@ -1722,8 +1722,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.21.0';
+const APP_VERSION='4.22.0';
 const CHANGELOG=[
+  {v:'4.22.0',date:'2026-07-13',changes:[
+    '🧾 เอกสารการค้า: เวลาพิมพ์แล้วยาวขึ้นหน้า 2 หัวกระดาษ (ชื่อร้าน · ข้อมูลลูกค้า · หัวคอลัมน์) จะตามไปทุกหน้าอัตโนมัติ ยอดรวม+ลายเซ็นอยู่ท้ายสุดหน้าเดียว — พิมพ์สวยเป็นระเบียบ',
+    '✏️ แก้ไขเอกสารที่ออกไปแล้วได้ — เปิดเอกสารในประวัติ → กด "แก้ไข" → แก้รายการ/ราคา/ลูกค้า แล้วบันทึกทับเลขเดิม (ไม่ออกเลขใหม่) · ค้นหาเอกสารเดิมด้วยเลขที่/ชื่อลูกค้าเพื่อพิมพ์ซ้ำได้เหมือนเดิม']},
   {v:'4.21.0',date:'2026-07-12',changes:[
     '🖼️ ปรับหน้า login เองได้ในตั้งค่า (แอดมิน) — ที่ "ตั้งค่า → หน้าตาแอป" เพิ่มแถบเลื่อนปรับขนาดโลโก้ + ช่องข้อความคำโปรยใต้ชื่อร้าน พร้อม "ตัวอย่างสด" เห็นหน้า login เปลี่ยนทันทีก่อนกดบันทึก']},
   {v:'4.20.0',date:'2026-07-12',changes:[
@@ -10588,52 +10591,63 @@ function buildDocHtml(d){
   const dateTxt=d.date?new Date(d.date+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'';
   const chainTxt=(d.chain&&d.chain.length)?('อ้างอิง: '+d.chain.map(x=>x.no).join(' → ')):'';
   const logo=(slipCfg.logo)?`<img src="${slipCfg.logo}" style="height:52px;max-width:120px;object-fit:contain">`:'';
+  // หัวเอกสาร (ชื่อร้าน+ข้อมูลลูกค้า+หัวคอลัมน์) วางใน <thead> ของตารางเดียว
+  // → เวลาพิมพ์แล้วเอกสารยาวขึ้นหน้า 2 เบราว์เซอร์จะพิมพ์หัวนี้ซ้ำทุกหน้าอัตโนมัติ
+  // ยอดรวม+ลายเซ็นอยู่นอกตาราง (.foot) จึงโผล่ครั้งเดียวท้ายเอกสาร
   const page=(copyLabel)=>`
   <div class="a4page">
-    <div class="dh">
-      <div style="display:flex;gap:11px;align-items:flex-start">${logo}
-        <div>
-          <div style="font-size:16px;font-weight:800">${slipEsc(slipCfg.companyName||'ร้านขายยา ใหม่เภสัช')}</div>
-          <div style="font-size:10px;color:#3A4A45;line-height:1.55">${slipEsc(docCfg.address||'')}<br>
-          ${docCfg.taxId?`เลขประจำตัวผู้เสียภาษี ${slipEsc(docCfg.taxId)} (${slipEsc(docCfg.branchLabel||'สำนักงานใหญ่')})`:''}${docCfg.phone?' · โทร '+slipEsc(docCfg.phone):''}</div>
-        </div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:17px;font-weight:800">${T.label}</div>
-        <div style="font-size:9.5px;color:#5A6B7B">${T.en} · ${copyLabel}</div>
-      </div>
-    </div>
-    <div class="meta">
-      <div class="bx"><span class="lb">ลูกค้า / ผู้ซื้อ</span><br>
-        <b>${slipEsc(cu.name||'—')}</b><br>${slipEsc(cu.address||'')}
-        ${cu.taxId?`<br>เลขประจำตัวผู้เสียภาษี ${slipEsc(cu.taxId)}${cu.ctype==='juristic'?` (${slipEsc(cu.branchLabel||'สำนักงานใหญ่')})`:''}`:''}
-        ${cu.phone?`<br>โทร ${slipEsc(cu.phone)}`:''}</div>
-      <div class="bx"><span class="lb">ข้อมูลเอกสาร</span><br>
-        เลขที่: <b>${d.docNo}</b><br>วันที่: ${dateTxt}<br>
-        ผู้ขาย/ผู้ออกเอกสาร: ${slipEsc(d.createdByName||'')}${chainTxt?`<br>${chainTxt}`:''}</div>
-    </div>
-    <table class="dtb">
-      <thead><tr><th style="width:26px">#</th><th style="text-align:left">รายการ</th><th class="r" style="width:60px">จำนวน</th><th class="r" style="width:80px">หน่วยละ</th><th class="r" style="width:95px">จำนวนเงิน</th></tr></thead>
+    <table class="dmain">
+      <thead>
+        <tr><td colspan="5" class="hdcell">
+          <div class="dh">
+            <div style="display:flex;gap:11px;align-items:flex-start">${logo}
+              <div>
+                <div style="font-size:16px;font-weight:800">${slipEsc(slipCfg.companyName||'ร้านขายยา ใหม่เภสัช')}</div>
+                <div style="font-size:10px;color:#3A4A45;line-height:1.55">${slipEsc(docCfg.address||'')}<br>
+                ${docCfg.taxId?`เลขประจำตัวผู้เสียภาษี ${slipEsc(docCfg.taxId)} (${slipEsc(docCfg.branchLabel||'สำนักงานใหญ่')})`:''}${docCfg.phone?' · โทร '+slipEsc(docCfg.phone):''}</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:17px;font-weight:800">${T.label}</div>
+              <div style="font-size:9.5px;color:#5A6B7B">${T.en} · ${copyLabel}</div>
+            </div>
+          </div>
+          <div class="meta">
+            <div class="bx"><span class="lb">ลูกค้า / ผู้ซื้อ</span><br>
+              <b>${slipEsc(cu.name||'—')}</b><br>${slipEsc(cu.address||'')}
+              ${cu.taxId?`<br>เลขประจำตัวผู้เสียภาษี ${slipEsc(cu.taxId)}${cu.ctype==='juristic'?` (${slipEsc(cu.branchLabel||'สำนักงานใหญ่')})`:''}`:''}
+              ${cu.phone?`<br>โทร ${slipEsc(cu.phone)}`:''}</div>
+            <div class="bx"><span class="lb">ข้อมูลเอกสาร</span><br>
+              เลขที่: <b>${d.docNo}</b><br>วันที่: ${dateTxt}<br>
+              ผู้ขาย/ผู้ออกเอกสาร: ${slipEsc(d.createdByName||'')}${chainTxt?`<br>${chainTxt}`:''}</div>
+          </div>
+        </td></tr>
+        <tr class="cols"><th style="width:26px">#</th><th style="text-align:left">รายการ</th><th class="r" style="width:60px">จำนวน</th><th class="r" style="width:80px">หน่วยละ</th><th class="r" style="width:95px">จำนวนเงิน</th></tr>
+      </thead>
       <tbody>
-      ${(d.items||[]).map((it,i)=>`<tr><td>${i+1}</td><td>${slipEsc(it.name)}</td><td class="r">${fmt2(it.qty).replace('.00','')}${it.unit?' '+slipEsc(it.unit):''}</td><td class="r">${fmt2(it.price)}</td><td class="r">${fmt2((it.qty||0)*(it.price||0))}</td></tr>`).join('')}
+      ${(d.items||[]).map((it,i)=>`<tr><td class="r">${i+1}</td><td>${slipEsc(it.name)}</td><td class="r">${fmt2(it.qty).replace('.00','')}${it.unit?' '+slipEsc(it.unit):''}</td><td class="r">${fmt2(it.price)}</td><td class="r">${fmt2((it.qty||0)*(it.price||0))}</td></tr>`).join('')}
+      <tr class="footrow"><td colspan="5">
+        <div class="foot">
+          <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
+            <div style="font-size:10px;color:#3A4A45;flex:1">${d.note?`<b>หมายเหตุ:</b> ${slipEsc(d.note)}<br>`:''}( ${thaiBahtText(c.net)} ) · ราคาสินค้ารวมภาษีมูลค่าเพิ่มแล้ว</div>
+            <table class="dsm">
+              <tr><td>รวมเป็นเงิน</td><td class="r">${fmt2(c.gross)}</td></tr>
+              ${c.discountAmt>0?`<tr><td>หัก ส่วนลด${d.discountMode==='pct'?` ${+d.discountValue}%`:''}</td><td class="r">−${fmt2(c.discountAmt)}</td></tr>
+              <tr><td>คงเหลือ</td><td class="r">${fmt2(c.net)}</td></tr>`:''}
+              <tr><td>มูลค่าสินค้า (ก่อนภาษี)</td><td class="r">${fmt2(c.base)}</td></tr>
+              <tr><td>ภาษีมูลค่าเพิ่ม 7%</td><td class="r">${fmt2(c.vat)}</td></tr>
+              <tr class="tt"><td>รวมทั้งสิ้น</td><td class="r">฿${fmt2(c.net)}</td></tr>
+            </table>
+          </div>
+          <div class="dsign">
+            <div><div class="dline"></div>ผู้ขาย / ผู้ออกเอกสาร<br><span style="font-size:8.5px">( ${slipEsc(d.createdByName||'')} )</span></div>
+            <div><div class="dline"></div>ผู้รับสินค้า / วันที่</div>
+            <div><div class="dline"></div>ผู้จ่ายเงิน / วันที่</div>
+          </div>
+        </div>
+      </td></tr>
       </tbody>
     </table>
-    <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
-      <div style="font-size:10px;color:#3A4A45;flex:1">${d.note?`<b>หมายเหตุ:</b> ${slipEsc(d.note)}<br>`:''}( ${thaiBahtText(c.net)} ) · ราคาสินค้ารวมภาษีมูลค่าเพิ่มแล้ว</div>
-      <table class="dsm">
-        <tr><td>รวมเป็นเงิน</td><td class="r">${fmt2(c.gross)}</td></tr>
-        ${c.discountAmt>0?`<tr><td>หัก ส่วนลด${d.discountMode==='pct'?` ${+d.discountValue}%`:''}</td><td class="r">−${fmt2(c.discountAmt)}</td></tr>
-        <tr><td>คงเหลือ</td><td class="r">${fmt2(c.net)}</td></tr>`:''}
-        <tr><td>มูลค่าสินค้า (ก่อนภาษี)</td><td class="r">${fmt2(c.base)}</td></tr>
-        <tr><td>ภาษีมูลค่าเพิ่ม 7%</td><td class="r">${fmt2(c.vat)}</td></tr>
-        <tr class="tt"><td>รวมทั้งสิ้น</td><td class="r">฿${fmt2(c.net)}</td></tr>
-      </table>
-    </div>
-    <div class="dsign">
-      <div><div class="dline"></div>ผู้ขาย / ผู้ออกเอกสาร<br><span style="font-size:8.5px">( ${slipEsc(d.createdByName||'')} )</span></div>
-      <div><div class="dline"></div>ผู้รับสินค้า / วันที่</div>
-      <div><div class="dline"></div>ผู้จ่ายเงิน / วันที่</div>
-    </div>
   </div>`;
   return `<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>${T.label} ${d.docNo}</title>
@@ -10641,20 +10655,25 @@ function buildDocHtml(d){
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;padding:14px;color:#16202E;font-size:11px}
-    .a4page{background:#fff;width:210mm;min-height:270mm;margin:0 auto 14px;padding:14mm 15mm;border:1.5px solid #16202E;display:flex;flex-direction:column}
+    .a4page{background:#fff;width:210mm;min-height:270mm;margin:0 auto 14px;padding:14mm 15mm;border:1.5px solid #16202E}
+    .dmain{width:100%;border-collapse:collapse;font-size:10.5px}
+    .dmain thead{display:table-header-group}   /* พิมพ์หัวซ้ำทุกหน้า */
+    .hdcell{padding:0;border:none}
     .dh{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #16202E;padding-bottom:10px;margin-bottom:10px;gap:10px}
-    .meta{display:grid;grid-template-columns:1.3fr 1fr;gap:8px;margin-bottom:10px;font-size:10.5px}
+    .meta{display:grid;grid-template-columns:1.3fr 1fr;gap:8px;margin-bottom:9px;font-size:10.5px;text-align:left}
     .bx{border:1px solid #B4B2A9;border-radius:5px;padding:7px 9px;line-height:1.6}
     .lb{font-size:9px;color:#5A6B7B;font-weight:700}
-    .dtb{width:100%;border-collapse:collapse;font-size:10.5px;border:1px solid #B4B2A9;margin-bottom:9px}
-    .dtb th{background:#F1EFE8;padding:5px 8px;border:1px solid #B4B2A9;font-size:9.5px}
-    .dtb td{padding:4.5px 8px;border:1px solid #D4DAD8}
-    .dtb .r{text-align:right;font-variant-numeric:tabular-nums}
-    .dsm{font-size:10.5px;border-collapse:collapse;min-width:240px}
+    .dmain .cols th{background:#F1EFE8;padding:5px 8px;border:1px solid #B4B2A9;font-size:9.5px}
+    .dmain tbody td{padding:4.5px 8px;border:1px solid #D4DAD8}
+    .dmain .r{text-align:right;font-variant-numeric:tabular-nums}
+    .dmain tbody tr{break-inside:avoid}
+    .dmain .footrow td{border:none;padding:0}
+    .foot{break-inside:avoid;padding-top:9px}
+    .dsm{font-size:10.5px;border-collapse:collapse;min-width:240px;margin-left:auto}
     .dsm td{padding:3px 8px}
     .dsm .r{text-align:right;font-variant-numeric:tabular-nums}
     .dsm .tt td{border-top:1.5px solid #16202E;font-weight:800;font-size:12px;padding-top:6px}
-    .dsign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:auto;padding-top:26px;font-size:9.5px;text-align:center;color:#5A6B7B}
+    .dsign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding-top:34px;font-size:9.5px;text-align:center;color:#5A6B7B}
     .dline{border-top:1px dotted #888780;margin-bottom:4px;padding-top:18px}
     .print-btn{display:block;margin:6px auto 16px;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
     @media print{body{background:#fff;padding:0}.a4page{border:none;margin:0;page-break-after:always;width:100%}.print-btn{display:none}}
@@ -10674,7 +10693,7 @@ function docCompile(){
     customer:{...f.customer},items:f.items.filter(it=>it.name&&(it.qty>0)),
     discountMode:f.discountMode,discountValue:parseFloat(f.discountValue)||0,
     totals:c,note:(f.note||'').trim(),refId:f.refId||null,refNo:f.refNo||null,chain:f.chain||[],
-    createdByName:memberName(currentUser?.uid)||profile?.nickname||''
+    createdByName:f._origCreatedByName||memberName(currentUser?.uid)||profile?.nickname||''
   };
 }
 window.docPreview=function(){
@@ -10685,11 +10704,11 @@ window.docPreview=function(){
   if(f.type==='TX'&&!docCfg.taxId){showToast('ใบกำกับภาษีต้องตั้งค่าเลขผู้เสียภาษีของร้านก่อน (ปุ่ม ⚙️)','err');return;}
   const rec=docCompile();
   openModal(`
-    <div class="modal-title" style="margin-bottom:.6rem">👁️ ตัวอย่าง${DOC_TYPES[f.type].label} <span style="font-weight:400;font-size:12px;color:var(--text3)">— ยังไม่บันทึกจนกด "ยืนยัน"</span></div>
+    <div class="modal-title" style="margin-bottom:.6rem">👁️ ตัวอย่าง${DOC_TYPES[f.type].label}${f._editId?` <span style="font-weight:400;font-size:12px;color:var(--amber-t)">— แก้ไข ${f._docNo}</span>`:` <span style="font-weight:400;font-size:12px;color:var(--text3)">— ยังไม่บันทึกจนกด "ยืนยัน"</span>`}</div>
     <iframe id="doc-pv-frame" style="width:100%;height:600px;border:none;background:#DDE6E0;border-radius:12px"></iframe>
     <div class="modal-footer">
       <button class="btn" onclick="closeMD()">← กลับไปแก้</button>
-      <button class="btn btn-primary" onclick="docSave()">💾 ยืนยันบันทึก (ได้เลขที่ทันที)</button>
+      <button class="btn btn-primary" onclick="docSave()">${f._editId?'💾 บันทึกการแก้ไข (ทับเลขเดิม)':'💾 ยืนยันบันทึก (ได้เลขที่ทันที)'}</button>
     </div>`,true);
   document.getElementById('doc-pv-frame').srcdoc=buildDocHtml(rec);
 };
@@ -10702,6 +10721,25 @@ function docNextNo(type){
 }
 window.docSave=async function(){
   if(!docForm)return;
+  // ===== โหมดแก้ไข: บันทึกทับเอกสารเดิม (เลขที่เดิม ไม่ออกเลขใหม่) =====
+  if(docForm._editId){
+    loading(true);
+    try{
+      const rec=docCompile();
+      const id=docForm._editId;
+      const upd={customer:rec.customer,items:rec.items,discountMode:rec.discountMode,discountValue:rec.discountValue,
+        totals:rec.totals,note:rec.note,date:rec.date,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''};
+      await updateDoc(doc(db,'documents',id),upd);
+      const idx=docList.findIndex(x=>x.id===id);
+      if(idx>=0)docList[idx]={...docList[idx],...upd,docNo:docForm._docNo};
+      logActivity('doc_edit',`แก้ไข${DOC_TYPES[rec.docType].label} ${docForm._docNo} (${rec.customer?.name||''})`);
+      loading(false);closeMD();
+      docForm=null;renderDocPage();
+      showToast(`บันทึกการแก้ไขแล้ว ✅ ${docList[idx>=0?idx:0]?.docNo||''}`);
+      docView(id);
+    }catch(e){loading(false);showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
+    return;
+  }
   loading(true);
   try{
     const rec=docCompile();
@@ -10742,6 +10780,7 @@ window.docView=function(id){
     <div class="modal-footer" style="flex-wrap:wrap">
       <button class="btn" onclick="closeMD()">ปิด</button>
       <button class="btn" onclick="docDownload('${id}')">📥 ดาวน์โหลด/พิมพ์</button>
+      ${d.status!=='void'?`<button class="btn" onclick="docEdit('${id}')">✏️ แก้ไข</button>`:''}
       ${d.status!=='void'?nexts:''}
       ${isAdmin&&d.status!=='void'?`<button class="btn btn-danger btn-sm" onclick="docVoid('${id}')">🚫 ยกเลิกเอกสาร</button>`:''}
     </div>`,true);
@@ -10761,6 +10800,20 @@ window.docConvert=function(id,newType){
   if(currentPage!=='documents')goto('documents');
   renderDocForm();
   showToast(`สร้าง${DOC_TYPES[newType].label}ต่อจาก ${s.docNo} — ตรวจแล้วกดดูตัวอย่างได้เลย`);
+};
+// แก้ไขเอกสารที่บันทึกแล้ว — โหลดกลับเข้าฟอร์ม (คงเลขที่/วันที่เดิม) → บันทึกทับเลขเดิม
+window.docEdit=function(id){
+  const d=docList.find(x=>x.id===id);if(!d)return;
+  if(d.status==='void'){showToast('เอกสารที่ยกเลิกแล้วแก้ไม่ได้','err');return;}
+  closeMD();
+  docForm={type:d.docType,customer:{...(d.customer||{})},items:(d.items||[]).map(it=>({...it})),
+    discountMode:d.discountMode||'baht',discountValue:d.discountValue||0,note:d.note||'',
+    refId:d.refId||null,refNo:d.refNo||null,chain:[...(d.chain||[])],
+    _editId:id,_docNo:d.docNo,_date:d.date,_origCreatedByName:d.createdByName||''};
+  if(!docForm.items.length)docForm.items.push({name:'',qty:1,price:0});
+  if(currentPage!=='documents')goto('documents');
+  renderDocForm();
+  showToast(`แก้ไข ${d.docNo} — แก้เสร็จกดดูตัวอย่าง → ยืนยัน จะบันทึกทับเลขเดิม`);
 };
 window.docVoid=async function(id){
   const d=docList.find(x=>x.id===id);if(!d)return;
@@ -15602,6 +15655,9 @@ const ACTION_LABELS={
   login:['เข้าสู่ระบบ','#3B8EEA','🔑'],
   login_newdevice:['เข้าระบบ • อุปกรณ์ใหม่','#C2410C','🔐'],
   session_kick:['ถูกออกจากระบบ (เข้าใช้ที่เครื่องอื่น)','#C2410C','🔒'],
+  doc_create:['ออกเอกสารการค้า','#0F8A63','📄'],
+  doc_edit:['แก้ไขเอกสารการค้า','#D4690E','✏️'],
+  doc_void:['ยกเลิกเอกสารการค้า','#A32D2D','🚫'],
   secure_copy:['คัดลอกข้อมูลอ่อนไหว','#7A4E06','🔐'],
   secure_close:['ปิดช่องโหว่ข้อมูล','#217A54','🔐'],
   member_clone:['โคลนพนักงานทดสอบ','#8A6418','🧪'],
