@@ -214,6 +214,14 @@ textarea{resize:vertical;min-height:64px}
 .thm-cols{display:grid;grid-template-columns:1fr;gap:1rem;max-width:960px}
 @media(min-width:900px){.thm-cols{grid-template-columns:1fr 360px}.thm-pvcol{order:2;position:sticky;top:76px}.thm-ctrlcol{order:1}}
 .thm-save{position:sticky;bottom:10px;display:flex;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:9px;box-shadow:var(--shadow);margin-top:1rem;z-index:5}
+/* เอกสาร: จอคอมแบ่งซ้าย(กรอก)-ขวา(ตัวอย่างสด) · มือถือซ่อนฝั่งขวา */
+.doc-editor{display:block}
+.doc-pvcol{display:none}
+@media(min-width:1000px){.doc-editor{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}.doc-pvcol{display:block;position:sticky;top:14px}}
+.doc-pvlabel{font-size:12px;font-weight:800;color:var(--text2);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.doc-pvlabel .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(31,174,139,.22)}
+.doc-pvbox{overflow:hidden;border-radius:10px;border:1px solid var(--border);background:#fff;box-shadow:var(--shadow)}
+#doc-live-frame{width:794px;height:1123px;border:none;background:#fff;display:block}
 .mem-card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px}
 .mem-card.suspended{opacity:.6;background:var(--bg)}
 .mem-card .chips{display:flex;gap:5px;flex-wrap:wrap}
@@ -1722,8 +1730,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.22.1';
+const APP_VERSION='4.23.0';
 const CHANGELOG=[
+  {v:'4.23.0',date:'2026-07-13',changes:[
+    '👁️ สร้าง/แก้เอกสารการค้าบนจอคอม เห็น "ตัวอย่างสด" ฝั่งขวา — ใบเอกสารจริงอัปเดตตามที่พิมพ์ทันที (เลื่อนตามหน้า) ไม่ต้องกดดูตัวอย่างบ่อยๆ · มือถือใช้ปุ่ม "ดูตัวอย่างเต็ม" เหมือนเดิม']},
   {v:'4.22.1',date:'2026-07-13',changes:[
     '⌨️ เอกสารการค้า: คีย์สินค้าเร็วขึ้น — กด Enter เลื่อนช่องถัดไปเอง (ชื่อ→จำนวน→ราคา→แถวถัดไป) และเพิ่มแถวใหม่ให้อัตโนมัติ · พิมพ์ชื่อแล้วมีรายการแนะนำโผล่ กด Enter เลือกตัวแรกให้เลย']},
   {v:'4.22.0',date:'2026-07-13',changes:[
@@ -3020,6 +3030,7 @@ window.addEventListener('resize',()=>{
   clearTimeout(_resizeTimer);
   _resizeTimer=setTimeout(()=>{
     if(document.getElementById('page-schedule')?.classList.contains('active'))scRender();
+    if(typeof docLiveScale==='function'&&document.getElementById('doc-live-frame'))docLiveScale();
   },300);
 });
 
@@ -10375,8 +10386,8 @@ function docCalc(f){
   const vat=_r2(net-base);
   return {gross,discountAmt:disc,net,base,vat};
 }
-window.docFieldUpd=function(k,v){if(!docForm)return;docForm[k]=v;if(k==='discountMode'||k==='discountValue')docRenderSum();};
-window.docCustUpd=function(k,v){if(!docForm)return;docForm.customer[k]=v;};
+window.docFieldUpd=function(k,v){if(!docForm)return;docForm[k]=v;if(k==='discountMode'||k==='discountValue')docRenderSum();else docLivePreview();};
+window.docCustUpd=function(k,v){if(!docForm)return;docForm.customer[k]=v;docLivePreview();};
 window.docCustType=function(t){if(!docForm)return;docForm.customer.ctype=t;renderDocForm();};
 window.docItemUpd=function(i,k,v){if(!docForm||!docForm.items[i])return;docForm.items[i][k]=(k==='name')?v:(parseFloat(v)||0);docRenderSum();};
 window.docItemAdd=function(){docForm.items.push({name:'',qty:1,price:0});renderDocForm();};
@@ -10397,14 +10408,15 @@ function docRenderSum(){
     <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text3);font-size:11.5px"><span>↳ มูลค่าสินค้า (ถอด VAT)</span><span>${fmt2(c.base)}</span></div>
     <div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text3);font-size:11.5px"><span>↳ ภาษีมูลค่าเพิ่ม 7%</span><span>${fmt2(c.vat)}</span></div>
     <div style="display:flex;justify-content:space-between;padding:8px 0 0;margin-top:4px;border-top:1.5px solid var(--border2);font-weight:800;font-size:15px;color:var(--green-dd)"><span>ยอดรวมทั้งสิ้น</span><span>฿${fmt2(c.net)}</span></div>`;
+  docLivePreview();
 }
 function renderDocForm(){
   const el=document.getElementById('doc-content');if(!el||!docForm)return;
   const f=docForm,cu=f.customer;
-  el.innerHTML=`
+  el.innerHTML=`<div class="doc-editor"><div class="doc-formcol">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
       <button class="btn btn-sm" onclick="docCancelForm()">← กลับ</button>
-      <span style="font-size:13px;font-weight:700">${f.refNo?`สร้างต่อจาก ${f.refNo}`:'สร้างเอกสารใหม่'}</span>
+      <span style="font-size:13px;font-weight:700">${f._editId?`แก้ไข ${f._docNo}`:(f.refNo?`สร้างต่อจาก ${f.refNo}`:'สร้างเอกสารใหม่')}</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px">
       ${Object.entries(DOC_TYPES).map(([k,v])=>`<button onclick="docFieldUpd('type','${k}');renderDocForm()" style="background:${f.type===k?'var(--green-ll)':'var(--surface)'};border:1.5px solid ${f.type===k?'var(--green)':'var(--border)'};border-radius:12px;padding:9px 3px;text-align:center;font-size:10.5px;font-weight:700;color:${f.type===k?'var(--green-dd)':'var(--text2)'};cursor:pointer;font-family:var(--font)"><span style="font-size:17px;display:block">${v.ic}</span>${v.label}</button>`).join('')}
@@ -10462,9 +10474,36 @@ function renderDocForm(){
 
     <div style="display:flex;gap:8px">
       <button class="btn" style="flex:1" onclick="docCancelForm()">ยกเลิก</button>
-      <button class="btn btn-primary" style="flex:2" onclick="docPreview()">👁️ ดูตัวอย่าง → บันทึก</button>
-    </div>`;
+      <button class="btn btn-primary" style="flex:2" onclick="docPreview()">👁️ ดูตัวอย่างเต็ม → บันทึก</button>
+    </div>
+    </div>
+    <div class="doc-pvcol">
+      <div class="doc-pvlabel"><span class="dot"></span> ตัวอย่างสด — อัปเดตตามที่พิมพ์</div>
+      <div class="doc-pvbox"><iframe id="doc-live-frame" onload="docLiveScale()"></iframe></div>
+    </div>
+  </div>`;
   docRenderSum();
+  docLivePreview();
+}
+// ===== ตัวอย่างสด (จอคอม) — ใบ A4 จริงจาก buildDocHtml ย่อพอดีช่อง อัปเดตหน่วงกันกระตุก =====
+let _docLiveTimer=null;
+function docLiveScale(){
+  const box=document.getElementById('doc-pvbox'),fr=document.getElementById('doc-live-frame');
+  if(!box||!fr)return;
+  const w=box.clientWidth;if(w<40)return;
+  const s=w/794;
+  fr.style.transformOrigin='top left';
+  fr.style.transform='scale('+s+')';
+  box.style.height=Math.round(1123*s)+'px';
+}
+function docLivePreview(){
+  const fr=document.getElementById('doc-live-frame');
+  if(!fr||!docForm)return;
+  clearTimeout(_docLiveTimer);
+  _docLiveTimer=setTimeout(()=>{
+    try{fr.srcdoc=buildDocHtml(docCompile(),{noBtn:true});}catch(e){}
+    docLiveScale();
+  },300);
 }
 
 // ===== 📦 ค้นหาสินค้าจากฐานข้อมูล (autocomplete) =====
@@ -10612,7 +10651,7 @@ window.docJuristicLookup=async function(){
 };
 
 // ===== ตัวเอกสาร A4 (ต้นฉบับ + สำเนา) =====
-function buildDocHtml(d){
+function buildDocHtml(d,opts){
   const T=DOC_TYPES[d.docType]||{label:d.docType,en:''};
   const c=d.totals,cu=d.customer||{};
   const dateTxt=d.date?new Date(d.date+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'';
@@ -10705,7 +10744,7 @@ function buildDocHtml(d){
     .print-btn{display:block;margin:6px auto 16px;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
     @media print{body{background:#fff;padding:0}.a4page{border:none;margin:0;page-break-after:always;width:100%}.print-btn{display:none}}
   </style></head><body>
-  <button class="print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF (ต้นฉบับ + สำเนา)</button>
+  ${opts&&opts.noBtn?'':'<button class="print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF (ต้นฉบับ + สำเนา)</button>'}
   ${page('ต้นฉบับ (Original)')}
   ${page('สำเนา (Copy)')}
   </body></html>`;
