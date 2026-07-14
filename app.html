@@ -163,6 +163,28 @@ textarea{resize:vertical;min-height:64px}
 .sc-ot b{font-weight:700}
 .sc-ot small{display:block;color:var(--text3);font-size:11.5px;margin-top:1px}
 .sc-ic{font-size:17px;opacity:.55;flex-shrink:0}
+/* ปฏิทินลงเวลาแทน (adminCheckinPicker) — สีชัดทั้งโหมดสว่าง/มืด */
+.acp-cell{aspect-ratio:1;border:1.5px solid transparent;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12.5px;font-weight:700}
+.acp-mk{font-size:8.5px;line-height:1;margin-top:2px}
+.acp-ok{background:#E3F6EC;border-color:#7FD1B4;color:#0F6E56;cursor:pointer}
+.acp-noout{background:#FBF0DA;border-color:#E4B35C;color:#8A6418;cursor:pointer}
+.acp-miss{background:#FBEAEE;border-color:#EC8FA0;color:#9F2A3C;cursor:pointer}
+.acp-plain{background:var(--surface);border-color:var(--border2);color:var(--text2);cursor:pointer}
+.acp-off{color:var(--text3);opacity:.45}
+.acp-future{color:var(--text3);opacity:.3}
+body.dark .acp-ok{background:rgba(43,199,158,.16);border-color:rgba(43,199,158,.55);color:#5FE3C0}
+body.dark .acp-noout{background:rgba(240,166,60,.16);border-color:rgba(240,166,60,.6);color:#FFC96B}
+body.dark .acp-miss{background:rgba(240,106,126,.18);border-color:rgba(240,106,126,.65);color:#FF9AA8}
+.acp-t-red{color:#9F2A3C}.acp-t-amber{color:#8A6418}
+body.dark .acp-t-red{color:#FF9AA8}body.dark .acp-t-amber{color:#FFC96B}
+.acp-fixbtn{border:none;border-radius:9px;padding:6px 12px;font-size:11.5px;font-weight:800;font-family:var(--font);cursor:pointer;flex-shrink:0;white-space:nowrap}
+.acp-fixbtn.r{background:#F9DCE2;color:#9F2A3C}
+.acp-fixbtn.a{background:#F7E5C2;color:#8A6418}
+body.dark .acp-fixbtn.r{background:rgba(240,106,126,.22);color:#FF9AA8}
+body.dark .acp-fixbtn.a{background:rgba(240,166,60,.22);color:#FFC96B}
+/* กล่องเตือนลืมเช็คเอาท์ (หน้าเงินเดือน) */
+.pr-missout{border:1.5px solid rgba(212,150,50,.5);background:rgba(232,169,60,.1);border-radius:11px;padding:10px 12px;margin:6px 0 4px;font-size:12px;color:#8A6418;line-height:1.65}
+body.dark .pr-missout{color:#FFC96B;border-color:rgba(240,166,60,.5);background:rgba(240,166,60,.12)}
 .schedule-grid{display:grid;grid-template-columns:130px repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;font-size:12px}
 .sg-cell{background:var(--surface);padding:8px 6px;display:flex;align-items:flex-start;justify-content:center;min-height:52px}
 .sg-hdr{background:var(--bg);font-weight:700;color:var(--text2);font-size:11px;flex-direction:column;gap:1px;align-items:center}
@@ -1761,8 +1783,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.33.0';
+const APP_VERSION='4.34.0';
 const CHANGELOG=[
+  {v:'4.34.0',date:'2026-07-14',changes:[
+    '🗓️ (แอดมิน) ปฏิทินลงเวลาแทน v2 — สีชัดขึ้นมากโดยเฉพาะโหมดมืด · เพิ่มสถานะ 🟠 "ลืมเช็คเอาท์" (เข้างานแล้วแต่ไม่มีเวลาออก = วันที่ทำให้ชั่วโมงเงินเดือนเป็น 0) · ใต้ปฏิทินมี list "⚠️ ต้องจัดการ" ไล่บอกทีละวัน: ✕ ไม่ได้ลงเข้างาน [ลงให้] / ◐ ลืมเช็คเอาท์ เห็นเวลาเข้า [เติมเวลาออก] กดแก้ได้ทันที',
+    '💰 (แอดมิน) เงินเดือน: คำเตือน "ลืมเช็คเอาท์ N วัน" บอกแล้วว่าวันไหนบ้าง + ปุ่ม "🕑 ไปจัดการ (เติมเวลาออก)" เปิดปฏิทินคนนั้นทันที (มีทั้งในหน้าคำนวณและหน้าตรวจก่อนจ่าย) · เติมเวลาเสร็จ ชั่วโมงจริงคำนวณใหม่ให้อัตโนมัติ']},
   {v:'4.33.0',date:'2026-07-14',changes:[
     '🐛 (แอดมิน) หน้าเงินเดือน: เปลี่ยนเดือน/ปีแล้ว ป้ายสถานะรายคน (บันทึกแล้ว ✓฿ / ยังไม่คำนวณ) รีเฟรชตามเดือนที่เลือกทันที — เดิมค้างเป็นของเดือนเก่า']},
   {v:'4.32.0',date:'2026-07-14',changes:[
@@ -4248,9 +4273,10 @@ window.adminCheckinPicker=async function(uid,autoToday){
   _acpDate=(autoToday&&!getCheckinFor(_acpUid,todayStr()))?todayStr():null;
   const opts=active.map(m=>`<option value="${m.uid}" ${m.uid===_acpUid?'selected':''}>${slipEsc(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email)}</option>`).join('');
   openModal(`<div class="modal-title">🕑 ลงเวลาแทนพนักงาน</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">เลือกพนักงาน → ปฏิทินโชว์วันที่ <b style="color:var(--red)">ลืมลงเวลา</b> จิ้มวันที่จะลงให้ (ย้อนหลังได้)</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">เลือกพนักงาน → เห็นทั้งเดือน: <b class="acp-t-red">ไม่ได้ลงเวลา</b> / <b class="acp-t-amber">ลืมเช็คเอาท์</b> — จิ้มวันในปฏิทิน หรือกดปุ่มใน "ต้องจัดการ" ด้านล่าง</div>
     <div class="field"><label class="fl">พนักงาน</label><select id="acp-uid" onchange="acpSelectPerson(this.value)">${opts}</select></div>
     <div id="acp-cal"></div>
+    <div id="acp-list"></div>
     <div id="acp-form"></div>`);
   acpRenderCal();acpRenderForm();
 };
@@ -4278,13 +4304,7 @@ function acpRenderCal(){
   const lead=(first.getDay()+6)%7; // จันทร์เป็นวันแรก
   const ndays=new Date(y,mo,0).getDate();
   const moTxt=first.toLocaleDateString('th-TH',{month:'long',year:'numeric'});
-  const styleMap={
-    ok:'background:var(--green-ll);color:var(--green-dd);border-color:var(--green-l)',
-    miss:'background:var(--red-l);color:var(--red-t);border-color:#F3C7CF;cursor:pointer',
-    plain:'background:var(--surface);color:var(--text2);border-color:var(--border);cursor:pointer',
-    future:'color:var(--text3);opacity:.35'
-  };
-  let miss=0,cells='';
+  let cells='';
   for(let i=0;i<lead;i++)cells+='<div></div>';
   for(let d=1;d<=ndays;d++){
     const ds=`${_acpMonth}-${String(d).padStart(2,'0')}`;
@@ -4292,29 +4312,64 @@ function acpRenderCal(){
     const sh=(shifts||[]).find(s=>s.staffId===_acpUid&&s.date===ds);
     const future=ds>today;
     const sel=ds===_acpDate;
-    let st,dot='',click=`onclick="acpPickDate('${ds}')"`;
-    if(ci){st='ok';dot='<span style="display:block;width:5px;height:5px;border-radius:50%;background:var(--green);margin:2px auto 0"></span>';}
-    else if(sh&&!future){st='miss';miss++;dot='<span style="display:block;width:5px;height:5px;border-radius:50%;background:var(--red);margin:2px auto 0"></span>';}
-    else if(future){st='future';click='';}
-    else{st='plain';}
-    const selCss=sel?'outline:3px solid var(--green);outline-offset:0;':'';
-    cells+=`<div ${click} style="aspect-ratio:1;border:1.5px solid transparent;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;${styleMap[st]};${selCss}">${d}${dot}</div>`;
+    let st,mk='',click=`onclick="acpPickDate('${ds}')"`;
+    if(ci&&ci.checkOut){st='acp-ok';mk='✓';}
+    else if(ci){st='acp-noout';mk='◐';}
+    else if(sh&&!future){st='acp-miss';mk='✕';}
+    else if(future){st='acp-future';click='';}
+    else{st='acp-plain';}
+    const selCss=sel?'style="outline:3px solid var(--green);outline-offset:0"':'';
+    cells+=`<div ${click} class="acp-cell ${st}" ${selCss}>${d}${mk?`<span class="acp-mk">${mk}</span>`:''}</div>`;
   }
   el.innerHTML=`<div style="border:1.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:4px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div onclick="acpNavMonth(-1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer">‹</div>
       <div style="font-weight:800;font-size:14px">${moTxt}</div>
-      <div style="display:flex;gap:8px;align-items:center">${miss?`<span style="color:var(--red-t);background:var(--red-l);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">ลืม ${miss} วัน</span>`:''}<div onclick="acpNavMonth(1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer">›</div></div>
+      <div onclick="acpNavMonth(1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer">›</div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">
       ${['จ','อ','พ','พฤ','ศ','ส','อา'].map(h=>`<div style="text-align:center;font-size:10.5px;font-weight:700;color:var(--text3);padding-bottom:3px">${h}</div>`).join('')}
       ${cells}
     </div>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:11px;font-size:11px;color:var(--text2)">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:4px;border:1.5px solid var(--green-l);background:var(--green-ll)"></span>ลงเวลาแล้ว</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:4px;border:1.5px solid #F3C7CF;background:var(--red-l)"></span>ลืมลงเวลา</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:4px;border:1.5px solid var(--border2);background:var(--surface)"></span>วันหยุด/ยังไม่ถึง</span>
+    <div style="display:flex;gap:11px;flex-wrap:wrap;margin-top:11px;font-size:10.5px;color:var(--text2)">
+      <span style="display:flex;align-items:center;gap:4px"><span class="acp-ok" style="width:11px;height:11px;border-radius:4px;border-width:1.5px;border-style:solid;display:inline-block"></span>ลงครบ</span>
+      <span style="display:flex;align-items:center;gap:4px"><span class="acp-noout" style="width:11px;height:11px;border-radius:4px;border-width:1.5px;border-style:solid;display:inline-block"></span>ลืมเช็คเอาท์</span>
+      <span style="display:flex;align-items:center;gap:4px"><span class="acp-miss" style="width:11px;height:11px;border-radius:4px;border-width:1.5px;border-style:solid;display:inline-block"></span>ไม่ได้ลงเวลา</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:11px;height:11px;border-radius:4px;border:1.5px solid var(--border2);background:var(--surface);display:inline-block"></span>หยุด/ยังไม่ถึง</span>
     </div>
+  </div>`;
+  acpRenderList();
+}
+// list "ต้องจัดการ" ใต้ปฏิทิน — ไล่บอกวันที่ไม่ได้ลงเข้างาน / ลืมเช็คเอาท์ พร้อมปุ่มแก้
+function acpRenderList(){
+  const el=document.getElementById('acp-list');if(!el)return;
+  const [y,mo]=_acpMonth.split('-').map(Number);
+  const today=todayStr();
+  const ndays=new Date(y,mo,0).getDate();
+  const probs=[];
+  for(let d=1;d<=ndays;d++){
+    const ds=`${_acpMonth}-${String(d).padStart(2,'0')}`;
+    if(ds>today)continue;
+    const ci=getCheckinFor(_acpUid,ds);
+    const sh=(shifts||[]).find(s=>s.staffId===_acpUid&&s.date===ds);
+    if(ci&&!ci.checkOut)probs.push({t:'noout',ds,ci,sh});
+    else if(!ci&&sh)probs.push({t:'miss',ds,sh});
+  }
+  probs.sort((a,b)=>b.ds.localeCompare(a.ds));
+  if(!probs.length){el.innerHTML=`<div style="font-size:12px;color:var(--green-d);margin:10px 2px 0">✓ เดือนนี้ลงเวลาครบ ไม่มีค้าง</div>`;return;}
+  el.innerHTML=`<div style="border:1.5px solid var(--border);border-radius:14px;overflow:hidden;margin-top:12px">
+    <div style="background:var(--bg);padding:9px 13px;font-size:12px;font-weight:800;color:var(--text2);display:flex;justify-content:space-between;align-items:center"><span>⚠️ ต้องจัดการ</span><span class="acp-t-red" style="font-weight:800;font-size:11px">${probs.length} วัน</span></div>
+    ${probs.map(p=>p.t==='miss'
+      ?`<div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-top:1px solid var(--border);font-size:12.5px">
+          <span style="flex-shrink:0">✕</span>
+          <span style="flex:1;min-width:0"><b class="acp-t-red">${thDayShort(p.ds)} — ไม่ได้ลงเข้างาน</b><small style="display:block;font-size:11px;color:var(--text3);margin-top:1px">มีเวร ${p.sh.start||''} ${BRANCHES[+p.sh.branch]||''} แต่ไม่มีเช็คอิน</small></span>
+          <button class="acp-fixbtn r" onclick="acpPickDate('${p.ds}')">ลงให้ →</button>
+        </div>`
+      :`<div style="display:flex;align-items:center;gap:10px;padding:10px 13px;border-top:1px solid var(--border);font-size:12.5px">
+          <span style="flex-shrink:0">◐</span>
+          <span style="flex:1;min-width:0"><b class="acp-t-amber">${thDayShort(p.ds)} — ลืมเช็คเอาท์</b><small style="display:block;font-size:11px;color:var(--text3);margin-top:1px">เข้า ${p.ci.checkIn}${p.ci.branchIn!=null?' '+BRANCHES[+p.ci.branchIn]:''} · ไม่มีเวลาออก (นับ 0 ชม.)</small></span>
+          <button class="acp-fixbtn a" onclick="editCheckin('${p.ci.id||`${_acpUid}_${p.ds}`}')">เติมเวลาออก →</button>
+        </div>`).join('')}
   </div>`;
 }
 function acpRenderForm(){
@@ -4571,6 +4626,8 @@ function ciLateInfo(rec){
   const min=(cH*60+cM)-(sH*60+sM);
   return min>0?{late:true,min}:{late:false,min:0};
 }
+// "2026-07-10" → "ศ. 10 ก.ค." (ใช้โชว์วันแบบสั้นหลายที่)
+function thDayShort(ds){return new Date(ds+'T12:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});}
 
 window.scChangeMonth=function(d){
   scMonth+=d;
@@ -9282,6 +9339,7 @@ async function _prActualHours(uid, monthStr){
   if(!allCheckins.length)await loadCheckinsForSchedule();
   await ensureCheckinsMonth(monthStr);
   let hours=0, missingOut=0, days=0;
+  const missingOutDays=[]; // วันที่เข้างานแล้วแต่ไม่มีเวลาออก (นับ 0 ชม.)
   allCheckins.filter(c=>c.uid===uid&&(c.date||'').startsWith(monthStr)&&c.checkIn).forEach(c=>{
     days++;
     if(c.checkOut){
@@ -9290,9 +9348,10 @@ async function _prActualHours(uid, monthStr){
       let h=(oh+om/60)-(ih+im/60);
       if(h<0)h+=24; // ข้ามคืน
       hours+=h;
-    }else missingOut++;
+    }else{missingOut++;missingOutDays.push(c.date);}
   });
-  return {actualHours:Math.round(hours*10)/10, missingOut, days};
+  missingOutDays.sort().reverse();
+  return {actualHours:Math.round(hours*10)/10, missingOut, missingOutDays, days};
 }
 // จำนวนวันอาทิตย์ในเดือน (month = 1-12)
 function _sundaysInMonth(year, month){
@@ -9345,11 +9404,11 @@ window.selectPRPerson=async function(uid){
 
   // 🆕 วิธีใหม่: คิดชั่วโมงจริงจากเช็คอิน–เช็คเอาท์ + ชั่วโมงบังคับ
   const _isNewM=PR_NEW_METHODS.includes(salary.type);
-  let actualH=0, missingOut=0, mandatoryH=0;
+  let actualH=0, missingOut=0, missingOutDays=[], mandatoryH=0;
   const adminHol=saved?.adminHolidays!=null?saved.adminHolidays:0;
   if(_isNewM){
     const AH=await _prActualHours(uid,monthStr);
-    actualH=AH.actualHours; missingOut=AH.missingOut;
+    actualH=AH.actualHours; missingOut=AH.missingOut; missingOutDays=AH.missingOutDays||[];
     mandatoryH=_prMandatoryHours(salary.type,prYear,prMonth,adminHol);
   }
 
@@ -9374,7 +9433,7 @@ window.selectPRPerson=async function(uid){
     monthly:(saved&&saved.baseAmt!=null)?saved.baseAmt:(salary.base||0), // เงินเดือนเต็ม
     actualHours:saved?.actualOverride!=null?saved.actualOverride:actualH,
     autoActualHours:actualH,
-    missingOut,
+    missingOut,missingOutDays,
     mandatoryHours:mandatoryH,
     adminHolidays:adminHol,
     otHours:saved?.otHours||0,
@@ -9469,7 +9528,8 @@ function renderPRCalc(){
       ${d.salaryType!=='hourly_actual'?`<div class="pr-line"><span class="pr-line-label">💰 เงินเดือนเต็ม</span><input type="number" class="pr-line-input" value="${d.monthly}" min="0" onchange="updatePRNM('monthly',this.value)"></div>`:''}
       <div class="pr-line"><span class="pr-line-label">💵 เรทต่อชั่วโมง${d.salaryType!=='hourly_actual'?' (หัก/OT)':''}</span><input type="number" class="pr-line-input" value="${d.rate}" min="0" onchange="updatePRNM('rate',this.value)"></div>
       ${d.salaryType==='req_sun'?`<div class="pr-line"><span class="pr-line-label">🌴 วันหยุดพิเศษเดือนนี้ <span style="font-size:11px;color:var(--text3)">— นอกจากอาทิตย์</span></span><input type="number" class="pr-line-input" style="width:80px" value="${d.adminHolidays}" min="0" onchange="updatePRNM('adminHolidays',this.value)"></div>`:''}
-      <div class="pr-line"><span class="pr-line-label">⏱️ ชั่วโมงจริง <span style="font-size:11px;color:var(--text3)">(เช็คอิน–ออก · auto ${d.autoActualHours})</span>${d.missingOut?` <span style="font-size:11px;color:var(--amber-t)">⚠️ลืมออก ${d.missingOut}วัน(นับ0)</span>`:''}</span><input type="number" class="pr-line-input" style="width:90px" step="0.5" value="${d.actualHours}" min="0" onchange="updatePRNM('actualHours',this.value)"></div>
+      <div class="pr-line"><span class="pr-line-label">⏱️ ชั่วโมงจริง <span style="font-size:11px;color:var(--text3)">(เช็คอิน–ออก · auto ${d.autoActualHours})</span></span><input type="number" class="pr-line-input" style="width:90px" step="0.5" value="${d.actualHours}" min="0" onchange="updatePRNM('actualHours',this.value)"></div>
+      ${d.missingOut?`<div class="pr-missout">⚠️ <b>ลืมเช็คเอาท์ ${d.missingOut} วัน</b> (วันนั้นนับ 0 ชม.) — ชั่วโมงจริงอาจน้อยกว่าความเป็นจริง<br><span style="font-size:11px;opacity:.85">${(d.missingOutDays||[]).map(thDayShort).join(' · ')}</span><br><button class="btn btn-sm btn-primary" style="margin-top:7px" onclick="adminCheckinPicker('${d.uid}')">🕑 ไปจัดการ (เติมเวลาออก) →</button></div>`:''}
       ${d.salaryType==='hourly_actual'
         ?`<div class="pr-line"><span class="pr-line-label" style="color:var(--text3)">= ค่าแรง (${d.actualHours} × ${d.rate})</span><span style="font-weight:700;color:var(--green-d)">฿${fmt(hourlyAmt)}</span></div>`
         :`<div class="pr-line"><span class="pr-line-label" style="color:var(--text3)">= ชั่วโมงบังคับ (${new Date(prYear,prMonth,0).getDate()}วัน − หยุด) × 9</span><span style="font-weight:600">${d.mandatoryHours} ชม.</span></div>
@@ -9911,7 +9971,7 @@ async function _pvWarnings(){
     if(!(d.rate>0))w.push({t:'e',m:'เรทต่อชั่วโมงเป็น 0 — ยังไม่ได้ตั้งเรท (OT/หักขาดจะเป็น 0 หมด)'});
     if(!(d.actualHours>0))w.push({t:'e',m:'ชั่วโมงจริงเป็น 0 — เช็คว่าพนักงานมีเช็คอินเดือนนี้ หรือกรอกชั่วโมงเอง'});
     if(d.salaryType!=='hourly_actual'&&!(d.monthly>0))w.push({t:'e',m:'เงินเดือนเต็มเป็น 0 — ยังไม่ได้ตั้งเงินเดือน'});
-    if(d.missingOut>0)w.push({t:'w',m:`ลืมเช็คเอาท์ ${d.missingOut} วัน (วันนั้นนับ 0 ชม.) — ชั่วโมงจริงอาจน้อยกว่าความเป็นจริง`});
+    if(d.missingOut>0)w.push({t:'w',m:`ลืมเช็คเอาท์ ${d.missingOut} วัน (วันนั้นนับ 0 ชม.) — ชั่วโมงจริงอาจน้อยกว่าความเป็นจริง<br><span style="font-size:11px;opacity:.85">${(d.missingOutDays||[]).map(thDayShort).join(' · ')}</span><br><button class="btn btn-sm btn-primary" style="margin-top:6px" onclick="closeMD();adminCheckinPicker('${d.uid}')">🕑 ไปจัดการ (เติมเวลาออก) →</button>`});
   }else{
     if(d.salaryType!=='hourly'&&!(d.base>0))w.push({t:'w',m:'เงินเดือนฐานเป็น 0'});
     if(d.salaryType!=='fixed'&&!(d.hours>0))w.push({t:'w',m:'ชั่วโมงคิดเงินเป็น 0 — เช็คตารางเวรเดือนนี้'});
@@ -12993,6 +13053,8 @@ window.saveCheckinEdit=async function(id){
     closeMD();logActivity('checkin_edit',`แก้เวลาลงเวลาของ ${rec.name||''} (${rec.date})`);showToast('บันทึกการแก้ไขแล้ว (มีประวัติให้พนักงานเห็น)');
     loadCheckinHistory();
     if(allCheckins.length)await loadCheckinsForSchedule();
+    // ถ้าค้างอยู่หน้าเงินเดือน → คำนวณชั่วโมงจริงใหม่ให้เลย (เคสกดมาจากปุ่ม "ไปจัดการ")
+    if(currentPage==='payroll'&&prCurrentPerson)selectPRPerson(prCurrentPerson);
   }catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
 };
 
