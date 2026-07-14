@@ -1761,8 +1761,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.31.0';
+const APP_VERSION='4.32.0';
 const CHANGELOG=[
+  {v:'4.32.0',date:'2026-07-14',changes:[
+    '📄 เอกสารการค้า: แก้ "วันที่" และ "เลขที่เอกสาร" เองได้แล้ว — มีการ์ด "ข้อมูลเอกสาร" ในหน้ากรอก · เลือกวันที่ย้อนหลัง/ล่วงหน้าได้ · เลขที่เว้นว่างไว้ระบบออกให้อัตโนมัติ หรือพิมพ์เลขเองก็ได้ (กันเลขซ้ำกับใบอื่นให้) · ตอนแก้ไขเอกสารเดิมก็เปลี่ยนวันที่/เลขที่ได้']},
   {v:'4.31.0',date:'2026-07-14',changes:[
     '🧾 เอกสารการค้า: หัวเอกสารเปลี่ยนเป็นชื่อนิติบุคคล "ห้างหุ้นส่วนจำกัด ใหม่เภสัช" (แทน "ร้านขายยา ใหม่เภสัช") — ตั้ง/แก้ชื่อหัวเอกสารเองได้ที่ตั้งค่าเอกสาร · ที่อยู่ใต้หัวจะไม่ซ้ำชื่อนิติบุคคลให้อัตโนมัติ',
     '📦 เพิ่มคอลัมน์ "หน่วย" ในรายการสินค้า (กล่อง/แผง/ขวด/หลอด/ชิ้น/อัน...) — ตอนกรอกรายการมีช่องหน่วยเพิ่มมา (เลือกสินค้าจากฐานข้อมูลจะเติมหน่วยให้เอง แก้ได้) กด Enter ไล่ช่อง ชื่อ→จำนวน→หน่วย→ราคา · เว้นว่างได้']},
@@ -10798,6 +10800,17 @@ function renderDocForm(){
     </div>
 
     <div class="card" style="margin-bottom:10px">
+      <div style="font-size:12px;font-weight:800;color:var(--text3);margin-bottom:8px">📄 ข้อมูลเอกสาร</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="flex:1;min-width:130px"><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:3px">วันที่เอกสาร</label>
+          <input type="date" value="${f._date||todayStr()}" max="2100-12-31" oninput="docFieldUpd('_date',this.value)" style="width:100%"></div>
+        <div style="flex:1;min-width:130px"><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:3px">เลขที่เอกสาร</label>
+          <input type="text" value="${(f._docNo||'').replace(/"/g,'&quot;')}" placeholder="${f._editId?'':'เว้นว่าง = ออกเลขอัตโนมัติ'}" oninput="docFieldUpd('_docNo',this.value)" style="width:100%"></div>
+      </div>
+      <div style="font-size:10.5px;color:var(--text3);margin-top:5px">${f._editId?'แก้เลขที่/วันที่ได้ (ระวังเลขซ้ำกับใบอื่น)':'ปล่อยเลขที่ว่างไว้ ระบบจะออกให้เอง เช่น '+docNextNo(f.type)+' · หรือพิมพ์เลขเองก็ได้'}</div>
+    </div>
+
+    <div class="card" style="margin-bottom:10px">
       <div style="font-size:12px;font-weight:800;color:var(--text3);margin-bottom:4px">📦 รายการสินค้า <span style="font-weight:500">(ราคาขายรวม VAT แล้ว)</span></div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px">💡 พิมพ์ชื่อสินค้า 2-3 ตัวอักษร ระบบค้นจากฐานสินค้าร้าน ${docGetProducts().length.toLocaleString('th-TH')} รายการ — เลือกแล้วเติมหน่วย/ราคาให้เอง (พิมพ์เองก็ได้)</div>
       ${f.items.map((it,i)=>`
@@ -11147,16 +11160,19 @@ window.docSave=async function(){
   if(!docForm)return;
   // ===== โหมดแก้ไข: บันทึกทับเอกสารเดิม (เลขที่เดิม ไม่ออกเลขใหม่) =====
   if(docForm._editId){
+    const id=docForm._editId;
+    const newNo=(docForm._docNo||'').trim();
+    if(!newNo){showToast('เลขที่เอกสารห้ามว่าง','err');return;}
+    if(docList.some(d=>d.id!==id&&d.docNo===newNo)){showToast('เลขที่ '+newNo+' ซ้ำกับเอกสารอื่น','err');return;}
     loading(true);
     try{
       const rec=docCompile();
-      const id=docForm._editId;
-      const upd={customer:rec.customer,items:rec.items,discountMode:rec.discountMode,discountValue:rec.discountValue,
+      const upd={docNo:newNo,customer:rec.customer,items:rec.items,discountMode:rec.discountMode,discountValue:rec.discountValue,
         totals:rec.totals,note:rec.note,date:rec.date,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''};
       await updateDoc(doc(db,'documents',id),upd);
       const idx=docList.findIndex(x=>x.id===id);
-      if(idx>=0)docList[idx]={...docList[idx],...upd,docNo:docForm._docNo};
-      logActivity('doc_edit',`แก้ไข${DOC_TYPES[rec.docType].label} ${docForm._docNo} (${rec.customer?.name||''})`);
+      if(idx>=0)docList[idx]={...docList[idx],...upd};
+      logActivity('doc_edit',`แก้ไข${DOC_TYPES[rec.docType].label} ${newNo} (${rec.customer?.name||''})`);
       loading(false);closeMD();
       docForm=null;renderDocPage();
       showToast(`บันทึกการแก้ไขแล้ว ✅ ${docList[idx>=0?idx:0]?.docNo||''}`);
@@ -11164,10 +11180,13 @@ window.docSave=async function(){
     }catch(e){loading(false);showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
     return;
   }
+  // เลขที่พิมพ์เอง (ถ้ามี) ต้องไม่ซ้ำใบอื่น
+  const manualNo=(docForm._docNo||'').trim();
+  if(manualNo&&docList.some(d=>d.docNo===manualNo)){showToast('เลขที่ '+manualNo+' ซ้ำกับเอกสารอื่น เปลี่ยนเลขก่อน','err');return;}
   loading(true);
   try{
     const rec=docCompile();
-    rec.docNo=docNextNo(docForm.type);
+    rec.docNo=manualNo||docNextNo(docForm.type);
     rec.status='active';
     rec.createdBy=currentUser?.uid||'';
     rec.createdAt=new Date().toISOString();
