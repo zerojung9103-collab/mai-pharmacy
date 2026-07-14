@@ -1761,8 +1761,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.29.0';
+const APP_VERSION='4.30.0';
 const CHANGELOG=[
+  {v:'4.30.0',date:'2026-07-14',changes:[
+    '⏰ แก้ให้ "มาสาย" คิดจากตารางเวรล่าสุดเสมอ — เมื่อก่อนถ้าจัดเวรไว้ 08:00 แล้วพนักงานเช็คอินสาย ระบบจะจำว่าสายไว้ตายตัว พอแอดมินแก้เวรย้อนหลัง (เช่น ตกลงกันให้เข้า 09:00) ป้าย "สาย" ยังค้างเลขเดิม · ตอนนี้พอแก้เวร ป้ายสายจะคำนวณใหม่ตามเวรจริงทันที (เข้าทันเวรใหม่ = หายสาย · เข้าช้ากว่าเวรใหม่ = โชว์สายเท่าที่ช้าจริง) ทั้งหน้าประวัติลงเวลา สรุปของฉัน และแดชบอร์ด']},
   {v:'4.29.0',date:'2026-07-14',changes:[
     '🎨 (แอดมิน) หน้าต่าง "แก้ไขเวร" สวยขึ้น — ตัวเลือก "ใช้เวลานี้กับวันไหนบ้าง" เป็นการ์ดกดเลือก ตัวหนังสือชิดซ้ายอ่านง่าย อันที่เลือกมีจุด/ขอบ/พื้นเขียวชัดเจน + ไอคอนกำกับ (แก้ปุ่มวงกลมที่เคยยืดเบี้ยว) · ใช้ได้ทั้งโหมดสว่าง/มืด']},
   {v:'4.28.0',date:'2026-07-14',changes:[
@@ -4551,6 +4553,17 @@ function getCheckinsOnDate(ds){
 function getCheckinFor(uid,ds){
   return allCheckins.find(c=>c.uid===uid&&c.date===ds&&c.checkIn);
 }
+// คำนวณ "สาย" สดจากเวรปัจจุบัน (ไม่ยึดค่าที่เก็บไว้ตอนเช็คอิน) — เผื่อแอดมินแก้เวรย้อนหลัง
+// คืน {late:bool, min:number} · ถ้าไม่มีเวรของวันนั้น → ใช้ค่าที่เคยเก็บไว้ (rec.isLate/lateMinutes)
+function ciLateInfo(rec){
+  if(!rec||!rec.checkIn)return {late:false,min:0};
+  const sh=(shifts||[]).find(s=>s.staffId===rec.uid&&s.date===rec.date&&s.start);
+  if(!sh)return {late:!!rec.isLate,min:+rec.lateMinutes||0};
+  const [sH,sM]=String(sh.start).split(':').map(Number);
+  const [cH,cM]=String(rec.checkIn).split(':').map(Number);
+  const min=(cH*60+cM)-(sH*60+sM);
+  return min>0?{late:true,min}:{late:false,min:0};
+}
 
 window.scChangeMonth=function(d){
   scMonth+=d;
@@ -4893,7 +4906,7 @@ function scRender(){
       const ci=isTemp?null:getCheckinFor(s.staffId,ds);
       let statusDot='';
       if(ci){
-        const late=ci.isLate;
+        const late=ciLateInfo(ci).late;
         statusDot=`<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${late?'var(--amber)':'var(--green)'};margin-left:auto;flex-shrink:0"></span>`;
       }
       const tempTag=isTemp?`<span style="font-size:7px;background:rgba(0,0,0,.08);padding:0 3px;border-radius:4px;flex-shrink:0">ชั่วคราว</span>`:'';
@@ -8969,7 +8982,7 @@ function renderMemberHistory(uid){
   // สถิติเดือนนี้จากข้อมูลจริง
   const myShifts=(shifts||[]).filter(s=>s.staffId===uid&&(s.date||'').startsWith(moStr));
   const myCheckins=(allCheckins||[]).filter(c=>c.uid===uid&&(c.date||'').startsWith(moStr));
-  const lateCount=myCheckins.filter(c=>c.isLate).length;
+  const lateCount=myCheckins.filter(c=>ciLateInfo(c).late).length;
   const notes=(m.notes||[]).slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
   const stat=(lbl,val,sub)=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px"><div style="font-size:11px;color:var(--text3)">${lbl}</div><div style="font-size:20px;font-weight:700;font-family:var(--disp);margin-top:2px">${val}</div><div style="font-size:10.5px;color:var(--text3)">${sub||''}</div></div>`;
   const joinDate=m.createdAt?new Date(m.createdAt).toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'}):'—';
@@ -12392,7 +12405,7 @@ async function assistantCheckinMe(){
     recs.forEach(r=>{
       if(r.checkIn&&r.checkOut){totalMins+=workMinutes(r.checkIn,r.checkOut);workDays++;}
       else if(r.checkIn)workDays++;
-      if(r.isLate)lateCount++;
+      if(ciLateInfo(r).late)lateCount++;
     });
     const hh=Math.floor(totalMins/60),mm=totalMins%60;
     body=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
@@ -12599,7 +12612,7 @@ async function loadMyCheckinHistory(){
       monthRecs.forEach(r=>{
         if(r.checkIn&&r.checkOut){totalMins+=workMinutes(r.checkIn,r.checkOut);workDays++;}
         else if(r.checkIn)workDays++;
-        if(r.isLate)lateCount++;
+        if(ciLateInfo(r).late)lateCount++;
       });
       const hh=Math.floor(totalMins/60), mm=totalMins%60;
       sumEl.innerHTML=`
@@ -12613,7 +12626,7 @@ async function loadMyCheckinHistory(){
     if(!sorted.length){el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:1rem">ไม่มีประวัติการลงเวลาในเดือนนี้</div>';return;}
     el.innerHTML=sorted.map(r=>{
       const edited=r.editHistory?.length;
-      const lateBadge=r.isLate?`<span style="font-size:10px;color:#D4690E;font-weight:700;margin-left:6px">⏰ สาย ${r.lateMinutes} นาที</span>`:'';
+      const _L=ciLateInfo(r);const lateBadge=_L.late?`<span style="font-size:10px;color:#D4690E;font-weight:700;margin-left:6px">⏰ สาย ${_L.min} นาที</span>`:'';
       return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--green-ll);border-radius:9px;margin-bottom:6px;border:1px solid var(--border)">
         <div style="flex:1">
           <div style="font-weight:600;font-size:13px">${new Date(r.date).toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'})}${lateBadge}</div>
@@ -12831,7 +12844,7 @@ window.loadCheckinHistory=async function(){
     const recs=snap.docs.map(d=>({id:d.id,...d.data()})).filter(r=>!isTestCheckin(r)).sort((a,b)=>(a.checkIn||'').localeCompare(b.checkIn||''));
     const checkedIn=recs.filter(r=>r.checkIn).length;
     const checkedOut=recs.filter(r=>r.checkOut).length;
-    const lateCount=recs.filter(r=>r.isLate).length;
+    const lateCount=recs.filter(r=>ciLateInfo(r).late).length;
     document.getElementById('cih-metrics').innerHTML=`
       <div class="mcard c-green"><div class="mcard-label">เข้างานแล้ว</div><div class="mcard-val">${checkedIn}</div><div class="mcard-sub">คน</div></div>
       <div class="mcard c-blue"><div class="mcard-label">ออกงานแล้ว</div><div class="mcard-val">${checkedOut}</div><div class="mcard-sub">คน</div></div>
@@ -12852,11 +12865,11 @@ window.cihApplyFilter=function(){
   let shown=recs;
   if(q)shown=shown.filter(r=>(r.name||'').toLowerCase().includes(q));
   if(br!=='')shown=shown.filter(r=>String(r.branchIn)===br);
-  if(lateOnly)shown=shown.filter(r=>r.isLate);
+  if(lateOnly)shown=shown.filter(r=>ciLateInfo(r).late);
   document.getElementById('cih-tbody').innerHTML=shown.length===0?'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text3)">ไม่พบรายการตามตัวกรอง</td></tr>':shown.map(r=>`<tr>
       <td style="font-weight:600">${r.uid?staffNameLink(r.name||'—',r.uid):(r.name||'—')}</td>
       <td>${r.date}</td>
-      <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}${r.isLate?`<div style="font-size:9px;color:#D4690E;font-weight:700">⏰ สาย ${r.lateMinutes} นาที</div>`:''}${r.branchMismatch?`<div style="font-size:9px;color:var(--red-t);font-weight:700">⚠️ ต่างจากเวร (เวรอยู่${BRANCHES[r.shiftBranch]??'?'})</div>`:''}${r.meetingDay?`<div style="font-size:9px;color:var(--purple-t);font-weight:700">📣 วันประชุม</div>`:''}</td>
+      <td style="color:var(--green-d)">${r.checkIn||'—'}${r.branchIn!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchIn]}</div>`:''}${(()=>{const L=ciLateInfo(r);return L.late?`<div style="font-size:9px;color:#D4690E;font-weight:700">⏰ สาย ${L.min} นาที</div>`:'';})()}${r.branchMismatch?`<div style="font-size:9px;color:var(--red-t);font-weight:700">⚠️ ต่างจากเวร (เวรอยู่${BRANCHES[r.shiftBranch]??'?'})</div>`:''}${r.meetingDay?`<div style="font-size:9px;color:var(--purple-t);font-weight:700">📣 วันประชุม</div>`:''}</td>
       <td style="color:var(--blue-t)">${r.checkOut||'—'}${r.branchOut!=null?`<div style="font-size:10px;color:var(--text3)">${BRANCHES[r.branchOut]}</div>`:''}${r.checkOut&&r.checkOutInRadius===false?`<div style="font-size:9px;color:#D4690E;font-weight:700">📍 นอกรัศมี${r.checkOutDistance?' ~'+r.checkOutDistance+'ม.':''}</div>`:r.checkOut&&r.checkOutInRadius===true?`<div style="font-size:9px;color:var(--green-d)">✓ ในรัศมี</div>`:''}</td>
       <td>${r.checkIn&&r.checkOut?calcWorkTime(r.checkIn,r.checkOut):'—'}</td>
       <td>${r.checkOut?'<span class="sta-on">เสร็จสิ้น</span>':r.checkIn?'<span class="badge badge-amber">ทำงานอยู่</span>':'<span class="sta-off">ยังไม่เข้า</span>'}${r.editHistory?.length?`<div style="font-size:9px;color:#D4690E;margin-top:2px">✎ แก้ไข ${r.editHistory.length} ครั้ง</div>`:''}</td>
@@ -13209,7 +13222,7 @@ window.openWeeklySummary=async function(offset){
   let lateN=0,lateNames='';
   try{
     const snap=await getDocs(query(collection(db,'checkins'),where('date','>=',ws),where('date','<=',we)));
-    const lb={};snap.docs.forEach(d=>{const x=d.data();if(x.isLate&&!isTestCheckin(x)){lateN++;lb[x.uid]=(lb[x.uid]||0)+1;}});
+    const lb={};snap.docs.forEach(d=>{const x=d.data();if(ciLateInfo(x).late&&!isTestCheckin(x)){lateN++;lb[x.uid]=(lb[x.uid]||0)+1;}});
     lateNames=Object.entries(lb).sort((a,b)=>b[1]-a[1]).slice(0,4).map(([u,n])=>`${memberName(u)||'—'} ${n} ครั้ง`).join(' · ');
   }catch(e){}
   // EDC สะสมเดือนปัจจุบัน — รายเครื่อง
@@ -13450,7 +13463,7 @@ async function checkNotifications(){
       try{
         const _ms=today.slice(0,8)+'01';
         const _cs=await getDocs(query(collection(db,'checkins'),where('date','>=',_ms),where('date','<=',today)));
-        const _lb={};_cs.docs.forEach(d=>{const x=d.data();if(x.isLate&&!isTestCheckin(x))_lb[x.uid]=(_lb[x.uid]||0)+1;});
+        const _lb={};_cs.docs.forEach(d=>{const x=d.data();if(ciLateInfo(x).late&&!isTestCheckin(x))_lb[x.uid]=(_lb[x.uid]||0)+1;});
         const _fr=Object.entries(_lb).filter(([u,n])=>n>=(alertSettings.lateThreshold||3));
         if(_fr.length){
           const nm=_fr.map(([u,n])=>`${memberName(u)||'—'} (${n} ครั้ง)`).slice(0,3).join(', ');
