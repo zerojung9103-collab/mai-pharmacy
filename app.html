@@ -1761,8 +1761,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.30.0';
+const APP_VERSION='4.31.0';
 const CHANGELOG=[
+  {v:'4.31.0',date:'2026-07-14',changes:[
+    '🧾 เอกสารการค้า: หัวเอกสารเปลี่ยนเป็นชื่อนิติบุคคล "ห้างหุ้นส่วนจำกัด ใหม่เภสัช" (แทน "ร้านขายยา ใหม่เภสัช") — ตั้ง/แก้ชื่อหัวเอกสารเองได้ที่ตั้งค่าเอกสาร · ที่อยู่ใต้หัวจะไม่ซ้ำชื่อนิติบุคคลให้อัตโนมัติ',
+    '📦 เพิ่มคอลัมน์ "หน่วย" ในรายการสินค้า (กล่อง/แผง/ขวด/หลอด/ชิ้น/อัน...) — ตอนกรอกรายการมีช่องหน่วยเพิ่มมา (เลือกสินค้าจากฐานข้อมูลจะเติมหน่วยให้เอง แก้ได้) กด Enter ไล่ช่อง ชื่อ→จำนวน→หน่วย→ราคา · เว้นว่างได้']},
   {v:'4.30.0',date:'2026-07-14',changes:[
     '⏰ แก้ให้ "มาสาย" คิดจากตารางเวรล่าสุดเสมอ — เมื่อก่อนถ้าจัดเวรไว้ 08:00 แล้วพนักงานเช็คอินสาย ระบบจะจำว่าสายไว้ตายตัว พอแอดมินแก้เวรย้อนหลัง (เช่น ตกลงกันให้เข้า 09:00) ป้าย "สาย" ยังค้างเลขเดิม · ตอนนี้พอแก้เวร ป้ายสายจะคำนวณใหม่ตามเวรจริงทันที (เข้าทันเวรใหม่ = หายสาย · เข้าช้ากว่าเวรใหม่ = โชว์สายเท่าที่ช้าจริง) ทั้งหน้าประวัติลงเวลา สรุปของฉัน และแดชบอร์ด']},
   {v:'4.29.0',date:'2026-07-14',changes:[
@@ -10622,7 +10625,7 @@ const DOC_NEXT={QT:['INV','DN','TX'],INV:['DN','TX'],DN:['TX'],TX:[]};
 let docList=[],docCustomers=[],docLoaded=false;
 let docProducts=null; // สินค้าเวอร์ชันอัปเดต (นำเข้า CSV ใหม่จาก POS) — ถ้าไม่มีใช้ PRODUCTS_SEED ที่ฝังมากับแอป
 function docGetProducts(){return (docProducts&&docProducts.length)?docProducts:PRODUCTS_SEED;}
-let docCfg=Object.assign({address:'',taxId:'',branchLabel:'สำนักงานใหญ่',phone:''},JSON.parse(localStorage.getItem('nm_docCfg')||'{}'));
+let docCfg=Object.assign({legalName:'ห้างหุ้นส่วนจำกัด ใหม่เภสัช',address:'',taxId:'',branchLabel:'สำนักงานใหญ่',phone:''},JSON.parse(localStorage.getItem('nm_docCfg')||'{}'));
 let docForm=null; // null = โหมดรายการ · object = กำลังสร้าง/แก้
 const fmt2=n=>(Math.round((n||0)*100)/100).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const _r2=n=>Math.round((n||0)*100)/100;
@@ -10739,7 +10742,7 @@ function docCalc(f){
 window.docFieldUpd=function(k,v){if(!docForm)return;docForm[k]=v;if(k==='discountMode'||k==='discountValue')docRenderSum();else docLivePreview();};
 window.docCustUpd=function(k,v){if(!docForm)return;docForm.customer[k]=v;docLivePreview();};
 window.docCustType=function(t){if(!docForm)return;docForm.customer.ctype=t;renderDocForm();};
-window.docItemUpd=function(i,k,v){if(!docForm||!docForm.items[i])return;docForm.items[i][k]=(k==='name')?v:(parseFloat(v)||0);docRenderSum();};
+window.docItemUpd=function(i,k,v){if(!docForm||!docForm.items[i])return;docForm.items[i][k]=(k==='name'||k==='unit')?v:(parseFloat(v)||0);docRenderSum();};
 window.docItemAdd=function(){docForm.items.push({name:'',qty:1,price:0});renderDocForm();};
 window.docItemDel=function(i){docForm.items.splice(i,1);if(!docForm.items.length)docForm.items.push({name:'',qty:1,price:0});renderDocForm();};
 window.docPickCustomer=function(id){
@@ -10800,9 +10803,9 @@ function renderDocForm(){
       ${f.items.map((it,i)=>`
         <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
           <input type="text" data-di="${i}" data-df="name" value="${(it.name||'').replace(/"/g,'&quot;')}" placeholder="รายการที่ ${i+1} — พิมพ์เพื่อค้นหา..." autocomplete="off" oninput="docItemName(${i},this)" onfocus="docItemName(${i},this)" onkeydown="docItemKey(event,${i},'name')" style="flex:2;min-width:110px">
-          <input type="number" data-di="${i}" data-df="qty" value="${it.qty}" min="0" step="any" oninput="docItemUpd(${i},'qty',this.value)" onkeydown="docItemKey(event,${i},'qty')" style="width:56px;text-align:right" title="จำนวน">
-          <span style="font-size:10px;color:var(--text3);min-width:22px">${slipEsc(it.unit||'')}</span>
-          <input type="number" data-di="${i}" data-df="price" value="${it.price}" min="0" step="any" oninput="docItemUpd(${i},'price',this.value)" onkeydown="docItemKey(event,${i},'price')" style="width:82px;text-align:right" title="ราคา/หน่วย">
+          <input type="number" data-di="${i}" data-df="qty" value="${it.qty}" min="0" step="any" oninput="docItemUpd(${i},'qty',this.value)" onkeydown="docItemKey(event,${i},'qty')" style="width:52px;text-align:right" title="จำนวน">
+          <input type="text" data-di="${i}" data-df="unit" value="${(it.unit||'').replace(/"/g,'&quot;')}" placeholder="หน่วย" oninput="docItemUpd(${i},'unit',this.value)" onkeydown="docItemKey(event,${i},'unit')" style="width:62px" title="หน่วย เช่น กล่อง/แผง/ชิ้น (เว้นว่างได้)">
+          <input type="number" data-di="${i}" data-df="price" value="${it.price}" min="0" step="any" oninput="docItemUpd(${i},'price',this.value)" onkeydown="docItemKey(event,${i},'price')" style="width:78px;text-align:right" title="ราคา/หน่วย">
           <button class="btn btn-sm btn-danger" onclick="docItemDel(${i})" style="padding:5px 9px">×</button>
         </div>`).join('')}
       <button class="btn btn-sm" onclick="docItemAdd()">+ เพิ่มรายการ</button>
@@ -10915,7 +10918,8 @@ window.docItemKey=function(e,i,field){
     else docFocusItem(i,'qty');
     return;
   }
-  if(field==='qty'){docFocusItem(i,'price');return;}
+  if(field==='qty'){docFocusItem(i,'unit');return;}
+  if(field==='unit'){docFocusItem(i,'price');return;}
   if(field==='price'){
     if(!docForm)return;
     if(i>=docForm.items.length-1){docItemAdd();setTimeout(()=>docFocusItem(i+1,'name'),30);}
@@ -11007,6 +11011,10 @@ function buildDocHtml(d,opts){
   const dateTxt=d.date?new Date(d.date+'T00:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'}):'';
   const chainTxt=(d.chain&&d.chain.length)?('อ้างอิง: '+d.chain.map(x=>x.no).join(' → ')):'';
   const logo=(slipCfg.logo)?`<img src="${slipCfg.logo}" style="height:52px;max-width:120px;object-fit:contain">`:'';
+  // หัวเอกสาร = ชื่อนิติบุคคล (ตั้งค่าได้) · ที่อยู่ตัดชื่อนิติบุคคลออกถ้าซ้ำต้นข้อความ
+  const legalName=docCfg.legalName||'ห้างหุ้นส่วนจำกัด ใหม่เภสัช';
+  let addrDisp=docCfg.address||'';
+  if(legalName&&addrDisp.startsWith(legalName))addrDisp=addrDisp.slice(legalName.length).replace(/^[\s,]+/,'');
   // หัวเอกสาร (ชื่อร้าน+ข้อมูลลูกค้า+หัวคอลัมน์) วางใน <thead> ของตารางเดียว
   // → เวลาพิมพ์แล้วเอกสารยาวขึ้นหน้า 2 เบราว์เซอร์จะพิมพ์หัวนี้ซ้ำทุกหน้าอัตโนมัติ
   // ยอดรวม+ลายเซ็นอยู่นอกตาราง (.foot) จึงโผล่ครั้งเดียวท้ายเอกสาร
@@ -11014,12 +11022,12 @@ function buildDocHtml(d,opts){
   <div class="a4page">
     <table class="dmain">
       <thead>
-        <tr><td colspan="5" class="hdcell">
+        <tr><td colspan="6" class="hdcell">
           <div class="dh">
             <div style="display:flex;gap:11px;align-items:flex-start">${logo}
               <div>
-                <div style="font-size:16px;font-weight:800">${slipEsc(slipCfg.companyName||'ร้านขายยา ใหม่เภสัช')}</div>
-                <div style="font-size:10px;color:#3A4A45;line-height:1.55">${slipEsc(docCfg.address||'')}<br>
+                <div style="font-size:16px;font-weight:800">${slipEsc(legalName)}</div>
+                <div style="font-size:10px;color:#3A4A45;line-height:1.55">${slipEsc(addrDisp)}<br>
                 ${docCfg.taxId?`เลขประจำตัวผู้เสียภาษี ${slipEsc(docCfg.taxId)} (${slipEsc(docCfg.branchLabel||'สำนักงานใหญ่')})`:''}${docCfg.phone?' · โทร '+slipEsc(docCfg.phone):''}</div>
               </div>
             </div>
@@ -11038,11 +11046,11 @@ function buildDocHtml(d,opts){
               ผู้ขาย/ผู้ออกเอกสาร: ${slipEsc(d.createdByName||'')}${chainTxt?`<br>${chainTxt}`:''}</div>
           </div>
         </td></tr>
-        <tr class="cols"><th style="width:26px">#</th><th style="text-align:left">รายการ</th><th class="r" style="width:60px">จำนวน</th><th class="r" style="width:80px">หน่วยละ</th><th class="r" style="width:95px">จำนวนเงิน</th></tr>
+        <tr class="cols"><th style="width:24px">#</th><th style="text-align:left">รายการ</th><th class="r" style="width:48px">จำนวน</th><th style="text-align:center;width:52px">หน่วย</th><th class="r" style="width:76px">หน่วยละ</th><th class="r" style="width:92px">จำนวนเงิน</th></tr>
       </thead>
       <tbody>
-      ${(d.items||[]).map((it,i)=>`<tr><td class="r">${i+1}</td><td>${slipEsc(it.name)}</td><td class="r">${fmt2(it.qty).replace('.00','')}${it.unit?' '+slipEsc(it.unit):''}</td><td class="r">${fmt2(it.price)}</td><td class="r">${fmt2((it.qty||0)*(it.price||0))}</td></tr>`).join('')}
-      <tr class="footrow"><td colspan="5">
+      ${(d.items||[]).map((it,i)=>`<tr><td class="r">${i+1}</td><td>${slipEsc(it.name)}</td><td class="r">${fmt2(it.qty).replace('.00','')}</td><td style="text-align:center">${it.unit?slipEsc(it.unit):''}</td><td class="r">${fmt2(it.price)}</td><td class="r">${fmt2((it.qty||0)*(it.price||0))}</td></tr>`).join('')}
+      <tr class="footrow"><td colspan="6">
         <div class="foot">
           <div style="display:flex;justify-content:space-between;gap:14px;align-items:flex-start">
             <div style="font-size:10px;color:#3A4A45;flex:1">${d.note?`<b>หมายเหตุ:</b> ${slipEsc(d.note)}<br>`:''}( ${thaiBahtText(c.net)} ) · ราคาสินค้ารวมภาษีมูลค่าเพิ่มแล้ว</div>
@@ -11245,7 +11253,10 @@ window.docVoid=async function(id){
 // ===== ตั้งค่าเอกสาร (admin) =====
 window.docSettingsPrompt=function(){
   openModal(`<div class="modal-title">⚙️ ตั้งค่าเอกสารการค้า</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">ข้อมูลร้านที่พิมพ์บนหัวเอกสารทุกใบ (ชื่อร้าน+โลโก้ ใช้ค่าเดียวกับสลิปเงินเดือน)</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">ข้อมูลร้านที่พิมพ์บนหัวเอกสารทุกใบ (โลโก้ ใช้ค่าเดียวกับสลิปเงินเดือน)</div>
+    <label style="font-size:12px;font-weight:600;display:block;margin:8px 0 4px">ชื่อหัวเอกสาร (ชื่อนิติบุคคล)</label>
+    <input type="text" id="dc-legalname" value="${(docCfg.legalName||'').replace(/"/g,'&quot;')}" placeholder="เช่น ห้างหุ้นส่วนจำกัด ใหม่เภสัช" style="width:100%">
+    <div style="font-size:10.5px;color:var(--text3);margin-top:3px">แสดงเป็นชื่อตัวใหญ่บนหัวเอกสาร (แทน "ร้านขายยา ใหม่เภสัช" เดิม)</div>
     <label style="font-size:12px;font-weight:600;display:block;margin:8px 0 4px">ที่อยู่ร้าน (ตามจดทะเบียน)</label>
     <textarea id="dc-address" rows="2" style="width:100%;resize:vertical">${docCfg.address||''}</textarea>
     <label style="font-size:12px;font-weight:600;display:block;margin:8px 0 4px">เลขประจำตัวผู้เสียภาษี 13 หลัก</label>
@@ -11265,6 +11276,7 @@ window.docSettingsPrompt=function(){
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="docSettingsSave()">บันทึก</button></div>`);
 };
 window.docSettingsSave=async function(){
+  docCfg.legalName=document.getElementById('dc-legalname').value.trim()||'ห้างหุ้นส่วนจำกัด ใหม่เภสัช';
   docCfg.address=document.getElementById('dc-address').value.trim();
   docCfg.taxId=document.getElementById('dc-taxid').value.trim();
   docCfg.branchLabel=document.getElementById('dc-branchlabel').value;
