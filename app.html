@@ -1761,8 +1761,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.32.0';
+const APP_VERSION='4.33.0';
 const CHANGELOG=[
+  {v:'4.33.0',date:'2026-07-14',changes:[
+    '🐛 (แอดมิน) หน้าเงินเดือน: เปลี่ยนเดือน/ปีแล้ว ป้ายสถานะรายคน (บันทึกแล้ว ✓฿ / ยังไม่คำนวณ) รีเฟรชตามเดือนที่เลือกทันที — เดิมค้างเป็นของเดือนเก่า']},
   {v:'4.32.0',date:'2026-07-14',changes:[
     '📄 เอกสารการค้า: แก้ "วันที่" และ "เลขที่เอกสาร" เองได้แล้ว — มีการ์ด "ข้อมูลเอกสาร" ในหน้ากรอก · เลือกวันที่ย้อนหลัง/ล่วงหน้าได้ · เลขที่เว้นว่างไว้ระบบออกให้อัตโนมัติ หรือพิมพ์เลขเองก็ได้ (กันเลขซ้ำกับใบอื่นให้) · ตอนแก้ไขเอกสารเดิมก็เปลี่ยนวันที่/เลขที่ได้']},
   {v:'4.31.0',date:'2026-07-14',changes:[
@@ -9181,6 +9183,7 @@ let prLeave={show:false,items:[]}; // สิทธิ์วันลาที่
 window.prMonthChanged=function(){
   prMonth=parseInt(document.getElementById('pr-month').value);
   prYear=parseInt(document.getElementById('pr-year').value);
+  loadPRMonthStatus(); // รีเฟรชป้ายสถานะ (บันทึกแล้ว/ยังไม่คำนวณ) ให้ตรงเดือนที่เลือก
   if(prCurrentPerson)selectPRPerson(prCurrentPerson);
 };
 
