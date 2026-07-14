@@ -75,6 +75,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .sb-nav{flex:1;padding:1rem .75rem;overflow-y:auto}
 .sb-sec{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;padding:.75rem .75rem .35rem;margin-top:.25rem}
 .sb-item{display:flex;align-items:center;gap:10px;padding:.6rem .75rem;border-radius:10px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:.12s;border:none;background:none;width:100%;text-align:left;font-family:var(--font)}
+.nav-badge{margin-left:auto;background:var(--red,#D9596B);color:#fff;font-size:10.5px;font-weight:800;border-radius:20px;padding:1px 7px;min-width:18px;text-align:center;line-height:1.6}
 .sb-item:hover{background:var(--green-ll);color:var(--text)}
 .sb-item.active{background:var(--green-l);color:var(--green-dd);font-weight:700}
 .sb-item.hidden{display:none}
@@ -844,6 +845,7 @@ input,select,textarea{border-radius:14px}
       </div>
     </div>
     <div id="member-sec-card"></div>
+    <div id="mem-pending"></div>
     <div class="card">
       <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
         <input type="text" id="mem-search" placeholder="ค้นหาชื่อ หรืออีเมล..." oninput="filterMembersDebounced()" style="flex:1;min-width:200px">
@@ -1730,8 +1732,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.23.0';
+const APP_VERSION='4.24.0';
 const CHANGELOG=[
+  {v:'4.24.0',date:'2026-07-13',changes:[
+    '🔐 สมาชิกใหม่ต้องรอแอดมินอนุมัติก่อนเข้าใช้ — สมัครแล้วเห็นจอ "รอผู้ดูแลอนุมัติ" (เข้าแอปไม่ได้) · แอดมินอนุมัติเมื่อไหร่ จอเด้งเข้าแอปให้เองไม่ต้องล็อกอินใหม่',
+    '🔔 แอดมิน: หน้า "จัดการสมาชิก" มีการ์ด "รออนุมัติ (N)" บนสุด + ป้ายเลขแดงที่เมนู + ชิปหน้าแรก — กดอนุมัติ/ปฏิเสธได้ในคลิกเดียว (ปฏิเสธ = "ถูกปฏิเสธ" เปลี่ยนใจอนุมัติทีหลังได้)',
+    '🚫 บัญชีที่ถูก "ระงับ" เข้าใช้แอปไม่ได้แล้ว (เดิมระงับแล้วยังเข้าได้) — สมาชิกเก่าทุกคนใช้งานได้ปกติเหมือนเดิม']},
   {v:'4.23.0',date:'2026-07-13',changes:[
     '👁️ สร้าง/แก้เอกสารการค้าบนจอคอม เห็น "ตัวอย่างสด" ฝั่งขวา — ใบเอกสารจริงอัปเดตตามที่พิมพ์ทันที (เลื่อนตามหน้า) ไม่ต้องกดดูตัวอย่างบ่อยๆ · มือถือใช้ปุ่ม "ดูตัวอย่างเต็ม" เหมือนเดิม']},
   {v:'4.22.1',date:'2026-07-13',changes:[
@@ -2971,6 +2977,7 @@ function buildNav(){
   loadMemberBdays();
   buildSidebar();
   buildBottomNav();
+  if(typeof updatePendingBadge==='function')updatePendingBadge();  // ป้ายเลขแดงสมาชิกรออนุมัติ
   // กลับไปหน้าที่ค้างอยู่ก่อน refresh — ถ้าไม่มีค่อยไปหน้าแรก
   const savedPage=localStorage.getItem('lastPage')||'home';
   goto(savedPage);
@@ -3100,6 +3107,53 @@ async function sessionKick(as){
   try{await signOut(auth);}catch(e){}
 }
 
+// 🔐 จอกั้นบัญชีที่ยังเข้าใช้ไม่ได้ (รออนุมัติ / ถูกปฏิเสธ / ถูกระงับ) — ดีไซน์เดียวกับหน้า login
+function showAccountGate(status){
+  if(document.getElementById('account-gate-ov'))return;
+  const esc=s=>String(s==null?'':s).replace(/</g,'&lt;');
+  const nm=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'';
+  const email=currentUser?.email||'';
+  let ic='⏳',title='รอผู้ดูแลอนุมัติ',msg='สมัครสมาชิกสำเร็จแล้ว 🎉<br>กรุณารอผู้ดูแลร้านอนุมัติบัญชีของคุณก่อนเข้าใช้งาน',warn='';
+  if(status==='rejected'){ic='🚫';title='บัญชีถูกปฏิเสธ';msg='บัญชีนี้ไม่ได้รับอนุมัติให้เข้าใช้งาน';warn='ถ้าคิดว่าผิดพลาด กรุณาติดต่อผู้ดูแลร้าน';}
+  else if(status!=='pending'){ic='🚫';title='บัญชีถูกระงับ';msg='บัญชีนี้ถูกระงับการใช้งานชั่วคราว';warn='กรุณาติดต่อผู้ดูแลร้านเพื่อเปิดใช้งานอีกครั้ง';}
+  const ov=document.createElement('div');
+  ov.id='account-gate-ov';
+  ov.style.cssText='position:fixed;inset:0;z-index:99998;background:linear-gradient(135deg,#63D3A6,#2A7FA5 60%,#5F4BC7);display:flex;align-items:center;justify-content:center;padding:1.2rem';
+  ov.innerHTML=`<div style="width:100%;max-width:380px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.42);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);border-radius:22px;padding:2rem 1.5rem;color:#fff;text-align:center;box-shadow:0 20px 60px rgba(10,40,60,.28)">
+    <div style="font-size:52px;line-height:1">${ic}</div>
+    <div style="font-family:var(--disp,serif);font-size:21px;font-weight:700;margin-top:.7rem;text-shadow:0 1px 8px rgba(0,0,0,.18)">${title}</div>
+    <div style="font-size:13.5px;margin-top:.8rem;line-height:1.75;opacity:.95">${msg}</div>
+    ${(nm||email)?`<div style="background:rgba(255,255,255,.16);border-radius:12px;padding:9px 12px;font-size:12.5px;margin-top:1rem">👤 ${nm?esc(nm)+' · ':''}${esc(email)}</div>`:''}
+    ${warn?`<div style="font-size:12px;background:rgba(0,0,0,.16);border-radius:11px;padding:9px 11px;margin-top:.9rem;line-height:1.6">${warn}</div>`:''}
+    ${status==='pending'?`<button onclick="location.reload()" style="width:100%;margin-top:1.1rem;padding:12px;background:#fff;border:none;border-radius:13px;color:#0F6E56;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 8px 20px rgba(6,40,30,.22)">🔄 ตรวจสอบสถานะอีกครั้ง</button>`:''}
+    <div onclick="doLogout()" style="font-size:12.5px;opacity:.9;margin-top:1rem;text-decoration:underline;cursor:pointer">ออกจากระบบ</div>
+  </div>`;
+  document.body.appendChild(ov);
+}
+
+// 🔔 แอดมิน: เฝ้าดูสมาชิกที่ "รออนุมัติ" แบบเรียลไทม์ → ป้ายเลขแดงที่เมนู + การ์ดหน้าสมาชิก + ชิปหน้าแรก
+let _pendingMembers=[];
+function watchPendingMembers(){
+  if(!isAdmin)return;
+  try{
+    onSnapshot(query(collection(db,'members'),where('status','==','pending')),(snap)=>{
+      _pendingMembers=snap.docs.map(d=>({...d.data(),uid:d.id}));
+      updatePendingBadge();
+      if(document.getElementById('page-members')?.classList.contains('active'))filterMembers();
+      if(document.getElementById('page-home')?.classList.contains('active')&&typeof renderHome==='function')renderHome();
+    });
+  }catch(e){console.error('watchPending',e);}
+}
+function updatePendingBadge(){
+  const n=(_pendingMembers||[]).length;
+  const el=document.getElementById('nav-members');
+  if(el){
+    let b=el.querySelector('.nav-badge');
+    if(n>0){if(!b){b=document.createElement('span');b.className='nav-badge';el.appendChild(b);}b.textContent=n;}
+    else if(b)b.remove();
+  }
+}
+
 onAuthStateChanged(auth,async user=>{
   if(!user){
     if(_sessionKicked)return; // ค้างที่จอแจ้ง "ถูกเข้าใช้ที่เครื่องอื่น" — ไม่เด้งไป index ทันที
@@ -3113,6 +3167,15 @@ onAuthStateChanged(auth,async user=>{
     isAdmin=profile?.role==='admin';
     isTester=profile?.role==='tester';
   }catch(e){profile=null;isAdmin=false;isTester=false;}
+  // 🔐 ระบบอนุมัติสมาชิก (v4.24) — สมัครใหม่ต้อง "รออนุมัติ" ก่อนถึงเข้าใช้ได้ · ระงับ/ปฏิเสธ = เข้าไม่ได้
+  const _acctSt=profile?(profile.status||'active'):'active';
+  if(profile&&_acctSt!=='active'){
+    loading(false);
+    showAccountGate(_acctSt);
+    // เฝ้าดูแบบเรียลไทม์ — แอดมินอนุมัติเมื่อไหร่ (active) จอนี้เด้งเข้าแอปให้เอง
+    try{onSnapshot(doc(db,'members',user.uid),(d)=>{if(d.exists()&&(d.data().status||'active')==='active')location.reload();});}catch(e){}
+    return;
+  }
   checkLoginDevice(); // 🔐 เช็ค/แจ้งเตือนถ้าเข้าจากอุปกรณ์ใหม่ (ไม่บล็อกการโหลด)
   // ฟังการเปลี่ยนแปลงสิทธิ์/role ของตัวเองแบบเรียลไทม์ → อัปเดตเมนูทันทีโดยไม่ต้อง login ใหม่
   try{
@@ -3151,7 +3214,7 @@ onAuthStateChanged(auth,async user=>{
   else document.body.classList.remove('tester-mode');
   buildNav();
   if(isAdmin||canAccessPage('sales'))loadSalesFromCloud();
-  if(isAdmin){loadAlertSettings();loadEditRequests();loadCashData();}
+  if(isAdmin){loadAlertSettings();loadEditRequests();loadCashData();watchPendingMembers();}
   loadBranchLocations();
   loadPayTypesFromCloud();
   loadExpenseReasonsFromCloud();
@@ -4086,6 +4149,8 @@ async function renderHomeTeam(targetId='home-staff-status'){
   const pendLv=allLeaves.filter(l=>(l.status||'pending')==='pending').length;
   const pendEr=(typeof editRequests!=='undefined'?editRequests:[]).filter(r=>r.status==='pending').length;
   const chips=[];
+  const pendMem=(typeof _pendingMembers!=='undefined'?_pendingMembers.length:0);
+  if(pendMem>0)chips.push(`<button onclick="goto('members')" style="background:var(--red-l);color:var(--red-t);border:none;border-radius:11px;padding:8px 13px;font-family:var(--font);font-weight:800;font-size:12px;cursor:pointer">🔔 สมาชิกรออนุมัติ ${pendMem} คน ›</button>`);
   if(pendLv>0)chips.push(`<button onclick="goto('leave-admin')" style="background:var(--blue-l);color:var(--blue-t);border:none;border-radius:11px;padding:8px 13px;font-family:var(--font);font-weight:800;font-size:12px;cursor:pointer">🌴 ขอลา ${pendLv} รายการ ›</button>`);
   if(pendEr>0)chips.push(`<button onclick="openEditRequests()" style="background:var(--amber-l);color:var(--amber-t);border:none;border-radius:11px;padding:8px 13px;font-family:var(--font);font-weight:800;font-size:12px;cursor:pointer">✏️ ขอแก้ยอดขาย ${pendEr} รายการ ›</button>`);
   const pendCard=chips.length?`<div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 15px;box-shadow:var(--shadow);margin-top:12px"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:9px">⏳ รออนุมัติ</div><div style="display:flex;gap:9px;flex-wrap:wrap">${chips.join('')}</div></div>`:'';
@@ -8343,9 +8408,11 @@ window.loadMembers=async function(){
 };
 // 🆕 v4.10: รายชื่อสมาชิกแบบการ์ด — เห็นสาขา/ตำแหน่ง/แบบเงินเดือนในใบเดียว
 window.filterMembers=function(){
+  renderPendingApprovals();  // 🔔 การ์ด "รออนุมัติ" บนสุด
   const q=document.getElementById('mem-search')?.value.toLowerCase()||'';
   const f=document.getElementById('mem-filter')?.value||'all';
   const filtered=allMembers.filter(m=>{
+    if(m.status==='pending')return false;  // รออนุมัติแยกไปการ์ดด้านบน
     const n=`${m.firstName||''} ${m.lastName||''} ${m.nickname||''} ${m.email||''}`.toLowerCase();
     return(!q||n.includes(q))&&(f==='all'||m.status===f);
   });
@@ -8357,7 +8424,7 @@ window.filterMembers=function(){
     const branchChip=(m.branch!=null&&BRANCHES[m.branch])?`<span class="badge" style="background:${BCOLORS[m.branch]}22;color:${BCOLORS[m.branch]};font-weight:700">● ${BRANCHES[m.branch]}</span>`:'';
     const salChip=m.salary?.type?`<span class="badge" style="background:var(--bg);color:var(--text2)">💵 ${_SALTYPE[m.salary.type]||m.salary.type}</span>`:'<span class="badge" style="background:var(--bg);color:var(--text3)">ยังไม่ตั้งเงินเดือน</span>';
     const cloneBadge=m.isClone?'<span class="badge" style="background:#F59E0B;color:#1C1917;font-weight:700">🧪 ทดสอบ</span>':'';
-    const sta=m.status==='active'?'':'<span class="badge badge-red">ระงับอยู่</span>';
+    const sta=m.status==='active'?'':`<span class="badge badge-red">${m.status==='rejected'?'🚫 ถูกปฏิเสธ':'ระงับอยู่'}</span>`;
     const av=m.photoUrl
       ?`<div class="mem-av" style="background:#eee url('${m.photoUrl}') center/cover;color:transparent">.</div>`
       :`<div class="mem-av">${name.charAt(0)}</div>`;
@@ -8376,6 +8443,51 @@ window.filterMembers=function(){
       <div class="acts"><button class="btn btn-sm btn-blue" style="flex:1" onclick="viewMember('${m.uid}')">จัดการ</button>${actions}</div>
     </div>`;
   }).join('');
+};
+// 🔔 การ์ด "รออนุมัติ" — สมาชิกใหม่ที่รอแอดมินอนุมัติ (ใช้ข้อมูลสด _pendingMembers)
+function renderPendingApprovals(){
+  const el=document.getElementById('mem-pending');if(!el)return;
+  const pend=(_pendingMembers&&_pendingMembers.length)?_pendingMembers:(allMembers||[]).filter(m=>m.status==='pending');
+  if(!pend.length){el.innerHTML='';return;}
+  const rows=pend.map(m=>{
+    const name=`${m.firstName||''} ${m.lastName||''}`.trim()||m.email||'—';
+    const when=m.createdAt?new Date(m.createdAt).toLocaleString('th-TH',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+    return `<div style="display:flex;align-items:center;gap:11px;padding:11px;border:1px solid var(--border);border-radius:12px;background:var(--green-ll);margin-bottom:9px;flex-wrap:wrap">
+      <div class="mem-av" style="flex-shrink:0">${slipEsc(name.charAt(0))}</div>
+      <div style="flex:1;min-width:120px">
+        <div style="font-weight:700;font-size:13.5px">${slipEsc(name)}</div>
+        <div style="font-size:11px;color:var(--text3)">${slipEsc(m.email||'')}${when?' · สมัคร '+when:''}</div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn btn-sm btn-primary" onclick="approveMember('${m.uid}')">✅ อนุมัติ</button>
+        <button class="btn btn-sm btn-danger" onclick="rejectMember('${m.uid}')">❌ ปฏิเสธ</button>
+      </div></div>`;
+  }).join('');
+  el.innerHTML=`<div class="card" style="border:1.5px solid var(--amber-t);box-shadow:0 6px 18px rgba(138,100,24,.12);margin-bottom:14px">
+    <div style="font-weight:800;font-size:14px;color:var(--amber-t);margin-bottom:3px">🔔 รออนุมัติ (${pend.length} คน)</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:12px">สมาชิกใหม่ที่เพิ่งสมัคร — ตรวจแล้วกดอนุมัติเพื่อให้เข้าใช้งาน</div>
+    ${rows}</div>`;
+}
+function _pendMemberName(uid){const m=(_pendingMembers||[]).find(x=>x.uid===uid)||(allMembers||[]).find(x=>x.uid===uid)||{};return `${m.firstName||''} ${m.lastName||''}`.trim()||m.email||uid;}
+window.approveMember=async function(uid){
+  try{
+    await updateDoc(doc(db,'members',uid),{status:'active',approvedAt:new Date().toISOString(),approvedBy:currentUser?.uid||''});
+    const am=(allMembers||[]).find(x=>x.uid===uid);if(am)am.status='active';
+    logActivity('member_approve',`อนุมัติสมาชิก ${_pendMemberName(uid)}`);
+    showToast('อนุมัติสมาชิกแล้ว ✅ — เข้าใช้งานได้ทันที');
+    if(document.getElementById('page-members')?.classList.contains('active'))filterMembers();
+  }catch(e){showToast('อนุมัติไม่สำเร็จ: '+(e?.message||e),'err');}
+};
+window.rejectMember=async function(uid){
+  const name=_pendMemberName(uid);
+  if(!await capsuleConfirm(`ปฏิเสธการสมัครของ ${name}?\nบัญชีจะเข้าใช้ไม่ได้ (เปลี่ยนใจอนุมัติทีหลังได้)`))return;
+  try{
+    await updateDoc(doc(db,'members',uid),{status:'rejected',rejectedAt:new Date().toISOString(),rejectedBy:currentUser?.uid||''});
+    const am=(allMembers||[]).find(x=>x.uid===uid);if(am)am.status='rejected';
+    logActivity('member_reject',`ปฏิเสธสมาชิก ${name}`);
+    showToast('ปฏิเสธการสมัครแล้ว');
+    if(document.getElementById('page-members')?.classList.contains('active'))filterMembers();
+  }catch(e){showToast('ทำรายการไม่สำเร็จ: '+(e?.message||e),'err');}
 };
 // 📋 โคลนพนักงานเป็น "พนักงานทดสอบ" (สำเนา config ไม่มีล็อกอิน) — ไว้ทดสอบเงินเดือน/สิทธิ์/หน้าตา
 window.cloneMember=async function(uid){
@@ -15721,6 +15833,8 @@ const ACTION_LABELS={
   login:['เข้าสู่ระบบ','#3B8EEA','🔑'],
   login_newdevice:['เข้าระบบ • อุปกรณ์ใหม่','#C2410C','🔐'],
   session_kick:['ถูกออกจากระบบ (เข้าใช้ที่เครื่องอื่น)','#C2410C','🔒'],
+  member_approve:['อนุมัติสมาชิกใหม่','#0F8A63','✅'],
+  member_reject:['ปฏิเสธการสมัคร','#A32D2D','🚫'],
   doc_create:['ออกเอกสารการค้า','#0F8A63','📄'],
   doc_edit:['แก้ไขเอกสารการค้า','#D4690E','✏️'],
   doc_void:['ยกเลิกเอกสารการค้า','#A32D2D','🚫'],

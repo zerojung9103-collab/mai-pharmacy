@@ -283,7 +283,7 @@ window.doRegister=async function(){
     localStorage.setItem('nm_session_token',token);
     await setDoc(doc(db,'members',cred.user.uid),{
       uid:cred.user.uid,firstName:fname,lastName:lname,email,
-      nationalId:cid,dateOfBirth:dob,status:'active',
+      nationalId:cid,dateOfBirth:dob,status:'pending',   // 🔐 รอแอดมินอนุมัติก่อนเข้าใช้งาน
       role:'member',
       permissions:{dashboard:true,schedule:false,sales:false,members:false,payroll_self:true},
       salary:{type:'fixed',base:0,hourlyRate:0},
