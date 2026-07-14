@@ -152,6 +152,17 @@ textarea{resize:vertical;min-height:64px}
 .modal{background:var(--surface);border-radius:var(--rl);padding:1.75rem;width:460px;max-width:92vw;box-shadow:0 24px 60px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto}
 .modal-title{font-size:16px;font-weight:700;margin-bottom:1.25rem}
 .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border)}
+/* การ์ดตัวเลือก (ใช้ในโมดัลแก้เวร "ใช้กับวันไหนบ้าง") */
+.sc-opt{display:flex;align-items:center;gap:11px;border:1.5px solid var(--border2);border-radius:12px;padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:border-color .12s,background .12s}
+.sc-opt:hover{border-color:var(--green)}
+.sc-opt.on{border-color:var(--green);background:rgba(31,174,139,.11)}
+.sc-rad{width:19px;height:19px;border-radius:50%;border:2px solid var(--border2);flex-shrink:0;position:relative;transition:border-color .12s}
+.sc-opt.on .sc-rad{border-color:var(--green)}
+.sc-opt.on .sc-rad::after{content:'';position:absolute;inset:3px;border-radius:50%;background:var(--green)}
+.sc-ot{flex:1;font-size:13px;line-height:1.35;min-width:0}
+.sc-ot b{font-weight:700}
+.sc-ot small{display:block;color:var(--text3);font-size:11.5px;margin-top:1px}
+.sc-ic{font-size:17px;opacity:.55;flex-shrink:0}
 .schedule-grid{display:grid;grid-template-columns:130px repeat(7,1fr);gap:1px;background:var(--border);border-radius:var(--r);overflow:hidden;font-size:12px}
 .sg-cell{background:var(--surface);padding:8px 6px;display:flex;align-items:flex-start;justify-content:center;min-height:52px}
 .sg-hdr{background:var(--bg);font-weight:700;color:var(--text2);font-size:11px;flex-direction:column;gap:1px;align-items:center}
@@ -1750,8 +1761,13 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.27.0';
+const APP_VERSION='4.29.0';
 const CHANGELOG=[
+  {v:'4.29.0',date:'2026-07-14',changes:[
+    '🎨 (แอดมิน) หน้าต่าง "แก้ไขเวร" สวยขึ้น — ตัวเลือก "ใช้เวลานี้กับวันไหนบ้าง" เป็นการ์ดกดเลือก ตัวหนังสือชิดซ้ายอ่านง่าย อันที่เลือกมีจุด/ขอบ/พื้นเขียวชัดเจน + ไอคอนกำกับ (แก้ปุ่มวงกลมที่เคยยืดเบี้ยว) · ใช้ได้ทั้งโหมดสว่าง/มืด']},
+  {v:'4.28.0',date:'2026-07-14',changes:[
+    '🕑 "ลงเวลาแทนพนักงาน" ใช้ง่ายขึ้นมาก — จบในหน้าเดียว (ไม่ต้องกดถัดไป) · เลือกพนักงานแล้วเห็น "ปฏิทินทั้งเดือน" ทันที: เขียว=ลงเวลาแล้ว · แดง=ลืมลงเวลา · เทา=วันหยุด/ยังไม่ถึง มุมขวาบอก "ลืมกี่วัน"',
+    '📅 จิ้มวันในปฏิทินที่จะลงให้ (เน้นวันแดง) ระบบเติมเวลาเข้า/สาขาจากตารางเวรให้อัตโนมัติ (แก้ได้) · ลงเสร็จปฏิทินเปลี่ยนเป็นเขียวทันที ลงวันอื่นต่อได้เลย · กด ‹ › ย้อนดูเดือนก่อนได้']},
   {v:'4.27.0',date:'2026-07-13',changes:[
     '🛠️ เพิ่มหน้า "เครื่องมือแอดมิน" — รวมเครื่องมือผู้ดูแลไว้ที่เดียว หาง่าย (ลงเวลาแทน · จัดเวรหลายวัน · จัดการสมาชิก · เงินเดือน · อนุมัติลา · รายงาน · เอกสาร · หน้าตาแอป · ประวัติใช้งาน) อยู่ในเมนู "บริหาร" · การ์ดที่มีของรอทำมีป้ายเลขแดง',
     '🕑 "ลงเวลาแทนพนักงาน" เลือกคน + วันได้ (ย้อนหลังได้) — พนักงานลืมลงเวลาเมื่อวาน/วันก่อน แอดมินลงให้ได้จากหน้าเครื่องมือแอดมิน (เดิมได้แค่วันนี้จากหน้าแรก)']},
@@ -4211,63 +4227,133 @@ function renderAdminTools(){
     `</div>`;
 }
 window.adminToolBulkShift=function(){if(!allMembers.length){loadMembers().then(()=>scBulkAssign());}else scBulkAssign();};
-// 🕑 ลงเวลาแทน — เลือกคน + วัน (ย้อนหลังได้) ก่อนใส่เวลา
-window.adminCheckinPicker=async function(){
+// 🕑 ลงเวลาแทนพนักงาน (v4.28) — หน้าเดียวจบ + ปฏิทินทั้งเดือนโชว์วันที่ "ลืมลงเวลา" (แดง) จิ้มวันที่จะลงให้
+let _acpUid=null,_acpDate=null,_acpMonth=null;
+window.adminCheckinPicker=async function(uid,autoToday){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
   if(!allMembers.length)await loadMembers();
   const active=allMembers.filter(m=>m.status==='active'&&!m.isClone);
   if(!active.length){showToast('ยังไม่มีสมาชิก','err');return;}
-  const opts=active.map(m=>`<option value="${m.uid}">${slipEsc(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email)}</option>`).join('');
+  _acpUid=(uid&&active.find(m=>m.uid===uid))?uid:active[0].uid;
+  _acpMonth=todayStr().slice(0,7);
+  _acpDate=(autoToday&&!getCheckinFor(_acpUid,todayStr()))?todayStr():null;
+  const opts=active.map(m=>`<option value="${m.uid}" ${m.uid===_acpUid?'selected':''}>${slipEsc(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email)}</option>`).join('');
   openModal(`<div class="modal-title">🕑 ลงเวลาแทนพนักงาน</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">เลือกพนักงาน + วันที่ (ย้อนหลังได้) แล้วกดถัดไปใส่เวลา</div>
-    <div class="field"><label class="fl">พนักงาน</label><select id="acp-uid">${opts}</select></div>
-    <div class="field"><label class="fl">วันที่</label><input type="date" id="acp-date" value="${todayStr()}" max="${todayStr()}" style="width:100%"></div>
-    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="adminCheckinPickNext()">ถัดไป →</button></div>`);
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">เลือกพนักงาน → ปฏิทินโชว์วันที่ <b style="color:var(--red)">ลืมลงเวลา</b> จิ้มวันที่จะลงให้ (ย้อนหลังได้)</div>
+    <div class="field"><label class="fl">พนักงาน</label><select id="acp-uid" onchange="acpSelectPerson(this.value)">${opts}</select></div>
+    <div id="acp-cal"></div>
+    <div id="acp-form"></div>`);
+  acpRenderCal();acpRenderForm();
 };
-window.adminCheckinPickNext=function(){
-  const uid=document.getElementById('acp-uid')?.value;
-  const date=document.getElementById('acp-date')?.value||todayStr();
-  const m=allMembers.find(x=>x.uid===uid);
-  const name=m?(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email):'';
-  adminAddCheckin(uid,name,date);
+// entry point เก่า (ปุ่ม "ลงเวลาให้" หน้าแรก) — เปิด picker พร้อมเลือกคนนั้น + เด้งวันนี้ให้เลย
+window.adminAddCheckin=function(uid){adminCheckinPicker(uid,true);};
+window.acpSelectPerson=function(uid){_acpUid=uid;_acpDate=null;acpRenderCal();acpRenderForm();};
+window.acpNavMonth=async function(delta){
+  const [y,m]=_acpMonth.split('-').map(Number);
+  const d=new Date(y,m-1+delta,1);
+  _acpMonth=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  _acpDate=null;
+  if(typeof ensureCheckinsMonth==='function')await ensureCheckinsMonth(_acpMonth);
+  acpRenderCal();acpRenderForm();
 };
-// 🆕 v4.14: แอดมินลงเวลาแทน (กรณีพนักงานลืมลงเวลา / ระบบกันไว้) · v4.27: รับวันที่ (ย้อนหลังได้)
-window.adminAddCheckin=async function(uid,name,date){
-  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
-  const day=date||todayStr(),id=`${uid}_${day}`;
-  try{const d=await getDoc(doc(db,'checkins',id));if(d.exists()){editCheckin(id);return;}}catch(e){}
-  const sh=(shifts||[]).find(s=>s.staffId===uid&&s.date===day);
+window.acpPickDate=function(ds){
+  const ci=getCheckinFor(_acpUid,ds);
+  if(ci){editCheckin(ci.id||`${_acpUid}_${ds}`);return;} // มีแล้ว → ไปแก้เวลา
+  _acpDate=ds;acpRenderCal();acpRenderForm();
+};
+function acpRenderCal(){
+  const el=document.getElementById('acp-cal');if(!el)return;
+  const [y,mo]=_acpMonth.split('-').map(Number);
+  const today=todayStr();
+  const first=new Date(y,mo-1,1);
+  const lead=(first.getDay()+6)%7; // จันทร์เป็นวันแรก
+  const ndays=new Date(y,mo,0).getDate();
+  const moTxt=first.toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  const styleMap={
+    ok:'background:var(--green-ll);color:var(--green-dd);border-color:var(--green-l)',
+    miss:'background:var(--red-l);color:var(--red-t);border-color:#F3C7CF;cursor:pointer',
+    plain:'background:var(--surface);color:var(--text2);border-color:var(--border);cursor:pointer',
+    future:'color:var(--text3);opacity:.35'
+  };
+  let miss=0,cells='';
+  for(let i=0;i<lead;i++)cells+='<div></div>';
+  for(let d=1;d<=ndays;d++){
+    const ds=`${_acpMonth}-${String(d).padStart(2,'0')}`;
+    const ci=getCheckinFor(_acpUid,ds);
+    const sh=(shifts||[]).find(s=>s.staffId===_acpUid&&s.date===ds);
+    const future=ds>today;
+    const sel=ds===_acpDate;
+    let st,dot='',click=`onclick="acpPickDate('${ds}')"`;
+    if(ci){st='ok';dot='<span style="display:block;width:5px;height:5px;border-radius:50%;background:var(--green);margin:2px auto 0"></span>';}
+    else if(sh&&!future){st='miss';miss++;dot='<span style="display:block;width:5px;height:5px;border-radius:50%;background:var(--red);margin:2px auto 0"></span>';}
+    else if(future){st='future';click='';}
+    else{st='plain';}
+    const selCss=sel?'outline:3px solid var(--green);outline-offset:0;':'';
+    cells+=`<div ${click} style="aspect-ratio:1;border:1.5px solid transparent;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;${styleMap[st]};${selCss}">${d}${dot}</div>`;
+  }
+  el.innerHTML=`<div style="border:1.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:4px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div onclick="acpNavMonth(-1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer">‹</div>
+      <div style="font-weight:800;font-size:14px">${moTxt}</div>
+      <div style="display:flex;gap:8px;align-items:center">${miss?`<span style="color:var(--red-t);background:var(--red-l);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">ลืม ${miss} วัน</span>`:''}<div onclick="acpNavMonth(1)" style="width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--text2);cursor:pointer">›</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px">
+      ${['จ','อ','พ','พฤ','ศ','ส','อา'].map(h=>`<div style="text-align:center;font-size:10.5px;font-weight:700;color:var(--text3);padding-bottom:3px">${h}</div>`).join('')}
+      ${cells}
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:11px;font-size:11px;color:var(--text2)">
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:4px;border:1.5px solid var(--green-l);background:var(--green-ll)"></span>ลงเวลาแล้ว</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:4px;border:1.5px solid #F3C7CF;background:var(--red-l)"></span>ลืมลงเวลา</span>
+      <span style="display:flex;align-items:center;gap:5px"><span style="width:11px;height:11px;border-radius:4px;border:1.5px solid var(--border2);background:var(--surface)"></span>วันหยุด/ยังไม่ถึง</span>
+    </div>
+  </div>`;
+}
+function acpRenderForm(){
+  const el=document.getElementById('acp-form');if(!el)return;
+  if(!_acpDate){
+    el.innerHTML=`<div style="text-align:center;color:var(--text3);font-size:12.5px;padding:14px 0 4px">👆 จิ้มวันในปฏิทินเพื่อลงเวลาให้</div>
+      <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`;
+    return;
+  }
+  const ds=_acpDate;
+  const sh=(shifts||[]).find(s=>s.staffId===_acpUid&&s.date===ds);
   const branchOpts=BRANCHES.map((b,i)=>`<option value="${i}" ${sh&&+sh.branch===i?'selected':''}>${b}</option>`).join('');
-  const dTxt=new Date(day+'T12:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
-  openModal(`<div class="modal-title">🕑 ลงเวลาแทน — ${name||''}</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ ${dTxt} · ใช้เมื่อพนักงานลืมลงเวลา หรือระบบกันไว้ (ไม่ตรงตารางเวร/GPS) — บันทึกเป็นการทำโดยแอดมิน มีประวัติให้พนักงานเห็น</div>
+  const dTxt=new Date(ds+'T12:00:00').toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const hint=sh?`↳ ตามตารางเวร: เข้า ${sh.start||'—'} · สาขา${BRANCHES[+sh.branch]||''} (เติมให้อัตโนมัติ แก้ได้)`:'↳ วันนี้ไม่มีเวรในตาราง — กรอกเวลา/สาขาเองได้';
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:9px;border:1.5px solid var(--green);background:var(--green-ll);border-radius:11px;padding:9px 12px;margin:10px 0 4px"><span>📅</span><span style="font-weight:700;font-size:13.5px;color:var(--green-dd)">${dTxt}</span></div>
+    <div style="font-size:11px;color:var(--green-d);margin-bottom:8px">${hint}</div>
     <div class="field-row">
       <div class="field"><label class="fl">เวลาเข้างาน</label>${time24Picker('aac-in',sh?.start||'09:00')}</div>
       <div class="field"><label class="fl">สาขา</label><select id="aac-b">${branchOpts}</select></div>
     </div>
     <div class="field"><label class="fl">เวลาออกงาน (เว้นว่างได้ ถ้ายังไม่เลิกงาน)</label>${time24Picker('aac-out','')}</div>
     <div class="field"><label class="fl">เหตุผล (พนักงานจะเห็น)</label><input type="text" id="aac-reason" placeholder="เช่น ลืมเช็คอิน / มาประชุมต่างสาขา"></div>
-    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveAdminAddCheckin('${uid}','${String(name||'').replace(/'/g,'')}','${day}')">บันทึกลงเวลา</button></div>`);
-};
-window.saveAdminAddCheckin=async function(uid,name,date){
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="saveAdminAddCheckin('${_acpUid}','${ds}')">💾 บันทึกลงเวลา</button></div>`;
+}
+window.saveAdminAddCheckin=async function(uid,date){
+  const m=allMembers.find(x=>x.uid===uid);
+  const name=m?(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email):'';
   const tIn=readTime24('aac-in'),tOut=readTime24('aac-out');
   const bRaw=document.getElementById('aac-b')?.value;
   const b=bRaw!==''&&!isNaN(parseInt(bRaw))?parseInt(bRaw):null;
   const reason=(document.getElementById('aac-reason')?.value||'').trim();
   if(!tIn){showToast('ใส่เวลาเข้างานก่อน','err');return;}
-  const today=date||todayStr(),id=`${uid}_${today}`;
-  const rec={uid,name:name||'',date:today,checkIn:tIn,checkOut:tOut||'',branchIn:b,branchOut:tOut?b:null,editedByAdmin:true,
+  const day=date||todayStr(),id=`${uid}_${day}`;
+  const rec={uid,name:name||'',date:day,checkIn:tIn,checkOut:tOut||'',branchIn:b,branchOut:tOut?b:null,editedByAdmin:true,
     editHistory:[{at:new Date().toISOString(),by:profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin',byUid:currentUser.uid,
       reason:reason||'ลงเวลาแทน (พนักงานลืมลงเวลา)',
       old:{checkIn:'',checkOut:'',branchIn:null,branchOut:null},
       new:{checkIn:tIn,checkOut:tOut||'',branchIn:b,branchOut:tOut?b:null}}]};
   try{
     await setDoc(doc(db,'checkins',id),rec);
-    if(!allCheckins.find(c=>c.id===id))allCheckins.push({...rec,id});
-    closeMD();
-    logActivity('checkin_edit',`ลงเวลาแทน ${name||''} (${today} ${tIn}${tOut?'–'+tOut:''})`);
+    const ix=allCheckins.findIndex(c=>c.id===id||(c.uid===uid&&c.date===day));
+    if(ix>=0)allCheckins[ix]={...rec,id};else allCheckins.push({...rec,id});
+    logActivity('checkin_edit',`ลงเวลาแทน ${name||''} (${day} ${tIn}${tOut?'–'+tOut:''})`);
     showToast('ลงเวลาแทนเรียบร้อย ✓');
     if(typeof renderHomeTeam==='function')renderHomeTeam();
+    // อยู่หน้าต่างเดิม — รีเฟรชปฏิทินให้วันนั้นเป็นเขียว แล้วลงวันอื่นต่อได้เลย
+    _acpDate=null;
+    if(document.getElementById('acp-cal')){acpRenderCal();acpRenderForm();}else{closeMD();}
   }catch(e){showToast('บันทึกไม่ได้: '+e.message,'err');}
 };
 
@@ -5617,7 +5703,7 @@ window.scSaveNew=function(ds){
   saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
 };
 // แก้เวลาเวรทีเดียวหลายวัน — เฉพาะวันนี้ / ทุกวัน[เดียวกัน] / ทั้งเดือน / เลือกวันเอง (จิ้มปฏิทิน)
-let _scPickDates=new Set(),_scEditSid=null;
+let _scPickDates=new Set(),_scEditSid=null,_scScope='one';
 const _THAI_DOW=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 function _scSamePerson(a,b){return a.staffId?a.staffId===b.staffId:(!!a.tempName&&a.tempName===b.tempName);}
 function _scMonthShifts(s){const mo=s.date.slice(0,7);return shifts.filter(x=>x.date&&x.date.slice(0,7)===mo&&_scSamePerson(x,s));}
@@ -5631,22 +5717,24 @@ window.scEditShift=function(sid){
   const mShifts=_scMonthShifts(s);
   const dowCount=mShifts.filter(x=>new Date(x.date+'T12:00:00').getDay()===sdow).length;
   const dstr=new Date(s.date+'T12:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
-  const opt=(v,label,sub)=>`<label style="display:flex;align-items:flex-start;gap:9px;border:1.5px solid var(--border2);border-radius:11px;padding:10px 12px;margin-bottom:7px;cursor:pointer;font-size:13px"><input type="radio" name="m-scope" value="${v}" ${v==='one'?'checked':''} onchange="scScopeChange()" style="margin-top:2px"><span><b>${label}</b>${sub?` <span style="color:var(--text3);font-size:11.5px">${sub}</span>`:''}</span></label>`;
-  openModal(`<div class="modal-title">แก้ไขเวร — ${name}</div>
+  _scScope='one';
+  const opt=(v,ic,label,sub)=>`<div class="sc-opt${v==='one'?' on':''}" data-v="${v}" onclick="scPickScope('${v}')"><span class="sc-rad"></span><span class="sc-ot"><b>${label}</b>${sub?`<small>${sub}</small>`:''}</span><span class="sc-ic">${ic}</span></div>`;
+  openModal(`<div class="modal-title">🗓️ แก้ไขเวร — ${name}</div>
     ${isTemp?`<div class="field"><label class="fl">ชื่อพนักงานชั่วคราว</label><input type="text" id="m-tempname" value="${(s.tempName||'').replace(/"/g,'&quot;')}" maxlength="40"></div>`:''}
     <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}"${i===s.branch?' selected':''}>${b}</option>`).join('')}</select></div>
-    <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('m-start',s.start)}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('m-end',s.end)}</div></div>
-    <div class="field"><label class="fl">🔁 ใช้กับวันไหนบ้าง</label>
-      ${opt('one','เฉพาะเวรนี้',`(วันเดียว — ${dstr})`)}
-      ${opt('dow',`ทุกวัน${_THAI_DOW[sdow]}`,`ของ ${name} เดือนนี้ (${dowCount} วัน)`)}
-      ${opt('month','ทุกเวรของคนนี้',`เดือนนี้ (${mShifts.length} วัน)`)}
-      ${opt('pick','เลือกวันเอง','(จิ้มวันในปฏิทิน)')}
+    <div class="field-row"><div class="field"><label class="fl">เวลาเริ่ม</label>${time24Picker('m-start',s.start)}</div><div class="field"><label class="fl">เวลาเลิก</label>${time24Picker('m-end',s.end)}</div></div>
+    <div class="field"><label class="fl">🔁 ใช้เวลานี้กับวันไหนบ้าง</label>
+      ${opt('one','📌','เฉพาะเวรนี้',`วันเดียว — ${dstr}`)}
+      ${opt('dow','🔁',`ทุกวัน${_THAI_DOW[sdow]}`,`ของคนนี้ เดือนนี้ · ${dowCount} วัน`)}
+      ${opt('month','🗓️','ทุกเวรของคนนี้',`เดือนนี้ · ${mShifts.length} วัน`)}
+      ${opt('pick','✏️','เลือกวันเอง','จิ้มวันในปฏิทิน')}
       <div id="m-pickcal" style="display:none"></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">บันทึก</button></div>`);
+    <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">🗑 ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">💾 บันทึก</button></div>`);
 };
-window.scScopeChange=function(){
-  const v=document.querySelector('input[name="m-scope"]:checked')?.value;
+window.scPickScope=function(v){
+  _scScope=v;
+  document.querySelectorAll('.sc-opt').forEach(el=>el.classList.toggle('on',el.dataset.v===v));
   const box=document.getElementById('m-pickcal');if(!box)return;
   if(v==='pick'){const s=shifts.find(x=>x.id===_scEditSid);_scPickDates=new Set(s?[s.date]:[]);box.style.display='block';scRenderPickCal();}
   else box.style.display='none';
@@ -5676,7 +5764,7 @@ window.scSaveEdit=function(sid){
   const s=shifts.find(x=>x.id===sid);if(!s)return;
   const branch=parseInt(document.getElementById('m-branch').value);
   const start=readTime24('m-start'),end=readTime24('m-end');
-  const scope=document.querySelector('input[name="m-scope"]:checked')?.value||'one';
+  const scope=_scScope||'one';
   let targets=[s];
   if(scope!=='one'){
     const mShifts=_scMonthShifts(s);
