@@ -28,7 +28,7 @@
   --bg:#EDF4EF;--surface:#FFFFFF;--border:#E4EAE6;--border2:#D6DED8;
   --text:#37423C;--text2:#79837C;--text3:#A7AEA8;--ink:#2A322C;
   --r:16px;--rl:20px;--font:'IBM Plex Sans Thai','Noto Sans Thai',-apple-system,system-ui,sans-serif;--disp:'Noto Serif Thai',serif;
-  --shadow:0 1px 2px rgba(60,80,68,.04),0 6px 16px rgba(60,80,68,.05);
+  --shadow:0 1px 0 rgba(255,255,255,.65) inset,0 2px 5px rgba(40,70,55,.05),0 12px 26px rgba(40,70,55,.09);
   --shadow-md:0 8px 22px rgba(60,80,68,.08),0 20px 46px rgba(60,80,68,.10);
   --grad-green:linear-gradient(140deg,#5FD3A0,#3FA877);
   --grad-blue:linear-gradient(135deg,#5B91D6,#3A6CB0);
@@ -44,7 +44,7 @@ body.dark{
   --green-l:#123127;--green-ll:#0D241D;
   --rose:#E89AAD;--rose-d:#E07A93;--rose-l:#3A1F27;--gold:#E0B36A;--gold-l:#332811;
   --blue-l:#0F2A47;--blue-t:#9CC4F5;--amber-l:#332811;--amber-t:#E0B36A;--purple-l:#251F4A;--purple-t:#BBB2F5;--red-l:#3A1616;--red-t:#F2A6A4;--pink-l:#3A1F27;--pink-t:#E89AAD;--teal-l:#0A3033;--teal-t:#7FD9DF;
-  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.4);
+  --shadow:0 1px 0 rgba(255,255,255,.05) inset,0 3px 8px rgba(0,0,0,.34),0 16px 34px rgba(0,0,0,.46);
   --shadow-md:0 4px 14px rgba(0,0,0,.4),0 16px 38px rgba(0,0,0,.5);
   --grad-green:linear-gradient(135deg,#2FE0A4,#19B98A);
   --grad-rose:linear-gradient(140deg,#E89AAD,#C85A75);
@@ -106,7 +106,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .fx-page-slide .page.active{animation:fxSlideIn .22s ease}
 .fx-page-fade .page.active{animation:fxFadeIn .25s ease}
 .page-sub{font-size:13px;color:var(--text3);margin-top:3px}
-.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.5rem;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0) 32%,rgba(0,0,0,.012)),var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.5rem;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease}
 .card-title{font-size:15px;font-weight:600;margin-bottom:.25rem}
 .card-sub{font-size:12px;color:var(--text3);margin-bottom:1rem}
 .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:1.25rem}
@@ -223,6 +223,17 @@ textarea{resize:vertical;min-height:64px}
 .doc-pvlabel .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px rgba(31,174,139,.22)}
 .doc-pvbox{overflow:hidden;border-radius:10px;border:1px solid var(--border);background:#fff;box-shadow:var(--shadow)}
 #doc-live-frame{width:794px;height:1123px;border:none;background:#fff;display:block}
+/* หน้ารวมเครื่องมือแอดมิน */
+.atool-sec{font-size:12px;font-weight:800;color:var(--text3);margin:18px 4px 9px;letter-spacing:.02em}
+.atool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.atool{background:var(--surface);border:0.5px solid var(--border);border-radius:16px;padding:15px;box-shadow:var(--shadow);cursor:pointer;position:relative;display:flex;flex-direction:column;gap:8px;transition:transform .15s}
+.atool:hover{transform:translateY(-2px)}
+.atool-ic{width:44px;height:44px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.atool-l{font-weight:700;font-size:14px;color:var(--text)}
+.atool-d{font-size:11px;color:var(--text3);line-height:1.5}
+.atool-badge{position:absolute;top:11px;right:11px;background:var(--red,#D9596B);color:#fff;font-size:11px;font-weight:800;border-radius:20px;padding:2px 8px;min-width:22px;text-align:center}
+.atool-ic.c-green{background:var(--green-l);color:var(--green-dd)}.atool-ic.c-blue{background:var(--blue-l);color:var(--blue-t)}
+.atool-ic.c-amber{background:var(--amber-l);color:var(--amber-t)}.atool-ic.c-purple{background:var(--purple-l);color:var(--purple-t)}
 .mem-card{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:9px}
 .mem-card.suspended{opacity:.6;background:var(--bg)}
 .mem-card .chips{display:flex;gap:5px;flex-wrap:wrap}
@@ -1163,6 +1174,12 @@ input,select,textarea{border-radius:14px}
     </div>
   </div>
 
+  <!-- ADMIN TOOLS HUB -->
+  <div class="page" id="page-admintools">
+    <div class="topbar"><div><div class="page-title">🛠️ เครื่องมือแอดมิน</div><div class="page-sub">รวมทุกอย่างของผู้ดูแลไว้ที่เดียว — หาง่าย กดครั้งเดียวถึง</div></div></div>
+    <div id="admintools-body"></div>
+  </div>
+
   <!-- LEAVE REQUEST (member) -->
   <div class="page" id="page-leave">
     <div class="topbar"><div><div class="page-title">🌴 ขอลา</div><div class="page-sub">แจ้งวันลาของคุณ ระบบจะตัดเวรวันนั้นออกให้อัตโนมัติ</div></div></div>
@@ -1589,7 +1606,7 @@ const BRANCHES=['ทรัพย์พัฒนา','บางปู','อิน
 const BRANCHES_SHORT=['ทรัพย์','บางปู','อินดี้'];
 // ===== เวอร์ชันโปรแกรม + บันทึกการเปลี่ยนแปลง =====
 // ===== ระบบธีมส่วนตัว (per-user: mode + accent + size) =====
-const USER_THEME_DEFAULT={mode:'light',accent:'#4FBE8A',size:'normal'};
+const USER_THEME_DEFAULT={mode:'light',accent:'#4FBE8A',size:'normal',pattern:'rx',patternOp:0.5};
 let userThemeCfg={...USER_THEME_DEFAULT};
 let _systemDarkMQ=window.matchMedia('(prefers-color-scheme: dark)');
 
@@ -1656,7 +1673,8 @@ function applyUserThemeCfg(cfg){
     dots:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Ccircle cx='4' cy='4' r='1.6' fill='${pcol}' fill-opacity='${.16*op}'/%3E%3Ccircle cx='17' cy='17' r='1.6' fill='${pcol}' fill-opacity='${.16*op}'/%3E%3C/svg%3E")`,
     diag:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M-2 18 18 -2M-2 10 10 -2M6 18 18 6' stroke='${pcol}' stroke-opacity='${.1*op}' stroke-width='1.5'/%3E%3C/svg%3E")`,
     leaf:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ctext x='6' y='30' font-size='15' opacity='${.14*op}'%3E%F0%9F%8C%BF%3C/text%3E%3C/svg%3E")`,
-    pill:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ctext x='8' y='34' font-size='14' opacity='${.13*op}'%3E%F0%9F%92%8A%3C/text%3E%3C/svg%3E")`
+    pill:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56'%3E%3Ctext x='8' y='34' font-size='14' opacity='${.13*op}'%3E%F0%9F%92%8A%3C/text%3E%3C/svg%3E")`,
+    rx:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cg fill='${pcol}' fill-opacity='${.16*op}'%3E%3Crect x='9' y='5' width='4' height='12' rx='1'/%3E%3Crect x='5' y='9' width='12' height='4' rx='1'/%3E%3Crect x='29' y='25' width='4' height='12' rx='1'/%3E%3Crect x='25' y='29' width='12' height='4' rx='1'/%3E%3C/g%3E%3C/svg%3E")`
   };
   document.body.style.backgroundImage=PATS[cfg.pattern]||'';
   root.setProperty('--sidebar-grad','');root.removeProperty('--sidebar-grad');
@@ -1732,8 +1750,16 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.24.0';
+const APP_VERSION='4.27.0';
 const CHANGELOG=[
+  {v:'4.27.0',date:'2026-07-13',changes:[
+    '🛠️ เพิ่มหน้า "เครื่องมือแอดมิน" — รวมเครื่องมือผู้ดูแลไว้ที่เดียว หาง่าย (ลงเวลาแทน · จัดเวรหลายวัน · จัดการสมาชิก · เงินเดือน · อนุมัติลา · รายงาน · เอกสาร · หน้าตาแอป · ประวัติใช้งาน) อยู่ในเมนู "บริหาร" · การ์ดที่มีของรอทำมีป้ายเลขแดง',
+    '🕑 "ลงเวลาแทนพนักงาน" เลือกคน + วันได้ (ย้อนหลังได้) — พนักงานลืมลงเวลาเมื่อวาน/วันก่อน แอดมินลงให้ได้จากหน้าเครื่องมือแอดมิน (เดิมได้แค่วันนี้จากหน้าแรก)']},
+  {v:'4.26.0',date:'2026-07-13',changes:[
+    '🗓️ ตารางเวร: แก้เวลาเวรทีเดียวได้หลายวัน — เปิดเวรวันไหนก็ได้ แก้เวลา แล้วเลือก "ใช้กับ": เฉพาะวันนี้ / ทุกวัน(เดียวกัน)ทุกสัปดาห์ / ทุกเวรทั้งเดือน / เลือกวันเอง (จิ้มปฏิทิน) — ไม่ต้องมานั่งแก้ทีละวัน (เช่น อยากให้เข้า 9 โมงทุกวันจันทร์ กดทีเดียวจบ)']},
+  {v:'4.25.0',date:'2026-07-13',changes:[
+    '✨ ปรับหน้าตาแอปให้ "มีมิติ" ขึ้น — การ์ดดูลอยเด่น (เงาซ้อน+ไฮไลต์ขอบบน+ไล่เฉดจางๆ) ไม่แบนซีดเหมือนเดิม · โครง/สี/ฟอนต์เดิมทุกอย่าง',
+    '✚ เพิ่มลายพื้นหลังจางๆ "ลายยา" (กากบาท) เป็นค่าเริ่มต้น ดูอบอุ่นมีเอกลักษณ์ร้านยา · เปลี่ยนลาย/ปรับความชัด/ปิดได้เองที่ "ธีมของฉัน" (เพิ่มลายยาในตัวเลือกด้วย)']},
   {v:'4.24.0',date:'2026-07-13',changes:[
     '🔐 สมาชิกใหม่ต้องรอแอดมินอนุมัติก่อนเข้าใช้ — สมัครแล้วเห็นจอ "รอผู้ดูแลอนุมัติ" (เข้าแอปไม่ได้) · แอดมินอนุมัติเมื่อไหร่ จอเด้งเข้าแอปให้เองไม่ต้องล็อกอินใหม่',
     '🔔 แอดมิน: หน้า "จัดการสมาชิก" มีการ์ด "รออนุมัติ (N)" บนสุด + ป้ายเลขแดงที่เมนู + ชิปหน้าแรก — กดอนุมัติ/ปฏิเสธได้ในคลิกเดียว (ปฏิเสธ = "ถูกปฏิเสธ" เปลี่ยนใจอนุมัติทีหลังได้)',
@@ -2107,6 +2133,7 @@ const FEATURE_DEFS=[
   {page:'my-payroll',icon:'💵',label:'เงินเดือนฉัน',color:'#0F8A63',cat:'sales',zone:'more',perm:'payroll_self'},
   {page:'documents',icon:'🗂️',label:'เอกสารการค้า',color:'#7C5CBF',cat:'sales',zone:'more',perm:'documents'},
   {page:'report',icon:'📊',label:'รายงาน',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
+  {page:'admintools',icon:'🛠️',label:'เครื่องมือแอดมิน',color:'#5B6B7B',cat:'admin',zone:'admin',perm:null},
   {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',zone:'admin',perm:'members'},
   {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',zone:'admin',perm:'payroll_all'},
   {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',cat:'admin',zone:'admin',perm:'leave_admin'},
@@ -2143,6 +2170,7 @@ function renderMoreGrouped(){
   return h;
 }
 function featureShow(f){
+  if(f.page==='admintools')return isAdmin; // หน้ารวมเครื่องมือแอดมิน — เฉพาะแอดมิน
   if(f.page==='sales-history')return isAdmin; // เฉพาะแอดมิน
   if(f.page==='report')return isAdmin||hasPerm('dashboard_admin')||hasPerm('checkin_all')||hasPerm('activity_admin');
   return isAdmin||f.perm===null||hasPerm(f.perm);
@@ -3460,6 +3488,7 @@ const PAGE_PERM={
   'sales':'sales',
   'sales-history':'sales',
   'cash':null,
+  'admintools':'__adminonly__',
   'members':'members',
   'payroll':'payroll_all',
   'my-payroll':'payroll_self',
@@ -3500,6 +3529,7 @@ function refreshActivePage(){
   else if(p==='dashboard'){Promise.all([loadSalesFromCloud(),loadCashData()]).then(dashRefresh);}
   else if(p==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   else if(p==='cash'){loadSalesFromCloud().then(()=>{if(currentPage==='cash'&&typeof renderCashPage==='function')renderCashPage();});} // ยอดขายเงินสดเปลี่ยน → อัปเดต “ควรมี” บนหน้าเงินสด
+  else if(p==='admintools')renderAdminTools();
   else if(p==='members')loadMembers();
   else if(p==='payroll')loadPayroll();
   else if(p==='my-payroll')loadMyPayroll();
@@ -3565,6 +3595,7 @@ window.goto=function(page){
   if(page==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   if(page==='cash'){startCashLive();loadCashPage();loadSalesFromCloud().then(()=>{if(document.getElementById('page-cash')?.classList.contains('active')&&typeof renderCashPage==='function')renderCashPage();});}
   startRealtimeAll();
+  if(page==='admintools')renderAdminTools();
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
@@ -3643,7 +3674,7 @@ function renderThemePage(){
     `<div style="font-size:11px;font-weight:800;margin:9px 0 6px">จานสีเน้น — 24 สี + ผสมเอง</div><div style="display:flex;gap:6px;flex-wrap:wrap">${dots}</div>`+
     thmRow('ไล่เฉดปุ่ม/หัวการ์ด',`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${grads}<span style="font-size:10px;color:var(--text3)">ผสมเอง:</span><input type="color" value="${c.accent||'#1FAE8B'}" onchange="thmSet('accent',this.value)" style="width:26px;height:24px;padding:1px;border:1px solid var(--border2);border-radius:6px">→<input type="color" value="${c.accent2||'#127C62'}" onchange="thmSet('accent2',this.value)" style="width:26px;height:24px;padding:1px;border:1px solid var(--border2);border-radius:6px"></div>`)+
     thmRow('โทนพื้นหลัง',thmSeg('bgTone',[{v:'auto',t:'ตามสี'},{v:'cream',t:'ครีม'},{v:'white',t:'ขาว'},{v:'gray',t:'เทา'},{v:'custom',t:'🎨 เลือกเอง'}],c.bgTone||'auto')+(c.bgTone==='custom'?`<input type="color" value="${c.bgCustom||'#EDF4EF'}" onchange="thmSet('bgCustom',this.value)" style="width:26px;height:24px;padding:1px;border:1px solid var(--border2);border-radius:6px">`:''))+
-    thmRow('✨ ลายพื้นหลังจางๆ',thmSeg('pattern',[{v:'',t:'เรียบ'},{v:'dots',t:'จุด'},{v:'diag',t:'เส้น'},{v:'leaf',t:'🌿'},{v:'pill',t:'💊'}],c.pattern||''))+
+    thmRow('✨ ลายพื้นหลังจางๆ',thmSeg('pattern',[{v:'',t:'เรียบ'},{v:'rx',t:'✚ ยา'},{v:'dots',t:'จุด'},{v:'diag',t:'เส้น'},{v:'leaf',t:'🌿'},{v:'pill',t:'💊'}],c.pattern||''))+
     (c.pattern?thmRow('ความชัดของลาย',`<input type="range" min="0.1" max="1" step="0.1" value="${c.patternOp==null?0.5:c.patternOp}" oninput="thmSet('patternOp',this.value,true)" style="flex:1;max-width:170px">`):'')+
     `<div style="background:var(--purple-l,#EFECFB);border-radius:11px;padding:9px 11px;margin-top:9px">
       <div style="font-size:11.5px;font-weight:800;margin-bottom:2px">🧑‍🎨 โหมดจัดเต็ม — กำหนดสีรายส่วน</div>
@@ -4157,30 +4188,74 @@ async function renderHomeTeam(targetId='home-staff-status'){
   el2.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem"><div style="font-family:var(--disp);font-weight:600;font-size:16px">👥 ทีมวันนี้</div><span style="font-size:11px;color:var(--text3)">${dayShifts.length} เวร · ตามตารางเวร</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px">${branchBlocks}</div>${pendCard}`;
 }
-// 🆕 v4.14: แอดมินลงเวลาแทน (กรณีพนักงานลืมลงเวลา / ระบบกันไว้)
-window.adminAddCheckin=async function(uid,name){
+// ===== 🛠️ หน้ารวมเครื่องมือแอดมิน (v4.27) =====
+function renderAdminTools(){
+  const el=document.getElementById('admintools-body');if(!el)return;
+  if(!isAdmin){el.innerHTML=accessDenied();return;}
+  const pend=(typeof _pendingMembers!=='undefined'?_pendingMembers.length:0);
+  const tool=(ic,cls,label,desc,onclick,badge)=>`<div class="atool" onclick="${onclick}">${badge?`<span class="atool-badge">${badge}</span>`:''}<div class="atool-ic ${cls}">${ic}</div><div class="atool-l">${label}</div><div class="atool-d">${desc}</div></div>`;
+  el.innerHTML=
+    `<div class="atool-sec">⏱️ งานประจำวัน / คน</div><div class="atool-grid">`+
+      tool('🕑','c-green','ลงเวลาแทนพนักงาน','พนักงานลืมลงเวลา — เลือกคน+วัน ย้อนหลังได้','adminCheckinPicker()')+
+      tool('📋','c-blue','จัดเวรหลายวัน','ลงเวร/แก้เวลาทีเดียวทั้งเดือน','adminToolBulkShift()')+
+      tool('🗓️','c-blue','ประวัติการลงเวลา','ดู/แก้เวลาเข้า-ออกทุกคน',"goto('checkin-history')")+
+    `</div><div class="atool-sec">👥 คน / เงิน</div><div class="atool-grid">`+
+      tool('👥','c-amber','จัดการสมาชิก','อนุมัติสมาชิกใหม่ · สิทธิ์ · ระงับ',"goto('members')",pend||'')+
+      tool('🧾','c-green','จัดการเงินเดือน','คำนวณ + จ่าย + สลิป',"goto('payroll')")+
+      tool('✅','c-green','อนุมัติลา','คำขอลาที่รออนุมัติ',"goto('leave-admin')")+
+      tool('📊','c-blue','รายงาน / แดชบอร์ด','ยอดขาย · สรุปภาพรวม',"goto('report')")+
+    `</div><div class="atool-sec">⚙️ ตั้งค่า / ตรวจสอบ</div><div class="atool-grid">`+
+      tool('🧾','c-purple','เอกสารการค้า','ใบเสนอราคา/กำกับภาษี/ส่งของ',"goto('documents')")+
+      tool('🎨','c-purple','ปรับแต่งหน้าตาแอป','โลโก้ · ชื่อร้าน · หน้า login',"goto('settings')")+
+      tool('📜','c-amber','ประวัติการใช้งาน','ใครทำอะไรในระบบ',"goto('activity')")+
+    `</div>`;
+}
+window.adminToolBulkShift=function(){if(!allMembers.length){loadMembers().then(()=>scBulkAssign());}else scBulkAssign();};
+// 🕑 ลงเวลาแทน — เลือกคน + วัน (ย้อนหลังได้) ก่อนใส่เวลา
+window.adminCheckinPicker=async function(){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
-  const today=todayStr(),id=`${uid}_${today}`;
+  if(!allMembers.length)await loadMembers();
+  const active=allMembers.filter(m=>m.status==='active'&&!m.isClone);
+  if(!active.length){showToast('ยังไม่มีสมาชิก','err');return;}
+  const opts=active.map(m=>`<option value="${m.uid}">${slipEsc(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email)}</option>`).join('');
+  openModal(`<div class="modal-title">🕑 ลงเวลาแทนพนักงาน</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">เลือกพนักงาน + วันที่ (ย้อนหลังได้) แล้วกดถัดไปใส่เวลา</div>
+    <div class="field"><label class="fl">พนักงาน</label><select id="acp-uid">${opts}</select></div>
+    <div class="field"><label class="fl">วันที่</label><input type="date" id="acp-date" value="${todayStr()}" max="${todayStr()}" style="width:100%"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="adminCheckinPickNext()">ถัดไป →</button></div>`);
+};
+window.adminCheckinPickNext=function(){
+  const uid=document.getElementById('acp-uid')?.value;
+  const date=document.getElementById('acp-date')?.value||todayStr();
+  const m=allMembers.find(x=>x.uid===uid);
+  const name=m?(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email):'';
+  adminAddCheckin(uid,name,date);
+};
+// 🆕 v4.14: แอดมินลงเวลาแทน (กรณีพนักงานลืมลงเวลา / ระบบกันไว้) · v4.27: รับวันที่ (ย้อนหลังได้)
+window.adminAddCheckin=async function(uid,name,date){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  const day=date||todayStr(),id=`${uid}_${day}`;
   try{const d=await getDoc(doc(db,'checkins',id));if(d.exists()){editCheckin(id);return;}}catch(e){}
-  const sh=(shifts||[]).find(s=>s.staffId===uid&&s.date===today);
+  const sh=(shifts||[]).find(s=>s.staffId===uid&&s.date===day);
   const branchOpts=BRANCHES.map((b,i)=>`<option value="${i}" ${sh&&+sh.branch===i?'selected':''}>${b}</option>`).join('');
+  const dTxt=new Date(day+'T12:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'long',year:'numeric'});
   openModal(`<div class="modal-title">🕑 ลงเวลาแทน — ${name||''}</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ ${today} · ใช้เมื่อพนักงานลืมลงเวลา หรือระบบกันไว้ (ไม่ตรงตารางเวร/GPS) — บันทึกเป็นการทำโดยแอดมิน มีประวัติให้พนักงานเห็น</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">วันที่ ${dTxt} · ใช้เมื่อพนักงานลืมลงเวลา หรือระบบกันไว้ (ไม่ตรงตารางเวร/GPS) — บันทึกเป็นการทำโดยแอดมิน มีประวัติให้พนักงานเห็น</div>
     <div class="field-row">
       <div class="field"><label class="fl">เวลาเข้างาน</label>${time24Picker('aac-in',sh?.start||'09:00')}</div>
       <div class="field"><label class="fl">สาขา</label><select id="aac-b">${branchOpts}</select></div>
     </div>
     <div class="field"><label class="fl">เวลาออกงาน (เว้นว่างได้ ถ้ายังไม่เลิกงาน)</label>${time24Picker('aac-out','')}</div>
     <div class="field"><label class="fl">เหตุผล (พนักงานจะเห็น)</label><input type="text" id="aac-reason" placeholder="เช่น ลืมเช็คอิน / มาประชุมต่างสาขา"></div>
-    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveAdminAddCheckin('${uid}','${String(name||'').replace(/'/g,'')}')">บันทึกลงเวลา</button></div>`);
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="saveAdminAddCheckin('${uid}','${String(name||'').replace(/'/g,'')}','${day}')">บันทึกลงเวลา</button></div>`);
 };
-window.saveAdminAddCheckin=async function(uid,name){
+window.saveAdminAddCheckin=async function(uid,name,date){
   const tIn=readTime24('aac-in'),tOut=readTime24('aac-out');
   const bRaw=document.getElementById('aac-b')?.value;
   const b=bRaw!==''&&!isNaN(parseInt(bRaw))?parseInt(bRaw):null;
   const reason=(document.getElementById('aac-reason')?.value||'').trim();
   if(!tIn){showToast('ใส่เวลาเข้างานก่อน','err');return;}
-  const today=todayStr(),id=`${uid}_${today}`;
+  const today=date||todayStr(),id=`${uid}_${today}`;
   const rec={uid,name:name||'',date:today,checkIn:tIn,checkOut:tOut||'',branchIn:b,branchOut:tOut?b:null,editedByAdmin:true,
     editHistory:[{at:new Date().toISOString(),by:profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin',byUid:currentUser.uid,
       reason:reason||'ลงเวลาแทน (พนักงานลืมลงเวลา)',
@@ -5541,18 +5616,80 @@ window.scSaveNew=function(ds){
   }
   saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('บันทึกเวรเรียบร้อย');
 };
+// แก้เวลาเวรทีเดียวหลายวัน — เฉพาะวันนี้ / ทุกวัน[เดียวกัน] / ทั้งเดือน / เลือกวันเอง (จิ้มปฏิทิน)
+let _scPickDates=new Set(),_scEditSid=null;
+const _THAI_DOW=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+function _scSamePerson(a,b){return a.staffId?a.staffId===b.staffId:(!!a.tempName&&a.tempName===b.tempName);}
+function _scMonthShifts(s){const mo=s.date.slice(0,7);return shifts.filter(x=>x.date&&x.date.slice(0,7)===mo&&_scSamePerson(x,s));}
 window.scEditShift=function(sid){
   if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   const s=shifts.find(x=>x.id===sid);if(!s)return;
+  _scEditSid=sid;_scPickDates=new Set([s.date]);
   const isTemp=!!s.tempName;
   const name=shiftFullName(s);
+  const sdow=new Date(s.date+'T12:00:00').getDay();
+  const mShifts=_scMonthShifts(s);
+  const dowCount=mShifts.filter(x=>new Date(x.date+'T12:00:00').getDay()===sdow).length;
+  const dstr=new Date(s.date+'T12:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+  const opt=(v,label,sub)=>`<label style="display:flex;align-items:flex-start;gap:9px;border:1.5px solid var(--border2);border-radius:11px;padding:10px 12px;margin-bottom:7px;cursor:pointer;font-size:13px"><input type="radio" name="m-scope" value="${v}" ${v==='one'?'checked':''} onchange="scScopeChange()" style="margin-top:2px"><span><b>${label}</b>${sub?` <span style="color:var(--text3);font-size:11.5px">${sub}</span>`:''}</span></label>`;
   openModal(`<div class="modal-title">แก้ไขเวร — ${name}</div>
     ${isTemp?`<div class="field"><label class="fl">ชื่อพนักงานชั่วคราว</label><input type="text" id="m-tempname" value="${(s.tempName||'').replace(/"/g,'&quot;')}" maxlength="40"></div>`:''}
     <div class="field"><label class="fl">สาขา</label><select id="m-branch">${BRANCHES.map((b,i)=>`<option value="${i}"${i===s.branch?' selected':''}>${b}</option>`).join('')}</select></div>
     <div class="field-row"><div class="field"><label class="fl">เริ่ม</label>${time24Picker('m-start',s.start)}</div><div class="field"><label class="fl">เลิก</label>${time24Picker('m-end',s.end)}</div></div>
+    <div class="field"><label class="fl">🔁 ใช้กับวันไหนบ้าง</label>
+      ${opt('one','เฉพาะเวรนี้',`(วันเดียว — ${dstr})`)}
+      ${opt('dow',`ทุกวัน${_THAI_DOW[sdow]}`,`ของ ${name} เดือนนี้ (${dowCount} วัน)`)}
+      ${opt('month','ทุกเวรของคนนี้',`เดือนนี้ (${mShifts.length} วัน)`)}
+      ${opt('pick','เลือกวันเอง','(จิ้มวันในปฏิทิน)')}
+      <div id="m-pickcal" style="display:none"></div>
+    </div>
     <div class="modal-footer"><button class="btn btn-danger" onclick="scDel('${sid}')">ลบ</button><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="scSaveEdit('${sid}')">บันทึก</button></div>`);
 };
-window.scSaveEdit=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}const s=shifts.find(x=>x.id===sid);if(!s)return;s.branch=parseInt(document.getElementById('m-branch').value);s.start=readTime24('m-start');s.end=readTime24('m-end');if(s.tempName!==undefined){const tn=document.getElementById('m-tempname')?.value.trim();if(tn)s.tempName=tn;}saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('แก้ไขเวรเรียบร้อย');};
+window.scScopeChange=function(){
+  const v=document.querySelector('input[name="m-scope"]:checked')?.value;
+  const box=document.getElementById('m-pickcal');if(!box)return;
+  if(v==='pick'){const s=shifts.find(x=>x.id===_scEditSid);_scPickDates=new Set(s?[s.date]:[]);box.style.display='block';scRenderPickCal();}
+  else box.style.display='none';
+};
+function scRenderPickCal(){
+  const box=document.getElementById('m-pickcal');const s=shifts.find(x=>x.id===_scEditSid);if(!box||!s)return;
+  const Y=+s.date.slice(0,4),M=+s.date.slice(5,7);
+  const first=new Date(Y,M-1,1),last=new Date(Y,M,0).getDate();
+  const startOff=(first.getDay()+6)%7;
+  const active=new Set(_scMonthShifts(s).map(x=>x.date));
+  const dows=['จ','อ','พ','พฤ','ศ','ส','อา'];
+  let h='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:8px 0 4px">';
+  h+=dows.map(d=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--text3)">${d}</div>`).join('');
+  for(let i=0;i<startOff;i++)h+='<span></span>';
+  for(let d=1;d<=last;d++){
+    const ds=`${Y}-${String(M).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if(active.has(ds)){const on=_scPickDates.has(ds);
+      h+=`<span onclick="scPickToggle('${ds}')" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11.5px;border-radius:8px;cursor:pointer;font-weight:600;${on?'background:var(--green);color:#fff;box-shadow:0 3px 8px rgba(31,174,139,.35)':'background:var(--bg);color:var(--text);border:1px solid var(--border2)'}">${d}</span>`;
+    }else h+=`<span style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--text3);opacity:.4">${d}</span>`;
+  }
+  h+='</div><div style="font-size:11px;color:var(--green-dd);margin-top:4px">🟢 เลือกไว้ '+_scPickDates.size+' วัน · จิ้มเพิ่ม/เอาออกได้ (วันที่ไม่มีเวรกดไม่ได้)</div>';
+  box.innerHTML=h;
+}
+window.scPickToggle=function(ds){if(_scPickDates.has(ds))_scPickDates.delete(ds);else _scPickDates.add(ds);scRenderPickCal();};
+window.scSaveEdit=function(sid){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
+  const s=shifts.find(x=>x.id===sid);if(!s)return;
+  const branch=parseInt(document.getElementById('m-branch').value);
+  const start=readTime24('m-start'),end=readTime24('m-end');
+  const scope=document.querySelector('input[name="m-scope"]:checked')?.value||'one';
+  let targets=[s];
+  if(scope!=='one'){
+    const mShifts=_scMonthShifts(s);
+    if(scope==='month')targets=mShifts;
+    else if(scope==='dow'){const sdow=new Date(s.date+'T12:00:00').getDay();targets=mShifts.filter(x=>new Date(x.date+'T12:00:00').getDay()===sdow);}
+    else if(scope==='pick')targets=mShifts.filter(x=>_scPickDates.has(x.date));
+  }
+  if(!targets.length){showToast('ยังไม่ได้เลือกวัน','err');return;}
+  targets.forEach(x=>{x.branch=branch;x.start=start;x.end=end;});
+  if(scope==='one'&&s.tempName!==undefined){const tn=document.getElementById('m-tempname')?.value.trim();if(tn)s.tempName=tn;}
+  saveLocal();syncShiftsToCloud();closeMD();scRender();
+  showToast(targets.length>1?`แก้ไข ${targets.length} เวรเป็น ${start}–${end} เรียบร้อย`:'แก้ไขเวรเรียบร้อย');
+};
 window.scDel=function(sid){if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}shifts=shifts.filter(s=>s.id!==sid);saveLocal();syncShiftsToCloud();closeMD();scRender();showToast('ลบเวรเรียบร้อย');};
 
 // ===== จัดเวรหลายวัน (bulk) + ก๊อปสัปดาห์ — ไม่ลบเวรทั้งเดือน =====
