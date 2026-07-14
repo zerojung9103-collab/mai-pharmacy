@@ -1783,8 +1783,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.34.0';
+const APP_VERSION='4.35.1';
 const CHANGELOG=[
+  {v:'4.35.1',date:'2026-07-14',changes:[
+    '🐛 (แอดมิน) แก้ปฏิทิน "ลงเวลาแทน" ขึ้นแดง "ไม่ได้ลงเวลา" ทั้งเดือนทั้งที่พนักงานลงเวลาแล้ว — เกิดตอนเปิดหน้านี้โดยยังไม่เคยเข้าหน้าตารางเวร (ข้อมูลเช็คอินยังไม่ถูกโหลด) · ตอนนี้ปฏิทินโหลดข้อมูลเองก่อนแสดงเสมอ ไม่ต้องอ้อมไปเปิดตารางเวรก่อนแล้ว']},
+  {v:'4.35.0',date:'2026-07-14',changes:[
+    '🖨️ เอกสารการค้า: ปุ่ม "พิมพ์ / เซฟ PDF" เปิดหน้าพิมพ์ให้ทันที (เลือก "บันทึกเป็น PDF" ได้เลย) — ไม่ต้องดาวน์โหลดไฟล์แล้วมาเปิดกดพิมพ์เองอีกต่อไป เร็วขึ้นเยอะ · ถ้าเครื่องไหนเปิดหน้าพิมพ์ตรงไม่ได้ ระบบดาวน์โหลดไฟล์ให้แบบเดิมอัตโนมัติ']},
   {v:'4.34.0',date:'2026-07-14',changes:[
     '🗓️ (แอดมิน) ปฏิทินลงเวลาแทน v2 — สีชัดขึ้นมากโดยเฉพาะโหมดมืด · เพิ่มสถานะ 🟠 "ลืมเช็คเอาท์" (เข้างานแล้วแต่ไม่มีเวลาออก = วันที่ทำให้ชั่วโมงเงินเดือนเป็น 0) · ใต้ปฏิทินมี list "⚠️ ต้องจัดการ" ไล่บอกทีละวัน: ✕ ไม่ได้ลงเข้างาน [ลงให้] / ◐ ลืมเช็คเอาท์ เห็นเวลาเข้า [เติมเวลาออก] กดแก้ได้ทันที',
     '💰 (แอดมิน) เงินเดือน: คำเตือน "ลืมเช็คเอาท์ N วัน" บอกแล้วว่าวันไหนบ้าง + ปุ่ม "🕑 ไปจัดการ (เติมเวลาออก)" เปิดปฏิทินคนนั้นทันที (มีทั้งในหน้าคำนวณและหน้าตรวจก่อนจ่าย) · เติมเวลาเสร็จ ชั่วโมงจริงคำนวณใหม่ให้อัตโนมัติ']},
@@ -4265,7 +4269,11 @@ window.adminToolBulkShift=function(){if(!allMembers.length){loadMembers().then((
 let _acpUid=null,_acpDate=null,_acpMonth=null;
 window.adminCheckinPicker=async function(uid,autoToday){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  loading(true);
   if(!allMembers.length)await loadMembers();
+  // ⚠️ ต้องโหลดเช็คอินก่อนวาดปฏิทิน — ไม่งั้นเปิดหน้านี้เป็นหน้าแรกแล้วขึ้นแดงหมดทั้งที่ลงเวลาแล้ว
+  if(!allCheckins.length)await loadCheckinsForSchedule();
+  loading(false);
   const active=allMembers.filter(m=>m.status==='active'&&!m.isClone);
   if(!active.length){showToast('ยังไม่มีสมาชิก','err');return;}
   _acpUid=(uid&&active.find(m=>m.uid===uid))?uid:active[0].uid;
@@ -11285,7 +11293,7 @@ window.docView=function(id){
     <iframe id="doc-view-frame" style="width:100%;height:600px;border:none;background:#DDE6E0;border-radius:12px"></iframe>
     <div class="modal-footer" style="flex-wrap:wrap">
       <button class="btn" onclick="closeMD()">ปิด</button>
-      <button class="btn" onclick="docDownload('${id}')">📥 ดาวน์โหลด/พิมพ์</button>
+      <button class="btn" onclick="docDownload('${id}')">🖨️ พิมพ์ / เซฟ PDF</button>
       ${d.status!=='void'?`<button class="btn" onclick="docEdit('${id}')">✏️ แก้ไข</button>`:''}
       ${d.status!=='void'?nexts:''}
       ${isAdmin&&d.status!=='void'?`<button class="btn btn-danger btn-sm" onclick="docVoid('${id}')">🚫 ยกเลิกเอกสาร</button>`:''}
@@ -11293,6 +11301,20 @@ window.docView=function(id){
   document.getElementById('doc-view-frame').srcdoc=buildDocHtml(d);
 };
 window.docDownload=function(id){
+  const d=docList.find(x=>x.id===id);if(!d)return;
+  // เปิดหน้าพิมพ์ทันที (เลือกปลายทาง "บันทึกเป็น PDF" ได้เลย) — ไม่ต้องโหลดไฟล์แล้วมาเปิดเอง
+  try{
+    let fr=document.getElementById('doc-print-fr');if(fr)fr.remove();
+    fr=document.createElement('iframe');fr.id='doc-print-fr';
+    fr.style.cssText='position:fixed;right:0;bottom:0;width:1px;height:1px;border:none;opacity:0;pointer-events:none';
+    document.body.appendChild(fr);
+    fr.onload=()=>{setTimeout(()=>{try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){docDownloadFile(id);}},350);}; // หน่วงให้ฟอนต์โหลดก่อน
+    fr.srcdoc=buildDocHtml(d,{noBtn:true});
+    showToast('เปิดหน้าพิมพ์แล้ว — เลือก "บันทึกเป็น PDF" ได้เลย');
+  }catch(e){docDownloadFile(id);}
+};
+// สำรอง: ดาวน์โหลดเป็นไฟล์ (เผื่อเบราว์เซอร์เปิดหน้าพิมพ์ตรงไม่ได้)
+window.docDownloadFile=function(id){
   const d=docList.find(x=>x.id===id);if(!d)return;
   downloadHTML(buildDocHtml(d),`${d.docNo}_${(d.customer?.name||'').slice(0,20)}.html`);
   showToast('ดาวน์โหลดแล้ว — เปิดไฟล์แล้วกดพิมพ์/เซฟ PDF');
