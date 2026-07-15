@@ -1213,6 +1213,12 @@ input,select,textarea{border-radius:14px}
     <div id="admintools-body"></div>
   </div>
 
+  <!-- MONEY OVERVIEW (admin) -->
+  <div class="page" id="page-moneyview">
+    <div class="topbar"><div><div class="page-title">💰 ภาพรวมเงิน</div><div class="page-sub">เงินทุกกอง ทุกสาขา + ยอดขาย + ความเคลื่อนไหวล่าสุด — ดูที่เดียวจบ</div></div></div>
+    <div id="moneyview-body"></div>
+  </div>
+
   <!-- LEAVE REQUEST (member) -->
   <div class="page" id="page-leave">
     <div class="topbar"><div><div class="page-title">🌴 ขอลา</div><div class="page-sub">แจ้งวันลาของคุณ ระบบจะตัดเวรวันนั้นออกให้อัตโนมัติ</div></div></div>
@@ -1783,8 +1789,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.37.0';
+const APP_VERSION='4.38.0';
 const CHANGELOG=[
+  {v:'4.38.0',date:'2026-07-15',changes:[
+    '💰 (แอดมิน) เพิ่มหน้า "ภาพรวมเงิน" — เห็นทุกอย่างที่เดียวจบ: เงินสดในมือรวมทุกสาขา (สำรอง+ลิ้นชัก+เซฟ ตัวใหญ่บนสุด) · ยอดขายวันนี้/เดือนนี้ · เปิดร้านแล้วกี่สาขา',
+    '🏪 การ์ดรายสาขา: 3 กองเงิน + ยอดขายวันนี้ + ป้ายเปิด/ปิดร้าน · ด้านล่างมี "สมุดบันทึกเงิน" ความเคลื่อนไหวล่าสุดทุกสาขา (บอกสาขากำกับ) กด "ดูทั้งหมด" ไปหน้าเงินสดได้ · เข้าจากเมนูหมวดบริหาร หรือ เครื่องมือแอดมิน']},
   {v:'4.37.0',date:'2026-07-15',changes:[
     '📒 เพิ่ม "สมุดลูกค้า" ในหน้าเอกสารการค้า — เห็นลูกค้าทุกคนที่เคยออกเอกสาร (บันทึกให้อัตโนมัติ ไม่ต้องคีย์เพิ่ม): ค้นหาชื่อ/เลขภาษี/เบอร์ได้ · แต่ละคนสรุป จำนวนบิล + ยอดรวม + บิลล่าสุด',
     '🧾 จิ้มลูกค้า → เห็นประวัติบิลทั้งหมดของคนนั้น (ใหม่→เก่า เลขที่/วันที่/คนออก/ยอด/ป้ายต่อยอด·ยกเลิก) จิ้มบิลเปิดดู/พิมพ์/แก้ได้เลย · ปุ่ม "✏️ แก้ข้อมูลลูกค้า" (ใช้กับใบต่อไป) และ "➕ ออกเอกสารให้ลูกค้านี้" เติมข้อมูลให้อัตโนมัติ']},
@@ -2193,6 +2202,7 @@ const FEATURE_DEFS=[
   {page:'documents',icon:'🗂️',label:'เอกสารการค้า',color:'#7C5CBF',cat:'sales',zone:'more',perm:'documents'},
   {page:'report',icon:'📊',label:'รายงาน',color:'#EC4899',cat:'sales',zone:'admin',perm:'dashboard_admin'},
   {page:'admintools',icon:'🛠️',label:'เครื่องมือแอดมิน',color:'#5B6B7B',cat:'admin',zone:'admin',perm:null},
+  {page:'moneyview',icon:'💰',label:'ภาพรวมเงิน',color:'#127C62',cat:'admin',zone:'admin',perm:null},
   {page:'members',icon:'👥',label:'จัดการสมาชิก',color:'#D85A30',cat:'admin',zone:'admin',perm:'members'},
   {page:'payroll',icon:'🧾',label:'จัดการเงินเดือน',color:'#1E63B5',cat:'admin',zone:'admin',perm:'payroll_all'},
   {page:'leave-admin',icon:'✅',label:'อนุมัติลา',color:'#0F8A63',cat:'admin',zone:'admin',perm:'leave_admin'},
@@ -2230,6 +2240,7 @@ function renderMoreGrouped(){
 }
 function featureShow(f){
   if(f.page==='admintools')return isAdmin; // หน้ารวมเครื่องมือแอดมิน — เฉพาะแอดมิน
+  if(f.page==='moneyview')return isAdmin;  // ภาพรวมเงิน — เฉพาะแอดมิน (มีข้อมูลยอดขาย)
   if(f.page==='sales-history')return isAdmin; // เฉพาะแอดมิน
   if(f.page==='report')return isAdmin||hasPerm('dashboard_admin')||hasPerm('checkin_all')||hasPerm('activity_admin');
   return isAdmin||f.perm===null||hasPerm(f.perm);
@@ -3548,6 +3559,7 @@ const PAGE_PERM={
   'sales-history':'sales',
   'cash':null,
   'admintools':'__adminonly__',
+  'moneyview':'__adminonly__',
   'members':'members',
   'payroll':'payroll_all',
   'my-payroll':'payroll_self',
@@ -3589,6 +3601,7 @@ function refreshActivePage(){
   else if(p==='sales'){salesRenderForm();salesRenderHistory();loadSalesFromCloud();}
   else if(p==='cash'){loadSalesFromCloud().then(()=>{if(currentPage==='cash'&&typeof renderCashPage==='function')renderCashPage();});} // ยอดขายเงินสดเปลี่ยน → อัปเดต “ควรมี” บนหน้าเงินสด
   else if(p==='admintools')renderAdminTools();
+  else if(p==='moneyview')renderMoneyView();
   else if(p==='members')loadMembers();
   else if(p==='payroll')loadPayroll();
   else if(p==='my-payroll')loadMyPayroll();
@@ -3655,6 +3668,7 @@ window.goto=function(page){
   if(page==='cash'){startCashLive();loadCashPage();loadSalesFromCloud().then(()=>{if(document.getElementById('page-cash')?.classList.contains('active')&&typeof renderCashPage==='function')renderCashPage();});}
   startRealtimeAll();
   if(page==='admintools')renderAdminTools();
+  if(page==='moneyview')renderMoneyView();
   if(page==='members')loadMembers();
   if(page==='payroll'){initYearSelects();loadPayroll();}
   if(page==='my-payroll')loadMyPayroll();
@@ -4259,6 +4273,7 @@ function renderAdminTools(){
       tool('📋','c-blue','จัดเวรหลายวัน','ลงเวร/แก้เวลาทีเดียวทั้งเดือน','adminToolBulkShift()')+
       tool('🗓️','c-blue','ประวัติการลงเวลา','ดู/แก้เวลาเข้า-ออกทุกคน',"goto('checkin-history')")+
     `</div><div class="atool-sec">👥 คน / เงิน</div><div class="atool-grid">`+
+      tool('💰','c-green','ภาพรวมเงิน','เงินทุกกอง ทุกสาขา + ยอดขาย ที่เดียวจบ',"goto('moneyview')")+
       tool('👥','c-amber','จัดการสมาชิก','อนุมัติสมาชิกใหม่ · สิทธิ์ · ระงับ',"goto('members')",pend||'')+
       tool('🧾','c-green','จัดการเงินเดือน','คำนวณ + จ่าย + สลิป',"goto('payroll')")+
       tool('✅','c-green','อนุมัติลา','คำขอลาที่รออนุมัติ',"goto('leave-admin')")+
@@ -4270,6 +4285,66 @@ function renderAdminTools(){
     `</div>`;
 }
 window.adminToolBulkShift=function(){if(!allMembers.length){loadMembers().then(()=>scBulkAssign());}else scBulkAssign();};
+
+// ===== 💰 ภาพรวมเงิน (v4.38) — เงินทุกกอง ทุกสาขา + ยอดขาย + ความเคลื่อนไหวล่าสุด =====
+window.renderMoneyView=async function(){
+  const el=document.getElementById('moneyview-body');if(!el)return;
+  if(!isAdmin){el.innerHTML=accessDenied();return;}
+  el.innerHTML='<div style="color:var(--text3);font-size:13px;padding:1rem">กำลังโหลดข้อมูลเงิน...</div>';
+  try{
+    const jobs=[loadSalesFromCloud()];
+    if(!cashEvents.length&&!Object.keys(cashState).length)jobs.push(loadCashData());
+    await Promise.all(jobs);
+  }catch(e){}
+  if(currentPage!=='moneyview')return; // ผู้ใช้เปลี่ยนหน้าไปแล้วระหว่างโหลด
+  const today=todayStr(),mo=today.slice(0,7);
+  const salesToday=salesEntries.filter(e=>e.date===today).reduce((a,e)=>a+(+e.total||0),0);
+  const salesMonth=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+(+e.total||0),0);
+  let totalHand=0,openN=0;
+  const cards=BRANCHES.map((bn,b)=>{
+    const st=cashGet(b);
+    const opened=cashOpenedToday(b);if(opened)openN++;
+    const drawer=Math.round(cashDrawerNow(b)*100)/100;
+    totalHand+=st.reserve+drawer+st.safe;
+    const sToday=salesEntries.filter(e=>e.date===today&&+e.branch===b).reduce((a,e)=>a+(+e.total||0),0);
+    const pot=(ic,l,v,hl)=>`<div style="flex:1;background:${hl?'var(--green-ll)':'var(--bg)'};border-radius:11px;padding:9px 6px;text-align:center"><div style="font-size:10.5px;color:var(--text2)">${ic} ${l}</div><div style="font-size:15px;font-weight:800;margin-top:2px;font-family:var(--mono)">${fmt(v)}</div></div>`;
+    return `<div class="card" style="padding:15px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+        <div style="display:flex;align-items:center;gap:8px;font-weight:800;font-size:15px"><span style="width:11px;height:11px;border-radius:50%;background:${BCOLORS[b]}"></span>${bn}</div>
+        <span style="font-size:10.5px;font-weight:800;border-radius:20px;padding:3px 10px;${opened?'background:var(--green-l);color:var(--green-dd)':'background:var(--bg);color:var(--text3)'}">${opened?'🟢 เปิดร้านแล้ว':'⚪ ยังไม่เปิดร้าน'}</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:11px">
+        ${pot('💼','สำรอง',st.reserve)}${pot('🧰','ลิ้นชัก',drawer,true)}${pot('🔒','เซฟ',st.safe)}
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding-top:9px;border-top:1px solid var(--border)">
+        <span style="color:var(--text2)">ยอดขายวันนี้</span><span style="font-weight:800;color:var(--green-d);font-size:15px">฿${fmt(sToday)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  // สมุดบันทึกเงิน — รายการล่าสุดทุกสาขารวมกัน (แปะชื่อสาขาต่อท้ายคนทำ)
+  const evs=cashEvents.filter(e=>!e.isTest).slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8);
+  const ledger=evs.length
+    ?evs.map(ev=>cashEventRow({...ev,by:`${ev.by||'—'} · ${BRANCHES[+ev.branch]||''}`},false)).join('')
+    :'<div style="text-align:center;color:var(--text3);font-size:12.5px;padding:1rem 0">ยังไม่มีความเคลื่อนไหว</div>';
+  el.innerHTML=`
+    <div style="background:linear-gradient(140deg,#23B895,#0F6E56);color:#fff;border-radius:20px;padding:20px 22px;box-shadow:0 14px 30px rgba(15,110,86,.28);position:relative;overflow:hidden;margin-bottom:18px">
+      <div style="position:absolute;right:-30px;top:-30px;width:150px;height:150px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%)"></div>
+      <div style="font-size:12.5px;opacity:.9;font-weight:600">💵 เงินสดในมือ รวมทุกสาขา (สำรอง + ลิ้นชัก + เซฟ)</div>
+      <div style="font-family:var(--disp);font-size:34px;font-weight:800;margin:2px 0;letter-spacing:.3px">฿ ${fmt(Math.round(totalHand))}</div>
+      <div style="display:flex;gap:22px;margin-top:12px;flex-wrap:wrap">
+        <div><div style="font-size:11px;opacity:.85">ยอดขายวันนี้ (ทุกสาขา)</div><div style="font-size:17px;font-weight:800;margin-top:1px">฿ ${fmt(salesToday)}</div></div>
+        <div><div style="font-size:11px;opacity:.85">ยอดขายเดือนนี้</div><div style="font-size:17px;font-weight:800;margin-top:1px">฿ ${fmt(salesMonth)}</div></div>
+        <div><div style="font-size:11px;opacity:.85">เปิดร้านแล้ว</div><div style="font-size:17px;font-weight:800;margin-top:1px">${openN} / ${BRANCHES.length} สาขา</div></div>
+      </div>
+    </div>
+    <div class="atool-sec">🏪 แยกรายสาขา</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:13px;margin-bottom:18px">${cards}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="atool-sec" style="margin:0">📒 สมุดบันทึกเงิน — ความเคลื่อนไหวล่าสุด</div>
+      <button class="btn btn-sm" onclick="goto('cash')">ดูทั้งหมด →</button>
+    </div>
+    ${ledger}`;
+};
 // 🕑 ลงเวลาแทนพนักงาน (v4.28) — หน้าเดียวจบ + ปฏิทินทั้งเดือนโชว์วันที่ "ลืมลงเวลา" (แดง) จิ้มวันที่จะลงให้
 let _acpUid=null,_acpDate=null,_acpMonth=null;
 window.adminCheckinPicker=async function(uid,autoToday){
