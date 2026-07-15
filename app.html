@@ -1118,6 +1118,10 @@ input,select,textarea{border-radius:14px}
           <div class="field"><label class="fl">🪙 แบงค์ 20 ขั้นต่ำในเงินสำรอง (ใบ)</label><input type="number" id="as-d20" min="0" placeholder="15"></div>
           <div class="field"><label class="fl">🪙 แบงค์ 100 ขั้นต่ำในเงินสำรอง (ใบ)</label><input type="number" id="as-d100" min="0" placeholder="10"></div>
         </div>
+        <div class="field-row">
+          <div class="field"><label class="fl">🧠 เตือนเมื่อปิดร้านเงินขาด/เกิน (บาท)</label><input type="number" id="as-closediff" min="0" placeholder="100"></div>
+          <div class="field"><label class="fl">🧠 เตือนถ้ายังไม่ปิดร้านหลังเวลา</label><input type="time" id="as-closetime" value="21:30"></div>
+        </div>
         <button class="btn btn-primary" onclick="saveAlertSettings()">บันทึกเกณฑ์</button>
       </div>
       <div class="card" id="paytype-card">
@@ -1789,8 +1793,19 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.38.0';
+const APP_VERSION='4.41.0';
 const CHANGELOG=[
+  {v:'4.41.0',date:'2026-07-15',changes:[
+    '💵 เอกสารการค้า: เพิ่ม "ใบเสร็จรับเงิน (RC)" + ระบบตามหนี้ครบวงจร — ใบแจ้งหนี้/ใบกำกับภาษีมีสถานะ ค้างชำระ (บอกค้างกี่วัน) / ชำระบางส่วน / ชำระแล้ว · ใบเสนอราคา-ใบส่งของไม่นับเป็นหนี้',
+    '🧾 ปุ่ม "รับเงิน" บนใบแจ้งหนี้/ใบกำกับภาษี: กรอกจำนวน (รับบางส่วนได้หลายงวด) + วิธีชำระ + วันที่ → ระบบออกใบเสร็จรับเงินอ้างอิงใบต้นทางให้อัตโนมัติ พิมพ์/เซฟ PDF ได้ · ติ๊กไม่ออกใบเสร็จก็ได้ (เหมาะกับเคลียร์บิลเก่าที่รับเงินไปแล้ว)',
+    '📒 สมุดลูกค้า: เห็น "ยอดค้างชำระรวม" สีแดงของแต่ละราย + ปุ่มรับเงินจากตรงนั้น (ตัดใบเก่าสุดก่อน) · หน้ารวมเอกสารมีตัวกรอง "💵 ค้างชำระ" · หมายเหตุ: ใบแจ้งหนี้/ใบกำกับภาษีเก่าจะขึ้น "ค้างชำระ" จนกว่าจะกดรับเงิน (ใช้ปุ่มรับเงินแบบไม่ออกใบเสร็จ เคลียร์ได้เร็ว)']},
+  {v:'4.40.0',date:'2026-07-15',changes:[
+    '📈 (แอดมิน) หน้าภาพรวมเงิน: เพิ่มกราฟแนวโน้มยอดขาย — สลับได้ 3 มุมมอง: 7 วัน (3 เส้นแยกสาขา) · 30 วัน (เส้นรวม + เส้นประ "ค่าเฉลี่ยปกติ" ไว้เทียบว่าวันไหนสูง/ต่ำกว่าที่ควร) · เดือนต่อเดือน (แท่ง 6 เดือนล่าสุด) — แตะจุด/แท่งดูตัวเลขได้',
+    '📊 ใต้กราฟมีสรุป: เฉลี่ย/วัน (ไม่นับวันปิดร้าน) · วันขายดีสุด · วันเบาสุด · เทียบช่วงก่อนหน้า ▲▼ กี่ %']},
+  {v:'4.39.0',date:'2026-07-15',changes:[
+    '🧠 (แอดมิน) "สรุปวันนี้อัจฉริยะ" — แอปอ่านข้อมูลแทนคุณ: ยอดขายแต่ละสาขาเทียบ "วันเดียวกันของสัปดาห์" 4 สัปดาห์ล่าสุด บอกเลย ▲▼ กี่ % · อยู่ในหน้าภาพรวมเงิน + สัญญาณเตือนสำคัญโผล่ในการ์ดสรุปหน้าแรกด้วย',
+    '🚨 สัญญาณเตือนอัตโนมัติเรียงความสำคัญ: 🔴 เปิดร้านแล้วยังไม่ปิดเกินเวลา · 🟠 ปิดร้านเงินขาด/เกินเกินเกณฑ์ (บอกขาดสะสมเดือนนี้ด้วย) · 🟠 พนักงานสายแตะเกณฑ์ครั้ง/เดือน · 🔵 สาขาไหนขายต่ำกว่าปกติ 3 วันติด — ทุกอันมีปุ่มกดไปจัดการ',
+    '💡 ข้อสังเกตเดือนนี้: ขาดสะสมที่สาขาไหน · สายรวมเทียบเดือนก่อน (บอกวันที่สายบ่อยสุด) · ยอดเดือนนี้วิ่งเร็ว/ช้ากว่าเดือนก่อนกี่ % · ตั้งเกณฑ์เตือนเองได้ที่ ตั้งค่า → เกณฑ์แจ้งเตือนผู้ดูแล (เพิ่มช่อง เงินขาด/เกิน และ เวลาปิดร้าน)']},
   {v:'4.38.0',date:'2026-07-15',changes:[
     '💰 (แอดมิน) เพิ่มหน้า "ภาพรวมเงิน" — เห็นทุกอย่างที่เดียวจบ: เงินสดในมือรวมทุกสาขา (สำรอง+ลิ้นชัก+เซฟ ตัวใหญ่บนสุด) · ยอดขายวันนี้/เดือนนี้ · เปิดร้านแล้วกี่สาขา',
     '🏪 การ์ดรายสาขา: 3 กองเงิน + ยอดขายวันนี้ + ป้ายเปิด/ปิดร้าน · ด้านล่างมี "สมุดบันทึกเงิน" ความเคลื่อนไหวล่าสุดทุกสาขา (บอกสาขากำกับ) กด "ดูทั้งหมด" ไปหน้าเงินสดได้ · เข้าจากเมนูหมวดบริหาร หรือ เครื่องมือแอดมิน']},
@@ -4286,6 +4301,129 @@ function renderAdminTools(){
 }
 window.adminToolBulkShift=function(){if(!allMembers.length){loadMembers().then(()=>scBulkAssign());}else scBulkAssign();};
 
+// ===== 🧠 สรุปวันนี้อัจฉริยะ (v4.39) — เครื่องยนต์อ่านข้อมูลแทนเจ้าของร้าน =====
+function _dsAdd(ds,delta){const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+delta);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function _digSalesDay(ds,b){return salesEntries.filter(e=>e.date===ds&&(b==null||+e.branch===b)).reduce((a,e)=>a+(+e.total||0),0);}
+// ค่าเฉลี่ย "วันเดียวกันของสัปดาห์" 4 สัปดาห์ก่อนหน้า (นับเฉพาะสัปดาห์ที่มียอด)
+function _digWeekdayAvg(ds,b){const h=[];for(let w=1;w<=4;w++){const v=_digSalesDay(_dsAdd(ds,-7*w),b);if(v>0)h.push(v);}return h.length?h.reduce((a,v)=>a+v,0)/h.length:0;}
+let _digCache=null,_digCacheAt=0;
+async function buildDailyDigest(force){
+  if(!force&&_digCache&&Date.now()-_digCacheAt<60000)return _digCache; // แคช 1 นาที กันคำนวณถี่
+  const jobs=[loadSalesFromCloud()];
+  if(!cashEvents.length&&!Object.keys(cashState).length)jobs.push(loadCashData());
+  if(!allCheckins.length)jobs.push(loadCheckinsForSchedule());
+  try{await Promise.all(jobs);}catch(e){}
+  const today=todayStr(),mo=today.slice(0,7);
+  const lm=new Date(today+'T12:00:00');lm.setMonth(lm.getMonth()-1);
+  const pmo=`${lm.getFullYear()}-${String(lm.getMonth()+1).padStart(2,'0')}`;
+  try{await ensureCheckinsMonth(pmo);}catch(e){}
+  // --- ยอดขายวันนี้รายสาขา เทียบค่าเฉลี่ยวันเดียวกันของสัปดาห์ ---
+  const cmp=BRANCHES.map((bn,b)=>{
+    const t=_digSalesDay(today,b),avg=_digWeekdayAvg(today,b);
+    return {b,name:bn,today:t,avg,pct:(avg>0&&t>0)?Math.round((t-avg)/avg*100):null};
+  });
+  const alerts=[];
+  const now=new Date();
+  const nowHM=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  // 🔴 เปิดร้านแล้วแต่ยังไม่ปิด เกินเวลาเตือน
+  const ct=alertSettings.closeTime||'21:30';
+  if(nowHM>=ct)BRANCHES.forEach((bn,b)=>{
+    if(cashOpenedToday(b)&&!cashEvents.some(e=>+e.branch===b&&e.date===today&&e.type==='close'&&!e.isTest))
+      alerts.push({lv:'r',ic:'🌙',t:`${bn} ยังไม่ปิดร้าน`,s:`ตอนนี้ ${nowHM} เกินเวลาเตือน (${ct}) แล้ว`,go:'cash',gl:'เช็คดู →'});
+  });
+  // 🟠 ปิดร้านวันนี้เงินขาด/เกิน เกินเกณฑ์ (+ บอกขาดสะสมเดือนนี้ของสาขานั้น)
+  const cd=+(alertSettings.closeDiff??100);
+  if(cd>0){
+    const moCloses=cashEvents.filter(e=>e.type==='close'&&(e.date||'').startsWith(mo)&&!e.isTest);
+    BRANCHES.forEach((bn,b)=>{
+      const ce=moCloses.find(e=>+e.branch===b&&e.date===today);
+      if(!ce)return;
+      const diff=cashCloseCalc(b,ce).diff;
+      if(Math.abs(diff)>=cd){
+        const miss=moCloses.filter(e=>+e.branch===b).map(e=>cashCloseCalc(b,e).diff).filter(x=>x<0).reduce((a,x)=>a+x,0);
+        alerts.push({lv:'a',ic:'💸',t:`${bn} ปิดร้านเงิน${diff<0?'ขาด':'เกิน'} ฿${fmt(Math.abs(diff))}`,s:`เกินเกณฑ์ที่ตั้งไว้ (฿${fmt(cd)})${miss<0?` · เดือนนี้ขาดสะสม ฿${fmt(-miss)}`:''}`,go:'cash',gl:'ดูรายการ →'});
+      }
+    });
+  }
+  // 🟠 วันนี้มาสาย และเดือนนี้แตะเกณฑ์ครั้ง/เดือน
+  const lt=+(alertSettings.lateThreshold||0);
+  if(lt>0)allCheckins.filter(c=>c.date===today&&!isTestCheckin(c)).forEach(c=>{
+    const L=ciLateInfo(c);if(!L.late)return;
+    const n=allCheckins.filter(x=>x.uid===c.uid&&(x.date||'').startsWith(mo)&&!isTestCheckin(x)&&ciLateInfo(x).late).length;
+    if(n>=lt)alerts.push({lv:'a',ic:'⏰',t:`${c.name||memberName(c.uid)||'—'} มาสายครั้งที่ ${n} ของเดือน`,s:`วันนี้สาย ${L.min} นาที (เกณฑ์เตือน ${lt} ครั้ง/เดือน)`,go:'checkin-history',gl:'ประวัติ →'});
+  });
+  // 🔵 ขายต่ำกว่าปกติ (ต่ำกว่า 80% ของค่าเฉลี่ยวันเดียวกัน) 3 วันติด
+  BRANCHES.forEach((bn,b)=>{
+    let ok=true,det=null;
+    for(let k=0;k<3;k++){
+      const ds=_dsAdd(today,-k);
+      const v=_digSalesDay(ds,b),avg=_digWeekdayAvg(ds,b);
+      if(!(v>0&&avg>0&&v<avg*0.8)){ok=false;break;}
+      if(k===0)det={v,avg};
+    }
+    if(ok&&det)alerts.push({lv:'b',ic:'📉',t:`${bn} ขายต่ำกว่าปกติ 3 วันติด`,s:`วันนี้ ฿${fmt(det.v)} · ปกติวันแบบนี้ ~฿${fmt(Math.round(det.avg))}`,go:'dashboard',gl:'กราฟ →'});
+  });
+  const _ord={r:0,a:1,b:2};alerts.sort((x,y)=>_ord[x.lv]-_ord[y.lv]);
+  // --- ข้อสังเกตเดือนนี้ ---
+  const notes=[];
+  const moCloseAll=cashEvents.filter(e=>e.type==='close'&&(e.date||'').startsWith(mo)&&!e.isTest);
+  const missAll=moCloseAll.map(e=>({b:+e.branch,d:cashCloseCalc(+e.branch,e).diff})).filter(x=>x.d<0);
+  if(missAll.length){
+    const sum=missAll.reduce((a,x)=>a+x.d,0);
+    const byB={};missAll.forEach(x=>{byB[x.b]=(byB[x.b]||0)+x.d;});
+    const worst=+Object.entries(byB).sort((a,c)=>a[1]-c[1])[0][0];
+    notes.push(`เงินขาดสะสม <b>฿${fmt(-sum)}</b> (${missAll.length} ครั้ง) — มากสุดที่${BRANCHES[worst]||''}`);
+  }else if(moCloseAll.length)notes.push(`ปิดร้านเดือนนี้ <b>เงินตรง/เกินทุกครั้ง</b> 👍`);
+  const lateMo=allCheckins.filter(c=>(c.date||'').startsWith(mo)&&!isTestCheckin(c)&&ciLateInfo(c).late);
+  const latePrev=allCheckins.filter(c=>(c.date||'').startsWith(pmo)&&!isTestCheckin(c)&&ciLateInfo(c).late).length;
+  if(lateMo.length||latePrev){
+    let dowTxt='';
+    if(lateMo.length>=4){
+      const cnt={};lateMo.forEach(c=>{const d=new Date(c.date+'T12:00:00').getDay();cnt[d]=(cnt[d]||0)+1;});
+      const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+      if(+top[1]>=lateMo.length/2)dowTxt=` — เกินครึ่งคือวัน${_THAI_DOW[+top[0]]}`;
+    }
+    notes.push(`มาสายรวม <b>${lateMo.length} ครั้ง</b> (เดือนก่อน ${latePrev} ครั้ง)${dowTxt}`);
+  }
+  const dayN=+today.slice(8);
+  const curMTD=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+(+e.total||0),0);
+  const prevMTD=salesEntries.filter(e=>(e.date||'').startsWith(pmo)&&+String(e.date).slice(8)<=dayN).reduce((a,e)=>a+(+e.total||0),0);
+  if(curMTD>0&&prevMTD>0){
+    const p=Math.round((curMTD-prevMTD)/prevMTD*100);
+    notes.push(`ยอดขายเดือนนี้ <b>วิ่ง${p>=0?'เร็ว':'ช้า'}กว่าเดือนก่อน ${Math.abs(p)}%</b> เมื่อเทียบวันต่อวัน`);
+  }
+  _digCache={cmp,alerts,notes};_digCacheAt=Date.now();
+  return _digCache;
+}
+// HTML ส่วน "สรุปวันนี้" (ใช้ในหน้าภาพรวมเงิน)
+function digestSectionHtml(dg){
+  const css={r:'background:var(--red-l);color:var(--red-t)',a:'background:var(--amber-l);color:var(--amber-t)',b:'background:var(--blue-l);color:var(--blue-t)'};
+  const cmp=dg.cmp.map(c=>`<div style="flex:1;min-width:120px;background:var(--bg);border-radius:12px;padding:11px 10px">
+      <div style="font-size:10.5px;color:var(--text3)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${BCOLORS[c.b]};margin-right:4px"></span>${c.name}</div>
+      <div style="font-size:17px;font-weight:800;font-family:var(--disp);margin-top:1px">฿${fmt(c.today)}</div>
+      <div style="font-size:10.5px;font-weight:800;margin-top:2px;color:${c.pct==null?'var(--text3)':(c.pct>=0?'var(--green-d)':'var(--red-t)')}">${c.pct==null?(c.today>0?'ยังไม่มีข้อมูลเทียบ':'ยังไม่ลงยอด'):(c.pct>=0?'▲ +':'▼ −')+Math.abs(c.pct)+'% จากปกติ'}</div>
+    </div>`).join('');
+  const als=dg.alerts.length?dg.alerts.map(a=>`<div style="display:flex;align-items:flex-start;gap:10px;border-radius:12px;padding:11px 13px;margin-bottom:7px;font-size:12.5px;line-height:1.5;${css[a.lv]}">
+      <span style="font-size:15px;flex-shrink:0;margin-top:1px">${a.ic}</span>
+      <span style="flex:1;min-width:0"><b>${a.t}</b><span style="display:block;font-size:11px;opacity:.78;margin-top:1px">${a.s}</span></span>
+      <button onclick="goto('${a.go}')" style="border:none;border-radius:9px;padding:6px 12px;font-size:11px;font-weight:800;font-family:var(--font);cursor:pointer;flex-shrink:0;white-space:nowrap;background:rgba(255,255,255,.72);color:inherit">${a.gl}</button>
+    </div>`).join('')
+    :`<div style="border-radius:12px;padding:12px 13px;background:var(--green-ll);color:var(--green-d);font-size:12.5px;font-weight:700">✅ เรียบร้อย — ไม่มีเรื่องต้องดูตอนนี้</div>`;
+  const dTxt=new Date().toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'short'});
+  return `<div class="card" style="padding:16px 17px;margin-bottom:18px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:3px">
+      <div style="font-family:var(--disp);font-weight:700;font-size:16px">🧠 สรุปวันนี้ — ${dTxt}</div>
+      ${dg.alerts.length?`<span style="font-size:11px;font-weight:800;border-radius:20px;padding:4px 12px;background:var(--amber-l);color:var(--amber-t)">⚠️ มี ${dg.alerts.length} เรื่องต้องดู</span>`:`<span style="font-size:11px;font-weight:800;border-radius:20px;padding:4px 12px;background:var(--green-l);color:var(--green-dd)">✓ เรียบร้อย</span>`}
+    </div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:12px">ยอดขายเทียบค่าเฉลี่ย "วันเดียวกันของสัปดาห์" 4 สัปดาห์ล่าสุด · เกณฑ์เตือนตั้งได้ที่ ตั้งค่า → เกณฑ์แจ้งเตือนผู้ดูแล</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:13px">${cmp}</div>
+    <div style="font-size:11.5px;font-weight:800;color:var(--text3);margin:0 2px 8px">🚨 สัญญาณเตือน</div>
+    ${als}
+    ${dg.notes.length?`<div style="font-size:11.5px;font-weight:800;color:var(--text3);margin:12px 2px 6px">💡 ข้อสังเกตเดือนนี้</div>
+    <div style="border:1.5px dashed var(--border2);border-radius:12px;padding:11px 13px;font-size:12px;color:var(--text2);line-height:1.9">${dg.notes.map(n=>'• '+n).join('<br>')}</div>`:''}
+  </div>`;
+}
+
 // ===== 💰 ภาพรวมเงิน (v4.38) — เงินทุกกอง ทุกสาขา + ยอดขาย + ความเคลื่อนไหวล่าสุด =====
 window.renderMoneyView=async function(){
   const el=document.getElementById('moneyview-body');if(!el)return;
@@ -4297,6 +4435,8 @@ window.renderMoneyView=async function(){
     await Promise.all(jobs);
   }catch(e){}
   if(currentPage!=='moneyview')return; // ผู้ใช้เปลี่ยนหน้าไปแล้วระหว่างโหลด
+  let _dg=null;try{_dg=await buildDailyDigest(true);}catch(e){}
+  if(currentPage!=='moneyview')return;
   const today=todayStr(),mo=today.slice(0,7);
   const salesToday=salesEntries.filter(e=>e.date===today).reduce((a,e)=>a+(+e.total||0),0);
   const salesMonth=salesEntries.filter(e=>(e.date||'').startsWith(mo)).reduce((a,e)=>a+(+e.total||0),0);
@@ -4337,6 +4477,20 @@ window.renderMoneyView=async function(){
         <div><div style="font-size:11px;opacity:.85">เปิดร้านแล้ว</div><div style="font-size:17px;font-weight:800;margin-top:1px">${openN} / ${BRANCHES.length} สาขา</div></div>
       </div>
     </div>
+    ${_dg?digestSectionHtml(_dg):''}
+    <div class="card" style="padding:16px 17px;margin-bottom:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:3px">
+        <div style="font-family:var(--disp);font-weight:700;font-size:16px">📈 แนวโน้มยอดขาย</div>
+        <div style="display:inline-flex;background:var(--bg);border-radius:9px;padding:2px;gap:2px">
+          <button class="mv-seg" data-m="7d" onclick="mvTrend('7d')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 12px;border-radius:7px;background:transparent;color:var(--text3)">7 วัน</button>
+          <button class="mv-seg" data-m="30d" onclick="mvTrend('30d')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 12px;border-radius:7px;background:transparent;color:var(--text3)">30 วัน</button>
+          <button class="mv-seg" data-m="mom" onclick="mvTrend('mom')" style="border:none;cursor:pointer;font-family:var(--font);font-size:11px;padding:4px 12px;border-radius:7px;background:transparent;color:var(--text3)">เดือนต่อเดือน</button>
+        </div>
+      </div>
+      <div id="mv-trend-sub" style="font-size:11px;color:var(--text3);margin-bottom:8px"></div>
+      <div style="height:230px;position:relative"><canvas id="mv-trend-cv"></canvas></div>
+      <div id="mv-trend-stats" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
+    </div>
     <div class="atool-sec">🏪 แยกรายสาขา</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:13px;margin-bottom:18px">${cards}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -4344,6 +4498,69 @@ window.renderMoneyView=async function(){
       <button class="btn btn-sm" onclick="goto('cash')">ดูทั้งหมด →</button>
     </div>
     ${ledger}`;
+  mvTrend(_mvMode);
+};
+// 📈 กราฟแนวโน้มยอดขาย (v4.40) — 7 วัน (3 เส้นสาขา) / 30 วัน (รวม+เส้นเทียบปกติ) / เดือนต่อเดือน (แท่ง 6 เดือน)
+let _mvChart=null,_mvMode='7d';
+window.mvTrend=function(mode){
+  if(['7d','30d','mom'].includes(mode))_mvMode=mode;
+  const cv=document.getElementById('mv-trend-cv');if(!cv)return;
+  if(_mvChart){try{_mvChart.destroy();}catch(e){}_mvChart=null;}
+  const rs=getComputedStyle(document.documentElement);
+  const grid=rs.getPropertyValue('--border').trim()||'#eee';
+  const tick=rs.getPropertyValue('--text3').trim()||'#999';
+  const today=todayStr();
+  const DOWS=['อา','จ','อ','พ','พฤ','ศ','ส'];
+  const sub=document.getElementById('mv-trend-sub');
+  const statsEl=document.getElementById('mv-trend-stats');
+  const stat=(v,l)=>`<div style="flex:1;min-width:110px;background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:13px;color:var(--green-d)">${v}</div><div style="font-size:9.5px;color:var(--text3);margin-top:1px">${l}</div></div>`;
+  const yTick={color:tick,font:{size:10},callback:v=>'฿'+(v>=1000?Math.round(v/1000)+'k':v)};
+  const legend={display:true,labels:{color:tick,boxWidth:10,boxHeight:10,font:{size:10}}};
+  if(_mvMode==='mom'){
+    const months=[];for(let i=5;i>=0;i--){const d=new Date(today+'T12:00:00');d.setMonth(d.getMonth()-i);months.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);}
+    const lab=months.map(m=>new Date(m+'-01T12:00:00').toLocaleDateString('th-TH',{month:'short',year:'2-digit'}));
+    const series=[0,1,2].map(b=>months.map(m=>salesEntries.filter(e=>(e.date||'').startsWith(m)&&+e.branch===b).reduce((a,e)=>a+(+e.total||0),0)));
+    _mvChart=new Chart(cv,{type:'bar',data:{labels:lab,datasets:series.map((d,i)=>({label:BRANCHES[i],data:d,backgroundColor:BCOLORS[i],borderRadius:4,maxBarThickness:30}))},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend},scales:{y:{stacked:true,grid:{color:grid},ticks:yTick,border:{display:false}},x:{stacked:true,grid:{display:false},ticks:{color:tick,font:{size:11}},border:{color:grid}}}}});
+    const tot=months.map((m,i)=>series.reduce((a,s)=>a+s[i],0));
+    const mx=Math.max(...tot);
+    const dayN=+today.slice(8);
+    const prevMTD=salesEntries.filter(e=>(e.date||'').startsWith(months[4])&&+String(e.date).slice(8)<=dayN).reduce((a,e)=>a+(+e.total||0),0);
+    statsEl.innerHTML=stat(mx>0?lab[tot.indexOf(mx)]+' · ฿'+fmt(mx):'—','เดือนขายดีสุด (6 เดือน)')
+      +stat('฿'+fmt(tot[5]),'เดือนนี้ (ถึงวันนี้)')
+      +stat(prevMTD>0?((tot[5]>=prevMTD?'▲ +':'▼ −')+Math.abs(Math.round((tot[5]-prevMTD)/prevMTD*100))+'%'):'—','เทียบเดือนก่อน ช่วงเดียวกัน');
+    if(sub)sub.textContent='ยอดรวมรายเดือน 6 เดือนล่าสุด (แยกสีตามสาขา) — แตะแท่งดูตัวเลขได้';
+  }else{
+    const n=_mvMode==='7d'?7:30;
+    const days=[];for(let i=n-1;i>=0;i--)days.push(_dsAdd(today,-i));
+    const lab=days.map(ds=>{const d=new Date(ds+'T12:00:00');return n===7?DOWS[d.getDay()]+' '+d.getDate():(d.getDate()+'/'+(d.getMonth()+1));});
+    let datasets;
+    if(n===7){
+      datasets=[0,1,2].map(b=>({label:BRANCHES[b],data:days.map(ds=>_digSalesDay(ds,b)),borderColor:BCOLORS[b],backgroundColor:BCOLORS[b]+'22',borderWidth:2.5,tension:.35,pointRadius:3,fill:false}));
+    }else{
+      const totals=days.map(ds=>_digSalesDay(ds,null));
+      const avg=days.map(ds=>{const h=[];for(let w=1;w<=4;w++){const v=_digSalesDay(_dsAdd(ds,-7*w),null);if(v>0)h.push(v);}return h.length?Math.round(h.reduce((a,v)=>a+v,0)/h.length):null;});
+      datasets=[
+        {label:'ยอดรวมทุกสาขา',data:totals,borderColor:'#1FAE8B',backgroundColor:'rgba(31,174,139,.13)',borderWidth:2.5,tension:.35,pointRadius:2,fill:true},
+        {label:'ค่าเฉลี่ยปกติ',data:avg,borderColor:tick,borderDash:[5,4],borderWidth:1.5,pointRadius:0,fill:false,spanGaps:true}
+      ];
+    }
+    _mvChart=new Chart(cv,{type:'line',data:{labels:lab,datasets},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend},scales:{y:{grid:{color:grid},ticks:yTick,border:{display:false}},x:{grid:{display:false},ticks:{color:tick,font:{size:10},maxTicksLimit:n===7?7:10},border:{color:grid}}}}});
+    const tot=days.map(ds=>_digSalesDay(ds,null));
+    const withSale=days.map((ds,i)=>({ds,v:tot[i]})).filter(x=>x.v>0);
+    const sum=tot.reduce((a,v)=>a+v,0);
+    const prevSum=days.map(ds=>_digSalesDay(_dsAdd(ds,-n),null)).reduce((a,v)=>a+v,0);
+    const best=withSale.length?withSale.reduce((a,x)=>x.v>a.v?x:a):null;
+    const low=withSale.length?withSale.reduce((a,x)=>x.v<a.v?x:a):null;
+    const dsl=ds=>{const d=new Date(ds+'T12:00:00');return DOWS[d.getDay()]+' '+d.getDate();};
+    statsEl.innerHTML=stat('฿'+fmt(withSale.length?Math.round(sum/withSale.length):0),`เฉลี่ย/วัน (${n} วัน)`)
+      +(best?stat(dsl(best.ds)+' · ฿'+fmt(best.v),'วันขายดีสุด'):'')
+      +(low?stat(dsl(low.ds)+' · ฿'+fmt(low.v),'วันเบาสุด'):'')
+      +stat(prevSum>0?((sum>=prevSum?'▲ +':'▼ −')+Math.abs(Math.round((sum-prevSum)/prevSum*100))+'%'):'—',`เทียบ ${n} วันก่อนหน้า`);
+    if(sub)sub.textContent=n===7?'ยอดขายรายวัน 7 วันล่าสุด แยกสาขา — แตะจุดดูตัวเลขได้':'ยอดรวมทุกสาขารายวัน 30 วัน · เส้นประ = ค่าเฉลี่ยปกติของวันเดียวกันในสัปดาห์';
+  }
+  document.querySelectorAll('.mv-seg').forEach(b=>{const on=b.dataset.m===_mvMode;b.style.background=on?'var(--green-l)':'transparent';b.style.color=on?'var(--green-d)':'var(--text3)';b.style.fontWeight=on?'800':'600';});
 };
 // 🕑 ลงเวลาแทนพนักงาน (v4.28) — หน้าเดียวจบ + ปฏิทินทั้งเดือนโชว์วันที่ "ลืมลงเวลา" (แดง) จิ้มวันที่จะลงให้
 let _acpUid=null,_acpDate=null,_acpMonth=null;
@@ -6065,7 +6282,7 @@ window.scCopyWeekApply=function(){
 let cashState={};   // {branch:{reserve,drawer,safe,openDrawer,openDate,openBy}}
 let cashEvents=[];  // ใหม่สุดก่อน
 let editRequests=[];                                   // คำขอแก้ไขจากพนักงาน (sales ฯลฯ) ที่ยัง pending
-let alertSettings={safeThreshold:20000,lateThreshold:3,anomalyPct:30,diffRepeat:3,denomMin:{'20':15,'100':10}}; // เกณฑ์แจ้งเตือนผู้ดูแล (โหลดทับจาก config/alertSettings)
+let alertSettings={safeThreshold:20000,lateThreshold:3,anomalyPct:30,diffRepeat:3,denomMin:{'20':15,'100':10},closeDiff:100,closeTime:'21:30'}; // เกณฑ์แจ้งเตือนผู้ดูแล (โหลดทับจาก config/alertSettings)
 let myCheckinBranchToday=null;                         // สาขาที่ผู้ใช้เช็คอินวันนี้ (ใช้เตือนตอนลงเงินสดผิดสาขา)
 let _cashBusy=false;                                   // กันกดบันทึกซ้ำ (double-submit) ในรายการเงินสด
 let _cashHistDate=null;                                // วันที่ของประวัติที่กำลังดู (null=วันนี้) — user ย้อนได้ 3 วัน, admin อิสระ
@@ -6088,6 +6305,8 @@ window.renderAlertSettings=function(){
   const s4=document.getElementById('as-diffrepeat');if(s4)s4.value=alertSettings.diffRepeat??3;
   const s5=document.getElementById('as-d20');if(s5)s5.value=(alertSettings.denomMin?.['20'])??15;
   const s6=document.getElementById('as-d100');if(s6)s6.value=(alertSettings.denomMin?.['100'])??10;
+  const s7=document.getElementById('as-closediff');if(s7)s7.value=alertSettings.closeDiff??100;
+  const s8=document.getElementById('as-closetime');if(s8)s8.value=alertSettings.closeTime||'21:30';
 };
 window.saveAlertSettings=async function(){
   const safeThreshold=parseFloat(document.getElementById('as-safe')?.value)||0;
@@ -6095,7 +6314,9 @@ window.saveAlertSettings=async function(){
   const anomalyPct=parseInt(document.getElementById('as-anomaly')?.value)||0;
   const diffRepeat=parseInt(document.getElementById('as-diffrepeat')?.value)||0;
   const denomMin={'20':parseInt(document.getElementById('as-d20')?.value)||0,'100':parseInt(document.getElementById('as-d100')?.value)||0};
-  alertSettings={...alertSettings,safeThreshold,lateThreshold,anomalyPct,diffRepeat,denomMin};
+  const closeDiff=parseFloat(document.getElementById('as-closediff')?.value)||0;
+  const closeTime=document.getElementById('as-closetime')?.value||'21:30';
+  alertSettings={...alertSettings,safeThreshold,lateThreshold,anomalyPct,diffRepeat,denomMin,closeDiff,closeTime};
   try{await setDoc(doc(db,'config','alertSettings'),alertSettings);showToast('บันทึกเกณฑ์แจ้งเตือนแล้ว');checkNotifications();}
   catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'err');}
 };
@@ -10772,9 +10993,31 @@ const DOC_TYPES={
   QT:{label:'ใบเสนอราคา',en:'QUOTATION',ic:'📄'},
   INV:{label:'ใบแจ้งหนี้',en:'INVOICE',ic:'📬'},
   DN:{label:'ใบส่งของ',en:'DELIVERY NOTE',ic:'🚚'},
-  TX:{label:'ใบกำกับภาษี',en:'TAX INVOICE',ic:'🧾'}
+  TX:{label:'ใบกำกับภาษี',en:'TAX INVOICE',ic:'🧾'},
+  RC:{label:'ใบเสร็จรับเงิน',en:'RECEIPT',ic:'💵'}
 };
-const DOC_NEXT={QT:['INV','DN','TX'],INV:['DN','TX'],DN:['TX'],TX:[]};
+const DOC_NEXT={QT:['INV','DN','TX'],INV:['DN','TX'],DN:['TX'],TX:[],RC:[]};
+// ===== 💵 สถานะการชำระเงิน (ชุด C) — เฉพาะใบแจ้งหนี้/ใบกำกับภาษี นับเป็น "หนี้" =====
+const RC_METHODS=['เงินสด','โอนเข้าบัญชี','บัตรเครดิต','เช็ค','อื่นๆ'];
+// คืน {isDebt, paid, remain, st:'unpaid'|'partial'|'paid', days} · เอกสารอื่น/ยกเลิก → isDebt:false
+function docPayInfo(d){
+  if(!d||d.status==='void'||(d.docType!=='INV'&&d.docType!=='TX'))return {isDebt:false,paid:0,remain:0,st:'paid',days:0};
+  const net=+d.totals?.net||0;
+  const paid=(d.payments||[]).reduce((a,p)=>a+(+p.amount||0),0);
+  const remain=Math.max(0,_r2(net-paid));
+  const st=remain<=0?'paid':(paid>0?'partial':'unpaid');
+  // นับวันค้างตามปฏิทิน (วันที่ออกเอกสาร → วันนี้) ไม่สนเวลานาฬิกา
+  const days=st==='paid'?0:Math.max(0,Math.round((new Date(todayStr()+'T12:00:00')-new Date((d.date||todayStr())+'T12:00:00'))/86400000));
+  return {isDebt:true,paid,remain,st,days};
+}
+// ป้ายสถานะชำระ (html) — ใช้ทั้งรายการเอกสาร/สมุดลูกค้า/หน้าดูเอกสาร
+function docPayChip(d){
+  const P=docPayInfo(d);
+  if(!P.isDebt)return '';
+  if(P.st==='paid')return `<span style="font-size:9.5px;font-weight:800;border-radius:6px;padding:2px 7px;background:var(--green-l);color:var(--green-dd)">ชำระแล้ว</span>`;
+  if(P.st==='partial')return `<span style="font-size:9.5px;font-weight:800;border-radius:6px;padding:2px 7px;background:var(--amber-l);color:var(--amber-t)">ชำระบางส่วน · ค้าง ฿${fmt(P.remain)}</span>`;
+  return `<span style="font-size:9.5px;font-weight:800;border-radius:6px;padding:2px 7px;background:var(--red-l);color:var(--red-t)">ค้างชำระ${P.days>0?' '+P.days+' วัน':''}</span>`;
+}
 let docList=[],docCustomers=[],docLoaded=false;
 let docProducts=null; // สินค้าเวอร์ชันอัปเดต (นำเข้า CSV ใหม่จาก POS) — ถ้าไม่มีใช้ PRODUCTS_SEED ที่ฝังมากับแอป
 function docGetProducts(){return (docProducts&&docProducts.length)?docProducts:PRODUCTS_SEED;}
@@ -10850,8 +11093,13 @@ window.docSetFilter=function(f){_docFilter=f;renderDocList();};
 window.docSetSearch=function(v){_docSearch=(v||'').toLowerCase();renderDocList();};
 function renderDocList(){
   const el=document.getElementById('doc-content');if(!el)return;
-  const chips=[['all','ทั้งหมด'],...Object.entries(DOC_TYPES).map(([k,v])=>[k,v.ic+' '+v.label])];
-  const rows=docList.filter(d=>(_docFilter==='all'||d.docType===_docFilter)&&(!_docSearch||`${d.docNo} ${d.customer?.name||''}`.toLowerCase().includes(_docSearch)));
+  const _debtN=docList.filter(d=>{const P=docPayInfo(d);return P.isDebt&&P.st!=='paid';}).length;
+  const chips=[['all','ทั้งหมด'],...Object.entries(DOC_TYPES).map(([k,v])=>[k,v.ic+' '+v.label]),['debt',`💵 ค้างชำระ${_debtN?' ('+_debtN+')':''}`]];
+  const rows=docList.filter(d=>{
+    if(_docFilter==='debt'){const P=docPayInfo(d);if(!(P.isDebt&&P.st!=='paid'))return false;}
+    else if(_docFilter!=='all'&&d.docType!==_docFilter)return false;
+    return !_docSearch||`${d.docNo} ${d.customer?.name||''}`.toLowerCase().includes(_docSearch);
+  });
   el.innerHTML=`
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
       ${chips.map(([k,l])=>`<button class="btn btn-sm ${_docFilter===k?'btn-primary':''}" onclick="docSetFilter('${k}')">${l}</button>`).join('')}
@@ -10864,7 +11112,7 @@ function renderDocList(){
       return `<div class="card" style="padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:11px;${d.status==='void'?'opacity:.55':''}">
         <span style="font-size:21px">${T.ic||'📄'}</span>
         <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:13px">${d.docNo} <span style="font-weight:500;color:var(--text3);font-size:11px">· ${T.label||d.docType}</span> ${voidTag}</div>
+          <div style="font-weight:700;font-size:13px">${d.docNo} <span style="font-weight:500;color:var(--text3);font-size:11px">· ${T.label||d.docType}</span> ${voidTag} ${docPayChip(d)}</div>
           <div style="font-size:11.5px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${slipEsc(d.customer?.name||'—')} · ${d.date||''} ${chainTag}</div>
         </div>
         <div style="text-align:right;flex-shrink:0">
@@ -10925,7 +11173,7 @@ function renderDocForm(){
       <button class="btn btn-sm" onclick="docCancelForm()">← กลับ</button>
       <span style="font-size:13px;font-weight:700">${f._editId?`แก้ไข ${f._docNo}`:(f.refNo?`สร้างต่อจาก ${f.refNo}`:'สร้างเอกสารใหม่')}</span>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:7px;margin-bottom:11px">
       ${Object.entries(DOC_TYPES).map(([k,v])=>`<button onclick="docFieldUpd('type','${k}');renderDocForm()" style="background:${f.type===k?'var(--green-ll)':'var(--surface)'};border:1.5px solid ${f.type===k?'var(--green)':'var(--border)'};border-radius:12px;padding:9px 3px;text-align:center;font-size:10.5px;font-weight:700;color:${f.type===k?'var(--green-dd)':'var(--text2)'};cursor:pointer;font-family:var(--font)"><span style="font-size:17px;display:block">${v.ic}</span>${v.label}</button>`).join('')}
     </div>
 
@@ -11210,7 +11458,7 @@ function buildDocHtml(d,opts){
               ${cu.phone?`<br>โทร ${slipEsc(cu.phone)}`:''}</div>
             <div class="bx"><span class="lb">ข้อมูลเอกสาร</span><br>
               เลขที่: <b>${d.docNo}</b><br>วันที่: ${dateTxt}<br>
-              ผู้ขาย/ผู้ออกเอกสาร: ${slipEsc(d.createdByName||'')}${chainTxt?`<br>${chainTxt}`:''}</div>
+              ผู้ขาย/ผู้ออกเอกสาร: ${slipEsc(d.createdByName||'')}${d.payMethod?`<br>วิธีชำระ: <b>${slipEsc(d.payMethod)}</b>`:''}${chainTxt?`<br>${chainTxt}`:''}</div>
           </div>
         </td></tr>
         <tr class="cols"><th style="width:24px">#</th><th style="text-align:left">รายการ</th><th class="r" style="width:48px">จำนวน</th><th style="text-align:center;width:52px">หน่วย</th><th class="r" style="width:76px">หน่วยละ</th><th class="r" style="width:92px">จำนวนเงิน</th></tr>
@@ -11371,11 +11619,13 @@ window.docView=function(id){
   const d=docList.find(x=>x.id===id);if(!d)return;
   const T=DOC_TYPES[d.docType]||{};
   const nexts=(DOC_NEXT[d.docType]||[]).map(k=>`<button class="btn btn-sm" onclick="docConvert('${id}','${k}')">${DOC_TYPES[k].ic} ต่อเป็น${DOC_TYPES[k].label}</button>`).join('');
+  const _P=docPayInfo(d);
   openModal(`
-    <div class="modal-title" style="margin-bottom:.6rem">${T.ic} ${d.docNo} <span style="font-weight:400;font-size:12px;color:var(--text3)">· ${T.label}${d.status==='void'?' · <b style="color:var(--red-t)">ยกเลิกแล้ว</b>':''}</span></div>
+    <div class="modal-title" style="margin-bottom:.6rem">${T.ic} ${d.docNo} <span style="font-weight:400;font-size:12px;color:var(--text3)">· ${T.label}${d.status==='void'?' · <b style="color:var(--red-t)">ยกเลิกแล้ว</b>':''}</span> ${docPayChip(d)}</div>
     <iframe id="doc-view-frame" style="width:100%;height:600px;border:none;background:#DDE6E0;border-radius:12px"></iframe>
     <div class="modal-footer" style="flex-wrap:wrap">
       <button class="btn" onclick="closeMD()">ปิด</button>
+      ${_P.isDebt&&_P.st!=='paid'?`<button class="btn btn-primary" onclick="docPayPrompt('${id}')">💵 รับเงิน (ค้าง ฿${fmt(_P.remain)})</button>`:''}
       <button class="btn" onclick="docDownload('${id}')">🖨️ พิมพ์ / เซฟ PDF</button>
       ${d.status!=='void'?`<button class="btn" onclick="docEdit('${id}')">✏️ แก้ไข</button>`:''}
       ${d.status!=='void'?nexts:''}
@@ -11474,6 +11724,73 @@ window.docSettingsSave=async function(){
   closeMD();
 };
 
+// ===== 💵 รับเงิน + ออกใบเสร็จรับเงิน (ชุด C) =====
+window.docPayPrompt=function(id){
+  const d=docList.find(x=>x.id===id);if(!d)return;
+  const P=docPayInfo(d);
+  if(!P.isDebt){showToast('เอกสารนี้ไม่ใช่ใบแจ้งหนี้/ใบกำกับภาษี','err');return;}
+  if(P.st==='paid'){showToast('ใบนี้ชำระครบแล้ว ✓');return;}
+  const hist=(d.payments||[]).map(p=>`<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);padding:5px 0;border-bottom:1px dashed var(--border)"><span>💵 ${p.date||''} · ${slipEsc(p.method||'')}${p.rcNo?' · '+p.rcNo:''}</span><b>฿${fmt(p.amount)}</b></div>`).join('');
+  openModal(`<div class="modal-title">💵 รับเงิน — ${d.docNo} ${docPayChip(d)}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:2px">ลูกค้า: ${slipEsc(d.customer?.name||'—')}</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">ยอดตามเอกสาร <b>฿${fmt2(+d.totals?.net||0)}</b> · ค้างอยู่ <b style="color:var(--red-t)">฿${fmt2(P.remain)}</b></div>
+    ${hist?`<div style="margin-bottom:8px">${hist}</div>`:''}
+    <div class="field"><label class="fl">จำนวนเงินที่รับ (บาท)</label><input type="number" id="pay-amt" inputmode="decimal" value="${P.remain}" min="0" step="any" style="font-size:17px;font-weight:700"></div>
+    <div style="font-size:10.5px;color:var(--text3);margin:-6px 0 8px">รับน้อยกว่ายอดได้ — ระบบจะติดสถานะ "ชำระบางส่วน" และจำยอดคงเหลือให้</div>
+    <div class="field-row">
+      <div class="field"><label class="fl">วิธีชำระ</label><select id="pay-method">${RC_METHODS.map(m=>`<option>${m}</option>`).join('')}</select></div>
+      <div class="field"><label class="fl">วันที่รับเงิน</label><input type="date" id="pay-date" value="${todayStr()}"></div>
+    </div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:12.5px;font-weight:700;margin:2px 0 4px;cursor:pointer">
+      <input type="checkbox" id="pay-rc" checked style="width:17px;height:17px;accent-color:var(--green-d)"> ออกใบเสร็จรับเงิน (RC) ให้ด้วย
+    </label>
+    <div style="font-size:10.5px;color:var(--text3)">ติ๊กออก = บันทึกว่ารับเงินแล้วเฉยๆ (เหมาะกับบิลเก่าที่เคยรับเงินไปแล้ว ไม่ต้องมีใบเสร็จย้อนหลัง)</div>
+    <div class="modal-footer"><button class="btn" onclick="docView('${id}')">ยกเลิก</button><button class="btn btn-primary" onclick="docPayConfirm('${id}')">💵 ยืนยันรับเงิน</button></div>`,false);
+};
+window.docPayConfirm=async function(id){
+  const d=docList.find(x=>x.id===id);if(!d)return;
+  const P=docPayInfo(d);
+  const amt=_r2(parseFloat(document.getElementById('pay-amt')?.value)||0);
+  const method=document.getElementById('pay-method')?.value||'เงินสด';
+  const pdate=document.getElementById('pay-date')?.value||todayStr();
+  const issueRC=!!document.getElementById('pay-rc')?.checked;
+  if(!(amt>0)){showToast('ใส่จำนวนเงินก่อน','err');return;}
+  if(amt>P.remain+0.01){showToast(`รับเกินยอดค้าง (ค้าง ฿${fmt2(P.remain)})`,'err');return;}
+  loading(true);
+  try{
+    const byName=memberName(currentUser?.uid)||profile?.nickname||'';
+    const pay={at:new Date().toISOString(),date:pdate,amount:amt,method,by:byName,rcNo:'',rcId:''};
+    // 1) ออกใบเสร็จ (ถ้าติ๊กไว้)
+    if(issueRC){
+      const base=_r2(amt/1.07),vat=_r2(amt-base);
+      const seq=(d.payments||[]).length+1;
+      const rc={docType:'RC',docNo:docNextNo('RC'),date:pdate,
+        customer:{...(d.customer||{})},
+        items:[{name:`รับชำระเงินตาม${DOC_TYPES[d.docType].label} ${d.docNo}${(P.remain-amt)>0.01||seq>1?` (งวดที่ ${seq})`:''}`,qty:1,unit:'',price:amt}],
+        discountMode:'baht',discountValue:0,
+        totals:{gross:amt,discountAmt:0,net:amt,base,vat},
+        note:'',refId:id,refNo:d.docNo,chain:[...(d.chain||[]),{t:d.docType,no:d.docNo,id}],
+        payMethod:method,createdByName:byName,status:'active',
+        createdBy:currentUser?.uid||'',createdAt:new Date().toISOString()};
+      const rcId='doc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+      await setDoc(doc(db,'documents',rcId),rc);
+      docList.unshift({...rc,id:rcId});
+      pay.rcNo=rc.docNo;pay.rcId=rcId;
+    }
+    // 2) บันทึกการชำระลงใบต้นทาง
+    const payments=[...(d.payments||[]),pay];
+    const paidAmt=_r2(payments.reduce((a,p)=>a+(+p.amount||0),0));
+    const payStatus=paidAmt>=(+d.totals?.net||0)-0.01?'paid':'partial';
+    await updateDoc(doc(db,'documents',id),{payments,paidAmt,payStatus});
+    Object.assign(d,{payments,paidAmt,payStatus});
+    logActivity('doc_payment',`รับเงิน ${d.docNo} ฿${fmt2(amt)} (${method})${pay.rcNo?' → ออกใบเสร็จ '+pay.rcNo:''}`);
+    loading(false);
+    showToast(payStatus==='paid'?`รับเงินครบแล้ว ✓${pay.rcNo?' ใบเสร็จ '+pay.rcNo:''}`:`บันทึกรับเงิน ฿${fmt2(amt)} — ยังค้าง ฿${fmt2(_r2((+d.totals?.net||0)-paidAmt))}`);
+    renderDocPage();
+    if(pay.rcId)docView(pay.rcId);else docView(id);
+  }catch(e){loading(false);showToast('บันทึกไม่ได้: '+(e?.message||e),'err');}
+};
+
 // ===== 📒 สมุดลูกค้า — ประวัติลูกค้า + บิลทั้งหมดของแต่ละคน =====
 let _dcbSearch='',_dcbRows=[];
 // คีย์จับคู่ลูกค้ากับเอกสาร: มีเลขภาษีใช้เลขภาษี ไม่มีใช้ชื่อ
@@ -11501,9 +11818,10 @@ window.dcbRenderList=function(){
   _dcbRows=list.map(c=>{
     const ds=_custDocs(c);
     const total=ds.filter(d=>d.status!=='void').reduce((a,d)=>a+(+d.totals?.net||0),0);
+    const debt=_r2(ds.reduce((a,d)=>{const P=docPayInfo(d);return a+(P.isDebt?P.remain:0);},0));
     const last=ds.length?ds.map(d=>d.date||'').sort().reverse()[0]:'';
-    return {c,n:ds.length,total,last};
-  }).sort((a,b)=>(b.last||'').localeCompare(a.last||''));
+    return {c,n:ds.length,total,debt,last};
+  }).sort((a,b)=>(b.debt-a.debt)||((b.last||'').localeCompare(a.last||'')));
   el.innerHTML=_dcbRows.length?_dcbRows.map((r,i)=>{
     const ju=(r.c.ctype==='juristic')||((r.c.taxId||'').replace(/\D/g,'').length===13&&r.c.ctype!=='person');
     return `<div onclick="docCustView(${i})" style="display:flex;align-items:center;gap:11px;border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:8px;cursor:pointer">
@@ -11513,7 +11831,7 @@ window.dcbRenderList=function(){
         <div style="font-size:11px;color:var(--text3);margin-top:1px">${ju?'นิติบุคคล':'บุคคลธรรมดา'}${r.c.taxId?' · '+slipEsc(r.c.taxId):''}${r.c.phone?' · '+slipEsc(r.c.phone):''}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-weight:800;font-size:13px;color:var(--green-d)">${r.n} บิล</div>
+        <div style="font-weight:800;font-size:13px;color:var(--green-d)">${r.n} บิล${r.debt>0?` <span style="font-size:9.5px;font-weight:800;border-radius:6px;padding:2px 7px;background:var(--red-l);color:var(--red-t)">ค้าง ฿${fmt(r.debt)}</span>`:''}</div>
         <div style="font-size:10px;color:var(--text3)">฿${fmt(r.total)}${r.last?' · ล่าสุด '+_dcbDate(r.last):''}</div>
       </div>
     </div>`;
@@ -11524,13 +11842,19 @@ window.docCustView=function(i){
   const c=r.c;
   const ju=(c.ctype==='juristic')||((c.taxId||'').replace(/\D/g,'').length===13&&c.ctype!=='person');
   const ds=_custDocs(c).slice().sort((a,b)=>((b.date||'')+(b.createdAt||'')).localeCompare((a.date||'')+(a.createdAt||'')));
+  const debtDocs=ds.filter(d=>{const P=docPayInfo(d);return P.isDebt&&P.st!=='paid';}).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const debtSum=_r2(debtDocs.reduce((a,d)=>a+docPayInfo(d).remain,0));
+  const debtBanner=debtSum>0?`<div style="background:var(--red-l);border-radius:12px;padding:11px 13px;display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div><div style="font-size:11px;color:var(--red-t);opacity:.85">ยอดค้างชำระรวม (${debtDocs.length} ใบ)</div><b style="color:var(--red-t);font-size:16px">฿${fmt(debtSum)}</b></div>
+      <button class="btn btn-primary btn-sm" onclick="docPayPrompt('${debtDocs[0].id}')">💵 รับเงิน (ใบเก่าสุดก่อน) →</button>
+    </div>`:'';
   const bills=ds.length?ds.map(d=>{
     const T=DOC_TYPES[d.docType]||{ic:'📄',label:d.docType};
     const voided=d.status==='void';
     return `<div onclick="docView('${d.id}')" style="display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:7px;cursor:pointer">
       <div style="width:34px;height:34px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${T.ic||'📄'}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:700;font-size:12.5px">${d.docNo} <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--green-l);color:var(--green-dd)">${T.label}</span>${d.nextNo?` <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--blue-l);color:var(--blue-t)">ต่อเป็น ${slipEsc(d.nextNo)} แล้ว</span>`:''}${voided?' <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--red-l);color:var(--red-t)">ยกเลิกแล้ว</span>':''}</div>
+        <div style="font-weight:700;font-size:12.5px">${d.docNo} <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--green-l);color:var(--green-dd)">${T.label}</span> ${docPayChip(d)}${d.nextNo?` <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--blue-l);color:var(--blue-t)">ต่อเป็น ${slipEsc(d.nextNo)} แล้ว</span>`:''}${voided?' <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--red-l);color:var(--red-t)">ยกเลิกแล้ว</span>':''}</div>
         <div style="font-size:10.5px;color:var(--text3);margin-top:1px">${_dcbDate(d.date)}${d.createdByName?' · โดย '+slipEsc(d.createdByName):''}</div>
       </div>
       <div style="font-weight:800;font-size:13px;white-space:nowrap;${voided?'color:var(--text3);text-decoration:line-through':''}">฿${fmt(+d.totals?.net||0)}</div>
@@ -11547,6 +11871,7 @@ window.docCustView=function(i){
         </div>
       </div>
     </div>
+    ${debtBanner}
     <div style="display:flex;gap:8px;margin-bottom:13px">
       <div style="flex:1;background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:14.5px;color:var(--green-d)">${r.n}</div><div style="font-size:10px;color:var(--text3)">บิลทั้งหมด</div></div>
       <div style="flex:1;background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:14.5px;color:var(--green-d)">฿${fmt(r.total)}</div><div style="font-size:10px;color:var(--text3)">ยอดรวม (ไม่นับที่ยกเลิก)</div></div>
@@ -12463,7 +12788,19 @@ function renderHome(){
         <div style="display:inline-flex;background:var(--bg);border-radius:8px;padding:2px;gap:2px">${seg}</div>
       </div>
       ${tips.length?`<div style="display:flex;flex-direction:column;gap:7px">${tips.map(t=>`<div style="display:flex;align-items:center;gap:9px;font-size:13px"><span style="font-size:15px">${t.ic}</span><b style="color:${t.c};font-weight:600">${t.t}</b></div>`).join('')}</div>`:'<div style="font-size:12.5px;color:var(--text3)">ยังไม่มีข้อมูลพอสรุป</div>'}
+      ${isAdmin?'<div id="home-dig-alerts"></div>':''}
     </div>`;
+    // 🧠 สัญญาณเตือนสำคัญ (แอดมิน) — เติมแบบ async หลังการ์ดขึ้นแล้ว
+    if(isAdmin)buildDailyDigest().then(dg=>{
+      const s=document.getElementById('home-dig-alerts');if(!s||!dg)return;
+      s.innerHTML=dg.alerts.length?`<div style="margin-top:9px;padding-top:4px">${dg.alerts.slice(0,3).map(a=>`
+        <div onclick="goto('moneyview')" style="cursor:pointer;display:flex;gap:8px;align-items:center;font-size:12.5px;padding:7px 0;border-top:1px dashed var(--border)">
+          <span style="font-size:14px">${a.ic}</span>
+          <b style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${a.lv==='r'?'var(--red-t)':a.lv==='a'?'var(--amber-t)':'var(--blue-t)'}">${a.t}</b>
+          <span style="font-size:10px;color:var(--text3);white-space:nowrap">แตะดู →</span>
+        </div>`).join('')}
+        <div onclick="goto('moneyview')" style="cursor:pointer;font-size:11.5px;color:var(--green-d);font-weight:700;margin-top:7px">🧠 ดูสรุปเต็ม + ข้อสังเกต →</div></div>`:'';
+    }).catch(()=>{});
   };
   window.homeTargetCard=function(view){
     const el=document.getElementById('home-target'); if(!el)return;
