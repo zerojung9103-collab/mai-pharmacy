@@ -1783,8 +1783,10 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.35.1';
+const APP_VERSION='4.36.0';
 const CHANGELOG=[
+  {v:'4.36.0',date:'2026-07-14',changes:[
+    '✍️ เอกสารการค้า: แก้ชื่อ "ผู้จัดทำ / ผู้ขาย" บนเอกสารได้แล้ว — มีช่องในการ์ด "ข้อมูลเอกสาร" (คู่กับวันที่/เลขที่) · ค่าเริ่มต้นเป็นชื่อคนที่ล็อกอิน แก้ทับได้ · มีผลทั้งหัวเอกสารและช่องลายเซ็นผู้ขาย · แก้เอกสารเดิมก็เปลี่ยนชื่อได้']},
   {v:'4.35.1',date:'2026-07-14',changes:[
     '🐛 (แอดมิน) แก้ปฏิทิน "ลงเวลาแทน" ขึ้นแดง "ไม่ได้ลงเวลา" ทั้งเดือนทั้งที่พนักงานลงเวลาแล้ว — เกิดตอนเปิดหน้านี้โดยยังไม่เคยเข้าหน้าตารางเวร (ข้อมูลเช็คอินยังไม่ถูกโหลด) · ตอนนี้ปฏิทินโหลดข้อมูลเองก่อนแสดงเสมอ ไม่ต้องอ้อมไปเปิดตารางเวรก่อนแล้ว']},
   {v:'4.35.0',date:'2026-07-14',changes:[
@@ -10877,6 +10879,8 @@ function renderDocForm(){
           <input type="date" value="${f._date||todayStr()}" max="2100-12-31" oninput="docFieldUpd('_date',this.value)" style="width:100%"></div>
         <div style="flex:1;min-width:130px"><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:3px">เลขที่เอกสาร</label>
           <input type="text" value="${(f._docNo||'').replace(/"/g,'&quot;')}" placeholder="${f._editId?'':'เว้นว่าง = ออกเลขอัตโนมัติ'}" oninput="docFieldUpd('_docNo',this.value)" style="width:100%"></div>
+        <div style="flex:1;min-width:130px"><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:3px">ผู้จัดทำ / ผู้ขาย (บนเอกสาร)</label>
+          <input type="text" value="${(f._createdByName!=null?f._createdByName:(f._origCreatedByName||memberName(currentUser?.uid)||profile?.nickname||'')).replace(/"/g,'&quot;')}" placeholder="ชื่อที่พิมพ์บนเอกสาร" oninput="docFieldUpd('_createdByName',this.value)" style="width:100%"></div>
       </div>
       <div style="font-size:10.5px;color:var(--text3);margin-top:5px">${f._editId?'แก้เลขที่/วันที่ได้ (ระวังเลขซ้ำกับใบอื่น)':'ปล่อยเลขที่ว่างไว้ ระบบจะออกให้เอง เช่น '+docNextNo(f.type)+' · หรือพิมพ์เลขเองก็ได้'}</div>
     </div>
@@ -11201,7 +11205,7 @@ function docCompile(){
     customer:{...f.customer},items:f.items.filter(it=>it.name&&(it.qty>0)),
     discountMode:f.discountMode,discountValue:parseFloat(f.discountValue)||0,
     totals:c,note:(f.note||'').trim(),refId:f.refId||null,refNo:f.refNo||null,chain:f.chain||[],
-    createdByName:f._origCreatedByName||memberName(currentUser?.uid)||profile?.nickname||''
+    createdByName:(f._createdByName||'').trim()||f._origCreatedByName||memberName(currentUser?.uid)||profile?.nickname||''
   };
 }
 window.docPreview=function(){
@@ -11239,7 +11243,7 @@ window.docSave=async function(){
     try{
       const rec=docCompile();
       const upd={docNo:newNo,customer:rec.customer,items:rec.items,discountMode:rec.discountMode,discountValue:rec.discountValue,
-        totals:rec.totals,note:rec.note,date:rec.date,updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''};
+        totals:rec.totals,note:rec.note,date:rec.date,createdByName:rec.createdByName||'',updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''};
       await updateDoc(doc(db,'documents',id),upd);
       const idx=docList.findIndex(x=>x.id===id);
       if(idx>=0)docList[idx]={...docList[idx],...upd};
