@@ -1783,8 +1783,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.36.0';
+const APP_VERSION='4.37.0';
 const CHANGELOG=[
+  {v:'4.37.0',date:'2026-07-15',changes:[
+    '📒 เพิ่ม "สมุดลูกค้า" ในหน้าเอกสารการค้า — เห็นลูกค้าทุกคนที่เคยออกเอกสาร (บันทึกให้อัตโนมัติ ไม่ต้องคีย์เพิ่ม): ค้นหาชื่อ/เลขภาษี/เบอร์ได้ · แต่ละคนสรุป จำนวนบิล + ยอดรวม + บิลล่าสุด',
+    '🧾 จิ้มลูกค้า → เห็นประวัติบิลทั้งหมดของคนนั้น (ใหม่→เก่า เลขที่/วันที่/คนออก/ยอด/ป้ายต่อยอด·ยกเลิก) จิ้มบิลเปิดดู/พิมพ์/แก้ได้เลย · ปุ่ม "✏️ แก้ข้อมูลลูกค้า" (ใช้กับใบต่อไป) และ "➕ ออกเอกสารให้ลูกค้านี้" เติมข้อมูลให้อัตโนมัติ']},
   {v:'4.36.0',date:'2026-07-14',changes:[
     '✍️ เอกสารการค้า: แก้ชื่อ "ผู้จัดทำ / ผู้ขาย" บนเอกสารได้แล้ว — มีช่องในการ์ด "ข้อมูลเอกสาร" (คู่กับวันที่/เลขที่) · ค่าเริ่มต้นเป็นชื่อคนที่ล็อกอิน แก้ทับได้ · มีผลทั้งหัวเอกสารและช่องลายเซ็นผู้ขาย · แก้เอกสารเดิมก็เปลี่ยนชื่อได้']},
   {v:'4.35.1',date:'2026-07-14',changes:[
@@ -10758,6 +10761,7 @@ async function loadDocsFromCloud(){
 window.docInit=async function(){
   if(!isAdmin&&!hasPerm('documents')){document.getElementById('doc-content').innerHTML=accessDenied();return;}
   document.getElementById('doc-topbtns').innerHTML=`
+    <button class="btn btn-sm" onclick="docCustBook()">📒 สมุดลูกค้า</button>
     ${isAdmin?'<button class="btn btn-sm" onclick="docSettingsPrompt()">⚙️ ตั้งค่าเอกสาร</button>':''}
     <button class="btn btn-primary btn-sm" onclick="docNew()">➕ สร้างเอกสาร</button>`;
   if(!docLoaded){await Promise.all([loadDocCfgFromCloud(),loadDocsFromCloud()]);}
@@ -11395,6 +11399,131 @@ window.docSettingsSave=async function(){
   closeMD();
 };
 
+// ===== 📒 สมุดลูกค้า — ประวัติลูกค้า + บิลทั้งหมดของแต่ละคน =====
+let _dcbSearch='',_dcbRows=[];
+// คีย์จับคู่ลูกค้ากับเอกสาร: มีเลขภาษีใช้เลขภาษี ไม่มีใช้ชื่อ
+function _custKey(c){const t=(c?.taxId||'').trim();return t?('t:'+t):('n:'+(c?.name||'').trim());}
+function _custDocs(cu){const key=_custKey(cu);return docList.filter(d=>d.customer&&(d.customer.name||'').trim()&&_custKey(d.customer)===key);}
+function _dcbDate(ds){return ds?new Date(ds+'T12:00:00').toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}):'—';}
+window.docCustBook=async function(){
+  if(!docLoaded){loading(true);await Promise.all([loadDocCfgFromCloud(),loadDocsFromCloud()]);loading(false);}
+  openModal(`<div class="modal-title">📒 สมุดลูกค้า</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">ลูกค้าถูกบันทึกอัตโนมัติทุกครั้งที่ออกเอกสาร — จิ้มดูประวัติบิลได้เลย</div>
+    <input type="text" placeholder="🔍 ค้นชื่อ / เลขภาษี / เบอร์โทร..." value="${_dcbSearch.replace(/"/g,'&quot;')}" oninput="_dcbSearch=this.value;dcbRenderList()" style="width:100%;margin-bottom:10px">
+    <div id="dcb-list"></div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`,true);
+  dcbRenderList();
+};
+window.dcbRenderList=function(){
+  const el=document.getElementById('dcb-list');if(!el)return;
+  // รวมลูกค้าจากสมุด + ที่โผล่ในเอกสารแต่ไม่อยู่ในสมุด (เอกสารเก่า)
+  const map=new Map();
+  docCustomers.forEach(c=>{if((c.name||'').trim())map.set(_custKey(c),{...c});});
+  docList.forEach(d=>{const cu=d.customer;if(cu&&(cu.name||'').trim()&&!map.has(_custKey(cu)))map.set(_custKey(cu),{...cu});});
+  let list=[...map.values()];
+  const q=_dcbSearch.toLowerCase().trim();
+  if(q)list=list.filter(c=>`${c.name||''} ${c.taxId||''} ${c.phone||''}`.toLowerCase().includes(q));
+  _dcbRows=list.map(c=>{
+    const ds=_custDocs(c);
+    const total=ds.filter(d=>d.status!=='void').reduce((a,d)=>a+(+d.totals?.net||0),0);
+    const last=ds.length?ds.map(d=>d.date||'').sort().reverse()[0]:'';
+    return {c,n:ds.length,total,last};
+  }).sort((a,b)=>(b.last||'').localeCompare(a.last||''));
+  el.innerHTML=_dcbRows.length?_dcbRows.map((r,i)=>{
+    const ju=(r.c.ctype==='juristic')||((r.c.taxId||'').replace(/\D/g,'').length===13&&r.c.ctype!=='person');
+    return `<div onclick="docCustView(${i})" style="display:flex;align-items:center;gap:11px;border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:8px;cursor:pointer">
+      <div style="width:40px;height:40px;border-radius:12px;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">${ju?'🏢':'🙂'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${slipEsc(r.c.name)}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:1px">${ju?'นิติบุคคล':'บุคคลธรรมดา'}${r.c.taxId?' · '+slipEsc(r.c.taxId):''}${r.c.phone?' · '+slipEsc(r.c.phone):''}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-weight:800;font-size:13px;color:var(--green-d)">${r.n} บิล</div>
+        <div style="font-size:10px;color:var(--text3)">฿${fmt(r.total)}${r.last?' · ล่าสุด '+_dcbDate(r.last):''}</div>
+      </div>
+    </div>`;
+  }).join(''):'<div style="text-align:center;color:var(--text3);font-size:12.5px;padding:1.5rem 0">'+(q?'ไม่พบลูกค้าตามที่ค้น':'ยังไม่มีลูกค้า — ออกเอกสารใบแรกแล้วชื่อลูกค้าจะถูกเก็บให้อัตโนมัติ')+'</div>';
+};
+window.docCustView=function(i){
+  const r=_dcbRows[i];if(!r)return;
+  const c=r.c;
+  const ju=(c.ctype==='juristic')||((c.taxId||'').replace(/\D/g,'').length===13&&c.ctype!=='person');
+  const ds=_custDocs(c).slice().sort((a,b)=>((b.date||'')+(b.createdAt||'')).localeCompare((a.date||'')+(a.createdAt||'')));
+  const bills=ds.length?ds.map(d=>{
+    const T=DOC_TYPES[d.docType]||{ic:'📄',label:d.docType};
+    const voided=d.status==='void';
+    return `<div onclick="docView('${d.id}')" style="display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:7px;cursor:pointer">
+      <div style="width:34px;height:34px;border-radius:10px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${T.ic||'📄'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;font-size:12.5px">${d.docNo} <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--green-l);color:var(--green-dd)">${T.label}</span>${d.nextNo?` <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--blue-l);color:var(--blue-t)">ต่อเป็น ${slipEsc(d.nextNo)} แล้ว</span>`:''}${voided?' <span style="font-size:9px;font-weight:800;border-radius:6px;padding:1px 6px;background:var(--red-l);color:var(--red-t)">ยกเลิกแล้ว</span>':''}</div>
+        <div style="font-size:10.5px;color:var(--text3);margin-top:1px">${_dcbDate(d.date)}${d.createdByName?' · โดย '+slipEsc(d.createdByName):''}</div>
+      </div>
+      <div style="font-weight:800;font-size:13px;white-space:nowrap;${voided?'color:var(--text3);text-decoration:line-through':''}">฿${fmt(+d.totals?.net||0)}</div>
+    </div>`;
+  }).join(''):'<div style="text-align:center;color:var(--text3);font-size:12.5px;padding:1rem 0">ยังไม่มีบิลของลูกค้าคนนี้</div>';
+  openModal(`<div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:13px">
+      <div style="width:52px;height:52px;border-radius:15px;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-size:23px;flex-shrink:0">${ju?'🏢':'🙂'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:15px">${slipEsc(c.name)}</div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.6;margin-top:2px">
+          ${c.taxId?`เลขภาษี ${slipEsc(c.taxId)}${ju?` (${slipEsc(c.branchLabel||'สำนักงานใหญ่')})`:''}<br>`:''}
+          ${c.address?slipEsc(c.address)+'<br>':''}${c.phone?'โทร '+slipEsc(c.phone)+' ':''}
+          ${c.id?`<span onclick="docCustEdit(${i})" style="color:var(--green-d);font-weight:700;cursor:pointer">✏️ แก้ข้อมูล</span>`:''}
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:13px">
+      <div style="flex:1;background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:14.5px;color:var(--green-d)">${r.n}</div><div style="font-size:10px;color:var(--text3)">บิลทั้งหมด</div></div>
+      <div style="flex:1;background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:14.5px;color:var(--green-d)">฿${fmt(r.total)}</div><div style="font-size:10px;color:var(--text3)">ยอดรวม (ไม่นับที่ยกเลิก)</div></div>
+      <div style="flex:1;background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:14.5px;color:var(--green-d)">${r.last?_dcbDate(r.last):'—'}</div><div style="font-size:10px;color:var(--text3)">บิลล่าสุด</div></div>
+    </div>
+    <div style="font-size:11.5px;font-weight:800;color:var(--text3);margin:0 2px 8px">🧾 บิลทั้งหมด (ใหม่→เก่า)</div>
+    <div style="max-height:330px;overflow-y:auto">${bills}</div>
+    <div class="modal-footer">
+      <button class="btn" onclick="docCustBook()">← กลับ</button>
+      <button class="btn" onclick="closeMD()">ปิด</button>
+      <button class="btn btn-primary" onclick="docNewForCustomer(${i})">➕ ออกเอกสารให้ลูกค้านี้</button>
+    </div>`,true);
+};
+// ✏️ แก้ข้อมูลลูกค้าในสมุด (มีผลกับเอกสารใบต่อไป — ใบเก่าไม่เปลี่ยน)
+window.docCustEdit=function(i){
+  const r=_dcbRows[i];if(!r||!r.c.id)return;const c=r.c;
+  openModal(`<div class="modal-title">✏️ แก้ข้อมูลลูกค้า</div>
+    <div class="field"><label class="fl">ชื่อลูกค้า / บริษัท</label><input type="text" id="dce-name" value="${(c.name||'').replace(/"/g,'&quot;')}"></div>
+    <div class="field"><label class="fl">เลขประจำตัวผู้เสียภาษี</label><input type="text" id="dce-taxid" value="${(c.taxId||'').replace(/"/g,'&quot;')}"></div>
+    <div class="field"><label class="fl">ที่อยู่ (พิมพ์บนเอกสาร)</label><input type="text" id="dce-address" value="${(c.address||'').replace(/"/g,'&quot;')}"></div>
+    <div class="field-row">
+      <div class="field"><label class="fl">สำนักงานใหญ่/สาขา</label><select id="dce-branch"><option ${c.branchLabel!=='สาขา'?'selected':''}>สำนักงานใหญ่</option><option ${c.branchLabel==='สาขา'?'selected':''}>สาขา</option></select></div>
+      <div class="field"><label class="fl">โทรศัพท์</label><input type="text" id="dce-phone" value="${(c.phone||'').replace(/"/g,'&quot;')}"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:4px">มีผลกับเอกสารใบต่อไป — เอกสารที่ออกไปแล้วไม่เปลี่ยน</div>
+    <div class="modal-footer"><button class="btn" onclick="docCustView(${i})">ยกเลิก</button><button class="btn btn-primary" onclick="docCustEditSave(${i})">💾 บันทึก</button></div>`);
+};
+window.docCustEditSave=async function(i){
+  const r=_dcbRows[i];if(!r||!r.c.id)return;
+  const upd={name:document.getElementById('dce-name').value.trim(),taxId:document.getElementById('dce-taxid').value.trim(),
+    address:document.getElementById('dce-address').value.trim(),branchLabel:document.getElementById('dce-branch').value,
+    phone:document.getElementById('dce-phone').value.trim()};
+  if(!upd.name){showToast('ใส่ชื่อลูกค้าก่อน','err');return;}
+  try{
+    await updateDoc(doc(db,'customers',r.c.id),upd);
+    Object.assign(r.c,upd);
+    const bc=docCustomers.find(x=>x.id===r.c.id);if(bc)Object.assign(bc,upd);
+    showToast('บันทึกข้อมูลลูกค้าแล้ว ✅');
+    docCustView(i);
+  }catch(e){showToast('บันทึกไม่ได้: '+(e?.message||e),'err');}
+};
+// ➕ ออกเอกสารใหม่ เติมข้อมูลลูกค้าคนนี้ให้เลย
+window.docNewForCustomer=function(i){
+  const r=_dcbRows[i];if(!r)return;const c=r.c;
+  closeMD();
+  if(currentPage!=='documents')goto('documents');
+  docNew();
+  docForm.customer={ctype:c.ctype||(((c.taxId||'').replace(/\D/g,'').length===13)?'juristic':'person'),
+    name:c.name||'',taxId:c.taxId||'',address:c.address||'',branchLabel:c.branchLabel||'สำนักงานใหญ่',phone:c.phone||''};
+  renderDocForm();
+  showToast(`เติมข้อมูล "${c.name}" ให้แล้ว — ใส่รายการสินค้าต่อได้เลย`);
+};
 
 // ===== SETTINGS =====
 // 🆕 v4.16 ตั้งค่าแบบ ก — ศูนย์รวมรายการ (hub) + ค้นหา · แตะแล้วเปิดการ์ดเรื่องนั้นเรื่องเดียว
