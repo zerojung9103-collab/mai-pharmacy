@@ -245,6 +245,23 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ===== สลับเวร/ฝากเวร (v4.44) =====
+    // สร้าง: เจ้าของคำขอ · อัปเดต: คนที่เกี่ยวข้อง (เพื่อนกดรับ/ปฏิเสธ) หรือ admin (อนุมัติ) · ลบ: admin
+    match /shiftSwaps/{docId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.fromUid == request.auth.uid;
+      allow update: if isAdmin()
+        || (signedIn() && (resource.data.toUid == request.auth.uid || resource.data.fromUid == request.auth.uid));
+      allow delete: if isAdmin();
+    }
+
+    // ===== ประกาศร้าน + รับทราบ (v4.44) =====
+    // สร้าง/ลบ: admin · อัปเดต: ทุกคนที่ล็อกอิน (สำหรับติ๊กรับทราบของตัวเอง)
+    match /announcements/{docId} {
+      allow read, update: if signedIn();
+      allow create, delete: if isAdmin();
+    }
+
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
     match /{document=**} {
       allow read, write: if false;

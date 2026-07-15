@@ -1793,8 +1793,18 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.41.0';
+const APP_VERSION='4.44.0';
 const CHANGELOG=[
+  {v:'4.44.0',date:'2026-07-15',changes:[
+    '🔄 สลับเวร/ฝากเวรได้เองแล้ว! — พนักงานเปิดเวรตัวเองในตารางเวร → กด "ขอสลับ/ฝากเวร": สลับ = แลกเวรกับเพื่อน (เลือกคน+เวรของเขา) · ฝาก = ให้เพื่อนทำแทน · เดิน 3 ขั้น: เพื่อนกดรับ → แอดมินอนุมัติ → ตารางเวรอัปเดตให้อัตโนมัติ ไม่ต้องแก้มือ · คำขอเด้งการ์ดหน้าแรกของคนเกี่ยวข้อง เห็นสถานะตลอดทาง ปฏิเสธได้ทุกขั้น',
+    '📣 ประกาศร้าน + รับทราบ — แอดมินโพสต์จาก เครื่องมือแอดมิน → เด้งการ์ดเหลืองหน้าแรกทุกคนจนกว่าจะกด "✋ รับทราบ" · แอดมินเห็นเลยว่าใครอ่านแล้ว/ยังไม่อ่าน (ชื่อคนยังไม่อ่านโชว์ให้) ไม่ต้องไล่ถามในไลน์ · ประกาศเก่าย้อนดูได้',
+    '⚠️ สำคัญ: อัปเดต Firestore rules ด้วย (วางไฟล์ firestore-rules-ใหม่.txt ใน Firebase Console → Firestore → Rules → Publish) — เพิ่มสิทธิ์ shiftSwaps + announcements ไม่งั้นส่งคำขอ/โพสต์ประกาศไม่ได้']},
+  {v:'4.43.0',date:'2026-07-15',changes:[
+    '📋 (แอดมิน) เพิ่ม "รายงานพนักงานรายเดือน" ในเครื่องมือแอดมิน — เห็นทุกคนในหน้าเดียว: เวร/มา/สาย/ลืมออก/ลา/ขาด + ป้าย ✅ เรียบร้อย / ⚠️ มีเรื่องควรคุย (คนมีเรื่องขึ้นก่อน) · เลื่อนดูเดือนก่อนได้',
+    '👤 จิ้มรายคน: ชั่วโมงจริงเทียบเดือนก่อน ▲▼ · สายกี่ครั้งกี่นาที (บอกวันไหนบ่อย) · แยก "ลา" (อนุมัติแล้ว) กับ "ขาด" (มีเวรแต่ไม่มาและไม่ได้ลา) ชัดเจน · เรื่องที่ควรคุยมีปุ่มกดไปแก้ทันที',
+    '📤 ปุ่มดาวน์โหลดรายงานรายคน — เปิดไฟล์แล้วกด "บันทึกเป็นรูป (PNG)" ส่งไลน์ได้ หรือพิมพ์/เซฟ PDF ไว้เป็นหลักฐานตอนรีวิวงาน']},
+  {v:'4.42.0',date:'2026-07-15',changes:[
+    '📤 เอกสารการค้า: ปุ่ม "แชร์เป็นรูป (ส่งไลน์ได้)" ข้างปุ่มพิมพ์ — กดแล้วแปลงเอกสาร (ต้นฉบับ) เป็นรูปคมชัด มือถือเด้งเมนูแชร์เลือกส่งไลน์/แอปไหนก็ได้ทันที · คอมหรือเครื่องที่ไม่มีเมนูแชร์ ระบบดาวน์โหลดรูปให้แนบเองได้ (แบบเดียวกับปุ่มรูปในสลิปเงินเดือน)']},
   {v:'4.41.0',date:'2026-07-15',changes:[
     '💵 เอกสารการค้า: เพิ่ม "ใบเสร็จรับเงิน (RC)" + ระบบตามหนี้ครบวงจร — ใบแจ้งหนี้/ใบกำกับภาษีมีสถานะ ค้างชำระ (บอกค้างกี่วัน) / ชำระบางส่วน / ชำระแล้ว · ใบเสนอราคา-ใบส่งของไม่นับเป็นหนี้',
     '🧾 ปุ่ม "รับเงิน" บนใบแจ้งหนี้/ใบกำกับภาษี: กรอกจำนวน (รับบางส่วนได้หลายงวด) + วิธีชำระ + วันที่ → ระบบออกใบเสร็จรับเงินอ้างอิงใบต้นทางให้อัตโนมัติ พิมพ์/เซฟ PDF ได้ · ติ๊กไม่ออกใบเสร็จก็ได้ (เหมาะกับเคลียร์บิลเก่าที่รับเงินไปแล้ว)',
@@ -4286,11 +4296,14 @@ function renderAdminTools(){
     `<div class="atool-sec">⏱️ งานประจำวัน / คน</div><div class="atool-grid">`+
       tool('🕑','c-green','ลงเวลาแทนพนักงาน','พนักงานลืมลงเวลา — เลือกคน+วัน ย้อนหลังได้','adminCheckinPicker()')+
       tool('📋','c-blue','จัดเวรหลายวัน','ลงเวร/แก้เวลาทีเดียวทั้งเดือน','adminToolBulkShift()')+
+      tool('🔄','c-amber','คำขอสลับ/ฝากเวร','เพื่อนรับแล้ว รอคุณอนุมัติ — ตารางอัปเดตเอง','swapManage()')+
+      tool('📣','c-purple','ประกาศร้าน','โพสต์ให้ทุกคนเห็นหน้าแรก + เช็คใครอ่านแล้ว','annManage()')+
       tool('🗓️','c-blue','ประวัติการลงเวลา','ดู/แก้เวลาเข้า-ออกทุกคน',"goto('checkin-history')")+
     `</div><div class="atool-sec">👥 คน / เงิน</div><div class="atool-grid">`+
       tool('💰','c-green','ภาพรวมเงิน','เงินทุกกอง ทุกสาขา + ยอดขาย ที่เดียวจบ',"goto('moneyview')")+
       tool('👥','c-amber','จัดการสมาชิก','อนุมัติสมาชิกใหม่ · สิทธิ์ · ระงับ',"goto('members')",pend||'')+
       tool('🧾','c-green','จัดการเงินเดือน','คำนวณ + จ่าย + สลิป',"goto('payroll')")+
+      tool('📋','c-blue','รายงานพนักงาน','สาย/ขาด/ลา/ชั่วโมง รายเดือน ทุกคน','staffReport()')+
       tool('✅','c-green','อนุมัติลา','คำขอลาที่รออนุมัติ',"goto('leave-admin')")+
       tool('📊','c-blue','รายงาน / แดชบอร์ด','ยอดขาย · สรุปภาพรวม',"goto('report')")+
     `</div><div class="atool-sec">⚙️ ตั้งค่า / ตรวจสอบ</div><div class="atool-grid">`+
@@ -4562,6 +4575,359 @@ window.mvTrend=function(mode){
   }
   document.querySelectorAll('.mv-seg').forEach(b=>{const on=b.dataset.m===_mvMode;b.style.background=on?'var(--green-l)':'transparent';b.style.color=on?'var(--green-d)':'var(--text3)';b.style.fontWeight=on?'800':'600';});
 };
+// ===== 📋 รายงานพนักงานรายเดือน (ชุด E, v4.42) =====
+let _srMonth=null;
+function _srMonthShift(m,delta){const [y,mo]=m.split('-').map(Number);const d=new Date(y,mo-1+delta,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+// วันลา (เฉพาะอนุมัติแล้ว) ของคนนั้นในเดือน → [{ds,type}]
+function _srLeaveDays(uid,moStr){
+  const out=[];
+  (allLeaves||[]).filter(l=>l.uid===uid&&l.status==='approved'&&l.from).forEach(l=>{
+    let d=l.from;const to=l.to||l.from;let g=0;
+    while(d<=to&&g<62){if(d.startsWith(moStr))out.push({ds:d,type:l.type||'ลา'});d=_dsAdd(d,1);g++;}
+  });
+  return out;
+}
+// สรุปวินัย+ชั่วโมงของคนหนึ่งในเดือน
+async function _srPerson(uid,moStr){
+  const AH=await _prActualHours(uid,moStr);
+  const myShifts=(shifts||[]).filter(s=>s.staffId===uid&&(s.date||'').startsWith(moStr));
+  const cis=allCheckins.filter(c=>c.uid===uid&&(c.date||'').startsWith(moStr)&&c.checkIn&&!isTestCheckin(c));
+  const lates=cis.map(c=>({c,L:ciLateInfo(c)})).filter(x=>x.L.late);
+  const lateMin=lates.reduce((a,x)=>a+x.L.min,0);
+  let lateDowTxt='';
+  if(lates.length>=2){
+    const cnt={};lates.forEach(x=>{const d=new Date(x.c.date+'T12:00:00').getDay();cnt[d]=(cnt[d]||0)+1;});
+    const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+    if(+top[1]>=2)lateDowTxt=`${top[1]} ครั้งเป็นวัน${_THAI_DOW[+top[0]]}`;
+  }
+  const leaves=_srLeaveDays(uid,moStr);
+  const leaveSet=new Set(leaves.map(x=>x.ds));
+  const today=todayStr();
+  const absent=myShifts.filter(s=>s.date<=today&&!cis.find(c=>c.date===s.date)&&!leaveSet.has(s.date)).map(s=>s.date).sort();
+  const issues=[];
+  const lt=+(alertSettings.lateThreshold||3);
+  if(lt>0&&lates.length>=lt)issues.push({ic:'⏰',t:`มาสาย ${lates.length} ครั้ง รวม ${lateMin} นาที${lateDowTxt?' — '+lateDowTxt:''}`,act:`goto('checkin-history')`,gl:'ดูประวัติ →'});
+  if(AH.missingOut>0)issues.push({ic:'◐',t:`ลืมเช็คเอาท์ ${AH.missingOut} วัน (${(AH.missingOutDays||[]).map(thDayShort).join(' · ')})`,act:`adminCheckinPicker('${uid}')`,gl:'เติมเวลา →'});
+  if(absent.length)issues.push({ic:'❌',t:`ขาดงาน ${absent.length} วัน (${absent.map(thDayShort).join(' · ')}) — มีเวรแต่ไม่มาและไม่ได้ลา`,act:`adminCheckinPicker('${uid}')`,gl:'เช็คดู →'});
+  return {uid,hours:AH.actualHours,missingOut:AH.missingOut,missingOutDays:AH.missingOutDays||[],
+    shiftN:myShifts.length,workN:cis.length,onTime:cis.length-lates.length,
+    lateN:lates.length,lateMin,lateDowTxt,leaves,absent,issues};
+}
+window.staffReport=async function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  loading(true);
+  try{
+    if(!allMembers.length)await loadMembers();
+    if(!allCheckins.length)await loadCheckinsForSchedule();
+    if(!allLeaves.length)await loadLeavesForSchedule();
+    if(!_srMonth)_srMonth=todayStr().slice(0,7);
+    await ensureCheckinsMonth(_srMonth);
+    const active=allMembers.filter(m=>m.status==='active'&&!m.isClone);
+    const rows=[];
+    for(const m of active){
+      const r=await _srPerson(m.uid,_srMonth);
+      r.name=`${m.firstName||''} ${m.lastName||''}`.trim()||m.email;
+      r.roleTxt=m.role==='admin'?'ผู้ดูแล':'พนักงาน';
+      r.branchTxt=BRANCHES[m.branch]||'';
+      rows.push(r);
+    }
+    rows.sort((a,b)=>(b.issues.length-a.issues.length)||(b.lateN-a.lateN)||a.name.localeCompare(b.name));
+    window._srRows=rows;
+  }catch(e){loading(false);showToast('โหลดข้อมูลไม่สำเร็จ: '+(e?.message||e),'err');return;}
+  loading(false);
+  const rows=window._srRows;
+  const moTxt=new Date(_srMonth+'-01T12:00:00').toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  openModal(`<div class="modal-title">📋 รายงานพนักงานรายเดือน</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">สรุปวินัย+ชั่วโมงของทุกคน — ไว้ใช้ตอนคุยรีวิว/พิจารณาโบนัส · คนที่มีเรื่องควรคุยขึ้นก่อน</div>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:12px">
+      <button class="btn btn-sm" onclick="srNav(-1)">‹</button>
+      <b style="font-size:14px">${moTxt}</b>
+      <button class="btn btn-sm" onclick="srNav(1)">›</button>
+    </div>
+    ${rows.length?rows.map((r,i)=>`<div onclick="staffReportView(${i})" style="display:flex;align-items:center;gap:11px;border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:8px;cursor:pointer">
+        <div style="width:40px;height:40px;border-radius:12px;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0">${slipEsc((r.name||'?').charAt(0))}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13.5px">${slipEsc(r.name)}</div>
+          <div style="font-size:10.5px;color:var(--text3);margin-top:1px">เวร ${r.shiftN} · มา ${r.workN} · สาย ${r.lateN} · ลืมออก ${r.missingOut} · ลา ${r.leaves.length}${r.absent.length?' · <b style="color:var(--red-t)">ขาด '+r.absent.length+'</b>':''}</div>
+        </div>
+        <span style="font-size:10px;font-weight:800;border-radius:20px;padding:3px 10px;white-space:nowrap;${r.issues.length?'background:var(--amber-l);color:var(--amber-t)':'background:var(--green-l);color:var(--green-dd)'}">${r.issues.length?`⚠️ ${r.issues.length} เรื่องควรคุย`:'✅ เรียบร้อย'}</span>
+      </div>`).join(''):'<div style="text-align:center;color:var(--text3);padding:1rem">ยังไม่มีพนักงาน</div>'}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`,true);
+};
+window.srNav=function(d){_srMonth=_srMonthShift(_srMonth,d);staffReport();};
+window.staffReportView=async function(i){
+  const r=(window._srRows||[])[i];if(!r)return;
+  const pmo=_srMonthShift(_srMonth,-1);
+  loading(true);
+  let prevH=0,prevLate=0;
+  try{
+    await ensureCheckinsMonth(pmo);
+    const AH=await _prActualHours(r.uid,pmo);prevH=AH.actualHours;
+    prevLate=allCheckins.filter(c=>c.uid===r.uid&&(c.date||'').startsWith(pmo)&&c.checkIn&&!isTestCheckin(c)&&ciLateInfo(c).late).length;
+  }catch(e){}
+  loading(false);
+  const moTxt=new Date(_srMonth+'-01T12:00:00').toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  const dH=Math.round((r.hours-prevH)*10)/10;
+  const avgH=r.workN?Math.round(r.hours/r.workN*10)/10:0;
+  const onPct=r.workN?Math.round(r.onTime/r.workN*100):0;
+  const lvTxt=r.leaves.length?Object.entries(r.leaves.reduce((a,x)=>{a[x.type]=(a[x.type]||0)+1;return a;},{})).map(([t,n])=>`${t} ${n} วัน`).join(' · '):'ไม่มี';
+  openModal(`<div style="display:flex;gap:11px;align-items:center;margin-bottom:11px">
+      <div style="width:48px;height:48px;border-radius:14px;background:var(--green-l);color:var(--green-dd);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;flex-shrink:0">${slipEsc((r.name||'?').charAt(0))}</div>
+      <div><div style="font-weight:800;font-size:15px">${slipEsc(r.name)}</div><div style="font-size:11px;color:var(--text3)">${r.roleTxt} · ${r.branchTxt} · ${moTxt}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:11px">
+      <div style="background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:15px">${r.hours}</div><div style="font-size:9.5px;color:var(--text3)">ชั่วโมงจริง</div>${prevH>0?`<div style="font-size:9.5px;font-weight:800;color:${dH>=0?'var(--green-d)':'var(--red-t)'}">${dH>=0?'▲ +':'▼ '}${Math.abs(dH)} จากเดือนก่อน</div>`:''}</div>
+      <div style="background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:15px">${r.workN}/${r.shiftN}</div><div style="font-size:9.5px;color:var(--text3)">มาทำงาน/เวร</div><div style="font-size:9.5px;color:var(--text3)">${r.absent.length?'ขาด '+r.absent.length+' · ':''}ลา ${r.leaves.length}</div></div>
+      <div style="background:var(--bg);border-radius:11px;padding:9px 8px;text-align:center"><div style="font-weight:800;font-size:15px;color:${r.lateN?'var(--amber-t)':'var(--green-d)'}">${r.lateN} ครั้ง</div><div style="font-size:9.5px;color:var(--text3)">มาสาย${r.lateMin?' ('+r.lateMin+' นาที)':''}</div><div style="font-size:9.5px;font-weight:800;color:${r.lateN>prevLate?'var(--red-t)':'var(--green-d)'}">เดือนก่อน ${prevLate} ครั้ง</div></div>
+    </div>
+    ${r.issues.length?`<div style="font-size:11.5px;font-weight:800;color:var(--text3);margin:0 2px 7px">📌 เรื่องที่ควรคุย</div>
+      ${r.issues.map(x=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;padding:8px 2px;border-bottom:1px dashed var(--border)"><span>${x.ic} ${x.t}</span><b style="color:var(--amber-t);cursor:pointer;white-space:nowrap" onclick="${x.act.replace(/"/g,'&quot;')}">${x.gl}</b></div>`).join('')}`
+    :'<div style="border-radius:11px;padding:10px 12px;background:var(--green-ll);color:var(--green-d);font-size:12.5px;font-weight:700;margin-bottom:4px">✅ เดือนนี้เรียบร้อย ไม่มีเรื่องต้องคุย</div>'}
+    <div style="font-size:11.5px;font-weight:800;color:var(--text3);margin:12px 2px 6px">🧾 สรุปเดือนนี้</div>
+    <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:7px 2px;border-bottom:1px dashed var(--border)"><span>มาตรงเวลา</span><b>${r.onTime} วัน${r.workN?` (${onPct}%)`:''}</b></div>
+    <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:7px 2px;border-bottom:1px dashed var(--border)"><span>ชั่วโมงเฉลี่ย/วันที่มา</span><b>${avgH} ชม.</b></div>
+    <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:7px 2px;border-bottom:1px dashed var(--border)"><span>ลา (อนุมัติแล้ว)</span><b>${lvTxt}</b></div>
+    <div style="display:flex;justify-content:space-between;font-size:12.5px;padding:7px 2px;border-bottom:1px dashed var(--border)"><span>ขาด (มีเวรแต่ไม่มา ไม่ได้ลา)</span><b style="color:${r.absent.length?'var(--red-t)':'var(--green-d)'}">${r.absent.length?r.absent.length+' วัน ('+r.absent.map(thDayShort).join(' · ')+')':'ไม่มี'}</b></div>
+    <div class="modal-footer" style="flex-wrap:wrap">
+      <button class="btn" onclick="staffReport()">← กลับ</button>
+      <button class="btn" onclick="closeMD();goto('checkin-history')">🗓️ ประวัติลงเวลา</button>
+      <button class="btn btn-primary" onclick="srShare(${i})">📤 ดาวน์โหลดรายงาน (พิมพ์/รูป)</button>
+    </div>`,true);
+};
+// 📤 รายงาน standalone (พิมพ์ PDF / เซฟรูป PNG — แบบเดียวกับสลิป)
+window.srShare=function(i){
+  const r=(window._srRows||[])[i];if(!r)return;
+  const moTxt=new Date(_srMonth+'-01T12:00:00').toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  const onPct=r.workN?Math.round(r.onTime/r.workN*100):0;
+  const lvTxt=r.leaves.length?Object.entries(r.leaves.reduce((a,x)=>{a[x.type]=(a[x.type]||0)+1;return a;},{})).map(([t,n])=>`${t} ${n} วัน`).join(' · '):'ไม่มี';
+  const line=(l,v)=>`<tr><td style="padding:7px 10px;border-bottom:1px solid #E5EAE7;color:#5A6660">${l}</td><td style="padding:7px 10px;border-bottom:1px solid #E5EAE7;text-align:right;font-weight:700">${v}</td></tr>`;
+  const html=`<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>รายงาน ${slipEsc(r.name)} ${moTxt}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>body{font-family:'Noto Sans Thai',sans-serif;background:#E8ECEB;margin:0;padding:16px;color:#22302A;font-size:13px}
+  .rep{background:#fff;max-width:520px;margin:0 auto;border:1.5px solid #22302A;padding:22px 24px}
+  .btns{max-width:520px;margin:0 auto 12px;display:flex;gap:8px}
+  .b{flex:1;border:none;border-radius:10px;padding:11px;font-family:inherit;font-size:13.5px;font-weight:800;cursor:pointer}
+  @media print{.btns{display:none}body{background:#fff;padding:0}.rep{border:none;max-width:none}}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}</style></head><body>
+  <div class="btns"><button class="b" style="background:#22302A;color:#fff" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF</button><button class="b" id="png-btn" style="background:#1FAE8B;color:#fff" onclick="savePng()">🖼️ บันทึกเป็นรูป (PNG)</button></div>
+  <div class="rep" id="rep">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #22302A;padding-bottom:10px;margin-bottom:12px">
+      <div><div style="font-size:15px;font-weight:800">${slipEsc(slipCfg.companyName||'ร้านขายยา ใหม่เภสัช')}</div><div style="font-size:11px;color:#5A6660">รายงานพนักงานประจำเดือน</div></div>
+      <div style="text-align:right;font-size:11px;color:#5A6660">${moTxt}</div>
+    </div>
+    <div style="font-size:16px;font-weight:800;margin-bottom:2px">${slipEsc(r.name)}</div>
+    <div style="font-size:11.5px;color:#5A6660;margin-bottom:12px">${r.roleTxt} · สาขา${r.branchTxt}</div>
+    <table>
+      ${line('เวรที่จัด / มาทำงาน',`${r.shiftN} / ${r.workN} วัน`)}
+      ${line('ชั่วโมงทำงานจริง',`${r.hours} ชม.`)}
+      ${line('มาตรงเวลา',`${r.onTime} วัน (${onPct}%)`)}
+      ${line('มาสาย',`${r.lateN} ครั้ง${r.lateMin?' รวม '+r.lateMin+' นาที':''}${r.lateDowTxt?' — '+r.lateDowTxt:''}`)}
+      ${line('ลืมเช็คเอาท์',r.missingOut?`${r.missingOut} วัน (${r.missingOutDays.map(thDayShort).join(' · ')})`:'ไม่มี')}
+      ${line('ลา (อนุมัติแล้ว)',lvTxt)}
+      ${line('ขาดงาน (ไม่ได้ลา)',r.absent.length?`${r.absent.length} วัน (${r.absent.map(thDayShort).join(' · ')})`:'ไม่มี')}
+    </table>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:#8A948E;margin-top:14px"><span>พิมพ์เมื่อ ${new Date().toLocaleString('th-TH')}</span><span>เอกสารออกโดยระบบ ใหม่เภสัช</span></div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>
+  <script>function savePng(){if(typeof html2canvas!=='function'){alert('ยังโหลดตัวแปลงรูปไม่เสร็จ ลองใหม่อีกครั้ง (ต้องต่อเน็ต)');return;}
+    html2canvas(document.getElementById('rep'),{scale:3,backgroundColor:'#ffffff'}).then(function(cv){
+      const a=document.createElement('a');a.download='รายงาน_${slipEsc(r.name)}_${_srMonth}.png';a.href=cv.toDataURL('image/png');a.click();});}<\/script>
+  </body></html>`;
+  downloadHTML(html,`รายงาน_${r.name}_${_srMonth}.html`);
+  showToast('ดาวน์โหลดแล้ว — เปิดไฟล์แล้วกด "บันทึกเป็นรูป (PNG)" แชร์ไลน์ได้เลย หรือพิมพ์/PDF');
+};
+
+// ===== 🔄 สลับเวร/ฝากเวร + 📣 ประกาศร้าน (ชุด F, v4.44) =====
+let _swList=[],_annList=[];
+async function loadSwaps(){try{const s=await getDocs(collection(db,'shiftSwaps'));_swList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||''));}catch(e){_swList=[];}}
+async function loadAnns(){try{const s=await getDocs(collection(db,'announcements'));_annList=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.at||'').localeCompare(a.at||''));}catch(e){_annList=[];}}
+function _swShiftTxt(sn){return sn?`${thDayShort(sn.date)} · ${BRANCHES[+sn.branch]||''} ${sn.start||''}–${sn.end||''}`:'—';}
+// พนักงานขอสลับ/ฝากเวร (เปิดจากเวรตัวเองในตารางเวร)
+window.swapPrompt=async function(sid){
+  const s=shifts.find(x=>x.id===sid);if(!s)return;
+  if(!allMembers.length)await loadMembers();
+  const others=allMembers.filter(m=>m.status==='active'&&!m.isClone&&m.uid!==currentUser?.uid);
+  if(!others.length){showToast('ไม่มีเพื่อนร่วมงานให้เลือก','err');return;}
+  const opts=others.map(m=>`<option value="${m.uid}">${slipEsc(`${m.firstName||''} ${m.lastName||''}`.trim()||m.email)}</option>`).join('');
+  openModal(`<div class="modal-title">🔄 ขอสลับ/ฝากเวร</div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px">เวรของฉัน: <b>${_swShiftTxt(s)}</b></div>
+    <div style="display:flex;gap:7px;margin-bottom:6px">
+      <div class="sc-opt on" data-v="swap" onclick="swType('swap')" style="flex:1;margin:0"><span class="sc-rad"></span><span class="sc-ot"><b>🤝 สลับเวร</b><small>แลกเวรกับเพื่อน</small></span></div>
+      <div class="sc-opt" data-v="give" onclick="swType('give')" style="flex:1;margin:0"><span class="sc-rad"></span><span class="sc-ot"><b>📦 ฝากเวร</b><small>ให้เพื่อนทำแทน</small></span></div>
+    </div>
+    <div class="field"><label class="fl">กับใคร</label><select id="sw-peer" onchange="swPeerShifts()">${opts}</select></div>
+    <div class="field" id="sw-bwrap"><label class="fl">เอาเวรวันไหนของเขามาแลก</label><select id="sw-bshift"></select></div>
+    <div class="field"><label class="fl">เหตุผล (เพื่อน+แอดมินเห็น)</label><input type="text" id="sw-reason" placeholder="เช่น มีธุระที่อำเภอ"></div>
+    <div style="font-size:11px;color:var(--text3)">ขั้นตอน: ① ส่งคำขอ → ② เพื่อนกดรับ → ③ แอดมินอนุมัติ → ตารางเวรอัปเดตให้อัตโนมัติ</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="swapSend('${sid}')">📨 ส่งคำขอ</button></div>`);
+  window._swType='swap';swPeerShifts();
+};
+window.swType=function(v){window._swType=v;document.querySelectorAll('.sc-opt[data-v]').forEach(el=>el.classList.toggle('on',el.dataset.v===v));const w=document.getElementById('sw-bwrap');if(w)w.style.display=v==='swap'?'':'none';};
+window.swPeerShifts=function(){
+  const uid=document.getElementById('sw-peer')?.value;
+  const sel=document.getElementById('sw-bshift');if(!sel)return;
+  const today=todayStr();
+  const list=(shifts||[]).filter(x=>x.staffId===uid&&x.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,40);
+  sel.innerHTML=list.length?list.map(x=>`<option value="${x.id}">${_swShiftTxt(x)}</option>`).join(''):'<option value="">— เขาไม่มีเวรล่วงหน้า —</option>';
+};
+window.swapSend=async function(sid){
+  const s=shifts.find(x=>x.id===sid);if(!s)return;
+  const type=window._swType||'swap';
+  const peerUid=document.getElementById('sw-peer')?.value;
+  const peer=allMembers.find(m=>m.uid===peerUid);
+  if(!peer){showToast('เลือกเพื่อนก่อน','err');return;}
+  let shiftB=null,shiftBId='';
+  if(type==='swap'){
+    shiftBId=document.getElementById('sw-bshift')?.value||'';
+    const b=shifts.find(x=>x.id===shiftBId);
+    if(!b){showToast('เลือกเวรของเพื่อนที่จะเอามาแลกก่อน','err');return;}
+    shiftB={date:b.date,branch:b.branch,start:b.start,end:b.end};
+  }
+  const reason=(document.getElementById('sw-reason')?.value||'').trim();
+  const myName=memberName(currentUser?.uid)||'';
+  const peerName=`${peer.firstName||''} ${peer.lastName||''}`.trim()||peer.email;
+  const rec={type,fromUid:currentUser.uid,fromName:myName,toUid:peerUid,toName:peerName,
+    shiftAId:sid,shiftA:{date:s.date,branch:s.branch,start:s.start,end:s.end},
+    shiftBId,shiftB,reason,status:'waiting_peer',at:new Date().toISOString()};
+  try{
+    await setDoc(doc(db,'shiftSwaps','sw_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),rec);
+    logActivity('shift_swap_request',`${type==='swap'?'ขอสลับเวรกับ':'ขอฝากเวรให้'} ${peerName} (${s.date})`);
+    closeMD();showToast('ส่งคำขอแล้ว 📨 — รอเพื่อนกดรับ แล้วแอดมินอนุมัติ');
+    if(typeof renderHomeSwapAnn==='function')renderHomeSwapAnn();
+  }catch(e){showToast('ส่งไม่ได้: '+(e?.message||e)+' — อาจต้องอัป Firestore rules ก่อน','err');}
+};
+// เพื่อนกดรับ/ปฏิเสธ
+window.swapPeerAct=async function(id,accept){
+  const w=_swList.find(x=>x.id===id);if(!w)return;
+  try{
+    await updateDoc(doc(db,'shiftSwaps',id),accept?{status:'waiting_admin',peerAt:new Date().toISOString()}:{status:'rejected',rejectedBy:'peer'});
+    w.status=accept?'waiting_admin':'rejected';
+    showToast(accept?'รับแล้ว ✓ — รอแอดมินอนุมัติ ตารางจะอัปเดตเอง':'ปฏิเสธคำขอแล้ว');
+    if(typeof renderHomeSwapAnn==='function')renderHomeSwapAnn();
+  }catch(e){showToast('ทำรายการไม่ได้: '+(e?.message||e),'err');}
+};
+// แอดมินอนุมัติ → สลับ staffId ในตารางจริง
+window.swapAdminAct=async function(id,approve){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  const w=_swList.find(x=>x.id===id);if(!w)return;
+  if(!approve){
+    try{await updateDoc(doc(db,'shiftSwaps',id),{status:'rejected',rejectedBy:'admin'});w.status='rejected';showToast('ปฏิเสธแล้ว');swapManage();}catch(e){showToast('ไม่สำเร็จ: '+e.message,'err');}
+    return;
+  }
+  const a=shifts.find(x=>x.id===w.shiftAId);
+  const b=w.type==='swap'?shifts.find(x=>x.id===w.shiftBId):null;
+  if(!a||(w.type==='swap'&&!b)){showToast('เวรในคำขอถูกแก้/ลบไปแล้ว — อนุมัติไม่ได้ (ปฏิเสธแล้วจัดตารางเองได้)','err');return;}
+  a.staffId=w.toUid;
+  if(b)b.staffId=w.fromUid;
+  saveLocal();syncShiftsToCloud();
+  try{
+    await updateDoc(doc(db,'shiftSwaps',id),{status:'done',adminAt:new Date().toISOString(),adminBy:memberName(currentUser?.uid)||''});
+    w.status='done';
+    logActivity('shift_swap_approve',`อนุมัติ${w.type==='swap'?'สลับเวร':'ฝากเวร'} ${w.fromName} → ${w.toName} (${w.shiftA?.date||''})`);
+    showToast('อนุมัติแล้ว ✓ ตารางเวรอัปเดตให้เอง');
+    if(typeof scRender==='function')scRender();
+    swapManage();
+  }catch(e){showToast('อัปเดตสถานะไม่ได้: '+e.message,'err');}
+};
+// รายการคำขอทั้งหมด (แอดมินจัดการ / ทุกคนดูได้)
+window.swapManage=async function(){
+  loading(true);await loadSwaps();if(!allMembers.length)await loadMembers();loading(false);
+  const rows=_swList.slice(0,30).map(w=>{
+    const st=w.status==='waiting_peer'?['รอเพื่อนรับ','var(--amber-l)','var(--amber-t)']
+      :w.status==='waiting_admin'?['รอแอดมินอนุมัติ','var(--amber-l)','var(--amber-t)']
+      :w.status==='done'?['✓ สำเร็จ — ตารางสลับแล้ว','var(--green-l)','var(--green-dd)']
+      :['ปฏิเสธแล้ว'+(w.rejectedBy==='admin'?' (แอดมิน)':w.rejectedBy==='peer'?' (เพื่อน)':''),'var(--red-l)','var(--red-t)'];
+    return `<div style="border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:8px;${(w.status==='done'||w.status==='rejected')?'opacity:.7':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:12.5px">${w.type==='swap'?'🤝':'📦'} ${slipEsc(w.fromName)} ${w.type==='swap'?'↔':'→'} ${slipEsc(w.toName)}</b><span style="font-size:9.5px;font-weight:800;border-radius:14px;padding:2px 9px;background:${st[1]};color:${st[2]}">${st[0]}</span></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:3px;line-height:1.6">${_swShiftTxt(w.shiftA)}${w.type==='swap'?' ↔ '+_swShiftTxt(w.shiftB):''}${w.reason?'<br>เหตุผล: '+slipEsc(w.reason):''}</div>
+      ${w.status==='waiting_admin'&&isAdmin?`<div style="display:flex;gap:7px;margin-top:8px;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="swapAdminAct('${w.id}',true)">✅ อนุมัติ (ตารางอัปเดตเอง)</button><button class="btn btn-sm" onclick="swapAdminAct('${w.id}',false)">ปฏิเสธ</button></div>`:''}
+    </div>`;}).join('');
+  openModal(`<div class="modal-title">🔄 คำขอสลับ/ฝากเวร</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">พนักงานขอจากเวรตัวเองในตารางเวร → เพื่อนกดรับ → แอดมินอนุมัติ → ตารางอัปเดตอัตโนมัติ</div>
+    ${rows||'<div style="text-align:center;color:var(--text3);padding:1rem">ยังไม่มีคำขอ</div>'}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`,true);
+};
+// ===== 📣 ประกาศร้าน + รับทราบ =====
+window.annManage=async function(){
+  if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
+  loading(true);await loadAnns();if(!allMembers.length)await loadMembers();loading(false);
+  const staff=allMembers.filter(m=>m.status==='active'&&!m.isClone);
+  const rows=_annList.slice(0,20).map(a=>{
+    const acks=a.acks||{};
+    const ackN=staff.filter(m=>acks[m.uid]).length;
+    const notNames=staff.filter(m=>!acks[m.uid]).map(m=>m.nickname||m.firstName||'').filter(Boolean);
+    return `<div style="border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b style="font-size:13px">📣 ${slipEsc(a.title)}</b>
+        <button class="btn btn-sm btn-danger" style="padding:2px 9px;font-size:10.5px" onclick="annDel('${a.id}')">ลบ</button></div>
+      <div style="font-size:12px;color:var(--text2);margin:4px 0;line-height:1.6">${slipEsc(a.body).replace(/\n/g,'<br>')}</div>
+      <div style="font-size:10.5px;color:var(--text3)">โดย ${slipEsc(a.by||'')} · ${a.at?new Date(a.at).toLocaleString('th-TH'):''}</div>
+      <div style="font-size:11px;margin-top:5px"><b style="color:${ackN>=staff.length?'var(--green-d)':'var(--amber-t)'}">รับทราบ ${ackN}/${staff.length}</b>${ackN<staff.length?` · ยังไม่อ่าน: ${slipEsc(notNames.slice(0,6).join(' · '))}${notNames.length>6?' +'+(notNames.length-6):''}`:' ✓ ครบทุกคน'}</div>
+    </div>`;}).join('');
+  openModal(`<div class="modal-title">📣 ประกาศร้าน</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:10px">โพสต์แล้วเด้งหน้าแรกทุกคนจนกว่าจะกด "รับทราบ" — เห็นเลยว่าใครอ่านแล้ว ไม่ต้องไล่ถามในไลน์</div>
+    <div class="field"><label class="fl">หัวข้อประกาศใหม่</label><input type="text" id="ann-title" placeholder="เช่น เปลี่ยนเวลาปิดร้านช่วงสงกรานต์"></div>
+    <div class="field"><label class="fl">ข้อความ</label><textarea id="ann-body" rows="3" style="width:100%;resize:vertical" placeholder="รายละเอียด..."></textarea></div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px"><button class="btn btn-primary" onclick="annPost()">📣 โพสต์ประกาศ</button></div>
+    <div style="font-size:11.5px;font-weight:800;color:var(--text3);margin:0 2px 7px">ประกาศที่ผ่านมา</div>
+    ${rows||'<div style="text-align:center;color:var(--text3);padding:.6rem">ยังไม่มีประกาศ</div>'}
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`,true);
+};
+window.annPost=async function(){
+  const title=(document.getElementById('ann-title')?.value||'').trim();
+  const body=(document.getElementById('ann-body')?.value||'').trim();
+  if(!title){showToast('ใส่หัวข้อก่อน','err');return;}
+  try{
+    await setDoc(doc(db,'announcements','ann_'+Date.now()),{title,body,by:memberName(currentUser?.uid)||'',byUid:currentUser.uid,at:new Date().toISOString(),acks:{}});
+    logActivity('announce',`ประกาศ: ${title}`);
+    showToast('โพสต์ประกาศแล้ว 📣 เด้งหน้าแรกทุกคน');annManage();
+  }catch(e){showToast('โพสต์ไม่ได้: '+(e?.message||e)+' — อาจต้องอัป Firestore rules ก่อน','err');}
+};
+window.annDel=async function(id){
+  if(!await capsuleConfirm('ลบประกาศนี้?'))return;
+  try{await deleteDoc(doc(db,'announcements',id));_annList=_annList.filter(a=>a.id!==id);showToast('ลบแล้ว');annManage();}catch(e){showToast('ลบไม่ได้: '+e.message,'err');}
+};
+window.annAck=async function(id){
+  try{
+    await updateDoc(doc(db,'announcements',id),{[`acks.${currentUser.uid}`]:new Date().toISOString()});
+    const a=_annList.find(x=>x.id===id);if(a){a.acks=a.acks||{};a.acks[currentUser.uid]=new Date().toISOString();}
+    showToast('รับทราบแล้ว ✓ ขอบคุณค่ะ');
+    if(typeof renderHomeSwapAnn==='function')renderHomeSwapAnn();
+  }catch(e){showToast('บันทึกไม่ได้: '+(e?.message||e),'err');}
+};
+// การ์ดหน้าแรก: ประกาศที่ยังไม่รับทราบ + คำขอสลับเวรที่เกี่ยวกับฉัน
+window.renderHomeSwapAnn=async function(){
+  if(!document.getElementById('home-swapann')||!currentUser)return;
+  try{await Promise.all([loadAnns(),loadSwaps()]);}catch(e){}
+  const el=document.getElementById('home-swapann');if(!el)return; // เผื่อออกจากหน้าแล้ว
+  let html='';
+  _annList.filter(a=>!(a.acks||{})[currentUser.uid]).slice(0,3).forEach(a=>{
+    html+=`<div style="border:1.5px solid var(--amber-t);background:var(--amber-l);border-radius:14px;padding:13px 15px;margin-bottom:12px">
+      <div style="font-weight:800;font-size:13.5px;color:var(--amber-t)">📣 ${slipEsc(a.title)}</div>
+      ${a.body?`<div style="font-size:12.5px;color:var(--amber-t);opacity:.85;margin:4px 0 9px;line-height:1.65">${slipEsc(a.body).replace(/\n/g,'<br>')}</div>`:'<div style="margin-bottom:9px"></div>'}
+      <button class="btn btn-primary btn-sm" onclick="annAck('${a.id}')">✋ รับทราบแล้ว</button>
+      <div style="font-size:10px;color:var(--amber-t);opacity:.75;margin-top:6px">โดย ${slipEsc(a.by||'')} · ${a.at?new Date(a.at).toLocaleDateString('th-TH',{day:'numeric',month:'short'}):''}</div>
+    </div>`;
+  });
+  _swList.filter(w=>w.status==='waiting_peer'&&w.toUid===currentUser.uid).forEach(w=>{
+    html+=`<div style="border:1.5px solid var(--blue-t);background:var(--blue-l);border-radius:14px;padding:13px 15px;margin-bottom:12px">
+      <div style="font-weight:800;font-size:13px;color:var(--blue-t)">${w.type==='swap'?'🤝 ขอสลับเวรกับคุณ':'📦 ขอฝากเวรให้คุณ'} — ${slipEsc(w.fromName)}</div>
+      <div style="font-size:12px;color:var(--blue-t);opacity:.85;margin:4px 0 9px;line-height:1.65">${_swShiftTxt(w.shiftA)}${w.type==='swap'?'<br>↔ '+_swShiftTxt(w.shiftB)+' (เวรของคุณ)':''}${w.reason?'<br>เหตุผล: '+slipEsc(w.reason):''}</div>
+      <div style="display:flex;gap:7px"><button class="btn btn-primary btn-sm" onclick="swapPeerAct('${w.id}',true)">✅ รับ</button><button class="btn btn-sm" onclick="swapPeerAct('${w.id}',false)">ปฏิเสธ</button></div>
+    </div>`;
+  });
+  _swList.filter(w=>w.fromUid===currentUser.uid&&(w.status==='waiting_peer'||w.status==='waiting_admin')).slice(0,2).forEach(w=>{
+    html+=`<div style="border:1px solid var(--border);background:var(--surface);border-radius:14px;padding:11px 14px;margin-bottom:12px;font-size:12px;color:var(--text2);box-shadow:var(--shadow)">
+      🔄 คำขอ${w.type==='swap'?'สลับเวร':'ฝากเวร'}ของคุณ (${_swShiftTxt(w.shiftA)}) — <b style="color:var(--amber-t)">${w.status==='waiting_peer'?'รอ '+slipEsc(w.toName)+' กดรับ':'เพื่อนรับแล้ว ✓ รอแอดมินอนุมัติ'}</b>
+    </div>`;
+  });
+  if(isAdmin){
+    const n=_swList.filter(w=>w.status==='waiting_admin').length;
+    if(n)html+=`<div onclick="swapManage()" style="cursor:pointer;border:1.5px solid var(--amber-t);background:var(--amber-l);border-radius:14px;padding:12px 15px;margin-bottom:12px;font-size:12.5px;font-weight:700;color:var(--amber-t)">🔄 มีคำขอสลับ/ฝากเวร รออนุมัติ ${n} รายการ — แตะเพื่อจัดการ</div>`;
+  }
+  el.innerHTML=html;
+};
+
 // 🕑 ลงเวลาแทนพนักงาน (v4.28) — หน้าเดียวจบ + ปฏิทินทั้งเดือนโชว์วันที่ "ลืมลงเวลา" (แดง) จิ้มวันที่จะลงให้
 let _acpUid=null,_acpDate=null,_acpMonth=null;
 window.adminCheckinPicker=async function(uid,autoToday){
@@ -5703,7 +6069,8 @@ window.scDayDetail=function(ds){
     <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--green-ll);border-radius:9px;margin-bottom:8px;border:1px solid var(--border)">
       <span class="badge ${['badge-green','badge-blue','badge-amber'][s.branch]}">${BRANCHES[s.branch]}</span>
       <div style="flex:1"><div style="font-weight:600;font-size:13px">${shiftFullName(s)}</div><div style="font-size:12px;color:var(--text2)">เวรที่จัด: <b>${s.start} – ${s.end}</b></div>${ciLine}</div>
-      ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`:''}
+      ${isAdmin?`<button class="btn btn-sm btn-blue" onclick="scEditShift('${s.id}')">แก้ไข</button>`
+        :(s.staffId&&currentUser&&s.staffId===currentUser.uid&&s.date>=todayStr()?`<button class="btn btn-sm" onclick="swapPrompt('${s.id}')">🔄 ขอสลับ/ฝากเวร</button>`:'')}
     </div>`;}).join(''):'<div style="text-align:center;color:var(--text3);padding:1.5rem;font-size:13px">ยังไม่มีเวรในวันนี้</div>';
   openModal(`<div class="modal-title">📅 ${dateStr}</div>
     ${bdayHtml}${leaveHtml}
@@ -11514,10 +11881,37 @@ function buildDocHtml(d,opts){
     .dsm .tt td{border-top:1.5px solid #16202E;font-weight:800;font-size:12px;padding-top:6px}
     .dsign{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding-top:34px;font-size:9.5px;text-align:center;color:#5A6B7B}
     .dline{border-top:1px dotted #888780;margin-bottom:4px;padding-top:18px}
-    .print-btn{display:block;margin:6px auto 16px;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
-    @media print{body{background:#fff;padding:0}.a4page{border:none;margin:0;page-break-after:always;width:100%}.print-btn{display:none}}
+    .print-btn{display:block;margin:6px auto 0;padding:10px 28px;background:#16202E;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+    .btnrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:6px auto 16px}
+    .btnrow .print-btn{margin:0}
+    .share-btn{background:#127C62}
+    @media print{body{background:#fff;padding:0}.a4page{border:none;margin:0;page-break-after:always;width:100%}.print-btn,.btnrow{display:none}}
   </style></head><body>
-  ${opts&&opts.noBtn?'':'<button class="print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF (ต้นฉบับ + สำเนา)</button>'}
+  ${opts&&opts.noBtn?'':`<div class="btnrow">
+    <button class="print-btn" onclick="window.print()">🖨️ พิมพ์ / บันทึกเป็น PDF (ต้นฉบับ + สำเนา)</button>
+    <button class="print-btn share-btn" onclick="docSharePng()">📤 แชร์เป็นรูป (ส่งไลน์ได้)</button>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"><\/script>
+  <script>
+  // 📤 แชร์เอกสารเป็นรูป PNG — มือถือเด้งเมนูแชร์ (เลือกไลน์ได้เลย) · คอม/ไม่รองรับ = ดาวน์โหลดรูปให้แทน
+  function docSharePng(){
+    if(typeof html2canvas!=='function'){alert('ยังโหลดตัวแปลงรูปไม่เสร็จ ลองใหม่อีกครั้ง (ต้องต่อเน็ต)');return;}
+    var el=document.querySelector('.a4page'); // แชร์เฉพาะต้นฉบับ
+    var name=${JSON.stringify((DOC_TYPES[d.docType]?.label||'เอกสาร')+'_'+(d.docNo||''))}.replace(/[\\\\/:*?"<>|]/g,'-')+'.png';
+    html2canvas(el,{scale:2,backgroundColor:'#ffffff',useCORS:true}).then(function(canvas){
+      canvas.toBlob(function(blob){
+        if(!blob){alert('สร้างรูปไม่สำเร็จ ลองใหม่อีกครั้ง');return;}
+        var file=new File([blob],name,{type:'image/png'});
+        if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){
+          navigator.share({files:[file],title:name}).catch(function(){});
+        }else{
+          var a=document.createElement('a');a.download=name;a.href=canvas.toDataURL('image/png');a.click();
+          alert('เครื่องนี้ไม่มีเมนูแชร์ — บันทึกรูปลงเครื่องให้แล้ว เปิดไลน์แล้วแนบรูปส่งได้เลย');
+        }
+      },'image/png');
+    }).catch(function(e){alert('สร้างรูปไม่สำเร็จ: '+e);});
+  }
+  <\/script>`}
   ${page('ต้นฉบับ (Original)')}
   ${page('สำเนา (Copy)')}
   </body></html>`;
@@ -12560,6 +12954,7 @@ function renderHome(){
     </div>
   </div>`;
   html+=`<div id="home-guide"></div>`;
+  html+=`<div id="home-swapann"></div>`;
   html+=`<div id="home-slip-banner"></div>`;
   html+=`<div id="home-todo-card"></div>`;
   html+=`<div id="home-insights"></div>`;
@@ -12698,6 +13093,7 @@ function renderHome(){
   if((isAdmin||hasPerm('dashboard_admin'))&&document.getElementById('home-staff-status')){renderHomeTeam('home-staff-status');}
   if(typeof refreshTodoStatus==='function')refreshTodoStatus();
   if(typeof renderHomeGuide==='function')renderHomeGuide();
+  if(typeof renderHomeSwapAnn==='function')renderHomeSwapAnn(); // 🆕 ประกาศ+คำขอสลับเวร
   checkMySlipBanner(); // 🆕 แจ้ง "สลิปเงินเดือนออกแล้ว"
   // init กราฟหน้าแรก (สลับชนิด/ช่วงเวลา/ช่วงวันที่กำหนดเองได้)
   window.drawHomeChart=function(){
