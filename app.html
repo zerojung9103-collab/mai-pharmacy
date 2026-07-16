@@ -1793,8 +1793,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.46.0';
+const APP_VERSION='4.46.1';
 const CHANGELOG=[
+  {v:'4.46.1',date:'2026-07-16',changes:[
+    '✍️ ช่องเซ็น: ปล่อยช่องไหนว่าง ช่องอื่นจะ "อยู่ตำแหน่งเดิม" ไม่เลื่อนมาชิดกันแล้ว (เว้นที่ว่างตรงช่องที่ซ่อนไว้) — เช่น ว่างช่องกลาง ช่องที่ 3 ยังอยู่ขวาสุดเหมือนเดิม',
+  ]},
   {v:'4.46.0',date:'2026-07-16',changes:[
     '✍️ เอกสารการค้า: แก้ข้อความ "ช่องเซ็นท้ายเอกสาร" ได้อิสระแล้ว — ในการ์ด "ข้อมูลเอกสาร" มี 3 ช่องให้พิมพ์เอง (เช่น เปลี่ยน "ผู้รับสินค้า" เป็น "ผู้ตรวจสอบสินค้า" หรือ "ผู้มีอำนาจลงนาม") · ปล่อยช่องไหนว่าง = ไม่พิมพ์ช่องนั้น (เหลือ 2 หรือ 1 ช่อง ช่องที่เหลือขยายเอง) · ปุ่ม ↩︎ กลับค่าเริ่มต้น · แก้เอกสารเก่าก็เปลี่ยนช่องเซ็นได้',
     'ติ๊ก "จำไว้ใช้กับใบต่อๆ ไป" (ผู้ดูแล) = เก็บเป็นค่าเริ่มต้นของร้านทุกเครื่อง · หรือตั้งใน ⚙️ ตั้งค่าเอกสาร ก็ได้ (ที่เดียวกับชื่อหัวเอกสาร) · ข้อความช่องเซ็นบันทึกติดไปกับใบ ใบเก่าไม่เปลี่ยนย้อนหลัง',
@@ -12025,10 +12028,11 @@ function buildDocHtml(d,opts){
               <tr class="tt"><td>รวมทั้งสิ้น</td><td class="r">฿${fmt2(c.net)}</td></tr>
             </table>
           </div>
-          ${(()=>{ // ช่องเซ็น: ใช้ข้อความที่บันทึกมากับใบ (แก้ได้อิสระ) · ช่องว่าง = ไม่พิมพ์
+          ${(()=>{ // ช่องเซ็น: ใช้ข้อความที่บันทึกมากับใบ (แก้ได้อิสระ) · ช่องว่าง = เว้นที่ไว้เฉยๆ (ช่องอื่นไม่ขยับตำแหน่ง)
             const sl=(Array.isArray(d.signLabels)&&d.signLabels.length?d.signLabels:docSignDefaults()).map(x=>String(x==null?'':x).trim());
-            const boxes=sl.map((t,i)=>t?`<div><div class="dline"></div>${slipEsc(t)}${i===0?`<br><span style="font-size:8.5px">( ${slipEsc(d.createdByName||'')} )</span>`:''}</div>`:'').filter(Boolean).join('');
-            return boxes?`<div class="dsign">${boxes}</div>`:'';})()}
+            if(!sl.some(Boolean))return '';
+            const boxes=sl.map((t,i)=>t?`<div><div class="dline"></div>${slipEsc(t)}${i===0?`<br><span style="font-size:8.5px">( ${slipEsc(d.createdByName||'')} )</span>`:''}</div>`:'<div></div>').join('');
+            return `<div class="dsign">${boxes}</div>`;})()}
         </div>
       </td></tr>
       </tbody>
