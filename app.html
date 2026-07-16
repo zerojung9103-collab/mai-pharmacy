@@ -1793,8 +1793,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.45.0';
+const APP_VERSION='4.46.0';
 const CHANGELOG=[
+  {v:'4.46.0',date:'2026-07-16',changes:[
+    '✍️ เอกสารการค้า: แก้ข้อความ "ช่องเซ็นท้ายเอกสาร" ได้อิสระแล้ว — ในการ์ด "ข้อมูลเอกสาร" มี 3 ช่องให้พิมพ์เอง (เช่น เปลี่ยน "ผู้รับสินค้า" เป็น "ผู้ตรวจสอบสินค้า" หรือ "ผู้มีอำนาจลงนาม") · ปล่อยช่องไหนว่าง = ไม่พิมพ์ช่องนั้น (เหลือ 2 หรือ 1 ช่อง ช่องที่เหลือขยายเอง) · ปุ่ม ↩︎ กลับค่าเริ่มต้น · แก้เอกสารเก่าก็เปลี่ยนช่องเซ็นได้',
+    'ติ๊ก "จำไว้ใช้กับใบต่อๆ ไป" (ผู้ดูแล) = เก็บเป็นค่าเริ่มต้นของร้านทุกเครื่อง · หรือตั้งใน ⚙️ ตั้งค่าเอกสาร ก็ได้ (ที่เดียวกับชื่อหัวเอกสาร) · ข้อความช่องเซ็นบันทึกติดไปกับใบ ใบเก่าไม่เปลี่ยนย้อนหลัง',
+  ]},
   {v:'4.45.0',date:'2026-07-15',changes:[
     '🔔 แจ้งเตือนเด้งกลับมาแล้ว! (ย้ายบ้านตัวส่งจาก Netlify เดิม → Cloudflare ที่ใช้อยู่ ไม่มีค่าใช้จ่าย) — เด้งถึงมือถือแม้ไม่ได้เปิดแอป ครบ 14 หัวข้อ: พนักงาน = เตือนก่อนเวร 30 นาที · เลยเวลาเปิดร้าน · หมดเวรยังไม่ปิดร้าน · รอบนับเงินสำรอง · สลิปออก · ผลคำขอลา · สลับ/ฝากเวร (คำขอถึงคุณ-เพื่อนรับ-ผลอนุมัติ) · ประกาศจากร้าน / ผู้ดูแล = เงินปิดร้านไม่ตรง (เด้งทันที) · สาขายังไม่ปิดร้าน · บรีฟค่ำ 21:00 · เงินผิดปกติเช้า 9:00 · คำขอรออนุมัติ · ระบบ/สำรองข้อมูล',
     'เปิด/ปิดเลือกได้รายหัวข้อ + ตั้งช่วงห้ามกวน (ค่าเริ่มต้น 22:00–07:00 เรื่องด่วนเด้งเสมอ) + ปุ่มทดสอบส่งหาตัวเอง — ทั้งหมดอยู่ที่ บัญชีของฉัน → 🔔 การแจ้งเตือนเด้ง · เครื่องที่ยังไม่เปิดจะมีแบนเนอร์ชวนเปิดในกระดิ่ง',
@@ -11539,6 +11543,13 @@ let docList=[],docCustomers=[],docLoaded=false;
 let docProducts=null; // สินค้าเวอร์ชันอัปเดต (นำเข้า CSV ใหม่จาก POS) — ถ้าไม่มีใช้ PRODUCTS_SEED ที่ฝังมากับแอป
 function docGetProducts(){return (docProducts&&docProducts.length)?docProducts:PRODUCTS_SEED;}
 let docCfg=Object.assign({legalName:'ห้างหุ้นส่วนจำกัด ใหม่เภสัช',address:'',taxId:'',branchLabel:'สำนักงานใหญ่',phone:''},JSON.parse(localStorage.getItem('nm_docCfg')||'{}'));
+// ช่องเซ็นท้ายเอกสาร — ข้อความมาตรฐาน 3 ช่อง (แก้ได้อิสระรายใบ + ตั้งค่าเริ่มต้นร้านใน docCfg.signLabels)
+const DOC_SIGN_DEFAULTS=['ผู้ขาย / ผู้ออกเอกสาร','ผู้รับสินค้า / วันที่','ผู้จ่ายเงิน / วันที่'];
+function docSignDefaults(){
+  const s=docCfg.signLabels;
+  // ตั้งว่างทั้ง 3 ช่องได้ = ไม่พิมพ์แถวเซ็นเลย (ถือว่าตั้งใจ) · ไม่เคยตั้ง = ใช้ข้อความมาตรฐาน
+  return (Array.isArray(s)&&s.length===3)?s.map(x=>String(x==null?'':x)):DOC_SIGN_DEFAULTS.slice();
+}
 let docForm=null; // null = โหมดรายการ · object = กำลังสร้าง/แก้
 const fmt2=n=>(Math.round((n||0)*100)/100).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const _r2=n=>Math.round((n||0)*100)/100;
@@ -11649,6 +11660,13 @@ window.docNew=function(type){
   renderDocForm();
 };
 window.docCancelForm=function(){docForm=null;renderDocPage();};
+// กลับข้อความช่องเซ็นเป็นค่าเริ่มต้นของร้าน
+window.docSignReset=function(){
+  if(!docForm)return;
+  const d=docSignDefaults();
+  docForm._sign1=d[0];docForm._sign2=d[1];docForm._sign3=d[2];
+  renderDocForm();showToast('กลับเป็นค่าเริ่มต้นแล้ว ↩︎');
+};
 function docCalc(f){
   const gross=_r2((f.items||[]).reduce((a,it)=>a+((parseFloat(it.qty)||0)*(parseFloat(it.price)||0)),0));
   let disc=f.discountMode==='pct'?_r2(gross*(parseFloat(f.discountValue)||0)/100):_r2(parseFloat(f.discountValue)||0);
@@ -11727,6 +11745,18 @@ function renderDocForm(){
           <input type="text" value="${(f._createdByName!=null?f._createdByName:(f._origCreatedByName||memberName(currentUser?.uid)||profile?.nickname||'')).replace(/"/g,'&quot;')}" placeholder="ชื่อที่พิมพ์บนเอกสาร" oninput="docFieldUpd('_createdByName',this.value)" style="width:100%"></div>
       </div>
       <div style="font-size:10.5px;color:var(--text3);margin-top:5px">${f._editId?'แก้เลขที่/วันที่ได้ (ระวังเลขซ้ำกับใบอื่น)':'ปล่อยเลขที่ว่างไว้ ระบบจะออกให้เอง เช่น '+docNextNo(f.type)+' · หรือพิมพ์เลขเองก็ได้'}</div>
+      <div style="border-top:1px dashed var(--border2);margin-top:10px;padding-top:9px">
+        <div style="font-size:12px;font-weight:800;color:var(--text3)">✍️ ช่องเซ็นท้ายเอกสาร <span style="font-weight:500">(พิมพ์แก้ได้อิสระ)</span></div>
+        <div style="font-size:10.5px;color:var(--text3);margin:2px 0 7px">ปล่อยช่องไหนว่าง = ไม่พิมพ์ช่องนั้นบนเอกสาร · ชื่อในวงเล็บใต้ช่องแรก = ผู้จัดทำด้านบน</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          ${[0,1,2].map(i=>`<div style="flex:1;min-width:130px"><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:3px">ช่องเซ็นที่ ${i+1}</label>
+            <input type="text" value="${String(f['_sign'+(i+1)]!=null?f['_sign'+(i+1)]:docSignDefaults()[i]).replace(/"/g,'&quot;')}" placeholder="ว่าง = ซ่อนช่องนี้" oninput="docFieldUpd('_sign${i+1}',this.value)" style="width:100%"></div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="docSignReset()">↩︎ กลับค่าเริ่มต้น</button>
+          ${isAdmin?`<label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text2);font-weight:600;cursor:pointer"><input type="checkbox" id="doc-sign-remember" style="width:15px;height:15px">จำไว้ใช้กับใบต่อๆ ไป (ทั้งร้าน)</label>`:''}
+        </div>
+      </div>
     </div>
 
     <div class="card" style="margin-bottom:10px">
@@ -11995,11 +12025,10 @@ function buildDocHtml(d,opts){
               <tr class="tt"><td>รวมทั้งสิ้น</td><td class="r">฿${fmt2(c.net)}</td></tr>
             </table>
           </div>
-          <div class="dsign">
-            <div><div class="dline"></div>ผู้ขาย / ผู้ออกเอกสาร<br><span style="font-size:8.5px">( ${slipEsc(d.createdByName||'')} )</span></div>
-            <div><div class="dline"></div>ผู้รับสินค้า / วันที่</div>
-            <div><div class="dline"></div>ผู้จ่ายเงิน / วันที่</div>
-          </div>
+          ${(()=>{ // ช่องเซ็น: ใช้ข้อความที่บันทึกมากับใบ (แก้ได้อิสระ) · ช่องว่าง = ไม่พิมพ์
+            const sl=(Array.isArray(d.signLabels)&&d.signLabels.length?d.signLabels:docSignDefaults()).map(x=>String(x==null?'':x).trim());
+            const boxes=sl.map((t,i)=>t?`<div><div class="dline"></div>${slipEsc(t)}${i===0?`<br><span style="font-size:8.5px">( ${slipEsc(d.createdByName||'')} )</span>`:''}</div>`:'').filter(Boolean).join('');
+            return boxes?`<div class="dsign">${boxes}</div>`:'';})()}
         </div>
       </td></tr>
       </tbody>
@@ -12076,7 +12105,8 @@ function docCompile(){
     customer:{...f.customer},items:f.items.filter(it=>it.name&&(it.qty>0)),
     discountMode:f.discountMode,discountValue:parseFloat(f.discountValue)||0,
     totals:c,note:(f.note||'').trim(),refId:f.refId||null,refNo:f.refNo||null,chain:f.chain||[],
-    createdByName:(f._createdByName||'').trim()||f._origCreatedByName||memberName(currentUser?.uid)||profile?.nickname||''
+    createdByName:(f._createdByName||'').trim()||f._origCreatedByName||memberName(currentUser?.uid)||profile?.nickname||'',
+    signLabels:[1,2,3].map(i=>String(f['_sign'+i]!=null?f['_sign'+i]:docSignDefaults()[i-1]).trim())
   };
 }
 window.docPreview=function(){
@@ -12095,6 +12125,16 @@ window.docPreview=function(){
     </div>`,true);
   document.getElementById('doc-pv-frame').srcdoc=buildDocHtml(rec);
 };
+// ติ๊ก "จำไว้ใช้กับใบต่อๆ ไป" → เก็บข้อความช่องเซ็นเป็นค่าเริ่มต้นของร้าน (config/docSettings)
+function docSignRemember(labels){
+  try{
+    if(!isAdmin||!Array.isArray(labels))return;
+    if(!document.getElementById('doc-sign-remember')?.checked)return;
+    docCfg.signLabels=labels.slice(0,3);
+    localStorage.setItem('nm_docCfg',JSON.stringify(docCfg));
+    setDoc(doc(db,'config','docSettings'),docCfg).then(()=>showToast('จำข้อความช่องเซ็นเป็นค่าเริ่มต้นแล้ว ✍️')).catch(()=>{});
+  }catch(e){}
+}
 function docNextNo(type){
   const yr=new Date().getFullYear()+543;
   const pre=`${type}-${yr}-`;
@@ -12114,8 +12154,9 @@ window.docSave=async function(){
     try{
       const rec=docCompile();
       const upd={docNo:newNo,customer:rec.customer,items:rec.items,discountMode:rec.discountMode,discountValue:rec.discountValue,
-        totals:rec.totals,note:rec.note,date:rec.date,createdByName:rec.createdByName||'',updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''};
+        totals:rec.totals,note:rec.note,date:rec.date,createdByName:rec.createdByName||'',signLabels:rec.signLabels||[],updatedAt:new Date().toISOString(),updatedBy:currentUser?.uid||''};
       await updateDoc(doc(db,'documents',id),upd);
+      docSignRemember(rec.signLabels);
       const idx=docList.findIndex(x=>x.id===id);
       if(idx>=0)docList[idx]={...docList[idx],...upd};
       logActivity('doc_edit',`แก้ไข${DOC_TYPES[rec.docType].label} ${newNo} (${rec.customer?.name||''})`);
@@ -12138,6 +12179,7 @@ window.docSave=async function(){
     rec.createdAt=new Date().toISOString();
     const id='doc_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
     await setDoc(doc(db,'documents',id),rec);
+    docSignRemember(rec.signLabels);
     docList.unshift({...rec,id});
     // เก็บลูกค้าเข้าสมุด (ถ้ายังไม่มี — เทียบจากเลขภาษีหรือชื่อ)
     const cu=rec.customer;
@@ -12214,7 +12256,10 @@ window.docEdit=function(id){
   docForm={type:d.docType,customer:{...(d.customer||{})},items:(d.items||[]).map(it=>({...it})),
     discountMode:d.discountMode||'baht',discountValue:d.discountValue||0,note:d.note||'',
     refId:d.refId||null,refNo:d.refNo||null,chain:[...(d.chain||[])],
-    _editId:id,_docNo:d.docNo,_date:d.date,_origCreatedByName:d.createdByName||''};
+    _editId:id,_docNo:d.docNo,_date:d.date,_origCreatedByName:d.createdByName||'',
+    _sign1:Array.isArray(d.signLabels)?String(d.signLabels[0]??''):null,
+    _sign2:Array.isArray(d.signLabels)?String(d.signLabels[1]??''):null,
+    _sign3:Array.isArray(d.signLabels)?String(d.signLabels[2]??''):null};
   if(!docForm.items.length)docForm.items.push({name:'',qty:1,price:0});
   if(currentPage!=='documents')goto('documents');
   renderDocForm();
@@ -12249,6 +12294,14 @@ window.docSettingsPrompt=function(){
         <input type="text" id="dc-phone" value="${(docCfg.phone||'').replace(/"/g,'&quot;')}" style="width:100%"></div>
     </div>
     <div style="border-top:1px dashed var(--border2);margin-top:14px;padding-top:12px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px">✍️ ช่องเซ็นท้ายเอกสาร (ค่าเริ่มต้นทุกใบ)</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">พิมพ์แก้ได้อิสระ · ปล่อยว่าง = ไม่พิมพ์ช่องนั้น · แต่ละใบยังแก้ทับได้ตอนกรอก</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${[0,1,2].map(i=>`<div style="flex:1;min-width:120px"><label style="font-size:11px;color:var(--text2);font-weight:600;display:block;margin-bottom:3px">ช่องเซ็นที่ ${i+1}</label>
+          <input type="text" id="dc-sign${i+1}" value="${String(docSignDefaults()[i]).replace(/"/g,'&quot;')}" placeholder="ว่าง = ซ่อน" style="width:100%"></div>`).join('')}
+      </div>
+    </div>
+    <div style="border-top:1px dashed var(--border2);margin-top:14px;padding-top:12px">
       <div style="font-size:12px;font-weight:700;margin-bottom:4px">📦 ฐานข้อมูลสินค้า (${docGetProducts().length.toLocaleString('th-TH')} รายการ)</div>
       <div style="font-size:11px;color:var(--text3);margin-bottom:8px">ราคาสินค้าเปลี่ยน → export ไฟล์ CSV ชุดเดิมจาก POS (hygeia) แล้วอัปโหลดตรงนี้ ระบบอัปเดตให้ทุกเครื่อง</div>
       <input type="file" id="dc-products-file" accept=".csv,text/csv" onchange="docImportProducts(this)" style="display:none">
@@ -12262,6 +12315,7 @@ window.docSettingsSave=async function(){
   docCfg.taxId=document.getElementById('dc-taxid').value.trim();
   docCfg.branchLabel=document.getElementById('dc-branchlabel').value;
   docCfg.phone=document.getElementById('dc-phone').value.trim();
+  docCfg.signLabels=[1,2,3].map(i=>(document.getElementById('dc-sign'+i)?.value||'').trim());
   localStorage.setItem('nm_docCfg',JSON.stringify(docCfg));
   try{await setDoc(doc(db,'config','docSettings'),docCfg);showToast('บันทึกตั้งค่าเอกสารแล้ว ✅');}
   catch(e){showToast('บันทึกขึ้น cloud ไม่ได้: '+e.message,'err');}
