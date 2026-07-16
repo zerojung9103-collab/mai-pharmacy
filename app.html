@@ -1793,8 +1793,13 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.44.0';
+const APP_VERSION='4.45.0';
 const CHANGELOG=[
+  {v:'4.45.0',date:'2026-07-15',changes:[
+    '🔔 แจ้งเตือนเด้งกลับมาแล้ว! (ย้ายบ้านตัวส่งจาก Netlify เดิม → Cloudflare ที่ใช้อยู่ ไม่มีค่าใช้จ่าย) — เด้งถึงมือถือแม้ไม่ได้เปิดแอป ครบ 14 หัวข้อ: พนักงาน = เตือนก่อนเวร 30 นาที · เลยเวลาเปิดร้าน · หมดเวรยังไม่ปิดร้าน · รอบนับเงินสำรอง · สลิปออก · ผลคำขอลา · สลับ/ฝากเวร (คำขอถึงคุณ-เพื่อนรับ-ผลอนุมัติ) · ประกาศจากร้าน / ผู้ดูแล = เงินปิดร้านไม่ตรง (เด้งทันที) · สาขายังไม่ปิดร้าน · บรีฟค่ำ 21:00 · เงินผิดปกติเช้า 9:00 · คำขอรออนุมัติ · ระบบ/สำรองข้อมูล',
+    'เปิด/ปิดเลือกได้รายหัวข้อ + ตั้งช่วงห้ามกวน (ค่าเริ่มต้น 22:00–07:00 เรื่องด่วนเด้งเสมอ) + ปุ่มทดสอบส่งหาตัวเอง — ทั้งหมดอยู่ที่ บัญชีของฉัน → 🔔 การแจ้งเตือนเด้ง · เครื่องที่ยังไม่เปิดจะมีแบนเนอร์ชวนเปิดในกระดิ่ง',
+    '⚙️ ติดตั้งครั้งแรก (ผู้ดูแลทำครั้งเดียว): วางกุญแจ 2 ตัวตามไฟล์ "วิธีเปิดแจ้งเตือนเด้ง.md" — (1) กุญแจ Web Push จาก Firebase วางในแอป (2) กุญแจ Service Account วางใน Cloudflare · iPhone ต้องติดตั้งแอปลงหน้าจอโฮมก่อนถึงจะรับแจ้งเตือนได้ (iOS 16.4 ขึ้นไป)',
+  ]},
   {v:'4.44.0',date:'2026-07-15',changes:[
     '🔄 สลับเวร/ฝากเวรได้เองแล้ว! — พนักงานเปิดเวรตัวเองในตารางเวร → กด "ขอสลับ/ฝากเวร": สลับ = แลกเวรกับเพื่อน (เลือกคน+เวรของเขา) · ฝาก = ให้เพื่อนทำแทน · เดิน 3 ขั้น: เพื่อนกดรับ → แอดมินอนุมัติ → ตารางเวรอัปเดตให้อัตโนมัติ ไม่ต้องแก้มือ · คำขอเด้งการ์ดหน้าแรกของคนเกี่ยวข้อง เห็นสถานะตลอดทาง ปฏิเสธได้ทุกขั้น',
     '📣 ประกาศร้าน + รับทราบ — แอดมินโพสต์จาก เครื่องมือแอดมิน → เด้งการ์ดเหลืองหน้าแรกทุกคนจนกว่าจะกด "✋ รับทราบ" · แอดมินเห็นเลยว่าใครอ่านแล้ว/ยังไม่อ่าน (ชื่อคนยังไม่อ่านโชว์ให้) ไม่ต้องไล่ถามในไลน์ · ประกาศเก่าย้อนดูได้',
@@ -3009,6 +3014,7 @@ function _logJsError(msg,src){
   if(_jsErrSeen.size>=5||_jsErrSeen.has(msg))return; // กันสแปม: เรื่องซ้ำไม่ลงซ้ำ และไม่เกิน 5 เรื่อง/การเปิดแอป
   _jsErrSeen.add(msg);
   try{logActivity('js_error','v'+APP_VERSION+' · '+msg+(src?' · '+src:'')+' · '+(navigator.userAgent||'').slice(0,70));}catch(e){}
+  try{if(typeof notifyEvent==='function')notifyEvent('js_error',{msg:'v'+APP_VERSION+' · '+msg});}catch(e){}
 }
 window.addEventListener('error',e=>{try{_logJsError(e.message,((e.filename||'').split('/').pop())+':'+(e.lineno||0));}catch(_){}});
 window.addEventListener('unhandledrejection',e=>{try{const r=e.reason;_logJsError(String((r&&r.message)||r||'promise ล้มเหลว'),'promise');}catch(_){}});
@@ -3380,6 +3386,7 @@ window.openAccountMenu=function(){
     <button class="assist-chip" onclick="closeMD();showChangelog()"><span class="ic">📋</span><span>เวอร์ชัน ${APP_VERSION}${isAdmin?' — ดูประวัติอัปเดต':''}</span></button>
     <button class="assist-chip" onclick="checkAppUpdate()"><span class="ic">🔄</span><span>อัปเดตโปรแกรม / ตรวจรุ่นล่าสุด</span></button>
     ${isAdmin?`<button class="assist-chip" onclick="backupDownload()"><span class="ic">💾</span><span>สำรองข้อมูลทั้งร้าน (ดาวน์โหลดไฟล์)</span></button>`:''}
+    <button class="assist-chip" onclick="notifPrompt()"><span class="ic">🔔</span><span>การแจ้งเตือนเด้ง</span></button>
     <button class="assist-chip" onclick="openMiniWindow()"><span class="ic">📌</span><span>หน้าต่างลอยมินิ (บนคอม) — งานวันนี้</span></button>
     <button class="assist-chip" onclick="closeMD();goto('theme')"><span class="ic">🎨</span><span>ธีมของฉัน</span></button>
     <button class="assist-chip" id="acc-install-btn" onclick="installApp()" style="display:none"><span class="ic">⬇️</span><span>ติดตั้งแอปลงเครื่อง</span></button>
@@ -3476,6 +3483,140 @@ async function autoCheckUpdate(){
 setTimeout(autoCheckUpdate,8000);
 setInterval(autoCheckUpdate,4*3600000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)autoCheckUpdate();});
+
+// ===== 🔔 การแจ้งเตือนเด้ง (Push Notifications ผ่าน Firebase Cloud Messaging) =====
+// ตัวส่งอยู่ใน worker-entry.js (Cloudflare Worker ตัวเดียวกับที่เสิร์ฟเว็บ) — เส้นทาง /notify + cron ทุก 10 นาที
+// หัวข้อทั้งหมด — ผู้ใช้เปิด/ปิดเองได้รายหัวข้อ (ค่าเริ่มต้น: เปิดทุกอัน)
+const NOTIF_TOPICS=[
+  {k:'shift_pre',ic:'⏰',t:'ก่อนเวรเริ่ม 30 นาที',d:'เตือนเช็คอินก่อนถึงเวรของคุณ'},
+  {k:'open_late',ic:'☀️',t:'เลยเวลาเปิดร้าน',d:'ร้านยังไม่เปิดหลังเวลาเวรเช้า 15 นาที'},
+  {k:'close_forgot',ic:'🌙',t:'หมดเวรยังไม่ปิดร้าน',d:'เตือนลงยอดขาย + ปิดร้านหลังหมดเวร'},
+  {k:'reservecount',ic:'🪙',t:'ถึงรอบนับเงินสำรอง',d:'วันนับประจำสัปดาห์ของสาขาที่คุณอยู่เวร'},
+  {k:'slip',ic:'🧾',t:'สลิปเงินเดือนออก',d:'เด้งทันทีเมื่อผู้ดูแลจ่ายเงินเดือน'},
+  {k:'leave_result',ic:'🌴',t:'ผลคำขอลา',d:'อนุมัติ / ไม่อนุมัติ'},
+  {k:'swap',ic:'🔄',t:'สลับ/ฝากเวร',d:'คำขอถึงคุณ · เพื่อนกดรับ · ผลอนุมัติ'},
+  {k:'announce',ic:'📢',t:'ประกาศจากร้าน',d:'ข้อความประกาศถึงทุกคน'},
+  {k:'adm_close_diff',ic:'💸',t:'เงินปิดร้านไม่ตรง',d:'เด้งทันทีพร้อมยอดขาด/เกิน (ไม่ติดช่วงห้ามกวน)',adm:1},
+  {k:'adm_not_closed',ic:'🚨',t:'สาขายังไม่ปิดร้าน',d:'เลยเวลาปิด 40 นาทีแล้วยังไม่ปิด',adm:1},
+  {k:'adm_brief',ic:'📰',t:'บรีฟค่ำ ~21:00',d:'สรุปยอดวันนี้ทุกสาขาวันละครั้ง',adm:1},
+  {k:'adm_money',ic:'🧰',t:'เงินผิดปกติ (เช้า ~9:00)',d:'เซฟเกินเกณฑ์ / สำรอง-ลิ้นชักต่ำกว่ามาตรฐาน',adm:1},
+  {k:'adm_requests',ic:'✏️',t:'คำขอรออนุมัติ',d:'คำขอแก้ยอดขาย / คำขอลา / คำขอสลับเวร',adm:1},
+  {k:'adm_sys',ic:'🐞',t:'ระบบ / สำรองข้อมูล',d:'แอปมีข้อผิดพลาด + เตือนรอบสำรองข้อมูล',adm:1},
+];
+async function notifSupported(){
+  try{
+    if(!('Notification'in window)||!('serviceWorker'in navigator))return false;
+    const{isSupported}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    return await isSupported();
+  }catch(e){return false;}
+}
+async function notifVapid(){ // กุญแจ Web Push (admin วางครั้งเดียวใน 🔔 การแจ้งเตือน) + ที่อยู่ตัวส่ง (ถ้าตั้งไว้)
+  try{
+    if(window._vapidKey!==undefined)return window._vapidKey;
+    const s=await getDoc(doc(db,'config','notifSettings'));
+    const d=s.exists()?s.data():{};
+    window._vapidKey=d.vapidKey||'';
+    if(d.fnUrl)window._notifFnUrl=d.fnUrl; // เผื่อวันหน้าย้ายตัวส่งไปที่อื่น — ปกติไม่ต้องตั้ง
+    return window._vapidKey;
+  }catch(e){return '';}
+}
+// เปิดรับแจ้งเตือนที่เครื่องนี้ — ขอสิทธิ์ + ลงทะเบียน token เก็บในโปรไฟล์
+window.notifEnable=async function(){
+  if(isTester){showToast('🧪 โหมดผู้ทดสอบไม่รับแจ้งเตือนจริง');return;}
+  if(!await notifSupported()){showToast('เครื่องนี้ยังไม่รองรับ — iPhone ต้องเปิดแอปจากไอคอนหน้าจอโฮม (iOS 16.4 ขึ้นไป)','err');return;}
+  const vapid=await notifVapid();
+  if(!vapid){showToast(isAdmin?'ยังไม่ได้ติดตั้งกุญแจระบบ — เปิด 🔔 การแจ้งเตือนเด้ง ในบัญชีของฉัน':'ระบบแจ้งเตือนยังไม่เปิดใช้ — แจ้งผู้ดูแลร้าน','err');return;}
+  try{
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){showToast('ไม่ได้รับอนุญาต — เปิดได้ในตั้งค่าแจ้งเตือนของเครื่อง','err');return;}
+    const {getMessaging,getToken}=await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js');
+    window._msging=window._msging||getMessaging(app);
+    const reg=await navigator.serviceWorker.ready;
+    const tk=await getToken(window._msging,{vapidKey:vapid,serviceWorkerRegistration:reg});
+    if(!tk){showToast('ลงทะเบียนไม่สำเร็จ ลองใหม่อีกครั้ง','err');return;}
+    let h=5381;for(let i=0;i<tk.length;i++)h=((h*33)^tk.charCodeAt(i))>>>0;
+    await updateDoc(doc(db,'members',currentUser.uid),{['fcmTokens.tk_'+h.toString(36)]:{t:tk,ua:(navigator.userAgent||'').slice(0,60),at:new Date().toISOString()}});
+    localStorage.setItem('nm_push_on','1');
+    showToast('เปิดการแจ้งเตือนแล้ว 🔔 เครื่องนี้จะได้รับแจ้งเตือนจากร้าน');
+    logActivity('notif_on','เปิดการแจ้งเตือนเด้งบนเครื่องนี้');
+    if(typeof checkNotifications==='function')checkNotifications();
+  }catch(e){showToast('เปิดไม่สำเร็จ: '+(e?.message||e),'err');}
+};
+// ยิงเหตุการณ์ไปตัวส่ง (/notify บนเว็บเดียวกัน) — เงียบๆ พลาดก็ไม่กวนงานหลัก
+window.notifyEvent=function(type,data){
+  if(isTester)return;
+  try{
+    auth.currentUser?.getIdToken().then(t=>
+      fetch(window._notifFnUrl||'./notify',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+t},body:JSON.stringify({type,data:data||{}})})
+    ).catch(()=>{});
+  }catch(e){}
+};
+// หน้าตั้งค่าการแจ้งเตือน (เปิดจาก 🔔 ในบัญชีของฉัน)
+window.notifPrompt=async function(){
+  const cfg=profile?.notifCfg||{};
+  const t=cfg.topics||{};
+  const q=cfg.quiet||{};
+  const vapid=await notifVapid();
+  const perm=('Notification'in window)?Notification.permission:'unsupported';
+  const stTxt=perm==='granted'?(localStorage.getItem('nm_push_on')?'🔔 เครื่องนี้เปิดรับแล้ว':'อนุญาตแล้ว — กด "เปิดรับ" อีกครั้งเพื่อลงทะเบียน'):(perm==='denied'?'🔕 เครื่องนี้เคยปฏิเสธ — ต้องไปเปิดในตั้งค่าเบราว์เซอร์/เครื่อง':'ยังไม่ได้เปิดรับที่เครื่องนี้');
+  const rows=NOTIF_TOPICS.filter(x=>!x.adm||isAdmin).map(x=>`
+    <label style="display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:11px;padding:9px 12px;margin-bottom:6px;cursor:pointer">
+      <span style="font-size:16px">${x.ic}</span>
+      <span style="flex:1;font-size:12.5px;font-weight:700">${x.t}${x.adm?' <span style="font-size:9px;background:var(--blue-l);color:var(--blue-t);border-radius:8px;padding:1px 6px">ผู้ดูแล</span>':''}<small style="display:block;font-size:10px;color:var(--text3);font-weight:400">${x.d}</small></span>
+      <input type="checkbox" id="ntf-${x.k}" ${t[x.k]!==false?'checked':''} style="width:18px;height:18px">
+    </label>`).join('');
+  openModal(`<div class="modal-title">🔔 การแจ้งเตือนเด้ง</div>
+    ${!vapid&&isAdmin?`<div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:12px;padding:11px 13px;font-size:12px;line-height:1.8;margin-bottom:11px;color:var(--amber-t)">⚠️ <b>ติดตั้งครั้งแรก (ทำครั้งเดียว)</b> — ดูขั้นตอนเต็มในไฟล์ "วิธีเปิดแจ้งเตือนเด้ง.md"<br>1) Firebase Console → Project settings → Cloud Messaging → Web Push certificates → <b>Generate key pair</b> แล้วคัดลอกมาวางที่นี่:
+      <input id="ntf-vapid" placeholder="วางกุญแจ (ตัวอักษรยาว ขึ้นต้น B...)" style="width:100%;margin:6px 0;padding:8px;border:1px solid var(--border2);border-radius:9px;font-size:11px">
+      <button class="btn btn-sm btn-primary" style="width:100%" onclick="notifSaveVapid()">บันทึกกุญแจ</button>
+      <div style="margin-top:5px">2) อย่าลืมวางกุญแจเซิร์ฟเวอร์ (FIREBASE_SERVICE_ACCOUNT) ใน Cloudflare ด้วย — ตามไฟล์ขั้นตอน</div></div>`:''}
+    ${!vapid&&!isAdmin?`<div style="background:var(--amber-l);border-radius:11px;padding:10px 13px;font-size:12px;color:var(--amber-t);margin-bottom:11px">ระบบแจ้งเตือนยังไม่เปิดใช้ — แจ้งผู้ดูแลร้านให้ติดตั้งก่อน</div>`:''}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:12px">
+      <div style="font-size:12px;font-weight:700;margin-bottom:7px">${stTxt}</div>
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-sm btn-primary" style="flex:1" onclick="notifEnable()">🔔 เปิดรับที่เครื่องนี้</button>
+        <button class="btn btn-sm" style="flex:1" onclick="notifTest()">📨 ทดสอบส่งหาฉัน</button>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:800;color:var(--text2);margin-bottom:6px">เลือกหัวข้อที่อยากได้</div>
+    ${rows}
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-top:10px;font-size:12px">
+      <div style="font-weight:700;margin-bottom:6px">😴 ช่วงห้ามกวน (ไม่เด้งช่วงนี้)</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="time" id="ntf-qf" value="${q.from||'22:00'}" style="flex:1"> ถึง <input type="time" id="ntf-qt" value="${q.to||'07:00'}" style="flex:1">
+      </div>
+      <label style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:11.5px;color:var(--text2);cursor:pointer"><input type="checkbox" id="ntf-qoff" ${q.off?'checked':''} style="width:16px;height:16px">ไม่ต้องมีช่วงห้ามกวน (รับได้ตลอด 24 ชม.)</label>
+      <div style="font-size:10px;color:var(--text3);margin-top:5px">* เรื่องด่วน (เงินปิดร้านไม่ตรง/ยังไม่ปิดร้าน) เด้งเสมอแม้อยู่ในช่วงห้ามกวน</div>
+    </div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="notifSave()">💾 บันทึก</button></div>`);
+};
+window.notifSaveVapid=async function(){
+  const v=(document.getElementById('ntf-vapid')?.value||'').trim();
+  if(!v){showToast('วางกุญแจก่อนนะ','err');return;}
+  try{await setDoc(doc(db,'config','notifSettings'),{vapidKey:v},{merge:true});window._vapidKey=v;showToast('บันทึกกุญแจแล้ว ✓');notifPrompt();}
+  catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
+};
+window.notifSave=async function(){
+  const topics={};NOTIF_TOPICS.forEach(x=>{const el=document.getElementById('ntf-'+x.k);if(el)topics[x.k]=el.checked;});
+  const quiet={from:document.getElementById('ntf-qf')?.value||'22:00',to:document.getElementById('ntf-qt')?.value||'07:00',off:!!document.getElementById('ntf-qoff')?.checked};
+  const notifCfg={...(profile?.notifCfg||{}),topics:{...(profile?.notifCfg?.topics||{}),...topics},quiet};
+  try{
+    await updateDoc(doc(db,'members',currentUser.uid),{notifCfg});
+    if(profile)profile.notifCfg=notifCfg;
+    closeMD();showToast('บันทึกการตั้งค่าแจ้งเตือนแล้ว 🔔');
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
+};
+window.notifTest=async function(){
+  showToast('📨 กำลังส่งทดสอบ... รอเด้งสักครู่');
+  try{
+    const t=await auth.currentUser.getIdToken();
+    const r=await fetch(window._notifFnUrl||'./notify',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+t},body:JSON.stringify({type:'test'})});
+    const j=await r.json().catch(()=>({}));
+    if(j.sent)showToast(`ส่งแล้ว ${j.sent} เครื่อง ✓ — ถ้าไม่เด้ง ลองพับแอปไว้แล้วรอ 5 วินาที`);
+    else if(r.ok)showToast('ยังไม่มีเครื่องลงทะเบียน — กด "เปิดรับที่เครื่องนี้" ก่อน','err');
+    else showToast('ตัวส่งยังไม่พร้อม — เช็คว่าตั้ง FIREBASE_SERVICE_ACCOUNT ใน Cloudflare แล้ว (ดูไฟล์ วิธีเปิดแจ้งเตือนเด้ง.md)','err');
+  }catch(e){showToast('ส่งไม่ได้: '+(e?.message||e),'err');}
+};
 
 // ===== 📌 หน้าต่างลอยมินิ (Document Picture-in-Picture) — หน้าต่างเล็กลอยเหนือทุกโปรแกรมบนคอม =====
 window._miniPip=null; window._miniTimer=null;
@@ -4792,6 +4933,7 @@ window.swapSend=async function(sid){
     shiftBId,shiftB,reason,status:'waiting_peer',at:new Date().toISOString()};
   try{
     await setDoc(doc(db,'shiftSwaps','sw_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)),rec);
+    notifyEvent('swap_request',{toUid:peerUid,kind:type,date:s.date});
     logActivity('shift_swap_request',`${type==='swap'?'ขอสลับเวรกับ':'ขอฝากเวรให้'} ${peerName} (${s.date})`);
     closeMD();showToast('ส่งคำขอแล้ว 📨 — รอเพื่อนกดรับ แล้วแอดมินอนุมัติ');
     if(typeof renderHomeSwapAnn==='function')renderHomeSwapAnn();
@@ -4802,6 +4944,7 @@ window.swapPeerAct=async function(id,accept){
   const w=_swList.find(x=>x.id===id);if(!w)return;
   try{
     await updateDoc(doc(db,'shiftSwaps',id),accept?{status:'waiting_admin',peerAt:new Date().toISOString()}:{status:'rejected',rejectedBy:'peer'});
+    notifyEvent('swap_peer',{fromUid:w.fromUid,fromName:w.fromName,ok:!!accept});
     w.status=accept?'waiting_admin':'rejected';
     showToast(accept?'รับแล้ว ✓ — รอแอดมินอนุมัติ ตารางจะอัปเดตเอง':'ปฏิเสธคำขอแล้ว');
     if(typeof renderHomeSwapAnn==='function')renderHomeSwapAnn();
@@ -4812,7 +4955,7 @@ window.swapAdminAct=async function(id,approve){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
   const w=_swList.find(x=>x.id===id);if(!w)return;
   if(!approve){
-    try{await updateDoc(doc(db,'shiftSwaps',id),{status:'rejected',rejectedBy:'admin'});w.status='rejected';showToast('ปฏิเสธแล้ว');swapManage();}catch(e){showToast('ไม่สำเร็จ: '+e.message,'err');}
+    try{await updateDoc(doc(db,'shiftSwaps',id),{status:'rejected',rejectedBy:'admin'});notifyEvent('swap_result',{fromUid:w.fromUid,toUid:w.toUid,ok:false,date:w.shiftA?.date||''});w.status='rejected';showToast('ปฏิเสธแล้ว');swapManage();}catch(e){showToast('ไม่สำเร็จ: '+e.message,'err');}
     return;
   }
   const a=shifts.find(x=>x.id===w.shiftAId);
@@ -4823,6 +4966,7 @@ window.swapAdminAct=async function(id,approve){
   saveLocal();syncShiftsToCloud();
   try{
     await updateDoc(doc(db,'shiftSwaps',id),{status:'done',adminAt:new Date().toISOString(),adminBy:memberName(currentUser?.uid)||''});
+    notifyEvent('swap_result',{fromUid:w.fromUid,toUid:w.toUid,ok:true,date:w.shiftA?.date||''});
     w.status='done';
     logActivity('shift_swap_approve',`อนุมัติ${w.type==='swap'?'สลับเวร':'ฝากเวร'} ${w.fromName} → ${w.toName} (${w.shiftA?.date||''})`);
     showToast('อนุมัติแล้ว ✓ ตารางเวรอัปเดตให้เอง');
@@ -4879,6 +5023,7 @@ window.annPost=async function(){
   if(!title){showToast('ใส่หัวข้อก่อน','err');return;}
   try{
     await setDoc(doc(db,'announcements','ann_'+Date.now()),{title,body,by:memberName(currentUser?.uid)||'',byUid:currentUser.uid,at:new Date().toISOString(),acks:{}});
+    notifyEvent('announce',{text:title+(body?' — '+body:'')});
     logActivity('announce',`ประกาศ: ${title}`);
     showToast('โพสต์ประกาศแล้ว 📣 เด้งหน้าแรกทุกคน');annManage();
   }catch(e){showToast('โพสต์ไม่ได้: '+(e?.message||e)+' — อาจต้องอัป Firestore rules ก่อน','err');}
@@ -8196,6 +8341,7 @@ window.cashDoClose=async function(branch){
     closeMD();renderCashPage();
     showToast(diff===0?'ปิดร้าน · เงินตรงพอดี ✓':(diff>0?`ปิดร้าน · เกิน ฿${fmt(Math.abs(diff))}`:`ปิดร้าน · ขาด ฿${fmt(Math.abs(diff))}`));
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับ ฿${fmt(counted)} (${diff===0?'ตรง':diff>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(diff))})`);
+    if(!isTester&&diff!==0)notifyEvent('close_diff',{branch,diff,by:cashWho()});
     if(window.refreshTodoStatus)refreshTodoStatus();
     setTimeout(()=>showNextStep('close',branch),280);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
@@ -8427,6 +8573,7 @@ window.cashDoCloseAmt=async function(branch,counted){
     closeMD();renderCashPage();
     showToast('ปิดร้านเรียบร้อย 🌙 เงินตรงพอดี ✓');
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} ยืนยันคงเหลือ ฿${fmt(counted)}`);
+    if(!isTester&&diff!==0)notifyEvent('close_diff',{branch,diff,by:cashWho()});
     if(window.refreshTodoStatus)refreshTodoStatus();
     setTimeout(()=>showNextStep('close',branch),280);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
@@ -9157,6 +9304,7 @@ window.submitSalesEditRequest=async function(date,branch){
   const id='req_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
   try{
     await setDoc(doc(db,'editRequests',id),{type:'sales',date,branch,by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,ts:Date.now(),at:new Date().toISOString(),status:'pending',reason,proposed:{amounts,total,billCount}});
+    notifyEvent('edit_request',{branch,date});
     closeMD();showToast('ส่งคำขอให้แอดมินแล้ว — รอผู้ดูแลแก้ให้');
     logActivity('edit_request',`ขอแก้ยอดขาย ${BRANCHES[branch]} ${date} (ใหม่ ฿${fmt(total)})`);
   }catch(e){showToast('ส่งคำขอไม่สำเร็จ: '+e.message,'err');}
@@ -10418,6 +10566,7 @@ window.savePRPerson=async function(){
       updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
     });
     prData.status='paid';
+    notifyEvent('slip',{uid:prCurrentPerson,month:'เดือน'+MONTHS_TH[prMonth-1]+' '+(prYear+543),net:d.computedNet});
     prMonthRecords[prCurrentPerson]={net:d.computedNet,status:'paid'};
     showToast(`บันทึกเงินเดือน ${d.name} เรียบร้อย`);
     renderPRCalc();renderPRPersonSelect();
@@ -10602,6 +10751,7 @@ window.prBatchSave=async function(){
         updatedAt:new Date().toISOString(),updatedBy:currentUser.uid
       });
       prMonthRecords[uid]={net:calc.net,status:'paid'};
+      notifyEvent('slip',{uid,month:'เดือน'+MONTHS_TH[prMonth-1]+' '+(prYear+543),net:calc.net});
       ok++;grand+=calc.net;
     }
   }catch(e){loading(false);showToast('บันทึกบางส่วนไม่สำเร็จ: '+e.message,'err');return;}
@@ -14325,6 +14475,12 @@ async function checkNotifications(){
   const banner=document.getElementById('alert-banner');
   if(!banner)return;
   const alerts=[];
+  // ชวนเปิดการแจ้งเตือนเด้ง — เฉพาะเครื่องที่ยังไม่เคยตอบ
+  try{
+    if('Notification'in window&&Notification.permission==='default'&&!localStorage.getItem('nm_push_dismiss')&&!isTester){
+      alerts.push({color:'green',icon:'🔔',text:'เปิดการแจ้งเตือนเด้งไหม? เตือนก่อนเวร/ปิดร้าน/สลิปออก/ประกาศ ถึงเครื่องนี้แม้ไม่ได้เปิดแอป',action:`<button class="btn btn-sm btn-primary" onclick="notifEnable()" style="margin-left:auto">เปิดเลย</button><button class="btn btn-sm" onclick="localStorage.setItem('nm_push_dismiss','1');checkNotifications()">ไว้ทีหลัง</button>`});
+    }
+  }catch(e){}
   const today=todayStr();
   const dow=(new Date().getDay()+6)%7; // 0=จันทร์
 
@@ -14780,6 +14936,7 @@ window.postAnnouncement=async function(){
     const id='ann_'+Date.now();
     const name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'Admin';
     await setDoc(doc(db,'announcements',id),{text,targets,startAt,endAt,at:new Date().toISOString(),by:name,byUid:currentUser.uid,active:true});
+    notifyEvent('announce',{text});
     logActivity('announce',`ประกาศ${targets.length?` (เฉพาะ ${targets.length} คน)`:' (ทุกคน)'}: ${text}`);
     inp.value='';
     document.querySelectorAll('.ann-person:checked').forEach(c=>c.checked=false);
@@ -16962,6 +17119,7 @@ window.submitLeave=async function(){
   try{
     const id='leave_'+Date.now();
     await setDoc(doc(db,'leaves',id),{uid:currentUser.uid,name,from,to,reason,type:ltype,createdAt:new Date().toISOString()});
+    notifyEvent('leave_request',{from,to});
     // ตัดเวรในช่วงวันลาออกจากตาราง
     const removed=await removeShiftsForLeave(currentUser.uid,from,to);
     await loadLeavesForSchedule();
@@ -17106,7 +17264,9 @@ window.laApplyFilter=function(){
 // admin อนุมัติ/ปฏิเสธคำขอลา → พนักงานจะได้รับแจ้งเตือน
 window.decideLeave=async function(id,status){
   try{
+    let _lvd={};try{const _ls=await getDoc(doc(db,'leaves',id));_lvd=_ls.exists()?_ls.data():{};}catch(e){}
     await updateDoc(doc(db,'leaves',id),{status,decidedAt:new Date().toISOString(),decidedBy:currentUser.uid});
+    notifyEvent('leave_result',{uid:_lvd.uid,ok:status==='approved',from:_lvd.from,to:_lvd.to});
     logActivity('leave_decide',`${status==='approved'?'อนุมัติ':'ปฏิเสธ'}คำขอลา`);
     showToast(status==='approved'?'อนุมัติคำขอลาแล้ว':'ปฏิเสธคำขอลาแล้ว');
     loadLeaveAdmin();

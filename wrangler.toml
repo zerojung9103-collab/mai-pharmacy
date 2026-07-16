@@ -5,6 +5,11 @@ compatibility_date = "2025-06-01"
 # ไฟล์เว็บ static ยังเสิร์ฟเหมือนเดิมทุกอย่าง — ถ้าเส้นทางตรงกับไฟล์ ไฟล์มาก่อนเสมอ
 main = "worker-entry.js"
 
+# v4.45.0: 🔔 แจ้งเตือนเด้ง — ให้ Cloudflare ปลุกตัวส่ง "ตามเวลา" ทุก 10 นาที
+# (ต้องตั้ง Secret ชื่อ FIREBASE_SERVICE_ACCOUNT ใน Cloudflare ด้วย — ดู "วิธีเปิดแจ้งเตือนเด้ง.md")
+[triggers]
+crons = ["*/10 * * * *"]
+
 [assets]
 directory = "."
 binding = "ASSETS"
