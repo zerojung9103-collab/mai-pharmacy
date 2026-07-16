@@ -1793,8 +1793,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.46.1';
+const APP_VERSION='4.47.0';
 const CHANGELOG=[
+  {v:'4.47.0',date:'2026-07-16',changes:[
+    '📊 ลงยอดขายวันนี้: มีช่อง EDC ในฟอร์มเดียวกันแล้ว (สาขาที่มีเครื่อง) — เงินสด/รับชำระอื่นๆ/บิล + ⬛ดำ/⬜ขาว กรอกจบในปุ่มบันทึกเดียว · ไม่บังคับ ว่างไว้ได้ แก้ทีหลังได้เสมอ · ใต้ช่องมีแถบจิ๋วบอกยอดสะสมเดือนเทียบเป้า ฿50,000/เครื่อง เห็นทันทีว่าเครื่องไหนยังไม่ครบ · หน้าสรุปยอด (ลงแล้ว) โชว์ EDC วันนี้ด้วย',
+    '🔍 เช็ค EDC โฉมใหม่ "เช็คก่อน กรอกเมื่อต้องการ" — เปิดมาเป็นดูอย่างเดียว: แถบสะสม 2 เครื่อง + บรรทัด "วันนี้ลงไว้เท่าไหร่" + สาขาอื่น ไม่มีช่องกรอกเกะกะ · อยากลง/แก้ค่อยกด "✏️ ลง/แก้ยอดวันนี้" ช่องกรอกถึงเปิดขึ้นมา — หมดปัญหาเปิดมาดูแล้วเหมือนโดนบังคับกรอก',
+  ]},
   {v:'4.46.1',date:'2026-07-16',changes:[
     '✍️ ช่องเซ็น: ปล่อยช่องไหนว่าง ช่องอื่นจะ "อยู่ตำแหน่งเดิม" ไม่เลื่อนมาชิดกันแล้ว (เว้นที่ว่างตรงช่องที่ซ่อนไว้) — เช่น ว่างช่องกลาง ช่องที่ 3 ยังอยู่ขวาสุดเหมือนเดิม',
   ]},
@@ -8607,6 +8611,7 @@ window.cashSalesPrompt=function(branch,forceEdit){
         <div style="display:flex;justify-content:space-between"><span>💵 เงินสด</span><b style="font-family:var(--mono)">฿${fmt(cashV)}</b></div>
         <div style="display:flex;justify-content:space-between"><span>💳 รับชำระอื่นๆ</span><b style="font-family:var(--mono)">฿${fmt(otherV)}</b></div>
         <div style="display:flex;justify-content:space-between;border-top:1px solid var(--border2);padding-top:6px;margin-top:4px"><span style="font-weight:700">รวม${e.billCount?` (${e.billCount} บิล)`:''}</span><b style="font-family:var(--mono);color:var(--green-d)">฿${fmt(cashV+otherV)}</b></div>
+        ${edcBranchHas(branch)?`<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)"><span>🔍 EDC วันนี้ ⬛/⬜</span><b style="font-family:var(--mono)">฿${fmt(e.edcCheck?.black||0)} / ฿${fmt(e.edcCheck?.white||0)}</b></div>`:''}
       </div>
       <div style="font-size:11.5px;color:var(--text3);text-align:center;margin-bottom:10px">${stTxt}</div>
       ${locked?'':`<button class="btn btn-primary" style="width:100%;padding:12px" onclick="cashSalesPrompt(${branch},true)">✏️ แก้ยอด</button>`}
@@ -8615,11 +8620,32 @@ window.cashSalesPrompt=function(branch,forceEdit){
     return;
   }
   if(locked){showToast('ยอดล็อกแล้ว (เกิน 5 นาที) — แจ้งแอดมินแก้ให้','err');return;}
+  // กล่อง EDC ในฟอร์มเดียวกัน (เฉพาะสาขาที่มีเครื่อง) — กรอกพร้อมยอดขายจบที่เดียว ว่างไว้ได้
+  const _edcBox=edcBranchHas(branch)?(()=>{
+    const mo=date.slice(0,7),tgt=cashCfg.edcTarget||0;
+    const cell=m=>{
+      const sum=edcMachineSum(branch,m.k,mo);
+      const pct=tgt?Math.min(100,Math.round(sum/tgt*100)):0;
+      const done=tgt>0&&sum>=tgt;
+      const col=done?'var(--green)':(pct>=60?'var(--amber)':'#D96B6B');
+      const tcol=done?'var(--green-d)':(pct>=60?'var(--amber-t)':'var(--red-t)');
+      return `<div style="flex:1"><label class="fl" style="font-size:11px">${m.i} ${m.t}</label>
+        <input type="number" id="cs-edc-${m.k}" min="0" inputmode="decimal" placeholder="0" value="${e?.edcCheck?.[m.k]||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700;width:100%">
+        ${tgt?`<div style="display:flex;align-items:center;gap:6px;font-size:10px;font-weight:700;margin-top:4px;color:${tcol}"><span style="flex:1;height:5px;border-radius:3px;background:rgba(0,0,0,.08);overflow:hidden"><i style="display:block;height:100%;width:${pct}%;background:${col}"></i></span>${done?'ครบ 🎉':pct+'%'}</div>`:''}
+      </div>`;
+    };
+    return `<div style="border:1px solid var(--border);border-radius:13px;padding:11px 13px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;font-size:12px;font-weight:800;margin-bottom:2px">🔍 EDC ยอดรูดบัตร (วันนี้)<span style="margin-left:auto;font-size:9.5px;font-weight:700;color:var(--text3);background:var(--bg);border-radius:8px;padding:2px 7px">ไม่รวมในยอดขาย</span></div>
+      <div style="font-size:10.5px;color:var(--text3);margin-bottom:8px">ตัวเช็คขั้นต่ำค่าเช่าเครื่อง · ว่างไว้ก็ได้ แก้ทีหลังได้เสมอ (ไม่ล็อก)</div>
+      <div style="display:flex;gap:8px">${EDC_MACHINES.map(cell).join('')}</div>
+      ${tgt?`<div style="font-size:9.5px;color:var(--text3);margin-top:6px">แถบ = สะสมเดือนนี้เทียบเป้า ฿${fmt(tgt)}/เครื่อง</div>`:''}
+    </div>`;
+  })():'';
   openModal(`<div class="modal-title">📊 ลงยอดขายวันนี้ · ${BRANCHES[branch]}</div>
     <div class="field"><label class="fl">💵 เงินสด (บาท)</label><input type="number" id="cs-cash" min="0" inputmode="decimal" placeholder="0" value="${e&&cashV?cashV:''}" style="font-size:19px;font-weight:700;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:11px"></div>
     <div class="field"><label class="fl">💳 รับชำระอื่นๆ (บัตร/โอน/QR)</label><input type="number" id="cs-other" min="0" inputmode="decimal" placeholder="0" value="${e&&otherV?otherV:''}" style="font-size:19px;font-weight:700;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:11px"></div>
     <div class="field"><label class="fl">🧾 จำนวนบิล</label><input type="number" id="cs-bills" min="0" inputmode="numeric" placeholder="0" value="${e?.billCount||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px"></div>
-    <div style="font-size:10.5px;color:var(--text3);margin:-4px 0 10px">EDC ดำ/ขาว แก้แยกได้ที่ปุ่ม "🔍 เช็ค EDC" (แก้ได้เสมอ ไม่ล็อก)</div>
+    ${_edcBox}
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="cashSalesSave(${branch})">💾 บันทึกยอดขาย</button></div>`);
   setTimeout(()=>document.getElementById('cs-cash')?.focus(),100);
 };
@@ -8641,8 +8667,10 @@ window.cashSalesSave=async function(branch){
     const prev=salesEntries.find(x=>x.date===date&&+x.branch===+branch);
     const amounts={};payTypes.forEach(p=>{amounts[p]=0;});
     amounts[SALES_CASH]=cashV;amounts[SALES_OTHER]=otherV;
+    // EDC จากกล่องในฟอร์ม (ถ้ามี — สาขาไม่มีเครื่องจะไม่มีช่องนี้ ใช้ค่าเดิม)
+    const _eb=document.getElementById('cs-edc-black'),_ew=document.getElementById('cs-edc-white');
     const rec={date,branch,amounts,total:cashV+otherV,
-      edcCheck:prev?.edcCheck||{black:0,white:0},
+      edcCheck:(_eb||_ew)?{black:parseFloat(_eb?.value)||0,white:parseFloat(_ew?.value)||0}:(prev?.edcCheck||{black:0,white:0}),
       billCount:parseInt(document.getElementById('cs-bills')?.value)||0,
       note:prev?.note||'',updatedBy:currentUser?.uid||'',updatedAt:new Date().toISOString()};
     const idx=salesEntries.findIndex(x=>x.date===date&&+x.branch===+branch);
@@ -8699,15 +8727,33 @@ window.cashEdcPrompt=function(branch){
       <div style="font-size:10.5px;font-weight:600;margin-top:4px;color:${tcol}">${left===0?'✓ ครบเป้าแล้ว ไม่เสียค่าเช่า 🎉':`เหลืออีก ฿${fmt(left)}${_left>0?` · เหลือ ${_left} วัน ≈ วันละ ฿${fmt(Math.ceil(left/_left))}`:' · วันนี้วันสุดท้ายของเดือน'}`}</div>
     </div>`;
   };
+  // เปิดมา = ดูอย่างเดียว · อยากลง/แก้ยอด ค่อยกด ✏️ ให้ช่องกรอกโผล่ (กันเผลอกดบันทึกทั้งที่แค่มาดู)
+  const _hasToday=e&&e.edcCheck&&((parseFloat(e.edcCheck.black)||0)>0||(parseFloat(e.edcCheck.white)||0)>0);
   openModal(`<div class="modal-title">🔍 เช็ค EDC (ยอดรูดบัตร) · ${BRANCHES[branch]}</div>
-    <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">ขั้นต่ำค่าเช่า <b>เครื่องละ ฿${fmt(tgt)}/เดือน</b> — ไม่รวมในยอดขาย · แก้ได้เสมอไม่ล็อก</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">ขั้นต่ำค่าเช่า <b>เครื่องละ ฿${fmt(tgt)}/เดือน</b> — ไม่รวมในยอดขาย</div>
     ${tgt?EDC_MACHINES.map(mBar).join(''):''}
-    <div style="display:flex;gap:8px">
-      <div class="field" style="flex:1"><label class="fl">⬛ เครื่องดำ (วันนี้)</label><input type="number" id="edc-b" min="0" placeholder="0" value="${e?.edcCheck?.black||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
-      <div class="field" style="flex:1"><label class="fl">⬜ เครื่องขาว (วันนี้)</label><input type="number" id="edc-w" min="0" placeholder="0" value="${e?.edcCheck?.white||''}" style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
+    <div id="edc-today" style="display:flex;align-items:center;gap:8px;background:var(--green-ll);border:1px solid var(--green-l);border-radius:11px;padding:9px 13px;font-size:12px;margin-bottom:9px">📅 ${_hasToday?`วันนี้ลงไว้: <b>⬛ ฿${fmt(e.edcCheck.black||0)} · ⬜ ฿${fmt(e.edcCheck.white||0)}</b>`:'วันนี้ยังไม่ได้ลงยอด EDC'}<span style="margin-left:auto;font-size:10.5px;color:var(--text3)">แตะ ✏️ เพื่อ${_hasToday?'แก้':'ลง'}</span></div>
+    <div id="edc-editwrap" style="display:none;border:1.5px dashed var(--green);border-radius:13px;padding:11px 13px;margin-bottom:9px;background:var(--green-ll)">
+      <div style="font-size:12px;font-weight:800;margin-bottom:7px">✏️ ยอดรูดของวันนี้ (แก้ได้เสมอ ไม่ล็อก)</div>
+      <div style="display:flex;gap:8px">
+        <div class="field" style="flex:1;margin:0"><label class="fl">⬛ เครื่องดำ (วันนี้)</label><input type="number" id="edc-b" min="0" placeholder="0" value="${e?.edcCheck?.black||''}" style="background:var(--surface);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
+        <div class="field" style="flex:1;margin:0"><label class="fl">⬜ เครื่องขาว (วันนี้)</label><input type="number" id="edc-w" min="0" placeholder="0" value="${e?.edcCheck?.white||''}" style="background:var(--surface);border:1.5px solid var(--green-l);border-radius:11px;padding:10px;font-weight:700"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:9px;justify-content:flex-end">
+        <button class="btn btn-sm" onclick="cashEdcEdit(false)">ยกเลิก</button>
+        <button class="btn btn-sm btn-primary" onclick="cashEdcSave(${branch})">💾 บันทึก EDC</button>
+      </div>
     </div>
     ${_edcOthersHTML(branch,mo,tgt)}
-    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="cashEdcSave(${branch})">บันทึก EDC</button></div>`);
+    <div class="modal-footer"><button class="btn" id="edc-editbtn" onclick="cashEdcEdit(true)">✏️ ลง/แก้ยอดวันนี้</button><button class="btn btn-primary" onclick="closeMD()">ปิด</button></div>`);
+};
+// สลับโหมดดู ↔ โหมดกรอก ในหน้าต่างเช็ค EDC
+window.cashEdcEdit=function(on){
+  const w=document.getElementById('edc-editwrap'),t=document.getElementById('edc-today'),b=document.getElementById('edc-editbtn');
+  if(w)w.style.display=on?'block':'none';
+  if(t)t.style.display=on?'none':'flex';
+  if(b)b.style.display=on?'none':'inline-block';
+  if(on)setTimeout(()=>document.getElementById('edc-b')?.focus(),60);
 };
 window.cashEdcSave=async function(branch){
   if(_cashBusy)return;_cashBusy=true;
