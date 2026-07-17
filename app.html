@@ -1349,6 +1349,7 @@ input,select,textarea{border-radius:14px}
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn btn-sm" id="fl-template-btn" onclick="openTemplateManager()">📋 รูปแบบ</button>
         <button class="btn btn-sm" id="fl-excel-btn" style="display:none" onclick="flExcelMenu()">📊 Excel ฐานข้อมูล</button>
+        <button class="btn btn-sm" style="border-color:var(--green);color:var(--green-d)" onclick="flPresetSavePrompt()">💾 บันทึกฉลากนี้</button>
         <button class="btn btn-primary btn-sm" onclick="printForeignLabel()">🖨️ พิมพ์</button>
       </div>
     </div>
@@ -1358,6 +1359,13 @@ input,select,textarea{border-radius:14px}
     <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:1rem" id="fl-grid">
       <!-- ซ้าย: ฟอร์มเลือกข้อมูล + ตั้งค่าบล็อก -->
       <div>
+        <!-- ⚡ ฉลากด่วน — ฉลากที่บันทึกไว้ แตะเดียวเติมทั้งใบ -->
+        <div class="card" id="fl-preset-card" style="margin-bottom:1rem;border:1.5px solid var(--green-l);background:var(--green-ll)">
+          <div style="display:flex;align-items:center;font-weight:700;font-size:14px;margin-bottom:.6rem">⚡ ฉลากด่วน <span style="font-weight:500;font-size:11px;color:var(--text3);margin-left:6px">แตะชื่อ = เติมให้ทั้งใบ</span>
+            <button class="btn btn-sm" style="margin-left:auto" onclick="flPresetManage()">🗂 จัดการ</button></div>
+          <input type="text" id="fl-preset-search" placeholder="🔎 ค้นฉลากที่บันทึกไว้ เช่น amoxi, พารา..." autocomplete="off" oninput="flRenderPresets(this.value)" style="margin-bottom:8px">
+          <div id="fl-preset-chips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
         <div class="card" style="margin-bottom:1rem">
           <div style="font-weight:700;font-size:14px;margin-bottom:.75rem">📝 ข้อมูลฉลาก</div>
           <div class="field">
@@ -1793,8 +1801,16 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.47.0';
+const APP_VERSION='4.48.0';
 const CHANGELOG=[
+  {v:'4.48.0',date:'2026-07-16',changes:[
+    '⚡ ฉลากด่วน — เซฟฉลากยาต่างชาติทั้งใบไว้ใช้ซ้ำเป็นรายอัน! ทำฉลากเสร็จกด "💾 บันทึกฉลากนี้" ตั้งชื่อ (ระบบเสนอชื่อยา+ความแรงให้) — เก็บครบ ยา/ความแรง/วิธีใช้/สรรพคุณ/คำเตือน/ข้อความเพิ่มเติม/ภาษา/ดีไซน์ ยกเว้นชื่อผู้ป่วยที่กรอกใหม่รายคน',
+    'รอบหน้าแตะเดียวจบ: การ์ด ⚡ บนสุดของหน้าฉลาก มีช่องค้นหา + ปุ่มลัดเรียงตามที่ใช้บ่อยจริง → แตะชื่อ = เติมให้ทั้งใบพร้อมพิมพ์ (~10 วินาที จากเดิมเป็นนาที ลูกค้าไม่ต้องรอนาน) · พนักงานทุกคนบันทึกได้ เห็นร่วมกันทุกสาขา · 🗂 จัดการ = ดูทั้งหมด/ลบ',
+    '⚠️ ต้องวางกฎ Firestore ใหม่ (ไฟล์ firestore-rules-ใหม่.txt) แล้วกด Publish ใน Firebase Console — เพิ่มที่เก็บ labelPresets',
+  ]},
+  {v:'4.47.1',date:'2026-07-16',changes:[
+    '🌏 ฉลากยาต่างชาติ — แก้บั๊กชุดใหญ่: (1) รูปแบบ (Template) จำดีไซน์ที่ใช้แล้ว — บันทึกตอนใช้ดีไซน์ "แถบหัว" โหลดกลับมาแถบดำ/กรอบคำเตือนขึ้นครบ ชื่อร้านไม่หายอีก (รูปแบบเก่าที่เคยบันทึกไว้ระบบเดาดีไซน์ให้ถูกเอง) (2) ปุ่มบันทึก/ลบรูปแบบเห็นเฉพาะผู้ดูแล — พนักงานยังโหลดใช้ได้ตามปกติ ไม่เจอ error ภาษาอังกฤษงงๆ (3) แก้จุดที่ลบรูปแบบไม่สำเร็จแล้วรายการเพี้ยน',
+  ]},
   {v:'4.47.0',date:'2026-07-16',changes:[
     '📊 ลงยอดขายวันนี้: มีช่อง EDC ในฟอร์มเดียวกันแล้ว (สาขาที่มีเครื่อง) — เงินสด/รับชำระอื่นๆ/บิล + ⬛ดำ/⬜ขาว กรอกจบในปุ่มบันทึกเดียว · ไม่บังคับ ว่างไว้ได้ แก้ทีหลังได้เสมอ · ใต้ช่องมีแถบจิ๋วบอกยอดสะสมเดือนเทียบเป้า ฿50,000/เครื่อง เห็นทันทีว่าเครื่องไหนยังไม่ครบ · หน้าสรุปยอด (ลงแล้ว) โชว์ EDC วันนี้ด้วย',
     '🔍 เช็ค EDC โฉมใหม่ "เช็คก่อน กรอกเมื่อต้องการ" — เปิดมาเป็นดูอย่างเดียว: แถบสะสม 2 เครื่อง + บรรทัด "วันนี้ลงไว้เท่าไหร่" + สาขาอื่น ไม่มีช่องกรอกเกะกะ · อยากลง/แก้ค่อยกด "✏️ ลง/แก้ยอดวันนี้" ช่องกรอกถึงเปิดขึ้นมา — หมดปัญหาเปิดมาดูแล้วเหมือนโดนบังคับกรอก',
@@ -15373,6 +15389,7 @@ async function loadForeignLabelData(){
   const _exBtn=document.getElementById('fl-excel-btn');if(_exBtn)_exBtn.style.display=isAdmin?'':'none';
   flRenderCustomBlockInputs();
   flRenderPreview();
+  flLoadPresets(); // ⚡ ฉลากด่วน (ไม่ต้องรอ — โหลดเบื้องหลัง)
 }
 window.flExcelMenu=function(){
   if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
@@ -15731,7 +15748,7 @@ function flRenderCustomBlockInputs(){
   const cBlocks=flBlocks.filter(b=>b.key==='custom');
   if(!cBlocks.length){el.innerHTML='<div style="font-size:12px;color:var(--text3)">ยังไม่มีข้อความเพิ่มเติม</div>';return;}
   el.innerHTML=cBlocks.map((b,i)=>`<div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px">
-    <textarea rows="2" style="flex:1;padding:6px 8px;border:1px solid var(--border2);border-radius:8px;font-size:12px;resize:vertical;font-family:inherit" placeholder="พิมพ์ข้อความที่ต้องการ..." oninput="flUpdateCustomText('${b.id}',this.value)">${b.customText||''}</textarea>
+    <textarea rows="2" style="flex:1;padding:6px 8px;border:1px solid var(--border2);border-radius:8px;font-size:12px;resize:vertical;font-family:inherit" placeholder="พิมพ์ข้อความที่ต้องการ..." oninput="flUpdateCustomText('${b.id}',this.value)">${(b.customText||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')}</textarea>
     <button class="btn btn-sm btn-danger" onclick="flRemoveCustomBlock('${b.id}')" style="flex-shrink:0;margin-top:2px">✕</button>
   </div>`).join('');
 }
@@ -15858,8 +15875,7 @@ function flGetBlockText(block){
   }
 }
 window.flRenderPreview=function(){
-  const bgColor=document.getElementById('fl-bg-color')?.value||'#ffffff';
-  const bgHex=document.getElementById('fl-bg-hex');if(bgHex)bgHex.textContent=bgColor;
+  const bgColor='#ffffff'; // เครื่องพิมพ์ความร้อน = พื้นขาวเสมอ (ช่องเลือกสีถอดไปตั้งแต่ v3.3.3)
   const wrap=document.getElementById('fl-preview-wrap');
   if(!wrap)return;
   const [pw,ph]=flSize.split('x').map(Number);
@@ -15911,7 +15927,7 @@ function flStartDrag(e,bi){
 window.printForeignLabel=async function(){
   if(!flSelections.generic){showToast('เลือกชื่อยาก่อน','err');return;}
   const [pw,ph]=flSize.split('x').map(Number);
-  const bgColor=document.getElementById('fl-bg-color')?.value||'#fff';
+  const bgColor='#fff'; // เครื่องพิมพ์ความร้อน = พื้นขาวเสมอ (ช่องเลือกสีถอดไปตั้งแต่ v3.3.3)
   const blocksHtml=flBlocks.map(b=>{
     const txt=flGetBlockText(b);
     if(!txt)return '';
@@ -15944,14 +15960,15 @@ body{width:${pw}mm;height:${ph}mm;background:${bgColor};position:relative;overfl
 };
 // ======= Templates (save/load สูงสุด 10 แบบ) =======
 window.openTemplateManager=async function(){
+  // ทุกคนโหลดรูปแบบมาใช้ได้ · เพิ่ม/ลบ = เฉพาะผู้ดูแล (กฎ Firestore เขียน config ได้เฉพาะแอดมิน)
   const html=`<div class="modal-title">📋 รูปแบบฉลาก (Templates)</div>
-    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">บันทึกได้สูงสุด 10 แบบ — กดโหลดเพื่อนำมาใช้งาน</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:1rem">${isAdmin?'บันทึกได้สูงสุด 10 แบบ — กดโหลดเพื่อนำมาใช้งาน':'กดโหลดเพื่อนำมาใช้งาน · เพิ่ม/ลบรูปแบบทำได้เฉพาะผู้ดูแล'}</div>
     <div id="tmpl-list" style="max-height:260px;overflow-y:auto;margin-bottom:1rem">${flRenderTemplateList()}</div>
-    <div style="font-weight:600;font-size:13px;margin-bottom:.5rem">บันทึกรูปแบบปัจจุบัน</div>
+    ${isAdmin?`<div style="font-weight:600;font-size:13px;margin-bottom:.5rem">บันทึกรูปแบบปัจจุบัน</div>
     <div class="field-row">
       <div class="field" style="flex:1"><input type="text" id="tmpl-name-inp" placeholder="ชื่อรูปแบบ เช่น ฉลาก EN มาตรฐาน" maxlength="40"></div>
       <button class="btn btn-primary" onclick="flSaveTemplate()" style="flex-shrink:0">บันทึก</button>
-    </div>
+    </div>`:''}
     <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`;
   openModal(html);
 };
@@ -15960,17 +15977,17 @@ function flRenderTemplateList(){
   return flTemplates.map((t,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
     <div style="flex:1">
       <div style="font-size:13px;font-weight:600">${t.name}</div>
-      <div style="font-size:11px;color:var(--text3)">${t.size} · ${{en:'English',zh:'中文',my:'မြန်မာ'}[t.lang]||t.lang} · ${t.blocks.length} บล็อก</div>
+      <div style="font-size:11px;color:var(--text3)">${t.size} · ${{en:'English',zh:'中文',my:'မြန်မာ'}[t.lang]||t.lang}${t.layout==='banner'?' · แถบหัว':''} · ${(t.blocks||[]).length} บล็อก</div>
     </div>
     <button class="btn btn-sm btn-primary" onclick="flLoadTemplate(${i})">โหลด</button>
-    <button class="btn btn-sm btn-danger" onclick="flDeleteTemplate(${i})">ลบ</button>
+    ${isAdmin?`<button class="btn btn-sm btn-danger" onclick="flDeleteTemplate(${i})">ลบ</button>`:''}
   </div>`).join('');
 }
 window.flSaveTemplate=async function(){
   const name=document.getElementById('tmpl-name-inp')?.value.trim();
   if(!name){showToast('ตั้งชื่อรูปแบบก่อน','err');return;}
   if(flTemplates.length>=10){showToast('บันทึกได้สูงสุด 10 แบบ — ลบบางแบบออกก่อน','err');return;}
-  const tmpl={id:'t_'+Date.now(),name,lang:flLang,size:flSize,margins:{...flPageMargins},blocks:JSON.parse(JSON.stringify(flBlocks))};
+  const tmpl={id:'t_'+Date.now(),name,lang:flLang,size:flSize,layout:flLayout,margins:{...flPageMargins},blocks:JSON.parse(JSON.stringify(flBlocks))};
   flTemplates.push(tmpl);
   try{
     await setDoc(doc(db,'config','labelTemplates'),{templates:flTemplates});
@@ -15984,6 +16001,9 @@ window.flLoadTemplate=function(i){
   if(!t)return;
   flLang=t.lang;flSize=t.size;
   flBlocks=JSON.parse(JSON.stringify(t.blocks));
+  // คืนดีไซน์ที่บันทึกไว้ด้วย (รูปแบบเก่าที่ไม่ได้เก็บ layout: เดาจากบล็อกชื่อร้านสีขาว = แถบหัว)
+  flLayout=t.layout||((t.blocks||[]).some(b=>b.key==='shop_name'&&/^#?fff/i.test(b.color||''))?'banner':'classic');
+  document.querySelectorAll('[data-fl-layout]').forEach(b=>b.classList.toggle('active',b.dataset.flLayout===flLayout));
   flPageMargins=t.margins?{...t.margins}:{top:0,left:0};
   // reset margin sliders
   const mt=document.getElementById('fl-mg-top');
@@ -16009,12 +16029,121 @@ window.flLoadTemplate=function(i){
 };
 window.flDeleteTemplate=async function(i){
   if(!await capsuleConfirm('ลบรูปแบบ "'+flTemplates[i]?.name+'"?'))return;
-  flTemplates.splice(i,1);
+  const removed=flTemplates.splice(i,1)[0]; // เก็บตัวที่ลบไว้ เผื่อบันทึกขึ้น cloud ไม่สำเร็จจะคืนตัวเดิมถูกตัว
   try{
     await setDoc(doc(db,'config','labelTemplates'),{templates:flTemplates});
     document.getElementById('tmpl-list').innerHTML=flRenderTemplateList();
     showToast('ลบแล้ว');
-  }catch(e){flTemplates.splice(i,0,flTemplates[i]);showToast('ลบไม่สำเร็จ: '+e.message,'err');}
+  }catch(e){
+    flTemplates.splice(i,0,removed);
+    document.getElementById('tmpl-list').innerHTML=flRenderTemplateList();
+    showToast('ลบไม่สำเร็จ: '+e.message,'err');
+  }
+};
+
+// ======= ⚡ ฉลากด่วน — บันทึกฉลากทั้งใบเป็นรายอัน (ยา+วิธีใช้+คำเตือน+ภาษา+ดีไซน์) ใช้ร่วมกันทุกสาขา =======
+// เก็บใน collection 'labelPresets' — พนักงานทุกคนบันทึก/ใช้/ลบได้ (ต้องอัป Firestore rules)
+let flPresets=[];
+async function flLoadPresets(){
+  try{
+    const snap=await getDocs(collection(db,'labelPresets'));
+    flPresets=snap.docs.map(d=>({id:d.id,...d.data()}));
+    // เรียง: ใช้บ่อยขึ้นก่อน · เท่ากันเอาของใหม่ก่อน
+    flPresets.sort((a,b)=>(b.useCount||0)-(a.useCount||0)||String(b.at||'').localeCompare(String(a.at||'')));
+  }catch(e){flPresets=[];}
+  flRenderPresets();
+}
+window.flRenderPresets=function(q){
+  const el=document.getElementById('fl-preset-chips');if(!el)return;
+  const s=String(q!=null?q:(document.getElementById('fl-preset-search')?.value||'')).toLowerCase().trim();
+  if(!flPresets.length){el.innerHTML='<div style="font-size:11.5px;color:var(--text3);line-height:1.7">ยังไม่มีฉลากที่บันทึกไว้ — ทำฉลากตามปกติแล้วกด "💾 บันทึกฉลากนี้" (ปุ่มบนขวา) รอบหน้าจะแตะเดียวพร้อมพิมพ์</div>';return;}
+  const list=(s?flPresets.filter(p=>(p.name||'').toLowerCase().includes(s)):flPresets).slice(0,20);
+  if(!list.length){el.innerHTML='<div style="font-size:11.5px;color:var(--text3)">ไม่พบฉลากชื่อนี้ — ลองคำอื่น หรือกด 🗂 จัดการ ดูทั้งหมด</div>';return;}
+  el.innerHTML=list.map(p=>`<button class="btn btn-sm" style="background:var(--surface)" onclick="flPresetApply('${p.id}')">💊 ${slipEsc(p.name)} <span style="font-size:9px;color:var(--text3)">${(p.lang||'en').toUpperCase()}</span></button>`).join('');
+};
+// กด 💾 — เสนอชื่อจากยา+ความแรงให้ก่อน แก้ได้
+window.flPresetSavePrompt=function(){
+  if(!flSelections.generic){showToast('เลือกชื่อยาก่อน ค่อยบันทึกฉลาก','err');return;}
+  const drug=flDB.drugs.find(x=>x.id===flSelections.generic);
+  const sug=((drug?drug.name:'')+' '+(document.getElementById('fl-strength')?.value.trim()||'')).trim();
+  openModal(`<div class="modal-title">💾 บันทึกฉลากนี้ไว้ใช้ซ้ำ</div>
+    <label style="font-size:12px;font-weight:600;display:block;margin-bottom:4px">ชื่อฉลาก (ตั้งให้จำง่าย)</label>
+    <input type="text" id="fl-preset-name" value="${sug.replace(/"/g,'&quot;')}" maxlength="60" style="width:100%">
+    <div style="font-size:10.5px;color:var(--text3);margin-top:6px;line-height:1.7">เก็บครบทั้งใบ: ยา · ความแรง · วิธีใช้ · สรรพคุณ · คำเตือน · ข้อความเพิ่มเติม · ภาษา · ดีไซน์<br>ยกเว้น "ชื่อผู้ป่วย" (กรอกใหม่รายคน) · พนักงานทุกสาขาเห็นและใช้ได้</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn btn-primary" onclick="flPresetSave()">💾 บันทึก</button></div>`);
+  setTimeout(()=>document.getElementById('fl-preset-name')?.select(),80);
+};
+window.flPresetSave=async function(){
+  const name=(document.getElementById('fl-preset-name')?.value||'').trim();
+  if(!name){showToast('ตั้งชื่อฉลากก่อนนะ','err');return;}
+  const rec={name,lang:flLang,size:flSize,layout:flLayout,margins:{...flPageMargins},
+    blocks:JSON.parse(JSON.stringify(flBlocks)),
+    selections:JSON.parse(JSON.stringify(flSelections)),
+    strength:document.getElementById('fl-strength')?.value.trim()||'',
+    useCount:0,at:new Date().toISOString(),by:memberName(currentUser?.uid)||profile?.nickname||'',byUid:currentUser?.uid||''};
+  try{
+    const id='lp_'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+    await setDoc(doc(db,'labelPresets',id),rec);
+    flPresets.unshift({id,...rec});
+    closeMD();flRenderPresets();
+    showToast('บันทึกฉลาก "'+name+'" แล้ว ⚡ รอบหน้าแตะเดียวพร้อมพิมพ์');
+    logActivity('label_preset','บันทึกฉลากด่วน: '+name);
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e)+' — อาจต้องอัป Firestore rules ก่อน','err');}
+};
+// แตะชื่อ → เติมทั้งใบ (ชื่อผู้ป่วยเว้นไว้กรอกรายคน) + นับการใช้
+window.flPresetApply=async function(id){
+  const p=flPresets.find(x=>x.id===id);if(!p)return;
+  flLang=p.lang||'en';flSize=p.size||'80x60';flLayout=p.layout||'classic';
+  flBlocks=Array.isArray(p.blocks)&&p.blocks.length?JSON.parse(JSON.stringify(p.blocks)):FL_DEFAULT_BLOCKS();
+  flPageMargins=p.margins?{...p.margins}:{top:0,left:0};
+  flSelections=p.selections?JSON.parse(JSON.stringify(p.selections)):{generic:'',direction:'',indications:[],warnings:[]};
+  flSelections.indications=flSelections.indications||[];flSelections.warnings=flSelections.warnings||[];
+  // เติมช่องบนจอให้ตรงกับที่โหลดมา
+  const st=document.getElementById('fl-strength');if(st)st.value=p.strength||'';
+  const pat=document.getElementById('fl-patient');if(pat)pat.value='';
+  const drug=flDB.drugs.find(x=>x.id===flSelections.generic);
+  const gi=document.getElementById('fl-generic-input');if(gi)gi.value=drug?drug.name:'';
+  const gc=document.getElementById('fl-generic-clear');if(gc)gc.style.display=drug?'inline-block':'none';
+  const dir=flDB.directions.find(x=>x.id===flSelections.direction);
+  const di=document.getElementById('fl-dir-input');if(di)di.value=dir?(dir.th||dir.en||''):'';
+  const dc=document.getElementById('fl-dir-clear');if(dc)dc.style.display=dir?'inline-block':'none';
+  document.querySelectorAll('.fl-sb-dropdown').forEach(d=>d.classList.remove('open'));
+  document.querySelectorAll('.fl-lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===flLang));
+  document.querySelectorAll('.fl-size-btn').forEach(b=>b.classList.toggle('active',b.dataset.size===flSize));
+  document.querySelectorAll('[data-fl-layout]').forEach(b=>b.classList.toggle('active',b.dataset.flLayout===flLayout));
+  const sl=document.getElementById('fl-size-label');if(sl)sl.textContent=flSize.replace('x','×')+' mm';
+  const mt=document.getElementById('fl-mg-top'),ml=document.getElementById('fl-mg-left');
+  const mtv=document.getElementById('fl-mg-top-v'),mlv=document.getElementById('fl-mg-left-v');
+  if(mt){mt.value=flPageMargins.top;if(mtv)mtv.textContent=flPageMargins.top+'mm';}
+  if(ml){ml.value=flPageMargins.left;if(mlv)mlv.textContent=flPageMargins.left+'mm';}
+  flRenderTags('indication');flRenderTags('warning');
+  flRenderBlockList();flRenderCustomBlockInputs();flRenderPreview();
+  showToast('⚡ "'+p.name+'" พร้อมแล้ว — ตรวจตัวอย่างแล้วกดพิมพ์ได้เลย');
+  p.useCount=(p.useCount||0)+1; // นับการใช้เงียบๆ (พลาดก็ไม่เป็นไร)
+  try{updateDoc(doc(db,'labelPresets',id),{useCount:p.useCount,lastUsedAt:new Date().toISOString()}).catch(()=>{});}catch(e){}
+};
+window.flPresetManage=function(){
+  if(!flPresets.length){showToast('ยังไม่มีฉลากที่บันทึกไว้ — กด 💾 บันทึกฉลากนี้ ก่อน');return;}
+  const rows=flPresets.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)">
+    <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">${slipEsc(p.name)}</div>
+    <div style="font-size:10.5px;color:var(--text3)">${(p.lang||'en').toUpperCase()} · ${p.size||''} · ใช้ไป ${p.useCount||0} ครั้ง${p.by?' · โดย '+slipEsc(p.by):''}</div></div>
+    <button class="btn btn-sm btn-primary" onclick="closeMD();flPresetApply('${p.id}')">ใช้</button>
+    <button class="btn btn-sm btn-danger" onclick="flPresetDelete('${p.id}')">ลบ</button>
+  </div>`).join('');
+  openModal(`<div class="modal-title">🗂 ฉลากด่วนทั้งหมด (${flPresets.length})</div>
+    <div style="max-height:340px;overflow-y:auto">${rows}</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button></div>`);
+};
+window.flPresetDelete=async function(id){
+  const p=flPresets.find(x=>x.id===id);if(!p)return;
+  if(!await capsuleConfirm('ลบฉลาก "'+p.name+'"? ลบแล้วทุกสาขาไม่เห็น'))return;
+  try{
+    await deleteDoc(doc(db,'labelPresets',id));
+    flPresets=flPresets.filter(x=>x.id!==id);
+    flRenderPresets();closeMD();
+    if(flPresets.length)flPresetManage();
+    showToast('ลบแล้ว');
+  }catch(e){showToast('ลบไม่สำเร็จ: '+(e?.message||e),'err');}
 };
 
 // ===== ประวัติการขาย (admin) =====

@@ -262,6 +262,12 @@ service cloud.firestore {
       allow create, delete: if isAdmin();
     }
 
+    // ===== ⚡ ฉลากด่วน (v4.48) — ฉลากยาต่างชาติที่บันทึกไว้ใช้ซ้ำ =====
+    // พนักงานทุกคนบันทึก/ใช้/ลบได้ (ของใช้ร่วมกันหน้าร้าน ไม่ใช่ข้อมูลอ่อนไหว)
+    match /labelPresets/{docId} {
+      allow read, create, update, delete: if signedIn();
+    }
+
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
     match /{document=**} {
       allow read, write: if false;
