@@ -1407,7 +1407,7 @@ input,select,textarea{border-radius:14px}
                 <button class="fl-sb-clear" id="fl-generic-clear" onclick="flClearSingle('generic')" style="display:none">✕</button>
               </div>
             </div>
-            <div class="field" style="flex:1"><label class="fl">ความแรงยา</label><input type="text" id="fl-strength" placeholder="500mg" oninput="if(flLiveAuto)flAutoSizeFull();else flRenderPreview()"></div>
+            <div class="field" style="flex:1"><label class="fl">ความแรงยา</label><input type="text" id="fl-strength" placeholder="500mg" oninput="flLiveRefresh()"></div>
           </div>
           <div class="field"><label class="fl">วิธีใช้</label>
             <div style="display:flex;gap:6px;margin-bottom:7px">
@@ -1823,8 +1823,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.49.1';
+const APP_VERSION='4.49.2';
 const CHANGELOG=[
+  {v:'4.49.2',date:'2026-07-16',changes:[
+    '🐞 แก้บั๊กที่ระบบแจ้งเตือนบั๊กจับได้เอง: พิมพ์ในช่อง "ความแรงยา" ของหน้าฉลากแล้วเกิด error ทุกตัวอักษร (flLiveAuto is not defined — บั๊กเก่าที่ซ่อนอยู่นาน เพิ่งถูกระบบรายงานให้เห็น) · ตรวจทั้งไฟล์แล้วไม่มีจุดอื่นที่พังแบบเดียวกัน',
+  ]},
   {v:'4.49.1',date:'2026-07-16',changes:[
     '🌏 ฉลากยา: ความแรงยาต่อท้ายชื่อยาในกล่องเดียวกันแล้ว (เช่น "Paracetamol 500mg") — เกาะกันเสมอไม่ลอยแยกคนละมุม ลาก/ย่อ/จัดให้พอดีไปด้วยกันทั้งก้อน · รูปแบบ/ฉลากด่วนเก่าใช้ได้ปกติ (กล่องความแรงแยกเดิมจะว่างและไม่ถูกพิมพ์)',
   ]},
@@ -15697,6 +15700,8 @@ const FL_BLOCK_RULES={
 const FL_LINE_H={en:1.25,zh:1.15,my:1.6};
 
 let flLiveAuto=false;
+// ตัวเรียกจากปุ่ม/ช่องกรอกใน HTML (ตัวแปรในโมดูลมองไม่เห็นจาก oninput ตรงๆ — เคยทำ error ทุกครั้งที่พิมพ์ความแรงยา)
+window.flLiveRefresh=function(){if(flLiveAuto)flAutoSizeFull();else flRenderPreview();};
 let _fontReady=false;
 
 // โหลด Noto Sans Thai ก่อนวัด เพื่อให้ measureText แม่น
