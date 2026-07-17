@@ -36,7 +36,13 @@ service cloud.firestore {
       //  ไปเก็บแยกใน collection ใหม่ ซึ่งต้องแก้แอปด้วย — วางแผนไว้เป็นงานรอบถัดไป)
       allow read: if signedIn();
       // สมัครสมาชิกครั้งแรก: สร้าง doc ของตัวเองได้ · admin สร้างได้ (เช่น โคลนพนักงานทดสอบ)
-      allow create: if (signedIn() && request.auth.uid == uid) || isAdmin();
+      // 🔐 คนสมัครเองบังคับเป็น role:'member' + status:'pending' เท่านั้น
+      //    (กันคนรู้เทคนิคยัด role:'admin'/status:'active' ตอนสมัคร = เป็นแอดมินเองโดยไม่ต้องรออนุมัติ)
+      //    เปลี่ยนเป็น admin/อนุมัติได้เฉพาะแอดมินผ่าน update
+      allow create: if isAdmin()
+        || (signedIn() && request.auth.uid == uid
+            && request.resource.data.role == 'member'
+            && request.resource.data.status == 'pending');
       // ลบ: เฉพาะ admin (เช่น ลบพนักงานโคลน/ทดสอบ)
       allow delete: if isAdmin();
       // แก้ไข: admin แก้ได้ทุกอย่าง / พนักงานแก้ได้เฉพาะธีม+ตั้งค่าบรีฟ+การแจ้งเตือน+ข้อมูลอุปกรณ์ที่เข้าระบบ ของตัวเอง
@@ -53,7 +59,14 @@ service cloud.firestore {
     // อ่าน: admin (ทุกคน) หรือ เจ้าของ (ดูของตัวเอง) · เขียน: เฉพาะ admin
     match /memberSecure/{uid} {
       allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
-      allow write: if isAdmin();
+      // สมัครครั้งแรก: เจ้าตัวสร้าง doc ของตัวเองได้ (เก็บบัตรปชช.ตอนสมัคร ไม่ให้รั่วใน members)
+      //   แต่ตั้งเงินเดือนเองไม่ได้ — บังคับ salary ต้องเป็น 0 (แอดมินตั้งจริงทีหลัง)
+      allow create: if isAdmin()
+        || (signedIn() && request.auth.uid == uid
+            && (!('salary' in request.resource.data)
+                || (request.resource.data.salary.base == 0 && request.resource.data.salary.hourlyRate == 0)));
+      // แก้/ลบ: เฉพาะแอดมิน (เงินเดือน/บัญชีธนาคาร พนักงานแก้เองไม่ได้)
+      allow update, delete: if isAdmin();
     }
 
     // ===== payroll (เงินเดือน — อ่อนไหวมาก) =====

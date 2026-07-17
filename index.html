@@ -283,13 +283,19 @@ window.doRegister=async function(){
     localStorage.setItem('nm_session_token',token);
     await setDoc(doc(db,'members',cred.user.uid),{
       uid:cred.user.uid,firstName:fname,lastName:lname,email,
-      nationalId:cid,dateOfBirth:dob,status:'pending',   // 🔐 รอแอดมินอนุมัติก่อนเข้าใช้งาน
+      dateOfBirth:dob,status:'pending',   // 🔐 รอแอดมินอนุมัติก่อนเข้าใช้งาน
       role:'member',
       permissions:{dashboard:true,schedule:false,sales:false,members:false,payroll_self:true},
-      salary:{type:'fixed',base:0,hourlyRate:0},
       activeSession:{token,device:deviceLabel(),at:new Date().toISOString()},
       createdAt:new Date().toISOString()
     });
+    // 🔐 บัตรปชช./เงินเดือน เก็บแยกใน memberSecure (พนักงานอ่านกันเองไม่ได้ · เดิมเคยรั่วอยู่ใน members)
+    // best-effort: ถ้ายังไม่ได้ Publish rules ใหม่ จะเขียนไม่ได้ — ไม่ให้ block การสมัคร (แอดมินเติมบัตรปชช.ทีหลังได้)
+    try{
+      await setDoc(doc(db,'memberSecure',cred.user.uid),{
+        nationalId:cid, salary:{type:'fixed',base:0,hourlyRate:0}
+      });
+    }catch(_){}
     isRegistering=false;
     window.location.href='app.html';
   }catch(e){
