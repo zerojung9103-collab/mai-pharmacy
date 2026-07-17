@@ -1823,8 +1823,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.50.0';
+const APP_VERSION='4.51.0';
 const CHANGELOG=[
+  {v:'4.51.0',date:'2026-07-16',changes:[
+    '💾 สำรองข้อมูลทั้งร้าน "ครบทุกหมวดแล้ว" — เดิมสำรอง 13 หมวด ตกหล่นของสำคัญ 11 หมวด (เงินเดือน/บัตรปชช.ใน memberSecure · เอกสารการค้า · สมุดลูกค้า · ฐานข้อมูลยา 271 ตัว · ฉลากด่วน · ประกาศ · สลับเวร ฯลฯ) ตอนนี้เก็บครบ 24 หมวด กดปุ่มเดียวได้ทั้งร้านจริงๆ · ไฟล์สำรองมีข้อมูลอ่อนไหว — ระบบเตือนให้เก็บที่ปลอดภัย ห้ามส่งต่อ',
+  ]},
   {v:'4.50.0',date:'2026-07-16',changes:[
     '🔐 อุดช่องโหว่ความปลอดภัย 2 จุด (เตรียมความพร้อมก่อนต่อระบบ POS): (1) ปิดรูที่คนรู้เทคนิคสมัครแล้วตั้งตัวเองเป็นแอดมิน/อนุมัติเองได้ — ตอนนี้กฎบังคับคนสมัครเป็นพนักงานรออนุมัติเท่านั้น เปลี่ยนเป็นแอดมินได้เฉพาะแอดมินตัวจริง (2) เลขบัตรประชาชนตอนสมัครใหม่ ย้ายไปเก็บใน memberSecure (พนักงานอ่านกันเองไม่ได้) เดิมเขียนลง members ที่ทุกคนอ่านได้',
     '⚠️ ต้องอัป 3 ไฟล์: app.html + index.html + วางกฎ firestore-rules-ใหม่.txt แล้วกด Publish ใน Firebase Console — สำคัญมาก เพราะช่องโหว่ปิดจริงที่ "กฎ" ไม่ใช่แค่หน้าเว็บ',
@@ -3505,13 +3508,17 @@ window.backupDownload=async function(){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
   showToast('💾 กำลังรวบรวมข้อมูลทั้งร้าน... รอสักครู่');
   try{
-    const cols=['members','sales','cashState','cashEvents','checkins','schedules','leaves','payroll','todos','todoTemplates','editRequests','config','activityLogs'];
+    // สำรองครบทุก collection ที่แอปใช้ (24 หมวด) — รวมข้อมูลอ่อนไหว/เอกสาร/ลูกค้า/ฐานยา ที่เดิมตกหล่น
+    const cols=['members','memberSecure','payroll','sales','cashState','cashEvents','checkins','schedules','scheduleConfig','leaves','shiftSwaps','todos','todoTemplates','editRequests','documents','customers','announcements','articles','doseFormulas','drugWarnings','labelMaster','labelPresets','config','activityLogs'];
     const out={_meta:{app:'ใหม่เภสัช',version:APP_VERSION,at:new Date().toISOString(),by:profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():''}};
     let total=0;
     for(const c of cols){
-      const snap=await getDocs(collection(db,c));
-      const o={};snap.docs.forEach(d=>{o[d.id]=d.data();});
-      out[c]=o;total+=snap.docs.length;
+      // บางหมวด (เช่น memberSecure) พนักงานทั่วไปอ่านไม่ได้ — ถ้าล้มเหลวข้ามไป ไม่ให้ backup ทั้งก้อนพัง
+      try{
+        const snap=await getDocs(collection(db,c));
+        const o={};snap.docs.forEach(d=>{o[d.id]=d.data();});
+        out[c]=o;total+=snap.docs.length;
+      }catch(e){out[c]={_error:'อ่านหมวดนี้ไม่ได้ (สิทธิ์ไม่พอ?)'};}
     }
     const blob=new Blob([JSON.stringify(out)],{type:'application/json'});
     const a=document.createElement('a');
@@ -3520,7 +3527,7 @@ window.backupDownload=async function(){
     document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
     try{await setDoc(doc(db,'config','backupInfo'),{lastAt:new Date().toISOString(),by:out._meta.by,docs:total});}catch(e){}
-    showToast(`ดาวน์โหลดไฟล์สำรองแล้ว ✓ (${fmt(total)} รายการ) — เก็บไฟล์ไว้ในที่ปลอดภัยนอกเครื่องด้วยยิ่งดี`);
+    showToast(`ดาวน์โหลดไฟล์สำรองแล้ว ✓ (${fmt(total)} รายการ · ครบทุกหมวด) — ⚠️ ไฟล์นี้มีข้อมูลอ่อนไหว (เงินเดือน/บัตรปชช.) เก็บในที่ปลอดภัย อย่าส่งต่อใคร`);
     logActivity('backup',`สำรองข้อมูลทั้งร้าน ${fmt(total)} รายการ`);
   }catch(e){showToast('สำรองข้อมูลไม่สำเร็จ: '+(e?.message||e),'err');}
 };
