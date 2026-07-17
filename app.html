@@ -1410,10 +1410,32 @@ input,select,textarea{border-radius:14px}
             <div class="field" style="flex:1"><label class="fl">ความแรงยา</label><input type="text" id="fl-strength" placeholder="500mg" oninput="if(flLiveAuto)flAutoSizeFull();else flRenderPreview()"></div>
           </div>
           <div class="field"><label class="fl">วิธีใช้</label>
+            <div style="display:flex;gap:6px;margin-bottom:7px">
+              <button class="btn btn-sm" id="fl-dirmode-dose" style="flex:1" onclick="flDirModeSet('dose')">🧩 ประกอบเอง</button>
+              <button class="btn btn-sm" id="fl-dirmode-lib" style="flex:1" onclick="flDirModeSet('lib')">🔎 คลังประโยค</button>
+            </div>
             <div class="fl-sb-wrap" id="fl-dir-wrap">
               <input type="text" class="fl-sb-input" id="fl-dir-input" placeholder="ค้นหาวิธีใช้ เช่น ทานครั้งละ 1 เม็ด..." autocomplete="off" oninput="flSearchDebounced('direction',this.value)" onfocus="flSearch('direction',this.value)">
               <div class="fl-sb-dropdown" id="fl-dir-drop"></div>
               <button class="fl-sb-clear" id="fl-dir-clear" onclick="flClearSingle('direction')" style="display:none">✕</button>
+            </div>
+            <div id="fl-dose-builder" style="display:none;border:1px solid var(--border);border-radius:13px;padding:11px 12px">
+              <div style="font-size:10.5px;font-weight:800;color:var(--text3);margin-bottom:5px">ครั้งละ (จำนวน) <span style="font-weight:500">· กด − ต่ำกว่า 1 = ครึ่งเม็ด</span></div>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:6px">
+                  <button class="btn btn-sm" style="width:34px" onclick="flDoseQtyStep(-1)">−</button>
+                  <span id="fl-dose-qty" style="min-width:44px;text-align:center;font-size:16px;font-weight:800;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:10px;padding:5px 6px">1</span>
+                  <button class="btn btn-sm" style="width:34px" onclick="flDoseQtyStep(1)">+</button>
+                </div>
+                <div id="fl-dose-units" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+              </div>
+              <div style="font-size:10.5px;font-weight:800;color:var(--text3);margin:9px 0 5px">บ่อยแค่ไหน</div>
+              <div id="fl-dose-freqs" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+              <div style="font-size:10.5px;font-weight:800;color:var(--text3);margin:9px 0 5px">ก่อน/หลังอาหาร</div>
+              <div id="fl-dose-meals" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+              <div style="font-size:10.5px;font-weight:800;color:var(--text3);margin:9px 0 5px">เวลาไหน</div>
+              <div id="fl-dose-times" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+              <div id="fl-dose-result" style="background:var(--green-ll);border:1.5px dashed var(--green);border-radius:11px;padding:9px 12px;margin-top:10px;font-size:12px;line-height:1.7"></div>
             </div>
           </div>
           <div class="field"><label class="fl">สรรพคุณ <span style="font-size:11px;color:var(--text3)">(เลือกได้หลายข้อ)</span></label>
@@ -1801,8 +1823,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.48.0';
+const APP_VERSION='4.49.0';
 const CHANGELOG=[
+  {v:'4.49.0',date:'2026-07-16',changes:[
+    '🧩 ฉลากยาต่างชาติ: "ตัวประกอบวิธีใช้" — เลิกพึ่งประโยคสำเร็จรูปอย่างเดียว เลือกทีละชิ้นได้อิสระ: จำนวน (ปุ่ม −/+ ลงได้ถึงครึ่งเม็ด) × หน่วย (เม็ด/แคปซูล/ช้อนชา/มล./ซอง) × บ่อยแค่ไหน (วันละ 1-4 ครั้ง / ทุก 4-6 ชม.เมื่อมีอาการ) × ก่อน/หลัง/พร้อมอาหาร/ท้องว่าง × เวลา (เช้า / เช้า-เย็น / สามเวลา / ก่อนนอน) — แตะเปลี่ยนชิ้นไหน ประโยคขึ้นใหม่ทันทีครบ 4 ภาษา (ไทย/อังกฤษ/จีน/พม่า ตัวเลขพม่าแปลงให้เอง)',
+    'สลับ 2 โหมดได้ที่ช่องวิธีใช้: 🧩 ประกอบเอง ↔ 🔎 คลังประโยค (แบบเดิม ไว้ใช้ประโยคพิเศษ เช่น ยาคุม/หยอดตา) · เครื่องจำโหมดล่าสุดไว้ · ⚡ ฉลากด่วนเซฟผลที่ประกอบแล้วได้ตามปกติ โหลดกลับมาตัวประกอบคืนค่าเดิมให้แก้ต่อได้เลย',
+  ]},
   {v:'4.48.0',date:'2026-07-16',changes:[
     '⚡ ฉลากด่วน — เซฟฉลากยาต่างชาติทั้งใบไว้ใช้ซ้ำเป็นรายอัน! ทำฉลากเสร็จกด "💾 บันทึกฉลากนี้" ตั้งชื่อ (ระบบเสนอชื่อยา+ความแรงให้) — เก็บครบ ยา/ความแรง/วิธีใช้/สรรพคุณ/คำเตือน/ข้อความเพิ่มเติม/ภาษา/ดีไซน์ ยกเว้นชื่อผู้ป่วยที่กรอกใหม่รายคน',
     'รอบหน้าแตะเดียวจบ: การ์ด ⚡ บนสุดของหน้าฉลาก มีช่องค้นหา + ปุ่มลัดเรียงตามที่ใช้บ่อยจริง → แตะชื่อ = เติมให้ทั้งใบพร้อมพิมพ์ (~10 วินาที จากเดิมเป็นนาที ลูกค้าไม่ต้องรอนาน) · พนักงานทุกคนบันทึกได้ เห็นร่วมกันทุกสาขา · 🗂 จัดการ = ดูทั้งหมด/ลบ',
@@ -15388,6 +15414,7 @@ async function loadForeignLabelData(){
   flRenderBlockList();
   const _exBtn=document.getElementById('fl-excel-btn');if(_exBtn)_exBtn.style.display=isAdmin?'':'none';
   flRenderCustomBlockInputs();
+  flDirModeSet(flDirMode); // 🧩 คืนโหมดวิธีใช้ล่าสุดของเครื่องนี้ (ประกอบเอง/คลังประโยค)
   flRenderPreview();
   flLoadPresets(); // ⚡ ฉลากด่วน (ไม่ต้องรอ — โหลดเบื้องหลัง)
 }
@@ -15519,9 +15546,113 @@ window.flClearSingle=function(type){
   if(drop)drop.classList.remove('open');
   flRenderPreview();
 };
+// ======= 🧩 ตัวประกอบวิธีใช้ — เลือกทีละชิ้น (จำนวน/หน่วย/ความถี่/มื้ออาหาร/เวลา) ระบบประกอบประโยค 4 ภาษาให้เอง =======
+const FL_DOSE_UNITS=[
+ {k:'tab',th:'เม็ด',en1:'tablet',en:'tablets',zh:'片',my:'လုံး'},
+ {k:'cap',th:'แคปซูล',en1:'capsule',en:'capsules',zh:'粒',my:'တောင့်'},
+ {k:'tsp',th:'ช้อนชา',en1:'teaspoon',en:'teaspoons',zh:'茶匙',my:'လက်ဖက်ရည်ဇွန်း'},
+ {k:'ml',th:'มล.',en1:'mL',en:'mL',zh:'毫升',my:'မီလီလီတာ'},
+ {k:'sac',th:'ซอง',en1:'sachet',en:'sachets',zh:'包',my:'ထုပ်'},
+];
+const FL_DOSE_FREQS=[
+ {k:'d1',th:'วันละ 1 ครั้ง',en:'once daily',zh:'每日1次',my:'တစ်နေ့ ၁ ကြိမ်'},
+ {k:'d2',th:'วันละ 2 ครั้ง',en:'twice daily',zh:'每日2次',my:'တစ်နေ့ ၂ ကြိမ်'},
+ {k:'d3',th:'วันละ 3 ครั้ง',en:'three times daily',zh:'每日3次',my:'တစ်နေ့ ၃ ကြိမ်'},
+ {k:'d4',th:'วันละ 4 ครั้ง',en:'four times daily',zh:'每日4次',my:'တစ်နေ့ ၄ ကြိမ်'},
+ {k:'prn',th:'ทุก 4-6 ชั่วโมง เมื่อมีอาการ',en:'every 4-6 hours as needed',zh:'需要时每4-6小时1次',my:'လိုအပ်လျှင် ၄-၆ နာရီခြားတစ်ကြိမ်'},
+];
+const FL_DOSE_MEALS=[
+ {k:'',th:'',en:'',zh:'',my:''},
+ {k:'ac',th:'ก่อนอาหาร',en:'before meals',zh:'饭前',my:'အစာမစားမီ'},
+ {k:'ac30',th:'ก่อนอาหาร 30 นาที',en:'30 minutes before meals',zh:'饭前30分钟',my:'အစာမစားမီ မိနစ် ၃၀'},
+ {k:'pc',th:'หลังอาหาร',en:'after meals',zh:'饭后',my:'အစာစားပြီး'},
+ {k:'wc',th:'พร้อมอาหาร',en:'with meals',zh:'与食物同服',my:'အစာနှင့်အတူ'},
+ {k:'es',th:'ขณะท้องว่าง',en:'on an empty stomach',zh:'空腹',my:'ဗိုက်ဗလာချိန်'},
+];
+const FL_DOSE_TIMES=[
+ {k:'',th:'',en:'',zh:'',my:''},
+ {k:'am',th:'เช้า',en:'in the morning',zh:'早晨',my:'မနက်'},
+ {k:'ambed',th:'เช้า-เย็น',en:'morning and evening',zh:'早晚',my:'မနက်-ည'},
+ {k:'3t',th:'เช้า-กลางวัน-เย็น',en:'morning, noon and evening',zh:'早中晚',my:'မနက်-နေ့လယ်-ည'},
+ {k:'hs',th:'ก่อนนอน',en:'at bedtime',zh:'睡前',my:'အိပ်ရာမဝင်မီ'},
+ {k:'andhs',th:'และก่อนนอน',en:'and at bedtime',zh:'及睡前',my:'နှင့် အိပ်ရာမဝင်မီ'},
+];
+let flDirMode=localStorage.getItem('nm_fl_dirmode')||'lib';
+let flDose={qty:1,unit:'tab',freq:'d1',meal:'pc',time:''};
+const _myDigits=['၀','၁','၂','၃','၄','၅','၆','၇','၈','၉'];
+function flMyNum(n){return String(n).split('').map(c=>/\d/.test(c)?_myDigits[+c]:c).join('');}
+// ประกอบประโยคจากชิ้นที่เลือก → {th,en,zh,my}
+function flDoseText(){
+  const u=FL_DOSE_UNITS.find(x=>x.k===flDose.unit)||FL_DOSE_UNITS[0];
+  const f=FL_DOSE_FREQS.find(x=>x.k===flDose.freq)||FL_DOSE_FREQS[0];
+  const m=FL_DOSE_MEALS.find(x=>x.k===flDose.meal)||FL_DOSE_MEALS[0];
+  const t=FL_DOSE_TIMES.find(x=>x.k===flDose.time)||FL_DOSE_TIMES[0];
+  const q=flDose.qty;
+  // ไทย — ครึ่งเม็ด / 1 เม็ดครึ่ง
+  const qTh=q===0.5?'ครึ่ง'+u.th:(q%1===0.5?Math.floor(q)+' '+u.th+'ครึ่ง':q+' '+u.th);
+  const thTail=(t.k==='andhs')?(m.th?m.th+t.th:'ก่อนนอน'):[m.th,t.th].filter(Boolean).join(' ');
+  const th=('ครั้งละ '+qTh+' '+f.th+(thTail?' '+thTail:'')).replace(/\s+/g,' ').trim();
+  // อังกฤษ
+  const qEn=q===0.5?'half a '+u.en1:(q===1?'1 '+u.en1:(q%1===0.5?Math.floor(q)+'½ '+u.en:q+' '+u.en));
+  const tEn=(t.k==='ambed'||t.k==='3t')?'('+t.en+')':(t.k==='andhs'&&!m.en?'at bedtime':t.en);
+  const en=('Take '+qEn+' '+f.en+(m.en?' '+m.en:'')+(tEn?' '+tEn:'')).replace(/\s+/g,' ').trim();
+  // จีน — 每次2片，每日2次，早晚饭后服用 (และก่อนนอน = 饭后及睡前)
+  const qZh=q===0.5?'半'+u.zh:(q%1===0.5?Math.floor(q)+u.zh+'半':q+u.zh);
+  const zhTail=(t.k==='andhs')?(m.zh?m.zh+t.zh:'睡前'):((t.zh||'')+(m.zh||''));
+  const zh='每次'+qZh+'，'+f.zh+(zhTail?'，'+zhTail+'服用':'');
+  // พม่า — ตัวเลขแปลงเป็นเลขพม่า
+  const qMy=q===0.5?u.my+'တစ်ဝက်':(q%1===0.5?flMyNum(Math.floor(q))+' '+u.my+'ခွဲ':flMyNum(q)+' '+u.my);
+  const myTail=(t.k==='andhs')?(m.my?m.my+' '+t.my:'အိပ်ရာမဝင်မီ'):[t.my,m.my].filter(Boolean).join(' ');
+  const my='တစ်ကြိမ် '+qMy+'၊ '+f.my+(myTail?'၊ '+myTail:'')+' သောက်ပါ';
+  return {th,en,zh,my};
+}
+window.flDirModeSet=function(mode){
+  flDirMode=mode==='dose'?'dose':'lib';
+  try{localStorage.setItem('nm_fl_dirmode',flDirMode);}catch(e){}
+  const dw=document.getElementById('fl-dir-wrap'),db=document.getElementById('fl-dose-builder');
+  if(dw)dw.style.display=flDirMode==='lib'?'':'none';
+  if(db)db.style.display=flDirMode==='dose'?'':'none';
+  const paint=(id,on)=>{const b=document.getElementById(id);if(!b)return;b.style.background=on?'var(--green-l)':'';b.style.borderColor=on?'var(--green)':'';b.style.color=on?'var(--green-d)':'';};
+  paint('fl-dirmode-dose',flDirMode==='dose');paint('fl-dirmode-lib',flDirMode==='lib');
+  if(flDirMode==='dose'){
+    flSelections.direction='';
+    const di=document.getElementById('fl-dir-input');if(di)di.value='';
+    const dc=document.getElementById('fl-dir-clear');if(dc)dc.style.display='none';
+    flDoseApply();
+  }else{
+    delete flSelections.directionCustom;delete flSelections.doseCfg;
+    if(flLiveAuto)flAutoSizeFull();else flRenderPreview();
+  }
+};
+function flDoseApply(){
+  flSelections.directionCustom=flDoseText();
+  flSelections.doseCfg={...flDose};
+  flDoseRender();
+  if(flLiveAuto)flAutoSizeFull();else flRenderPreview();
+}
+window.flDoseSet=function(k,v){flDose[k]=v;flDoseApply();};
+window.flDoseQtyStep=function(d){
+  let q=flDose.qty;
+  q=d>0?(q<3?q+0.5:q+1):(q<=3?q-0.5:q-1);
+  flDose.qty=Math.min(30,Math.max(0.5,Math.round(q*2)/2));
+  flDoseApply();
+};
+function flDoseRender(){
+  const qEl=document.getElementById('fl-dose-qty');
+  if(qEl)qEl.textContent=flDose.qty===0.5?'ครึ่ง':String(flDose.qty).replace('.5','½');
+  const chip=(arr,key,cur)=>arr.map(o=>`<button class="btn btn-sm" style="${o.k===cur?'background:var(--green);border-color:var(--green);color:#fff':''}" onclick="flDoseSet('${key}','${o.k}')">${o.th||'ไม่ระบุ'}</button>`).join('');
+  const set=(id,html)=>{const e=document.getElementById(id);if(e)e.innerHTML=html;};
+  set('fl-dose-units',chip(FL_DOSE_UNITS,'unit',flDose.unit));
+  set('fl-dose-freqs',chip(FL_DOSE_FREQS,'freq',flDose.freq));
+  set('fl-dose-meals',chip(FL_DOSE_MEALS,'meal',flDose.meal));
+  set('fl-dose-times',chip(FL_DOSE_TIMES,'time',flDose.time));
+  const r=document.getElementById('fl-dose-result');
+  if(r){const d=flDoseText();r.innerHTML=`<b style="font-size:13px">${d.th}</b><br><span style="color:var(--text2)"><b>EN</b> ${d.en}<br><b>中文</b> ${d.zh}<br><b>မြန်မာ</b> ${d.my}</span>`;}
+}
 window.flSetLang=function(lang){
   flLang=lang;
   document.querySelectorAll('.fl-lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
+  if(flDirMode==='dose')flDoseRender();
   flRenderPreview();
 };
 window.flSetSize=function(size){
@@ -15845,6 +15976,8 @@ function flGetBlockText(block){
     case 'strength':  return str;
     case 'patient': return pat?pat:'';
     case 'direction':{
+      // โหมดประกอบเอง: ใช้ประโยคที่ประกอบไว้ (มีครบทุกภาษา)
+      if(flSelections.directionCustom)return flSelections.directionCustom[lang]||flSelections.directionCustom.th||'';
       if(!flSelections.direction)return '';
       const item=flDB.directions.find(x=>x.id===flSelections.direction);
       return item?(item[lang]||item.th):'';
@@ -16107,6 +16240,13 @@ window.flPresetApply=async function(id){
   const dir=flDB.directions.find(x=>x.id===flSelections.direction);
   const di=document.getElementById('fl-dir-input');if(di)di.value=dir?(dir.th||dir.en||''):'';
   const dc=document.getElementById('fl-dir-clear');if(dc)dc.style.display=dir?'inline-block':'none';
+  // 🧩 ฉลากที่เซฟจากโหมดประกอบเอง → คืนสถานะตัวประกอบ (มี doseCfg เก็บมากับใบ)
+  if(flSelections.directionCustom){
+    const _dcopy={...(flSelections.directionCustom)};const _cfg=flSelections.doseCfg?{...flSelections.doseCfg}:null;
+    if(_cfg)flDose=Object.assign({qty:1,unit:'tab',freq:'d1',meal:'pc',time:''},_cfg);
+    flDirModeSet('dose');
+    if(!_cfg)flSelections.directionCustom=_dcopy; // ใบเก่าไม่มี doseCfg — คงข้อความเดิมไว้ ไม่ประกอบทับ
+  }else if(flDirMode==='dose')flDirModeSet('lib');
   document.querySelectorAll('.fl-sb-dropdown').forEach(d=>d.classList.remove('open'));
   document.querySelectorAll('.fl-lang-btn').forEach(b=>b.classList.toggle('active',b.dataset.lang===flLang));
   document.querySelectorAll('.fl-size-btn').forEach(b=>b.classList.toggle('active',b.dataset.size===flSize));
