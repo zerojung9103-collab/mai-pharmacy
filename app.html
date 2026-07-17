@@ -1823,8 +1823,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.49.0';
+const APP_VERSION='4.49.1';
 const CHANGELOG=[
+  {v:'4.49.1',date:'2026-07-16',changes:[
+    '🌏 ฉลากยา: ความแรงยาต่อท้ายชื่อยาในกล่องเดียวกันแล้ว (เช่น "Paracetamol 500mg") — เกาะกันเสมอไม่ลอยแยกคนละมุม ลาก/ย่อ/จัดให้พอดีไปด้วยกันทั้งก้อน · รูปแบบ/ฉลากด่วนเก่าใช้ได้ปกติ (กล่องความแรงแยกเดิมจะว่างและไม่ถูกพิมพ์)',
+  ]},
   {v:'4.49.0',date:'2026-07-16',changes:[
     '🧩 ฉลากยาต่างชาติ: "ตัวประกอบวิธีใช้" — เลิกพึ่งประโยคสำเร็จรูปอย่างเดียว เลือกทีละชิ้นได้อิสระ: จำนวน (ปุ่ม −/+ ลงได้ถึงครึ่งเม็ด) × หน่วย (เม็ด/แคปซูล/ช้อนชา/มล./ซอง) × บ่อยแค่ไหน (วันละ 1-4 ครั้ง / ทุก 4-6 ชม.เมื่อมีอาการ) × ก่อน/หลัง/พร้อมอาหาร/ท้องว่าง × เวลา (เช้า / เช้า-เย็น / สามเวลา / ก่อนนอน) — แตะเปลี่ยนชิ้นไหน ประโยคขึ้นใหม่ทันทีครบ 4 ภาษา (ไทย/อังกฤษ/จีน/พม่า ตัวเลขพม่าแปลงให้เอง)',
     'สลับ 2 โหมดได้ที่ช่องวิธีใช้: 🧩 ประกอบเอง ↔ 🔎 คลังประโยค (แบบเดิม ไว้ใช้ประโยคพิเศษ เช่น ยาคุม/หยอดตา) · เครื่องจำโหมดล่าสุดไว้ · ⚡ ฉลากด่วนเซฟผลที่ประกอบแล้วได้ตามปกติ โหลดกลับมาตัวประกอบคืนค่าเดิมให้แก้ต่อได้เลย',
@@ -15342,8 +15345,7 @@ const FL_DEFAULT_BLOCKS=()=>[
   {id:'b_shop',    label:'ชื่อร้าน+สาขา',  key:'shop_name', x:1,  y:1,  w:77,fontSize:7,  bold:true, color:'#000',leftBorder:''},
   {id:'b_addr',    label:'ที่อยู่+เบอร์',  key:'address',   x:1,  y:5,  w:77,fontSize:5,  bold:false,color:'#555',leftBorder:''},
   {id:'b_patient', label:'ชื่อผู้ป่วย',    key:'patient',   x:1,  y:11, w:77,fontSize:7,  bold:false,color:'#000',leftBorder:''},
-  {id:'b_drug',    label:'ชื่อยา',          key:'drug_name', x:5,  y:16, w:55,fontSize:12, bold:true, color:'#000',leftBorder:'#000'},
-  {id:'b_strength',label:'ความแรงยา',      key:'strength',  x:62, y:19, w:16,fontSize:8,  bold:false,color:'#333',leftBorder:''},
+  {id:'b_drug',    label:'ชื่อยา+ความแรง', key:'drug_name', x:5,  y:16, w:73,fontSize:12, bold:true, color:'#000',leftBorder:'#000'},
   {id:'b_dir',     label:'วิธีใช้',         key:'direction', x:5,  y:29, w:73,fontSize:9,  bold:true, color:'#000',leftBorder:'#000'},
   {id:'b_ind',     label:'สรรพคุณ',        key:'indication',x:1,  y:39, w:77,fontSize:6.5,bold:false,color:'#333',leftBorder:''},
   {id:'b_warn',    label:'คำเตือน',        key:'warning',   x:1,  y:44, w:77,fontSize:6,  bold:false,color:'#666',leftBorder:''},
@@ -15357,8 +15359,7 @@ const FL_BANNER_BLOCKS=()=>[
   {id:'b_shop',    label:'ชื่อร้าน+สาขา', key:'shop_name', x:2,  y:1.6, w:76,fontSize:11, bold:true, color:'#ffffff',leftBorder:''},
   {id:'b_addr',    label:'ที่อยู่+เบอร์', key:'address',   x:2,  y:9,   w:76,fontSize:6.5,bold:false,color:'#000',leftBorder:''},
   {id:'b_patient', label:'ชื่อผู้ป่วย',   key:'patient',   x:2,  y:16.5,w:76,fontSize:8,  bold:true, color:'#000',leftBorder:''},
-  {id:'b_drug',    label:'ชื่อยา',         key:'drug_name', x:2,  y:22,  w:52,fontSize:12, bold:true, color:'#000',leftBorder:''},
-  {id:'b_strength',label:'ความแรงยา',     key:'strength',  x:54, y:24.5,w:24,fontSize:8,  bold:false,color:'#000',leftBorder:''},
+  {id:'b_drug',    label:'ชื่อยา+ความแรง',key:'drug_name', x:2,  y:22,  w:76,fontSize:12, bold:true, color:'#000',leftBorder:''},
   {id:'b_dir',     label:'วิธีใช้',        key:'direction', x:2,  y:31,  w:76,fontSize:9,  bold:true, color:'#000',leftBorder:''},
   {id:'b_ind',     label:'สรรพคุณ',       key:'indication',x:2,  y:40,  w:76,fontSize:6,  bold:false,color:'#000',leftBorder:''},
   {id:'b_warn',    label:'คำเตือน',       key:'warning',   x:3,  y:47,  w:74,fontSize:6,  bold:true, color:'#000',leftBorder:''},
@@ -15969,11 +15970,12 @@ function flGetBlockText(block){
     case 'shop_name': return br.name;
     case 'address':   return br.addr+'\n'+br.tel;
     case 'drug_name':{
+      // แบบ ก (v4.49.1): ความแรงต่อท้ายชื่อยาในกล่องเดียว — เกาะกันเสมอ ไม่ลอยแยก
       if(!flSelections.generic)return '(เลือกชื่อยาจากช่องด้านซ้าย)';
       const item=flDB.drugs.find(x=>x.id===flSelections.generic);
-      return item?item.name:'';
+      return item?(item.name+(str?' '+str:'')):'';
     }
-    case 'strength':  return str;
+    case 'strength':  return ''; // ยุบรวมเข้ากล่องชื่อยาแล้ว (เก็บ key ไว้ให้รูปแบบเก่าโหลดได้ — กล่องว่างจะไม่ถูกพิมพ์)
     case 'patient': return pat?pat:'';
     case 'direction':{
       // โหมดประกอบเอง: ใช้ประโยคที่ประกอบไว้ (มีครบทุกภาษา)
