@@ -1823,8 +1823,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.49.2';
+const APP_VERSION='4.49.3';
 const CHANGELOG=[
+  {v:'4.49.3',date:'2026-07-16',changes:[
+    '🌏 ฉลากยา: กด "✨ จัดให้พอดี" แล้วชื่อยา+ความแรงอยู่บรรทัดเดียวกันจริงๆ แล้ว — เดิมตัววัดขนาดหักระยะเส้นดำซ้ายไม่ครบ (วัด 3mm แต่ของจริงกิน 5mm) และวัดชิดขอบเป๊ะเกินไป ตัวอักษรเลยล้นตกบรรทัดทั้งที่ระบบคิดว่าพอดี · แก้ให้วัดตรงกับการแสดงจริง + เผื่อขอบ 3% — มีผลทุกบล็อก (วิธีใช้/สรรพคุณ/คำเตือน แม่นขึ้นด้วย)',
+  ]},
   {v:'4.49.2',date:'2026-07-16',changes:[
     '🐞 แก้บั๊กที่ระบบแจ้งเตือนบั๊กจับได้เอง: พิมพ์ในช่อง "ความแรงยา" ของหน้าฉลากแล้วเกิด error ทุกตัวอักษร (flLiveAuto is not defined — บั๊กเก่าที่ซ่อนอยู่นาน เพิ่งถูกระบบรายงานให้เห็น) · ตรวจทั้งไฟล์แล้วไม่มีจุดอื่นที่พังแบบเดียวกัน',
   ]},
@@ -15720,7 +15723,8 @@ function measureLines(text,fontPt,widthMm,bold){
   const fontFace=`${bold?700:400} ${fsPx}px "Noto Sans Thai","Noto Sans",sans-serif`;
   _ctx.font=fontFace;
   // ความกว้างสูงสุดในหน่วย px = (widthMm / 0.3528mm/pt) * (fsPx/fontPt)
-  const maxPx=widthMm*fsPx/(fontPt*0.3528);
+  // ×0.97 = เผื่อขอบ 3% — canvas วัดต่างจากการจัดบรรทัดจริงของเบราว์เซอร์เล็กน้อย ถ้าวัดเป๊ะขอบจะตกบรรทัด
+  const maxPx=widthMm*fsPx/(fontPt*0.3528)*0.97;
   const words=text.replace(/\n/g,' \n ').split(' ');
   let lines=0,cur='';
   for(const w of words){
@@ -15737,7 +15741,7 @@ function blockHeightMm(b,fontScale=1){
   const txt=flGetBlockText(b);
   if(!txt)return 0;
   const fs=b.fontSize*fontScale;
-  const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?3:0;
+  const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?5:0; // เส้นซ้าย 3mm + ระยะห่าง 2mm ให้ตรงกับตอนแสดงจริง
   const lh=FL_LINE_H[flLang]||1.3;
   const lines=measureLines(txt,fs,b.w-lbW,b.bold);
   // ความสูงจริง: ใช้ actualBoundingBox ถ้าวัดได้ มิฉะนั้นประมาณ
@@ -15755,7 +15759,7 @@ function fitBlockFont(b){
   if(!rule.autoResize)return b.fontSize;
   const txt=flGetBlockText(b);
   if(!txt)return b.fontSize;
-  const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?3:0;
+  const lbW=b.leftBorder&&b.leftBorder!=='#ffffff'?5:0; // เส้นซ้าย 3mm + ระยะห่างข้อความ 2mm (ให้ตรงกับตอนแสดงจริง)
   const w=b.w-lbW;
   let lo=rule.minFont,hi=rule.maxFont;
   for(let i=0;i<22;i++){
