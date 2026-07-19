@@ -152,8 +152,70 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .imp-prev table{border-collapse:collapse;width:100%}
 .imp-prev td,.imp-prev th{border:1px solid var(--border);padding:3px 7px;white-space:nowrap}
 
-/* ===== จอขาย (1.3) ===== */
-#v-sell{flex-direction:column}
+
+/* ===== จอขาย (ตาม mockup แท็บ 3) ===== */
+#v-sell{flex-direction:column;height:100vh;overflow:hidden}
+.b-top{background:linear-gradient(140deg,#4C9BF0,#2C6FBF)!important}
+.s-body{flex:1;display:flex;min-height:0}
+.s-left{flex:1.7;padding:15px;display:flex;flex-direction:column;min-width:0}
+.s-search{display:flex;gap:9px;margin-bottom:12px}
+.s-search input{flex:1;border:2px solid var(--green);border-radius:12px;padding:13px 15px;font-size:16px;font-family:var(--font);background:var(--surface);color:var(--text)}
+.s-search input:focus{outline:none;box-shadow:0 0 0 3px rgba(35,184,149,.15)}
+.s-scanb{background:rgba(31,174,139,.12);color:var(--green-dd);border-radius:12px;padding:0 15px;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.s-cats{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap}
+.s-cat{font-size:11.5px;font-weight:700;border:1.5px solid var(--border2);background:var(--surface);border-radius:20px;padding:5px 13px;color:var(--text2);cursor:pointer}
+.s-cat.on{background:var(--green);border-color:var(--green);color:#fff}
+.s-grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;align-content:start;overflow:auto}
+.s-p{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 11px;cursor:pointer}
+.s-p:hover{border-color:var(--green)}
+.s-p .nm{font-size:12.5px;font-weight:700;line-height:1.3;min-height:33px;overflow:hidden}
+.s-p .pr{font-size:15px;font-weight:800;color:var(--green-d);margin-top:4px;font-family:var(--mono);clear:both}
+.s-p .st{float:right;margin:0 0 3px 6px;font-size:9px;font-weight:800;border-radius:7px;padding:2px 6px;background:rgba(31,174,139,.13);color:var(--green-dd)}
+.s-p .st.low{background:var(--amber-l);color:var(--amber-t)}
+.s-p .st.zero{background:var(--red-l);color:var(--red-t)}
+.s-p.warn{border-color:var(--red)}
+.s-p .algy{float:left;margin:0 5px 3px 0;font-size:12px}
+.s-mid{width:330px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
+.s-alert{background:var(--red-l);border:1.5px solid var(--red);border-radius:12px;padding:10px 13px;display:flex;align-items:flex-start;gap:10px;margin-top:10px}
+.s-alert .ax{font-size:19px}
+.s-alert .at{font-size:12px;color:var(--red-t);line-height:1.5}
+.s-carth{padding:12px 15px 6px;font-family:var(--disp);font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
+.s-carth .cn2{font-size:10.5px;background:rgba(31,174,139,.13);color:var(--green-dd);border-radius:20px;padding:2px 9px;font-weight:800;font-family:var(--font)}
+.s-cart{flex:1;overflow:auto;padding:0 13px}
+.s-ci{display:flex;align-items:center;gap:9px;padding:9px 3px;border-bottom:1px solid var(--border)}
+.s-ci .cn{flex:1;min-width:0}
+.s-ci .cn .t{font-size:12.5px;font-weight:700}
+.s-ci .cn .u{font-size:10.5px;color:var(--text3);font-family:var(--mono);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.s-ci .cn .u select{border:1px solid var(--border2);border-radius:6px;padding:1px 3px;font-size:10px;font-family:var(--font)}
+.s-qty{display:flex;align-items:center;gap:6px}
+.s-qty .bt{width:25px;height:25px;border-radius:8px;border:1.5px solid var(--border2);background:var(--surface);font-size:14px;font-weight:800;color:var(--text2);cursor:pointer;font-family:var(--font);line-height:1}
+.s-qty .q{width:24px;text-align:center;font-weight:800;font-size:13px}
+.s-ci .lt{width:64px;text-align:right;font-weight:800;font-family:var(--mono);font-size:13px}
+.s-ci .rmv{border:none;background:none;color:var(--red-t);font-size:13px;cursor:pointer;padding:2px}
+.s-empty{text-align:center;color:var(--text3);padding:40px 16px;font-size:13px}
+.s-sum{border-top:1px solid var(--border);padding:12px 15px;background:var(--surface-2)}
+.s-sum .row{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;color:var(--text2)}
+.s-sum .row.earn{color:var(--amber-t);font-weight:700}
+.s-sum .row.dsc{cursor:pointer}
+.s-sum .tot{display:flex;justify-content:space-between;align-items:baseline;margin-top:5px;padding-top:7px;border-top:1px dashed var(--border2)}
+.s-sum .tot .l{font-size:14px;font-weight:800}
+.s-sum .tot .v{font-size:28px;font-weight:800;color:var(--green-d);font-family:var(--mono)}
+.s-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:8px}
+.s-acts{width:150px;flex-shrink:0;background:var(--panel2,#EEF4F0);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:11px 10px;gap:6px;overflow:auto}
+.s-abtn{border-radius:10px;padding:9px 8px;font-size:12px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);text-align:center;line-height:1.2;font-family:var(--font);position:relative}
+.s-abtn:hover{border-color:var(--green)}
+.s-abtn .ei{font-size:15px}
+.s-abtn .k{font-family:var(--mono);font-size:8.5px;font-weight:700;opacity:.55}
+.s-abtn.pay2{background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;padding:12px 8px;font-size:14px}
+.s-abtn.lbl2{background:var(--blue-l);color:var(--blue-d);border-color:transparent}
+.s-abtn.amber2{background:var(--amber-l);color:var(--amber-t);border-color:transparent}
+.s-abtn.dis2{opacity:.45;cursor:default}
+.s-abtn.dis2:hover{border-color:var(--border2)}
+.s-adiv{height:1px;background:var(--border);margin:3px 2px}
+.s-amore{font-size:10px;font-weight:700;color:var(--text3);text-align:center;margin-top:2px;line-height:1.7}
+
+/* ===== จอขาย (1.3 เดิม — คงไว้ให้โมดัลใช้) ===== */
+#v-sell{flex-direction:column;height:100vh;overflow:hidden}
 .sell-body{flex:1;display:flex;min-height:0}
 .sl{flex:1.8;display:flex;flex-direction:column;padding:14px;min-width:0}
 .sr{width:330px;background:var(--surface);border-left:1.5px solid var(--border);display:flex;flex-direction:column;padding:14px 16px;overflow-y:auto}
@@ -273,8 +335,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 
 <!-- ═════ จอเลือกสาขา ═════ -->
 <div class="view" id="v-branch">
-  <div class="topbar">
-    <span class="tt">🛒 ใหม่เภสัช POS</span>
+  <div class="topbar b-top">
+    <span class="tt">🛒 ขายหน้าร้าน (POS)</span>
     <span class="sp"></span>
     <span class="sync" id="sync-b"><span class="dot"></span><span class="lb">ออนไลน์</span></span>
     <span class="who" id="br-who"></span>
@@ -312,14 +374,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
         <div class="nvc" id="nav-rep"><span class="ic">📊</span><div class="t">ยอดขาย & กำไร</div><div class="s">รายเดือน · ขายดี · CSV</div></div>
       </div>
       <div class="card">
-        <span class="ok-badge">✅ รากฐานระบบ (เฟส 1.1) ติดตั้งแล้ว</span>
-        <h3>เครื่องนี้พร้อมสำหรับระบบขายหน้าร้าน</h3>
-        <p>ล็อกอิน · สิทธิ์ · สาขา · การทำงานแบบออฟไลน์ (เน็ตหลุดข้อมูลไม่หาย ซิงค์เองเมื่อเน็ตกลับมา) ทำงานครบแล้ว — สังเกตไฟสถานะซิงค์ที่มุมขวาบนได้ตลอด</p>
-        <div class="next-list">
-          <b>กำลังจะมาถัดไป:</b><br>
-          1.2 ระบบสินค้า + สต็อกแบบล็อต (FIFO) + ตัวนำเข้า Excel<br>
-          1.3 จอขาย + รับเงิน + เชื่อมลิ้นชัก · 1.4 พิมพ์ใบเสร็จ/ฉลาก · 1.5 ข.ย.9/10/11
-        </div>
+        <span class="ok-badge">✅ ระบบครบทุกเฟสแล้ว — พร้อมช่วงทดลองใช้จริง</span>
+        <h3>เครื่องนี้พร้อมขายหน้าร้านเต็มรูปแบบ</h3>
+        <p>ขาย-รับเงิน-ใบเสร็จ-ฉลาก · สต็อกล็อต FIFO · รับของเข้า+ข.ย.9/10/11 · สมาชิก+แต้ม · รับคืน/ยกเลิกบิล · นับสต็อก · แบ่งยาข้ามสาขา · อุณหภูมิ · แชททีม · ทำงานออฟไลน์ได้ (ดูไฟสถานะซิงค์มุมขวาบน)</p>
+        <div class="next-list"><b>ช่วงทดลอง:</b> เข้าใช้ได้เฉพาะเจ้าของร้าน · ทดลองครบแล้วค่อยเปิดสิทธิ์พนักงานทีละคนที่หน้า "จัดการพนักงาน" ในแอปหลัก</div>
       </div>
       <div class="card">
         <h3>🔄 อัปเดตโปรแกรม</h3>
@@ -333,7 +391,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
   </div>
 </div>
 
-<!-- ═════ จอขาย (เฟส 1.3) ═════ -->
+<!-- ═════ จอขาย (ตาม mockup แท็บ 3) ═════ -->
 <div class="view" id="v-sell">
   <div class="topbar">
     <span class="tt">🛒 ขายหน้าร้าน</span>
@@ -341,34 +399,47 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
     <span class="sp"></span>
     <span class="sync" id="sync-s"><span class="dot"></span><span class="lb">ออนไลน์</span></span>
     <span class="who" id="sl-who"></span>
-    <button id="sl-back">← หน้าหลัก</button>
+    <button id="sl-back">🏪 กลับหน้าหลัก</button>
   </div>
-  <div class="sell-body">
-    <div class="sl">
-      <div class="mbar" id="sl-membar"><span class="av">👤</span><div class="mi"><div class="mn">ไม่มีสมาชิกในบิลนี้</div><div class="mp">แตะเพื่อค้นหา/สมัครสมาชิก · สะสมแต้ม-ราคาสมาชิก-เตือนแพ้ยา [F2]</div></div></div>
-      <div class="scan">
-        <input id="sl-scan" placeholder="🔍 ยิงบาร์โค้ด หรือพิมพ์ชื่อยา แล้วกด Enter..." autocomplete="off">
-        <div class="sugg" id="sl-sugg"></div>
+  <div class="s-body">
+    <div class="s-left">
+      <div class="s-search">
+        <input id="sl-scan" placeholder="🔎 ยิงบาร์โค้ด หรือ พิมพ์ชื่อยา / รหัส..." autocomplete="off">
+        <div class="s-scanb">📷 พร้อมยิงบาร์โค้ด</div>
       </div>
-      <div class="cart" id="sl-cart"></div>
+      <div class="s-cats" id="sl-cats"></div>
+      <div class="s-grid" id="sl-grid"></div>
     </div>
-    <div class="sr">
-      <div class="sum-line"><span>รวม (<span id="sl-n">0</span> รายการ)</span><b id="sl-sub">0.00</b></div>
-      <div class="sum-line disc"><span>ส่วนลดท้ายบิล</span><b id="sl-disc">0.00</b></div>
-      <div class="total-box"><div class="l">ยอดชำระ</div><div class="n" id="sl-total">0.00</div></div>
-      <button class="paybtn" id="sl-pay">💵 รับเงิน <span style="font-size:11px;font-weight:600">[F3]</span></button>
-      <div class="rail">
-        <button class="rbtn blue" id="sl-label">💊 พิมพ์ฉลากยา<span class="k">F4</span></button>
-        <button class="rbtn dis">📋 ใบสั่งยา<span class="k">เร็วๆนี้</span></button>
-        <button class="rbtn" id="sl-new">🆕 เริ่มขายใหม่<span class="k">F1</span></button>
-        <button class="rbtn" id="sl-bundle">🧺 ชุดสินค้า<span class="k"></span></button>
-        <button class="rbtn" id="sl-discbtn">🏷️ ลดท้ายบิล<span class="k">F5</span></button>
-        <button class="rbtn" id="sl-ret">↩️ รับคืนสินค้า<span class="k"></span></button>
-        <button class="rbtn dis">💰 เปิดลิ้นชัก<span class="k">F7 · เร็วๆนี้</span></button>
-        <button class="rbtn" id="sl-chat">💬 แชททีม <span id="ch-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:0 6px;font-size:10px;font-weight:800"></span><span class="k"></span></button>
-        <button class="rbtn" id="sl-bills">📄 บิลวันนี้<span class="k"></span></button>
+    <div class="s-mid">
+      <div style="padding:12px 15px 0">
+        <div class="mbar" id="sl-membar"></div>
+        <div id="sl-alert"></div>
       </div>
-      <div class="today-mini">ขายวันนี้ (สาขานี้ ผ่าน POS): <b id="sl-today">฿0</b> · <span id="sl-tcount">0 บิล</span></div>
+      <div class="s-carth">🧾 ตะกร้า <span class="cn2" id="sl-n2">0 รายการ</span></div>
+      <div class="s-cart" id="sl-cart"></div>
+      <div class="s-sum">
+        <div class="row"><span>รวม <span id="sl-n">0</span> ชิ้น</span><span></span></div>
+        <div class="row dsc" id="sl-discrow"><span>ส่วนลด (กดเพื่อแก้ · F5)</span><span id="sl-disc">−฿0</span></div>
+        <div class="row earn" id="sl-earnrow" style="display:none"><span>⭐ ได้แต้มจากบิลนี้</span><span id="sl-earn">+0 แต้ม</span></div>
+        <div class="tot"><span class="l">ยอดสุทธิ</span><span class="v" id="sl-total">฿0</span></div>
+        <div class="s-hint">วิธีชำระเลือกตอนกด "รับเงิน" · ปุ่มลัด F1-F5 ขายไวไม่ต้องใช้เมาส์</div>
+      </div>
+    </div>
+    <div class="s-acts">
+      <div class="s-abtn pay2" id="sl-pay"><span class="ei">🧾</span> รับเงิน <span class="k">F3</span></div>
+      <div class="s-abtn lbl2" id="sl-label"><span class="ei">🏷️</span> พิมพ์ฉลาก <span class="k">F4</span></div>
+      <div class="s-abtn dis2"><span class="ei">💊</span> ใบสั่งยา <span class="k">เร็วๆนี้</span></div>
+      <div class="s-adiv"></div>
+      <div class="s-abtn" id="sl-new"><span class="ei">➕</span> เริ่มขายใหม่ <span class="k">F1</span></div>
+      <div class="s-abtn" id="sl-bundle"><span class="ei">📦</span> ชุดสินค้า</div>
+      <div class="s-abtn" id="sl-discbtn"><span class="ei">🔖</span> ลดท้ายบิล <span class="k">F5</span></div>
+      <div class="s-abtn" id="sl-ret"><span class="ei">↩️</span> รับคืนสินค้า</div>
+      <div class="s-abtn amber2 dis2"><span class="ei">💵</span> เปิดลิ้นชัก <span class="k">F7 เร็วๆนี้</span></div>
+      <div class="s-abtn" id="sl-chat"><span class="ei">💬</span> แชททีม <span id="ch-badge" style="display:none;position:absolute;top:5px;right:9px;background:var(--red);color:#fff;font-size:9px;font-weight:800;border-radius:20px;padding:1px 6px"></span></div>
+      <div class="s-abtn" id="sl-bills"><span class="ei">📄</span> บิลวันนี้</div>
+      <div class="s-adiv"></div>
+      <div class="s-abtn dis2"><span class="ei">⋯</span> เพิ่มเติม</div>
+      <div class="s-amore" id="sl-todaywrap">ขายวันนี้ (POS)<br><b id="sl-today" style="color:var(--green-dd);font-family:var(--mono)">฿0</b> · <span id="sl-tcount">0 บิล</span></div>
     </div>
   </div>
 </div>
@@ -535,11 +606,26 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.2.0';
+const POS_VERSION='2.3.1';
 const POS_CHANGELOG=[
+  {v:'2.3.1',date:'2026-07-19',changes:[
+    '🛡 ตรวจสุขภาพระบบครั้งใหญ่รอบดึก — ไล่เช็คทุกจอ ทุกการบันทึกข้อมูล แล้วแก้จุดเสี่ยง 14 จุด',
+    '📴 เน็ตหลุดก็ขายต่อได้ลื่นๆ: ปุ่มบันทึกทุกจุด (ขายบิล รับของ นับสต็อก โอนสาขา รับคืน สมาชิก สินค้า ชุดสินค้า อุณหภูมิ) ไม่ค้างรอเน็ตอีกแล้ว — บันทึกลงเครื่องทันที พอเน็ตกลับมาระบบส่งขึ้นเองอัตโนมัติ',
+    '🔢 ตัดสต็อก/แต้มสมาชิกใช้วิธีบวก-ลบแบบปลอดภัย (increment) — 2 เครื่องขายพร้อมกันตัวเลขไม่เพี้ยน · กันสินค้าตัวเดียวกันหลายบรรทัดในบิลแย่งล็อตเดียวกัน',
+    '↩️ รับคืนสินค้า: คืนล็อตไม่เกินจำนวนที่ขายจริง (กันคืนซ้ำหลายรอบแล้วสต็อกบวม) · แต้มคืน/แต้มเรียกคืนคำนวณตามสัดส่วนส่วนลดถูกต้อง',
+    '📄 ข.ย.10/11: กรณีขายตอนสต็อกไม่พอ จำนวนที่ขายลงบัญชีครบ (ไม่หายไปเฉยๆ) · หัวกระดาษดึงข้อมูลล็อตของสาขาตัวเองก่อน',
+    '📈 รายงานกำไร: เลิกเดาทุนสินค้าที่ไม่รู้ทุน (เดิมแอบคิด 70%) — เปลี่ยนเป็นแจ้งตรงๆ ว่า "ไม่ทราบทุน X ชิ้น" ให้ตัวเลขกำไรซื่อตรงกับความจริง',
+    '🧾 ใบสั่งซื้อ/สินค้าใกล้หมด: "ผู้ขายล่าสุด" ดูจากล็อตที่รับเข้าล่าสุดจริงๆ (เดิมเรียงตามวันหมดอายุ ทำให้ชื่อผู้ขายเพี้ยน)',
+    '🖱 กันกดปุ่มซ้ำตอนเน็ตช้า (รับเงิน/ส่งของ/รับของ) — ไม่เกิดบิลซ้ำหรือโอนซ้ำ · เที่ยงคืนแล้วจอขายยังเปิดค้าง ระบบสลับไปนับยอดของวันใหม่ให้เอง',
+  ]},
+  {v:'2.3.0',date:'2026-07-19',changes:[
+    '🎨 รื้อจอขายใหม่ทั้งจอให้ตรงกับแบบ (mockup) ที่เคาะไว้ 100% — ฝั่งซ้าย: ช่องยิงบาร์โค้ด + หมวดสินค้า + การ์ดสินค้าแตะหยิบได้ (โชว์คงเหลือ/ใกล้หมด/หมด/ธงแพ้ยา 🚫) · ฝั่งขวา: แถบสมาชิก + กล่องเตือนแพ้ยาสีแดง + ตะกร้า + สรุปยอด/แต้มที่จะได้ · สุดขวา: แถบเครื่องมือแนวตั้งไอคอนครบชุด (รับเงิน F3 · พิมพ์ฉลาก F4 · ใบสั่งยา · เริ่มใหม่ F1 · ชุดสินค้า · ลดท้ายบิล F5 · รับคืน · เปิดลิ้นชัก F7 · แชท · บิลวันนี้)',
+    '🏬 จอเลือกสาขาตรงแบบ: แถบฟ้า + การ์ดสาขามีป้าย 🟢 เปิดร้านแล้ว / 🔴 ยังไม่เปิดร้าน (เช็คจากระบบเงินสดของแอปหลักจริง) + ยอดขายวันนี้ต่อสาขา',
+    '🛠 แก้บั๊กจากการตรวจทั้งระบบ: จอขายล็อกความสูงพอดีจอ (สรุปยอดไม่ตกขอบ) · เพิ่มคีย์ลัด F4 พิมพ์ฉลาก · ข.ย.10/11 กรณีขายเกินสต็อกลงจำนวนเป็นหน่วยหลักถูกต้อง · สินค้าใกล้หมดคิดยอดขายหน่วยใหญ่ (กล่อง→แผง) ถูกต้อง · เงินคืนไม่หักส่วนลดจากแต้มซ้ำ',
+  ]},
   {v:'2.2.0',date:'2026-07-19',changes:[
     '🎨 ปรับหน้าตาให้ตรงกับแบบ (mockup) ที่เคาะกันไว้ — จอขาย: แถบสมาชิกอยู่บนตะกร้า (แตะเพื่อผูกสมาชิก) + แถบเครื่องมือฝั่งขวาเรียงแนวตั้งครบชุดตามแบบ (พิมพ์ฉลากยา F4 ปุ่มฟ้า · ใบสั่งยา · เริ่มขายใหม่ F1 · ชุดสินค้า · ลดท้ายบิล F5 · รับคืน · เปิดลิ้นชัก F7 · แชททีม · บิลวันนี้) · จอเลือกสาขาโชว์ยอดขายวันนี้ของแต่ละสาขา · ฟอนต์และโทนสีตามแบบ (IBM Plex Sans Thai)',
   ]},
@@ -681,7 +767,11 @@ onAuthStateChanged(auth,user=>{
   unsubProfile=onSnapshot(doc(db,'members',user.uid),snap=>{
     loading(false);
     profile=snap.exists()?snap.data():null;
-    route();
+    const ok=profile&&profile.status!=='pending'&&canPOS();
+    const cur=document.querySelector('.view.on')?.id;
+    if(!ok){route();return;}                          /* สิทธิ์หลุด → จอล็อกทันที */
+    if(cur==='v-login'||cur==='v-locked'||!cur)route(); /* เพิ่งเข้า/เพิ่งได้สิทธิ์ → เข้าระบบ */
+    /* มีสิทธิ์อยู่แล้วและกำลังใช้งานจออื่น → อยู่จอเดิม ไม่เด้งกลางมือ */
   },err=>{loading(false);profile=null;route();});
 });
 
@@ -701,23 +791,28 @@ function route(){
 async function renderBranches(){
   $('br-who').textContent='ผู้ขาย: '+displayName();
   const last=localStorage.getItem(LS_BRANCH);
-  const draw=(sales)=>{
+  const draw=(sales,open)=>{
     $('br-list').innerHTML=BRANCHES.map((nm,i)=>`
       <div class="br ${String(i)===last?'last':''}" data-b="${i}" style="border-color:${String(i)===last?BCOLORS[i]:'var(--border)'}">
-        <span class="tag" style="display:${String(i)===last?'block':'none'}">เครื่องนี้เคยเลือกล่าสุด</span>
+        <span class="open ${open&&!open[i]?'closed':''}" style="position:absolute;top:13px;right:13px;font-size:9.5px;font-weight:800;border-radius:20px;padding:2px 9px;${open===null?'display:none':''};background:${open&&open[i]?'rgba(31,174,139,.14)':'var(--red-l)'};color:${open&&open[i]?'var(--green-dd)':'var(--red-t)'}">${open&&open[i]?'🟢 เปิดร้านแล้ว':'🔴 ยังไม่เปิดร้าน'}</span>
         <div class="dot" style="background:${BCOLORS[i]}">🏪</div>
         <div class="nm">${nm}</div>
-        <div class="sb">สาขา ${i+1}</div>
+        <div class="sb">สาขา ${i+1}${String(i)===last?' · เครื่องนี้เคยเลือกล่าสุด':''}</div>
         <div class="stt"><span>ขายวันนี้ (POS)</span><b>${sales?('฿'+(sales[i]||0).toLocaleString()):'…'}</b></div>
       </div>`).join('');
     $('br-list').querySelectorAll('.br').forEach(el=>el.addEventListener('click',()=>enterHome(+el.dataset.b)));
   };
-  draw(null);
+  draw(null,null);
   try{
-    const snap=await getDocs(query(collection(db,'posBills'),where('date','==',todayStr())));
+    const [bsnap,csnap]=await Promise.all([
+      getDocs(query(collection(db,'posBills'),where('date','==',todayStr()))),
+      getDocs(collection(db,'cashState')),
+    ]);
     const sums=[0,0,0];
-    snap.forEach(d=>{const b=d.data();if(sums[+b.branch]!==undefined)sums[+b.branch]+=(+b.total||0);});
-    draw(sums);
+    bsnap.forEach(d=>{const b=d.data();if(sums[+b.branch]!==undefined)sums[+b.branch]+=(+b.total||0);});
+    const open=[false,false,false];
+    csnap.forEach(d=>{const i=+d.id;if(open[i]!==undefined&&d.data().openDate===todayStr())open[i]=true;});
+    draw(sums,open);
   }catch(e){}
 }
 
@@ -768,6 +863,7 @@ function startProductSync(){
       else products[ch.doc.id]={id:ch.doc.id,...ch.doc.data()};
     });
     if($('v-prod').classList.contains('on'))renderProducts();
+    if($('v-sell').classList.contains('on')){renderCats();renderGrid();renderCart();}
   });
   unsubLots=onSnapshot(collection(db,'stockLots'),snap=>{
     snap.docChanges().forEach(ch=>{
@@ -775,6 +871,7 @@ function startProductSync(){
       else lots[ch.doc.id]={id:ch.doc.id,...ch.doc.data()};
     });
     if($('v-prod').classList.contains('on'))renderProducts();
+    if($('v-sell').classList.contains('on'))renderGrid();
   });
 }
 /* คงเหลือของสินค้า แยกสาขา = รวมทุกล็อต */
@@ -909,8 +1006,8 @@ async function saveProduct(id){
     active:true, updatedAt:new Date().toISOString(), updatedBy:displayName(),
   };
   try{
-    if(id){await updateDoc(doc(db,'products',id),data);}
-    else{data.createdAt=data.updatedAt;const ref=await addDoc(collection(db,'products'),data);id=ref.id;products[id]={id,...data};}
+    if(id){updateDoc(doc(db,'products',id),data).catch(()=>{});products[id]={...products[id],...data};}
+    else{data.createdAt=data.updatedAt;const ref=doc(collection(db,'products'));setDoc(ref,data).catch(()=>{});id=ref.id;products[id]={id,...data};}
     closeMD();showToast('บันทึก "'+name+'" แล้ว');renderProducts();
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e.code||e.message),'err');}
 }
@@ -941,7 +1038,7 @@ function openLotForm(pid){
     const l={pid,branch:+$('l-branch').value,qty,initQty:qty,cost:parseFloat($('l-cost').value)||null,
       lotNo:$('l-lot').value.trim(),expiry:$('l-exp').value||'',vendor:$('l-vendor').value.trim(),
       source:'adjust',receivedAt:new Date().toISOString(),by:displayName()};
-    try{const ref=await addDoc(collection(db,'stockLots'),l);lots[ref.id]={id:ref.id,...l};showToast('เพิ่มล็อตแล้ว');openProduct(pid);renderProducts();}
+    try{const ref=doc(collection(db,'stockLots'));setDoc(ref,l).catch(()=>{});lots[ref.id]={id:ref.id,...l};showToast('เพิ่มล็อตแล้ว');openProduct(pid);renderProducts();}
     catch(e){showToast('เพิ่มไม่สำเร็จ: '+(e.code||e.message),'err');}
   });
 }
@@ -1029,14 +1126,15 @@ async function doImport(){
       price:num('price'),reorder:Math.round(num('reorder')),cat:txt('cat'),kyType:'none',note:'',
       active:true,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),updatedBy:displayName()+' (นำเข้า)'};
     try{
-      const ref=await addDoc(collection(db,'products'),data);
+      const ref=doc(collection(db,'products'));
+      setDoc(ref,data).catch(()=>{});
       products[ref.id]={id:ref.id,...data};
       existNames.add(name.toLowerCase());if(barcode)existCodes.add(barcode);
       const cost=num('cost')||null;
       for(const b of [0,1,2]){
         const q=Math.round(num('qty'+b));
         if(q>0){const l={pid:ref.id,branch:b,qty:q,initQty:q,cost,lotNo:'ยกยอด',expiry:'',vendor:'',source:'import',receivedAt:new Date().toISOString(),by:displayName()};
-          const lr=await addDoc(collection(db,'stockLots'),l);lots[lr.id]={id:lr.id,...l};}
+          const lr=doc(collection(db,'stockLots'));setDoc(lr,l).catch(()=>{});lots[lr.id]={id:lr.id,...l};}
       }
       ok++;
       if(ok%50===0){$('im-go').textContent='กำลังนำเข้า... '+ok+'/'+impRows.length;}
@@ -1055,9 +1153,10 @@ $('nav-sell').addEventListener('click',openSell);
 $('sl-back').addEventListener('click',()=>show('v-home'));
 function openSell(){
   startProductSync();watchTodayBills();watchTodayReturns();startMemberSync();startBundleSync();
-  $('sl-branch').textContent='🏪 '+BRANCHES[curBranch];
+  $('sl-branch').textContent='สาขา'+BRANCHES[curBranch];
+  $('sl-branch').style.background=BCOLORS[curBranch];
   $('sl-who').textContent='ผู้ขาย: '+displayName();
-  show('v-sell');renderCart();
+  show('v-sell');renderCats();renderGrid();repriceCart();
   setTimeout(()=>$('sl-scan').focus(),100);
 }
 function watchTodayBills(){
@@ -1081,43 +1180,50 @@ function renderTodayMini(){
   $('sl-tcount').textContent=bs.length+' บิล'+(rs.length?' · คืน '+rs.length:'');
 }
 
-/* ── ค้นหา/ยิงบาร์โค้ด ── */
-let suggIdx=-1;
-$('sl-scan').addEventListener('input',renderSugg);
+/* ── ค้นหา + กริดสินค้า (ตาม mockup) ── */
+let catSel='__all';
+$('sl-scan').addEventListener('input',renderGrid);
 $('sl-scan').addEventListener('keydown',e=>{
-  const items=[...$('sl-sugg').querySelectorAll('.sg')];
-  if(e.key==='ArrowDown'){suggIdx=Math.min(suggIdx+1,items.length-1);hotSugg(items);e.preventDefault();return;}
-  if(e.key==='ArrowUp'){suggIdx=Math.max(suggIdx-1,0);hotSugg(items);e.preventDefault();return;}
-  if(e.key==='Enter'){
-    e.preventDefault();
-    const q=$('sl-scan').value.trim();
-    if(!q)return;
-    if(suggIdx>=0&&items[suggIdx]){addToCart(items[suggIdx].dataset.id);return;}
-    const list=matchProducts(q);
-    const exact=list.find(p=>p.barcode===q);
-    if(exact){addToCart(exact.id);}
-    else if(list.length===1){addToCart(list[0].id);}
-    else if(list.length===0){showToast('ไม่พบ "'+q+'" — เช็คชื่อ/บาร์โค้ด หรือเพิ่มสินค้าก่อน','err');}
-    else{showToast('เจอหลายตัว เลือกจากรายการหรือพิมพ์ให้ชัดขึ้น','err');}
-  }
-  if(e.key==='Escape'){$('sl-sugg').classList.remove('on');suggIdx=-1;}
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  const q=$('sl-scan').value.trim();
+  if(!q)return;
+  const list=matchProducts(q);
+  const exact=list.find(p=>p.barcode===q);
+  if(exact){addToCart(exact.id);$('sl-scan').value='';renderGrid();return;}
+  if(list.length===1){addToCart(list[0].id);$('sl-scan').value='';renderGrid();return;}
+  if(list.length===0){showToast('ไม่พบ "'+q+'" — เช็คชื่อ/บาร์โค้ด หรือเพิ่มสินค้าก่อน','err');}
+  else{showToast('เจอ '+list.length+' ตัว — แตะเลือกจากการ์ดด้านล่าง หรือพิมพ์ให้ชัดขึ้น','err');}
 });
-function hotSugg(items){items.forEach((el,i)=>el.classList.toggle('hot',i===suggIdx));}
 function matchProducts(q){
   q=q.toLowerCase();
   return Object.values(products).filter(p=>p.active!==false&&((p.name||'').toLowerCase().includes(q)||(p.generic||'').toLowerCase().includes(q)||(p.barcode||'')===q));
 }
-function renderSugg(){
-  const q=$('sl-scan').value.trim();suggIdx=-1;
-  if(!q){$('sl-sugg').classList.remove('on');return;}
-  const list=matchProducts(q).slice(0,8);
-  if(!list.length){$('sl-sugg').classList.remove('on');return;}
-  $('sl-sugg').innerHTML=list.map(p=>{
-    const s=stockOf(p.id)[curBranch];
-    return `<div class="sg" data-id="${p.id}"><span>${esc(p.name)} <small>${esc(p.generic||'')} · เหลือ ${s}</small></span><span class="p">฿${(+p.price||0).toLocaleString()}</span></div>`;
-  }).join('');
-  $('sl-sugg').classList.add('on');
-  $('sl-sugg').querySelectorAll('.sg').forEach(el=>el.addEventListener('mousedown',ev=>{ev.preventDefault();addToCart(el.dataset.id);}));
+function renderCats(){
+  const cats=[...new Set(Object.values(products).filter(p=>p.active!==false&&p.cat).map(p=>p.cat))].slice(0,7);
+  if(!cats.includes(catSel)&&catSel!=='__all')catSel='__all';
+  $('sl-cats').innerHTML='<span class="s-cat '+(catSel==='__all'?'on':'')+'" data-c="__all">ทั้งหมด</span>'+
+    cats.map(c=>'<span class="s-cat '+(catSel===c?'on':'')+'" data-c="'+esc(c)+'">'+esc(c)+'</span>').join('');
+  $('sl-cats').querySelectorAll('.s-cat').forEach(el=>el.addEventListener('click',()=>{catSel=el.dataset.c;renderCats();renderGrid();}));
+}
+function renderGrid(){
+  const q=$('sl-scan').value.trim().toLowerCase();
+  const mem=memberSel?memberById(memberSel):null;
+  let list=Object.values(products).filter(p=>p.active!==false);
+  if(catSel!=='__all')list=list.filter(p=>p.cat===catSel);
+  if(q)list=list.filter(p=>(p.name||'').toLowerCase().includes(q)||(p.generic||'').toLowerCase().includes(q)||(p.barcode||'').includes(q));
+  list.sort((a,b)=>(a.name||'').localeCompare(b.name||'','th'));
+  $('sl-grid').innerHTML=list.slice(0,60).map(p=>{
+    const st=stockOf(p.id)[curBranch];
+    const low=st>0&&st<=Math.max(5,+p.reorder||0);
+    const hit=mem?allergyHit(mem,p):null;
+    return '<div class="s-p'+(hit?' warn':'')+'" data-id="'+p.id+'">'+
+      (hit?'<span class="algy">🚫</span>':'')+
+      '<span class="st'+(st<=0?' zero':low?' low':'')+'">'+(st<=0?'หมด':(low?'เหลือ ':'คงเหลือ ')+st)+'</span>'+
+      '<div class="nm">'+esc(p.name)+'</div>'+
+      '<div class="pr">฿'+((unitPrice(p,-1,!!mem))||0).toLocaleString()+'</div></div>';
+  }).join('')||'<div class="s-empty" style="grid-column:1/-1">'+(Object.keys(products).length?'ไม่พบสินค้าตามที่ค้น':'ยังไม่มีสินค้า — ไปเพิ่มที่เมนู 📦 สินค้า & สต็อก')+'</div>';
+  $('sl-grid').querySelectorAll('.s-p').forEach(el=>el.addEventListener('click',()=>addToCart(el.dataset.id)));
 }
 function unitPrice(p,uIdx,hasMember){
   if(uIdx>=0&&p.units&&p.units[uIdx]){const u=p.units[uIdx];return hasMember&&u.mPrice>0?+u.mPrice:(+u.price||0);}
@@ -1132,40 +1238,43 @@ function addToCart(pid,uIdx=-1){
     cart.push({pid,name:p.name,price:unitPrice(p,uIdx,!!memberSel),qty:1,
       unit:u?u.name:(p.unit||''),factor:u?+u.factor:1,uIdx,kyType:p.kyType||'none'});
   }
-  $('sl-scan').value='';$('sl-sugg').classList.remove('on');suggIdx=-1;
   if(memberSel){const hit=allergyHit(memberById(memberSel),p);if(hit)showToast('⚠️ ระวัง! สมาชิกแพ้ "'+hit+'" — เช็คก่อนจ่าย '+p.name,'err');}
   renderCart();$('sl-scan').focus();
 }
 
-/* ── ตะกร้า ── */
+/* ── ตะกร้า (ฝั่งขวาแบบ mockup) ── */
 function cartSub(){return cart.reduce((s,c)=>s+c.price*c.qty,0);}
 function cartTotal(){return Math.max(0,cartSub()-billDisc);}
 function renderCart(){
+  const mem=memberSel?memberById(memberSel):null;
+  /* กล่องเตือนแพ้ยา */
+  const hits=mem?cart.map(c=>allergyHit(mem,products[c.pid]||{name:c.name})).filter(Boolean):[];
+  $('sl-alert').innerHTML=hits.length?'<div class="s-alert"><span class="ax">⚠️</span><div class="at"><b>ลูกค้าแพ้ยา: '+esc(mem.allergies||'')+'</b><br>ในตะกร้ามียาที่อาจชนกับที่แพ้ ('+hits.map(esc).join(', ')+') — โปรดตรวจสอบก่อนจ่าย</div></div>':'';
+  /* รายการ */
   if(!cart.length){
-    $('sl-cart').innerHTML='<div class="empty">🛒 บิลว่าง — ยิงบาร์โค้ดหรือพิมพ์ชื่อยาด้านบนเพื่อเริ่มขาย</div>';
+    $('sl-cart').innerHTML='<div class="s-empty">🛒 บิลว่าง — ยิงบาร์โค้ด พิมพ์ค้น หรือแตะการ์ดสินค้าด้านซ้าย</div>';
   }else{
-    $('sl-cart').innerHTML='<table><tr><th style="width:26px">#</th><th>รายการ</th><th class="r">ราคา</th><th style="width:110px;text-align:center">จำนวน</th><th class="r">รวม</th><th style="width:30px"></th></tr>'+
-    cart.map((c,i)=>{
+    $('sl-cart').innerHTML=cart.map((c,i)=>{
       const p=products[c.pid]||{};
       const st=stockOf(c.pid)[curBranch];
       const baseNeed=c.qty*(c.factor||1);
       const hasUnits=p.units&&p.units.length;
-      const unitCell=hasUnits?`<select class="uSel" data-i="${i}" style="border:1.5px solid var(--border2);border-radius:7px;padding:2px 4px;font-size:11.5px;font-family:var(--font)">
-        <option value="-1" ${(c.uIdx??-1)===-1?'selected':''}>${esc(p.unit||'หน่วย')}</option>
-        ${p.units.map((u,x)=>`<option value="${x}" ${c.uIdx===x?'selected':''}>${esc(u.name)} (=${u.factor})</option>`).join('')}</select>`:esc(c.unit||'');
-      return `<tr><td>${i+1}</td>
-        <td>${esc(c.name)}${(c.factor||1)>1?'<div style="font-size:10px;color:var(--text3)">'+c.qty+' '+esc(c.unit)+' = '+baseNeed+' '+esc(p.unit||'หน่วยหลัก')+'</div>':''}${st<baseNeed?'<div class="lowstk">⚠️ เกินคงเหลือ ('+st+' '+esc(p.unit||'')+')</div>':''}</td>
-        <td class="r" style="font-family:var(--mono)">${fmt(c.price)}</td>
-        <td style="text-align:center"><span class="qtybox"><button class="qb" data-i="${i}" data-d="-1">−</button><span class="qn">${c.qty}</span><button class="qb" data-i="${i}" data-d="1">＋</button></span><div style="margin-top:2px">${unitCell}</div></td>
-        <td class="r" style="font-family:var(--mono);font-weight:700">${fmt(c.price*c.qty)}</td>
-        <td><button class="rm" data-i="${i}">✕</button></td></tr>`;
-    }).join('')+'</table>';
-    $('sl-cart').querySelectorAll('.qb').forEach(b=>b.addEventListener('click',()=>{
+      const uSel=hasUnits?'<select class="uSel" data-i="'+i+'"><option value="-1"'+((c.uIdx??-1)===-1?' selected':'')+'>'+esc(p.unit||'หน่วย')+'</option>'+
+        p.units.map((u,x)=>'<option value="'+x+'"'+(c.uIdx===x?' selected':'')+'>'+esc(u.name)+' (='+u.factor+')</option>').join('')+'</select>':esc(c.unit||'');
+      const hit=mem?allergyHit(mem,p):null;
+      return '<div class="s-ci"><div class="cn"><div class="t">'+esc(c.name)+(hit?' 🚫':'')+'</div>'+
+        '<div class="u">฿'+fmt(c.price)+' × '+c.qty+' '+uSel+
+        ((c.factor||1)>1?' <span>= '+baseNeed+' '+esc(p.unit||'')+'</span>':'')+
+        (st<baseNeed?' <span style="color:var(--red-t);font-weight:700">⚠️เกินคงเหลือ('+st+')</span>':'')+'</div></div>'+
+        '<div class="s-qty"><button class="bt" data-i="'+i+'" data-d="-1">−</button><span class="q">'+c.qty+'</span><button class="bt" data-i="'+i+'" data-d="1">＋</button></div>'+
+        '<div class="lt">฿'+fmt(c.price*c.qty)+'</div><button class="rmv" data-i="'+i+'">✕</button></div>';
+    }).join('');
+    $('sl-cart').querySelectorAll('.bt').forEach(b=>b.addEventListener('click',()=>{
       const c=cart[+b.dataset.i];c.qty+=+b.dataset.d;
       if(c.qty<1)cart.splice(+b.dataset.i,1);
       renderCart();
     }));
-    $('sl-cart').querySelectorAll('.rm').forEach(b=>b.addEventListener('click',()=>{cart.splice(+b.dataset.i,1);renderCart();}));
+    $('sl-cart').querySelectorAll('.rmv').forEach(b=>b.addEventListener('click',()=>{cart.splice(+b.dataset.i,1);renderCart();}));
     $('sl-cart').querySelectorAll('.uSel').forEach(sel=>sel.addEventListener('change',()=>{
       const c=cart[+sel.dataset.i];const p=products[c.pid];if(!p)return;
       const uIdx=+sel.value;
@@ -1175,13 +1284,19 @@ function renderCart(){
       renderCart();
     }));
   }
-  $('sl-n').textContent=cart.reduce((s,c)=>s+c.qty,0);
-  $('sl-sub').textContent=fmt(cartSub());
+  /* สรุป */
+  const pieces=cart.reduce((s,c)=>s+c.qty,0);
+  $('sl-n').textContent=pieces;
+  $('sl-n2').textContent=cart.length+' รายการ';
   if(billDisc>cartSub())billDisc=cartSub();
-  $('sl-disc').textContent=billDisc?'-'+fmt(billDisc):'0.00';
-  $('sl-total').textContent=fmt(cartTotal());
-  $('sl-pay').disabled=!cart.length;
+  $('sl-disc').textContent='−฿'+fmt(billDisc);
+  const total=cartTotal();
+  $('sl-total').textContent='฿'+fmt(total);
+  if(mem){$('sl-earnrow').style.display='';$('sl-earn').textContent='≈ +'+Math.floor(total/(posCfg.pointsRate||25))+' แต้ม';}
+  else $('sl-earnrow').style.display='none';
+  $('sl-pay').classList.toggle('dis2',!cart.length);
 }
+$('sl-discrow').addEventListener('click',()=>{if(cart.length)openDisc();});
 
 /* ── เริ่มขายใหม่ / ลดท้ายบิล ── */
 $('sl-new').addEventListener('click',newSale);
@@ -1235,9 +1350,9 @@ function openPay(){
   function updChange(){const eff=Math.max(0,total-ptsDiscNow());$('pay-eff').textContent='฿'+fmt(eff);const r=parseFloat($('p-recv').value)||0;$('p-change').textContent=fmt(Math.max(0,r-eff));}
   $('p-recv').addEventListener('input',updChange);
   if($('p-pts'))$('p-pts').addEventListener('input',updChange);
-  document.querySelectorAll('.pm').forEach(el=>el.addEventListener('click',()=>{
+  $('md-box').querySelectorAll('.pm').forEach(el=>el.addEventListener('click',()=>{
     payMethod=el.dataset.m;
-    document.querySelectorAll('.pm').forEach(x=>x.classList.toggle('on',x===el));
+    $('md-box').querySelectorAll('.pm').forEach(x=>x.classList.toggle('on',x===el));
     $('pay-cash').style.display=payMethod==='cash'?'':'none';
   }));
   $('p-cancel').addEventListener('click',closeMD);
@@ -1260,14 +1375,18 @@ async function confirmPay(){
     change=received-payTotal;
   }
   $('p-ok').disabled=true;
-  /* ตัดสต็อก FIFO: ล็อตหมดอายุก่อนโดนตัดก่อน */
-  const items=[];
+  watchTodayBills();watchTodayReturns(); /* กันเปิดจอค้างข้ามเที่ยงคืน — วันใหม่ resubscribe เอง */
+  /* ตัดสต็อก FIFO: ล็อตหมดอายุก่อนโดนตัดก่อน · ใช้ยอดคงเหลือจำลอง กันบรรทัดสินค้าซ้ำแย่งล็อตเดียวกัน */
+  const items=[];const availMap={};
   for(const c of cart){
     let need=c.qty*(c.factor||1);const used=[];
-    const ls=lotsOf(c.pid).filter(l=>+l.branch===+curBranch&&(+l.qty||0)>0);
+    const ls=lotsOf(c.pid).filter(l=>+l.branch===+curBranch);
     for(const l of ls){
       if(need<=0)break;
-      const take=Math.min(need,+l.qty);
+      const avail=availMap[l.id]??(+l.qty||0);
+      if(avail<=0)continue;
+      const take=Math.min(need,avail);
+      availMap[l.id]=avail-take;
       used.push({lotId:l.id,lotNo:l.lotNo||'',expiry:l.expiry||'',qty:take,cost:l.cost??null});
       need-=take;
     }
@@ -1275,8 +1394,9 @@ async function confirmPay(){
   }
   const day=todayStr();
   const seq=Object.values(todayBills).filter(b=>+b.branch===+curBranch).length+1;
+  const dev2=getDeviceId().slice(-2).toUpperCase(); /* กันเลขบิลชนกันระหว่างเครื่อง/ออฟไลน์ */
   const bill={
-    no:'B'+day.slice(5,7)+day.slice(8,10)+'-'+String(curBranch+1)+'-'+String(seq).padStart(3,'0'),
+    no:'B'+day.slice(5,7)+day.slice(8,10)+'-'+String(curBranch+1)+'-'+String(seq).padStart(3,'0')+dev2,
     date:day,branch:curBranch,items,
     sub:cartSub(),discount:billDisc,ptsUsed:pts,ptsDisc,total:payTotal,
     member:mem?{id:mem.id,name:mem.name,phone:mem.phone||''}:null,
@@ -1289,15 +1409,13 @@ async function confirmPay(){
     /* บันทึกบิลก่อน (คิวออฟไลน์การันตีลำดับ) แล้วค่อยหักล็อต */
     addDoc(collection(db,'posBills'),bill);
     if(mem){
-      const newPts=Math.max(0,(+mem.points||0)-pts+bill.pointsEarned);
-      mem.points=newPts;
-      updateDoc(doc(db,'posMembers',mem.id),{points:newPts,lastVisit:new Date().toISOString()});
+      mem.points=Math.max(0,(+mem.points||0)-pts+bill.pointsEarned);
+      updateDoc(doc(db,'posMembers',mem.id),{points:increment(bill.pointsEarned-pts),lastVisit:new Date().toISOString()}).catch(()=>{});
     }
     for(const it of items)for(const u of it.lots){
-      const l=lots[u.lotId];if(!l)continue;
-      const newQty=Math.max(0,(+l.qty||0)-u.qty);
-      l.qty=newQty;
-      updateDoc(doc(db,'stockLots',u.lotId),{qty:newQty});
+      const l=lots[u.lotId];
+      if(l)l.qty=Math.max(0,(+l.qty||0)-u.qty);
+      updateDoc(doc(db,'stockLots',u.lotId),{qty:increment(-u.qty)}).catch(()=>{});
     }
     lastBill=bill;
     const chTxt=payMethod==='cash'&&change>0?' · ทอน ฿'+fmt(change):'';
@@ -1339,6 +1457,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='F1'){e.preventDefault();newSale();}
   if(e.key==='F2'){e.preventDefault();openMemberPick();}
   if(e.key==='F3'){e.preventDefault();openPay();}
+  if(e.key==='F4'){e.preventDefault();openLabelDlg(cart.length?null:lastBill);}
   if(e.key==='F5'){e.preventDefault();openDisc();}
 });
 
@@ -1484,9 +1603,11 @@ $('rc-save').addEventListener('click',async()=>{
     for(const l of rcLines){
       const lot={pid:l.pid,branch:curBranch,qty:l.qty,initQty:l.qty,cost:l.cost,lotNo:l.lotNo,expiry:l.expiry,
         vendor:rec.vendor,recvBillNo:rec.billNo,source:rec.source,receivedAt:nowIso,by:displayName()};
-      const ref=await addDoc(collection(db,'stockLots'),lot);lots[ref.id]={id:ref.id,...lot};
+      const ref=doc(collection(db,'stockLots'));
+      setDoc(ref,lot).catch(()=>{});
+      lots[ref.id]={id:ref.id,...lot};
     }
-    if(rcMode==='buy')addDoc(collection(db,'posReceives'),rec);
+    if(rcMode==='buy')addDoc(collection(db,'posReceives'),rec).catch(()=>{});
     const saved=rcLines.slice();rcLines=[];renderRcLines();
     $('rc-billno').value='';
     showToast('รับของเข้าแล้ว '+saved.length+' รายการ ✅');
@@ -1551,7 +1672,8 @@ async function printKySheets(kyType,title){
     const groups={};
     bills.forEach(b=>{(b.items||[]).forEach(it=>{
       if(it.kyType!==kyType)return;
-      const lotsArr=it.lots&&it.lots.length?it.lots:[{lotNo:'-',qty:it.qty}];
+      const lotsArr=it.lots&&it.lots.length?[...it.lots]:[{lotNo:'-',qty:it.qty*(it.factor||1)}];
+      if(it.lots&&it.lots.length&&+it.unlotted>0)lotsArr.push({lotNo:'-',qty:+it.unlotted}); /* ส่วนที่ตัดสต็อกไม่พอ ต้องลงบัญชีด้วย */
       lotsArr.forEach(u=>{
         const key=it.pid+'|'+(u.lotNo||'-');
         if(!groups[key])groups[key]={pid:it.pid,name:it.name,lotNo:u.lotNo||'-',rows:[]};
@@ -1562,7 +1684,8 @@ async function printKySheets(kyType,title){
     if(!keys.length){showToast('เดือนนี้ไม่มีการขายยา'+title+' (สาขานี้)','err');return;}
     const sheets=keys.map(k=>{
       const g=groups[k];const p=products[g.pid]||{};
-      const lot=Object.values(lots).find(l=>l.pid===g.pid&&(l.lotNo||'-')===g.lotNo);
+      const lot=Object.values(lots).find(l=>l.pid===g.pid&&+l.branch===+curBranch&&(l.lotNo||'-')===g.lotNo)
+        ||Object.values(lots).find(l=>l.pid===g.pid&&(l.lotNo||'-')===g.lotNo);
       return '<div class="sheet" style="padding:10mm 12mm">'+ky9HeadHTML(title,ym)+
         '<div style="font-size:12px;border:1px solid #000;padding:6px 9px;margin-bottom:6px">'+
         '<b>ชื่อยา:</b> '+esc(g.name)+(p.generic?' ('+esc(p.generic)+(p.strength?' '+esc(p.strength):'')+')':'')+
@@ -1618,7 +1741,7 @@ function openReturnDlg(billId){
     '<div class="ff"><label>คืนเงินทาง</label><select id="rt-method"><option value="cash">เงินสด</option><option value="other">โอน/อื่นๆ</option></select></div>'+
     '<div class="ff"><label>เงินคืน (คิดสัดส่วนส่วนลดให้แล้ว)</label><div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--red-t);padding:6px 2px" id="rt-refund">฿0.00</div></div></div>'+
     '<div class="md-btns"><button class="sbtn" id="rt-back">ยกเลิก</button><button class="gbtn" id="rt-ok" style="background:linear-gradient(140deg,#E06C82,#B23A50)">↩️ ยืนยันรับคืน</button></div>');
-  const ratio=b.sub>0?b.total/b.sub:1;
+  const ratio=b.sub>0?b.total/b.sub:1; /* เงินคืน = สัดส่วนของเงินที่จ่ายจริง (หลังส่วนลด+แต้ม) */
   function calc(){
     let sum=0;
     document.querySelectorAll('.rt-q').forEach(inp=>{
@@ -1642,25 +1765,44 @@ function openReturnDlg(billId){
     if($('rt-reason').value.startsWith('อื่นๆ')&&!$('rt-note').value.trim()){showToast('เลือก "อื่นๆ" ต้องพิมพ์ระบุเหตุผลด้วยครับ','err');return;}
     $('rt-ok').disabled=true;
     const refund=calc();
+    /* สัดส่วนที่คืน → คืนแต้มที่ใช้ + หักแต้มที่เคยได้ ตามสัดส่วน */
+    const retSub=items.reduce((s2,x)=>s2+x.qty*x.price,0);
+    const share=b.sub>0?retSub/b.sub:0;
+    const ptsBack=Math.round((b.ptsUsed||0)*share);
+    const ptsClaw=Math.round((b.pointsEarned||0)*share);
+    /* ล็อตที่เคยคืนไปแล้วของบิลนี้ (กันคืนซ้ำเข้าล็อตผิด) */
+    const prevLot={};Object.values(todayReturns).forEach(r=>{if(r.billId===b.id)(r.retLots||[]).forEach(rl=>{prevLot[rl.lotId]=(prevLot[rl.lotId]||0)+rl.qty;});});
+    const retLots=[];
+    for(const x of items){
+      let back=x.qty*(x.factor||1);
+      for(const u of x.srcLots){
+        if(back<=0)break;
+        const cap=u.qty-(prevLot[u.lotId]||0);
+        if(cap<=0)continue;
+        const give=Math.min(back,cap);
+        retLots.push({lotId:u.lotId,qty:give});
+        prevLot[u.lotId]=(prevLot[u.lotId]||0)+give;
+        back-=give;
+      }
+    }
     const ret={billId:b.id,billNo:b.no,date:todayStr(),branch:curBranch,
       items:items.map(x=>({pid:x.pid,name:x.name,qty:x.qty,price:x.price,unit:x.unit})),
+      retLots,ptsBack,ptsClaw,
       refund:Math.round(refund*100)/100,method:$('rt-method').value,reason,
       by:displayName(),uid:currentUser.uid,at:new Date().toISOString()};
     try{
       addDoc(collection(db,'posReturns'),ret);
-      /* คืนสต็อกเข้าล็อตเดิม */
-      for(const x of items){
-        let back=x.qty*(x.factor||1);
-        for(const u of x.srcLots){
-          if(back<=0)break;
-          const l=lots[u.lotId];if(!l)continue;
-          const give=Math.min(back,u.qty);
-          l.qty=(+l.qty||0)+give;
-          updateDoc(doc(db,'stockLots',u.lotId),{qty:l.qty});
-          back-=give;
-        }
+      for(const rl of retLots){
+        const l=lots[rl.lotId];if(l)l.qty=(+l.qty||0)+rl.qty;
+        updateDoc(doc(db,'stockLots',rl.lotId),{qty:increment(rl.qty)}).catch(()=>{});
       }
-      closeMD();showToast('↩️ รับคืนแล้ว ฿'+fmt(refund)+' — คืนสต็อกเข้าล็อตเดิมเรียบร้อย');
+      if(b.member&&b.member.id&&(ptsBack-ptsClaw)!==0){
+        updateDoc(doc(db,'posMembers',b.member.id),{points:increment(ptsBack-ptsClaw)}).catch(()=>{});
+        if(members[b.member.id])members[b.member.id].points=(+members[b.member.id].points||0)+ptsBack-ptsClaw;
+      }
+      closeMD();
+      const ptTxt=(ptsBack||ptsClaw)?' · แต้ม: คืน '+ptsBack+' หักที่เคยได้ '+ptsClaw:'';
+      showToast('↩️ รับคืนแล้ว ฿'+fmt(refund)+ptTxt+' — คืนสต็อกเข้าล็อตเดิมเรียบร้อย');
     }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e.code||e.message),'err');$('rt-ok').disabled=false;}
   });
 }
@@ -1823,9 +1965,9 @@ function openMemberForm(id,afterSave){
       company:$('m-company').value.trim(),updatedAt:new Date().toISOString()};
     try{
       let mid=id;
-      if(id)await updateDoc(doc(db,'posMembers',id),data);
+      if(id){updateDoc(doc(db,'posMembers',id),data).catch(()=>{});members[id]={...members[id],...data};}
       else{data.points=0;data.createdAt=data.updatedAt;data.createdBy=displayName();
-        const ref=await addDoc(collection(db,'posMembers'),data);mid=ref.id;members[mid]={id:mid,...data};}
+        const ref=doc(collection(db,'posMembers'));setDoc(ref,data).catch(()=>{});mid=ref.id;members[mid]={id:mid,...data};}
       closeMD();showToast('บันทึกสมาชิก "'+name+'" แล้ว');
       if($('v-mem').classList.contains('on'))renderMembers();
       if(afterSave)afterSave(mid);
@@ -1881,6 +2023,7 @@ function repriceCart(){
       :'<span class="av">👤</span><div class="mi"><div class="mn">ไม่มีสมาชิกในบิลนี้</div><div class="mp">แตะเพื่อค้นหา/สมัครสมาชิก · สะสมแต้ม-ราคาสมาชิก-เตือนแพ้ยา [F2]</div></div>';
   }
   renderCart();
+  if($('v-sell').classList.contains('on'))renderGrid();
 }
 
 /* ═══════════════════════ เฟส 3.1 — ชุดสินค้า ═══════════════════════ */
@@ -1946,14 +2089,17 @@ function openBundleForm(){
     const name=$('bn-name').value.trim();
     if(!name||!items.length){showToast('ตั้งชื่อชุด + ใส่สินค้าอย่างน้อย 1 ตัวก่อนครับ','err');return;}
     try{const b={name,items,price:parseFloat($('bn-price').value)||null,by:displayName(),at:new Date().toISOString()};
-      const ref=await addDoc(collection(db,'posBundles'),b);bundles[ref.id]={id:ref.id,...b};
+      const ref=doc(collection(db,'posBundles'));setDoc(ref,b).catch(()=>{});bundles[ref.id]={id:ref.id,...b};
       closeMD();showToast('บันทึกชุด "'+name+'" แล้ว');
     }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e.code||e.message),'err');}
   });
 }
 
 /* ═══════════════════════ เฟส 2.1 — นับสต็อก ═══════════════════════ */
-$('nav-count').addEventListener('click',()=>{startProductSync();$('ct-branch').textContent='🏪 '+BRANCHES[curBranch];show('v-count');renderCountTable();});
+let ctBranch=null;
+$('nav-count').addEventListener('click',()=>{startProductSync();$('ct-branch').textContent='🏪 '+BRANCHES[curBranch];
+  if(ctBranch!==curBranch){$('ct-table').innerHTML='';$('ct-q').value='';ctBranch=curBranch;}
+  show('v-count');renderCountTable();});
 $('ct-back').addEventListener('click',()=>show('v-home'));
 $('ct-q').addEventListener('input',renderCountTable);
 function renderCountTable(){
@@ -1993,17 +2139,17 @@ $('ct-save').addEventListener('click',async()=>{
       let diff=r.counted-r.sys;
       if(diff>0){
         const l={pid:r.pid,branch:curBranch,qty:diff,initQty:diff,cost:null,lotNo:'นับสต็อก',expiry:'',vendor:'',source:'count',receivedAt:new Date().toISOString(),by:displayName()};
-        const ref=await addDoc(collection(db,'stockLots'),l);lots[ref.id]={id:ref.id,...l};
+        const ref=doc(collection(db,'stockLots'));setDoc(ref,l).catch(()=>{});lots[ref.id]={id:ref.id,...l};
       }else{
         let need=-diff;
         for(const l of lotsOf(r.pid).filter(x=>+x.branch===+curBranch&&(+x.qty||0)>0)){
           if(need<=0)break;
           const take=Math.min(need,+l.qty);l.qty-=take;need-=take;
-          updateDoc(doc(db,'stockLots',l.id),{qty:l.qty});
+          updateDoc(doc(db,'stockLots',l.id),{qty:increment(-take)}).catch(()=>{});
         }
       }
     }
-    addDoc(collection(db,'posCounts'),{date:todayStr(),branch:curBranch,rows,by:displayName(),uid:currentUser.uid,at:new Date().toISOString()});
+    addDoc(collection(db,'posCounts'),{date:todayStr(),branch:curBranch,rows,by:displayName(),uid:currentUser.uid,at:new Date().toISOString()}).catch(()=>{});
     showToast('ปรับสต็อกตามการนับแล้ว '+rows.length+' รายการ ✅');
     renderCountTable();
   }catch(e){showToast('ปรับไม่สำเร็จ: '+(e.code||e.message),'err');}
@@ -2038,7 +2184,11 @@ function renderTrans(){
     }).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:14px">ยังไม่มีรายการ</td></tr>';
   document.querySelectorAll('.tr-send').forEach(b=>b.addEventListener('click',()=>tranSend(b.dataset.id)));
   document.querySelectorAll('.tr-recv').forEach(b=>b.addEventListener('click',()=>tranRecv(b.dataset.id)));
-  document.querySelectorAll('.tr-cancel').forEach(b=>b.addEventListener('click',async()=>{await updateDoc(doc(db,'posTransfers',b.dataset.id),{status:'cancel'});}));
+  document.querySelectorAll('.tr-cancel').forEach(b=>b.addEventListener('click',()=>{
+    if(trans[b.dataset.id])trans[b.dataset.id].status='cancel';
+    updateDoc(doc(db,'posTransfers',b.dataset.id),{status:'cancel'}).catch(()=>{});
+    renderTrans();
+  }));
 }
 $('tr-new').addEventListener('click',()=>{
   openMD(`<h3>＋ ขอแบ่งยาจากสาขาอื่น</h3>
@@ -2061,14 +2211,16 @@ $('tr-new').addEventListener('click',()=>{
   $('tn-ok').addEventListener('click',async()=>{
     const qty=parseInt($('tn-qty').value);
     if(!pick||!qty||qty<1){showToast('เลือกสินค้า + จำนวนก่อนครับ','err');return;}
-    try{await addDoc(collection(db,'posTransfers'),{pid:pick.id,name:pick.name,qty,from:+$('tn-from').value,to:curBranch,
-      status:'req',reqBy:displayName(),at:new Date().toISOString()});
+    try{addDoc(collection(db,'posTransfers'),{pid:pick.id,name:pick.name,qty,from:+$('tn-from').value,to:curBranch,
+      status:'req',reqBy:displayName(),at:new Date().toISOString()}).catch(()=>{});
       closeMD();showToast('ส่งคำขอแล้ว — รอสาขาต้นทางกดส่งของ');
     }catch(e){showToast('ส่งไม่สำเร็จ: '+(e.code||e.message),'err');}
   });
 });
+const tranBusy=new Set();
 async function tranSend(id){
-  const t=trans[id];if(!t)return;
+  const t=trans[id];if(!t||t.status!=='req'||tranBusy.has(id))return;
+  tranBusy.add(id);setTimeout(()=>tranBusy.delete(id),4000);
   const avail=stockOf(t.pid)[t.from]||0;
   if(avail<t.qty&&!confirm('สต็อกสาขานี้มี '+avail+' แต่ขอ '+t.qty+' — ส่งเท่าที่มี?'))return;
   const sendQty=Math.min(avail,t.qty);
@@ -2079,19 +2231,24 @@ async function tranSend(id){
     const take=Math.min(need,+l.qty);
     moved.push({lotNo:l.lotNo||'',expiry:l.expiry||'',cost:l.cost??null,qty:take});
     l.qty-=take;need-=take;
-    updateDoc(doc(db,'stockLots',l.id),{qty:l.qty});
+    updateDoc(doc(db,'stockLots',l.id),{qty:increment(-take)}).catch(()=>{});
   }
-  await updateDoc(doc(db,'posTransfers',id),{status:'sent',sentBy:displayName(),sentAt:new Date().toISOString(),qty:sendQty,movedLots:moved});
+  t.status='sent';
+  updateDoc(doc(db,'posTransfers',id),{status:'sent',sentBy:displayName(),sentAt:new Date().toISOString(),qty:sendQty,movedLots:moved}).catch(()=>{});
+  renderTrans();
   showToast('🚚 ตัดสต็อกและส่งแล้ว '+sendQty+' ชิ้น');
 }
 async function tranRecv(id){
-  const t=trans[id];if(!t)return;
+  const t=trans[id];if(!t||t.status!=='sent'||tranBusy.has(id))return;
+  tranBusy.add(id);setTimeout(()=>tranBusy.delete(id),4000);
   for(const m of (t.movedLots||[{lotNo:'โอนสาขา',expiry:'',cost:null,qty:t.qty}])){
     const l={pid:t.pid,branch:t.to,qty:m.qty,initQty:m.qty,cost:m.cost,lotNo:m.lotNo,expiry:m.expiry,
       vendor:'โอนจาก'+(BRANCHES[t.from]||''),source:'transfer',receivedAt:new Date().toISOString(),by:displayName()};
-    const ref=await addDoc(collection(db,'stockLots'),l);lots[ref.id]={id:ref.id,...l};
+    const ref=doc(collection(db,'stockLots'));setDoc(ref,l).catch(()=>{});lots[ref.id]={id:ref.id,...l};
   }
-  await updateDoc(doc(db,'posTransfers',id),{status:'done',recvBy:displayName(),recvAt:new Date().toISOString()});
+  t.status='done';
+  updateDoc(doc(db,'posTransfers',id),{status:'done',recvBy:displayName(),recvAt:new Date().toISOString()}).catch(()=>{});
+  renderTrans();
   showToast('📦 รับของเข้าคลัง '+(BRANCHES[t.to]||'')+' แล้ว (ล็อตเดิมติดมาครบ)');
 }
 
@@ -2119,7 +2276,7 @@ $('tp-save').addEventListener('click',async()=>{
   const rounds=[{},{},{}];
   document.querySelectorAll('.tp-in').forEach(i=>{if(i.value!=='')rounds[+i.dataset.i][i.dataset.k]=+i.value;});
   try{
-    await setDoc(doc(db,'posTemps',tpDocId()),{date:todayStr(),branch:curBranch,rounds,by:displayName(),at:new Date().toISOString()},{merge:true});
+    setDoc(doc(db,'posTemps',tpDocId()),{date:todayStr(),branch:curBranch,rounds,by:displayName(),at:new Date().toISOString()},{merge:true}).catch(()=>{});
     showToast('🌡️ บันทึกอุณหภูมิวันนี้แล้ว');
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e.code||e.message),'err');}
 });
@@ -2172,12 +2329,16 @@ $('nav-low').addEventListener('click',async()=>{
     const snap=await getDocs(query(collection(db,'posBills'),where('date','>=',from)));
     const sold={};
     snap.forEach(x=>{const b=x.data();if(+b.branch!==+curBranch)return;
-      (b.items||[]).forEach(it=>{sold[it.pid]=(sold[it.pid]||0)+it.qty;});});
+      (b.items||[]).forEach(it=>{sold[it.pid]=(sold[it.pid]||0)+it.qty*(it.factor||1);});});
     lowData=sold;loading(false);renderLow();
   }catch(e){loading(false);showToast('ดึงยอดขายไม่สำเร็จ: '+(e.code||e.message),'err');}
 });
 $('lw-back').addEventListener('click',()=>show('v-home'));
 $('lw-days').addEventListener('change',renderLow);
+function lastVendorOf(pid){ /* ผู้ขายจากล็อตที่รับเข้าล่าสุดจริงๆ (เรียงตามวันรับ ไม่ใช่วันหมดอายุ) */
+  const ls=lotsOf(pid).filter(l=>l.vendor).sort((a,b)=>String(a.receivedAt||'').localeCompare(String(b.receivedAt||'')));
+  return ls.length?ls[ls.length-1].vendor:'';
+}
 function renderLow(){
   const th=+$('lw-days').value;
   const rows=Object.values(products).filter(p=>p.active!==false).map(p=>{
@@ -2190,13 +2351,13 @@ function renderLow(){
   $('lw-count').textContent=rows.length+' รายการเข้าเกณฑ์';
   $('lw-table').innerHTML='<tr><th></th><th>สินค้า</th><th>คงเหลือ</th><th>ขายเฉลี่ย/วัน</th><th>พอขายอีก</th><th>จุดสั่งซื้อ</th><th>ผู้ขายล่าสุด</th></tr>'+
     rows.slice(0,150).map(r=>{
-      const lastLot=lotsOf(r.p.id).filter(l=>l.vendor).slice(-1)[0];
+      const lastVen=lastVendorOf(r.p.id);
       return '<tr><td><input type="checkbox" class="lw-ck" data-pid="'+r.p.id+'" checked></td><td>'+esc(r.p.name)+'</td>'+
       '<td style="text-align:center;font-family:var(--mono)">'+r.stock+'</td>'+
       '<td style="text-align:center">'+(r.perDay?r.perDay.toFixed(1):'-')+'</td>'+
       '<td style="text-align:center;font-weight:700;color:'+(r.daysLeft<=7?'var(--red-t)':'var(--amber-t)')+'">'+(r.daysLeft>=9999?'ไม่มียอดขาย':'~'+Math.floor(r.daysLeft)+' วัน')+'</td>'+
       '<td style="text-align:center">'+(r.p.reorder||'-')+(r.lowByReorder?' ⚠️':'')+'</td>'+
-      '<td style="font-size:11px">'+esc(lastLot?.vendor||'-')+'</td></tr>';
+      '<td style="font-size:11px">'+esc(lastVen||'-')+'</td></tr>';
     }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:14px">ไม่มีสินค้าเข้าเกณฑ์ 🎉</td></tr>';
 }
 $('lw-po').addEventListener('click',()=>{
@@ -2205,7 +2366,7 @@ $('lw-po').addEventListener('click',()=>{
   const byVendor={};
   picks.forEach(pid=>{
     const p=products[pid];if(!p)return;
-    const v=lotsOf(pid).filter(l=>l.vendor).slice(-1)[0]?.vendor||'(ไม่ระบุผู้ขาย)';
+    const v=lastVendorOf(pid)||'(ไม่ระบุผู้ขาย)';
     (byVendor[v]=byVendor[v]||[]).push(p);
   });
   const d=new Date();
@@ -2233,7 +2394,7 @@ async function runReport(){
     repBills=await fetchMonth('posBills',ym);
     const rets=await fetchMonth('posReturns',ym);
     loading(false);
-    let total=0,cost=0,qty=0;const perDay={},top={};
+    let total=0,cost=0,qty=0,unkQty=0;const perDay={},top={};
     repBills.forEach(b=>{
       total+=(+b.total||0);
       perDay[b.date]=(perDay[b.date]||{n:0,amt:0});perDay[b.date].n++;perDay[b.date].amt+=(+b.total||0);
@@ -2244,8 +2405,7 @@ async function runReport(){
         let c=0,counted=0;
         (it.lots||[]).forEach(u=>{if(u.cost!=null){c+=u.cost*u.qty;counted+=u.qty;}});
         const rest=it.qty*f-counted;
-        const fb=products[it.pid]?.cost??null;
-        c+=rest*(fb??(it.price/f)*0.7);
+        if(rest>0)unkQty+=rest; /* ไม่รู้ทุนจริง — ไม่เดาตัวเลข แจ้งให้ผู้ใช้รู้แทน */
         cost+=c;
       });
     });
@@ -2257,7 +2417,7 @@ async function runReport(){
       '<div class="navcards">'+
       '<div class="nvc"><span class="ic">💰</span><div class="t">฿'+fmt(netTotal)+'</div><div class="s">ยอดขายสุทธิ (หักคืน ฿'+fmt(refund)+')</div></div>'+
       '<div class="nvc"><span class="ic">🧾</span><div class="t">'+repBills.length+' บิล</div><div class="s">'+qty+' ชิ้น</div></div>'+
-      '<div class="nvc"><span class="ic">📈</span><div class="t">฿'+fmt(profit)+'</div><div class="s">กำไรขั้นต้น (จากทุนตามล็อต)</div></div></div>'+
+      '<div class="nvc"><span class="ic">📈</span><div class="t">฿'+fmt(profit)+'</div><div class="s">กำไรขั้นต้น (จากทุนตามล็อต)'+(unkQty>0?'<br><span style="color:var(--amber-t)">⚠️ ไม่ทราบทุน '+fmt(unkQty)+' ชิ้น — กำไรจริงอาจต่ำกว่านี้</span>':'')+'</div></div></div>'+
       '<div class="card"><h3>🏆 ขายดี 10 อันดับ</h3><div class="imp-prev" style="max-height:none"><table>'+
       '<tr><th>#</th><th>สินค้า</th><th>จำนวนที่ขาย</th></tr>'+
       tops.map(([n,q],i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(n)+'</td><td style="text-align:center;font-family:var(--mono)">'+q+'</td></tr>').join('')+
