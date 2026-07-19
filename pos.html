@@ -161,19 +161,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 </head>
 <body>
 
-<!-- ═════ จอล็อกอิน ═════ -->
+<!-- ═════ จอพักระหว่างพาไปล็อกอินรวม (ล็อกอินที่ index.html ที่เดียว) ═════ -->
 <div class="view on" id="v-login">
-  <div class="lg-card">
+  <div class="lg-card" style="text-align:center">
     <div class="lg-logo">💊</div>
     <h1>ใหม่เภสัช POS</h1>
     <div class="lg-v" id="lg-ver">POS_VERSION</div>
-    <label>อีเมลพนักงาน</label>
-    <input type="email" id="lg-email" autocomplete="username" placeholder="name@email.com">
-    <label>รหัสผ่าน</label>
-    <input type="password" id="lg-pass" autocomplete="current-password" placeholder="••••••••">
-    <div class="lg-err" id="lg-err"></div>
-    <button class="btn" id="lg-btn">เข้าสู่ระบบ</button>
-    <div class="lg-note">บัญชีเดียวกับแอปมือถือ ใหม่เภสัช<br>ระบบบันทึกอุปกรณ์ที่เข้าใช้เหมือนแอปหลัก</div>
+    <div style="font-size:13px;color:var(--text2);margin-top:8px">กำลังพาไปหน้าเข้าสู่ระบบ...</div>
+    <div class="lg-note">ล็อกอินที่เดียว ใช้ได้ทั้งแอปจัดการร้านและ POS</div>
   </div>
 </div>
 
@@ -272,12 +267,15 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='1.1.0';
+const POS_VERSION='1.1.1';
 const POS_CHANGELOG=[
+  {v:'1.1.1',date:'2026-07-19',changes:[
+    '🔑 ล็อกอินรวมที่เดียว — POS ไม่มีฟอร์มล็อกอินของตัวเองแล้ว: เปิด pos.html โดยยังไม่ได้ล็อกอิน ระบบพาไปหน้าเข้าสู่ระบบเดียวกับแอปหลัก ล็อกอินเสร็จมี "จอเลือกทาง" ให้เลือกว่าจะเข้า จัดการร้าน หรือ ขายหน้าร้าน (POS) · ออกจากระบบจาก POS ก็กลับไปหน้ารวมเช่นกัน',
+  ]},
   {v:'1.1.0',date:'2026-07-19',changes:[
     '📦 ระบบสินค้า & สต็อก (เฟส 1.2) — เพิ่ม/แก้ไข/ค้นหาสินค้า (ล้อโครงจากโปรแกรมเดิม) · สต็อกเก็บเป็น "ล็อต" แยก 3 สาขา (เลขล็อต/วันหมดอายุ/ทุน — รากฐาน FIFO และบัญชี ข.ย.) · คงเหลือแก้ตรงไม่ได้ ต้องเพิ่มผ่านล็อต (ปรับสต็อก) · นำเข้าสินค้าจากไฟล์ CSV (export จากโปรแกรมเดิมแล้วเลือกคอลัมน์ให้ตรง) · เตือนล็อตใกล้หมดอายุ (แดง = เหลือ ≤ 6 เดือน)',
     '⚠️ ต้องวางกฎ Firestore เวอร์ชันใหม่ (firestore-rules-ใหม่.txt) ก่อนใช้ — เพิ่มกฎ products + stockLots',
@@ -367,30 +365,16 @@ function displayName(){
   return profile?.nickname||profile?.firstName||currentUser?.email||'';
 }
 
-/* ═════ ล็อกอิน ═════ */
+/* ═════ ล็อกอินรวมที่ index.html ที่เดียว — POS ไม่มีฟอร์มล็อกอินของตัวเอง ═════ */
 $('lg-ver').textContent='POS '+POS_VERSION;
-$('lg-btn').addEventListener('click',doLogin);
-$('lg-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-async function doLogin(){
-  const em=$('lg-email').value.trim(), pw=$('lg-pass').value;
-  if(!em||!pw){$('lg-err').style.display='block';$('lg-err').textContent='กรอกอีเมลและรหัสผ่านก่อนครับ';return;}
-  $('lg-err').style.display='none';$('lg-btn').disabled=true;$('lg-btn').textContent='กำลังเข้าสู่ระบบ...';
-  try{
-    await signInWithEmailAndPassword(auth,em,pw);
-  }catch(e){
-    $('lg-err').style.display='block';
-    $('lg-err').textContent=/network/i.test(e.code||'')?'ต่ออินเทอร์เน็ตไม่ได้ — การล็อกอินครั้งแรกต้องมีเน็ต':'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
-  }
-  $('lg-btn').disabled=false;$('lg-btn').textContent='เข้าสู่ระบบ';
-}
-function bindLogout(id){$(id).addEventListener('click',async()=>{if(unsubProfile)unsubProfile();await signOut(auth);location.reload();});}
+function bindLogout(id){$(id).addEventListener('click',async()=>{if(unsubProfile)unsubProfile();await signOut(auth);location.href='index.html';});}
 bindLogout('lk-out');bindLogout('br-out');bindLogout('hm-out');
 
 /* ═════ เฝ้าสถานะล็อกอิน + โปรไฟล์แบบเรียลไทม์ (เปิดสิทธิ์ปุ๊บ เข้าได้ทันที) ═════ */
 onAuthStateChanged(auth,user=>{
   currentUser=user;
   if(unsubProfile){unsubProfile();unsubProfile=null;}
-  if(!user){show('v-login');return;}
+  if(!user){show('v-login');setTimeout(()=>{location.href='index.html?to=pos';},600);return;}
   loading(true);
   unsubProfile=onSnapshot(doc(db,'members',user.uid),snap=>{
     loading(false);

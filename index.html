@@ -161,7 +161,7 @@ body{font-family:var(--font);min-height:100vh;min-height:100dvh;display:flex;ali
 <script type="module">
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const app = initializeApp({
@@ -238,8 +238,17 @@ async function claimSession(uid){
 let isRegistering=false;
 let isLoggingIn=false;
 
+// ═════ จอเลือกทาง: ล็อกอินที่เดียว แล้วเลือกว่าจะเข้าโปรแกรมไหน ═════
+// เปิดจาก pos.html จะมี ?to=pos ติดมา → ล็อกอินเสร็จเด้งกลับ POS เลยไม่ต้องถาม
+window.posSignOut=async function(){document.getElementById('chooser').classList.remove('on');await signOut(auth);};
+function afterLogin(){
+  const to=new URLSearchParams(location.search).get('to');
+  if(to==='pos'){window.location.href='pos.html';return;}
+  loading(false);
+  document.getElementById('chooser').classList.add('on');
+}
 onAuthStateChanged(auth, user=>{
-  if(user && !isRegistering && !isLoggingIn) window.location.href='app.html';
+  if(user && !isRegistering && !isLoggingIn) afterLogin();
   else if(!user) loading(false);
 });
 
@@ -254,7 +263,7 @@ window.doLogin=async function(){
   try{
     const cred=await signInWithEmailAndPassword(auth,email,pass);
     await claimSession(cred.user.uid);
-    window.location.href='app.html';
+    afterLogin();
   }catch(e){
     isLoggingIn=false;
     loading(false);document.getElementById('btn-login').disabled=false;
@@ -324,5 +333,33 @@ window.doForgot=async function(){
 document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('f-email').addEventListener('keydown',e=>{if(e.key==='Enter')doForgot();});
 </script>
+
+<!-- ═════ จอเลือกทาง — ล็อกอินแล้วเลือกโปรแกรม ═════ -->
+<style>
+#chooser{position:fixed;inset:0;background:rgba(10,30,24,.55);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;z-index:80;padding:20px}
+#chooser.on{display:flex}
+.chz{background:#fff;border-radius:22px;padding:28px 26px;width:min(94vw,560px);text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.35)}
+.chz h2{font-size:20px;font-weight:800;color:#1c2b24;margin:0 0 4px}
+.chz p{font-size:13px;color:#7c8a82;margin:0 0 18px}
+.chz-cards{display:flex;gap:14px;flex-wrap:wrap}
+.chz-c{flex:1;min-width:200px;border:2px solid #e2e9e4;border-radius:16px;padding:20px 16px;cursor:pointer;transition:.15s;color:#fff;text-align:center}
+.chz-c:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(20,40,30,.2)}
+.chz-c .ic{font-size:34px}
+.chz-c .t{font-size:16.5px;font-weight:800;margin-top:8px}
+.chz-c .s{font-size:11.5px;opacity:.92;margin-top:3px;line-height:1.55}
+.chz-app{background:linear-gradient(140deg,#23B895,#0F6E56);border-color:transparent}
+.chz-pos{background:linear-gradient(140deg,#4C9BF0,#2C6FBF);border-color:transparent}
+.chz-out{margin-top:16px;background:none;border:none;color:#96a49b;font-size:12.5px;cursor:pointer;font-family:inherit}
+</style>
+<div id="chooser"><div class="chz">
+  <h2>วันนี้จะเข้าโปรแกรมไหน?</h2>
+  <p>บัญชีเดียว ใช้ได้ทั้งสองโปรแกรม — เลือกได้เลย</p>
+  <div class="chz-cards">
+    <div class="chz-c chz-app" onclick="location.href='app.html'"><span class="ic">🏪</span><div class="t">จัดการร้าน</div><div class="s">ลงเวลา · เงินสด · ยอดขาย<br>เงินเดือน · ตารางเวร (มือถือ)</div></div>
+    <div class="chz-c chz-pos" onclick="location.href='pos.html'"><span class="ic">🛒</span><div class="t">ขายหน้าร้าน (POS)</div><div class="s">คิดเงิน · สินค้า · สต็อก<br>ใช้บนคอมพิวเตอร์</div></div>
+  </div>
+  <button class="chz-out" onclick="posSignOut()">← ออกจากระบบ (สลับบัญชี)</button>
+</div></div>
+
 </body>
 </html>
