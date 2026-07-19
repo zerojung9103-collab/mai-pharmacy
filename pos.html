@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#127C62">
+<title>ใหม่เภสัช POS — ขายหน้าร้าน</title>
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Thai:wght@500;600;700&family=Noto+Sans+Thai:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ===== โทเคนสี (ล้อแอปหลัก) ===== */
+:root{
+  --green:#23B895; --green-d:#127C62; --green-dd:#0F6E56; --green-l:#E4F5F0;
+  --blue:#3B8EEA; --blue-d:#2C6FBF; --blue-l:#E7F0FB;
+  --amber:#E8B93F; --amber-l:#FBF0DA; --amber-t:#8A6418;
+  --red:#D65068; --red-l:#FBE5E9; --red-t:#9F2A3C;
+  --bg:#EDF3EF; --surface:#FFFFFF; --surface-2:#F6FAF7;
+  --border:#E0E8E2; --border2:#D2DCD5;
+  --text:#243029; --text2:#5F6F66; --text3:#96A49B;
+  --disp:'Noto Serif Thai',serif; --font:'Noto Sans Thai',system-ui,sans-serif;
+  --mono:ui-monospace,'Courier New',monospace;
+  --b0:#1FAE8B; --b1:#3B8EEA; --b2:#E8A23F;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.view{display:none;min-height:100vh}
+.view.on{display:flex}
+
+/* ===== จอล็อกอิน ===== */
+#v-login{align-items:center;justify-content:center;background:linear-gradient(150deg,#0F3D31,#127C62)}
+.lg-card{width:min(92vw,360px);background:var(--surface);border-radius:18px;padding:30px 28px 24px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.lg-logo{width:64px;height:64px;border-radius:17px;background:linear-gradient(140deg,#23B895,#127C62);display:flex;align-items:center;justify-content:center;font-size:31px;margin:0 auto 12px}
+.lg-card h1{font-family:var(--disp);font-size:21px;font-weight:700;text-align:center}
+.lg-v{font-family:var(--mono);font-size:11px;color:var(--text3);text-align:center;margin:2px 0 18px}
+.lg-card label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin:11px 0 4px}
+.lg-card input{width:100%;border:1.5px solid var(--border2);background:var(--surface-2);border-radius:10px;padding:10px 13px;font-size:14.5px;font-family:var(--font);color:var(--text)}
+.lg-card input:focus{outline:none;border-color:var(--green)}
+.btn{display:block;width:100%;border:none;cursor:pointer;border-radius:11px;padding:12px;font-size:15px;font-weight:800;font-family:var(--font);margin-top:18px;background:linear-gradient(140deg,#23B895,#127C62);color:#fff}
+.btn:disabled{opacity:.55;cursor:default}
+.lg-note{font-size:11px;color:var(--text3);text-align:center;margin-top:13px;line-height:1.7}
+.lg-err{display:none;background:var(--red-l);color:var(--red-t);font-size:12.5px;border-radius:9px;padding:8px 12px;margin-top:12px;text-align:center}
+
+/* ===== จอไม่มีสิทธิ์ ===== */
+#v-locked{align-items:center;justify-content:center;flex-direction:column;gap:0}
+.lk-card{width:min(92vw,400px);background:var(--surface);border:1.5px solid var(--border);border-radius:18px;padding:34px 28px;text-align:center;box-shadow:0 12px 34px rgba(20,40,30,.1)}
+.lk-card .ic{font-size:44px}
+.lk-card h2{font-family:var(--disp);font-size:19px;margin:10px 0 6px}
+.lk-card p{font-size:13px;color:var(--text2)}
+.lk-card .who{font-size:12px;color:var(--text3);margin-top:14px}
+.lk-out{margin-top:16px;background:none;border:1.5px solid var(--border2);color:var(--text2);border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer}
+
+/* ===== แถบบนร่วม (เลือกสาขา/หน้าหลัก) ===== */
+.topbar{height:52px;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;flex-shrink:0}
+.topbar .tt{font-family:var(--disp);font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
+.topbar .chip{font-size:12px;font-weight:700;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 13px}
+.topbar .sp{flex:1}
+.topbar .who{font-size:12.5px;opacity:.95}
+.topbar button{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer}
+.topbar button:hover{background:rgba(255,255,255,.3)}
+/* ไฟสถานะซิงค์ */
+.sync{display:flex;align-items:center;gap:7px;font-size:11.5px;background:rgba(0,0,0,.16);border-radius:20px;padding:4px 12px}
+.sync .dot{width:9px;height:9px;border-radius:50%;background:#3DDC97;box-shadow:0 0 6px #3DDC97}
+.sync.off .dot{background:#F5C445;box-shadow:0 0 6px #F5C445}
+.sync.busy .dot{background:#6FB4FF;box-shadow:0 0 6px #6FB4FF;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.35}}
+
+#v-branch,#v-home{flex-direction:column}
+.main{flex:1;padding:34px 22px;overflow:auto}
+
+/* ===== จอเลือกสาขา ===== */
+.q{font-family:var(--disp);font-size:22px;font-weight:700;text-align:center;margin-bottom:6px}
+.qs{font-size:13px;color:var(--text3);text-align:center;margin-bottom:26px}
+.brs{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.br{width:260px;background:var(--surface);border:2px solid var(--border);border-radius:18px;padding:24px 20px;text-align:center;cursor:pointer;position:relative;transition:.15s}
+.br:hover{border-color:var(--green);transform:translateY(-2px)}
+.br .dot{width:54px;height:54px;border-radius:15px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.br .nm{font-family:var(--disp);font-size:18px;font-weight:700}
+.br .sb{font-size:11.5px;color:var(--text3);margin-top:3px;min-height:18px}
+.br.last{border-color:var(--green)}
+.br .tag{position:absolute;top:12px;right:12px;font-size:9.5px;font-weight:800;background:var(--green-l);color:var(--green-dd);border-radius:20px;padding:2px 9px;display:none}
+.br.last .tag{display:block}
+
+/* ===== หน้าหลัก (รากฐาน 1.1) ===== */
+.home-grid{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:20px 22px}
+.card h3{font-family:var(--disp);font-size:16.5px;font-weight:700;margin-bottom:8px}
+.card p{font-size:13.5px;color:var(--text2)}
+.ok-badge{display:inline-flex;align-items:center;gap:7px;background:var(--green-l);color:var(--green-dd);font-size:12.5px;font-weight:800;border-radius:20px;padding:5px 14px;margin-bottom:10px}
+.next-list{margin-top:10px;font-size:13px;color:var(--text2);line-height:2}
+.next-list b{color:var(--text)}
+.row-btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.sbtn{border:1.5px solid var(--border2);background:var(--surface-2);color:var(--text);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer}
+.sbtn:hover{border-color:var(--green)}
+.chg-item{border-top:1px dashed var(--border);padding:10px 0 4px;margin-top:8px}
+.chg-item .cv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green-dd)}
+.chg-item ul{margin:5px 0 0 20px;font-size:13px;color:var(--text2)}
+
+/* toast */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:#243029;color:#fff;border-radius:12px;padding:11px 20px;font-size:13.5px;display:flex;gap:9px;align-items:center;opacity:0;transition:.25s;z-index:99;max-width:88vw}
+#toast.show{transform:translateX(-50%);opacity:1}
+#loading{position:fixed;inset:0;background:rgba(255,255,255,.55);display:none;align-items:center;justify-content:center;z-index:98}
+#loading.show{display:flex}
+.spin{width:38px;height:38px;border:4px solid var(--green-l);border-top-color:var(--green);border-radius:50%;animation:sp 0.8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- ═════ จอล็อกอิน ═════ -->
+<div class="view on" id="v-login">
+  <div class="lg-card">
+    <div class="lg-logo">💊</div>
+    <h1>ใหม่เภสัช POS</h1>
+    <div class="lg-v" id="lg-ver">POS_VERSION</div>
+    <label>อีเมลพนักงาน</label>
+    <input type="email" id="lg-email" autocomplete="username" placeholder="name@email.com">
+    <label>รหัสผ่าน</label>
+    <input type="password" id="lg-pass" autocomplete="current-password" placeholder="••••••••">
+    <div class="lg-err" id="lg-err"></div>
+    <button class="btn" id="lg-btn">เข้าสู่ระบบ</button>
+    <div class="lg-note">บัญชีเดียวกับแอปมือถือ ใหม่เภสัช<br>ระบบบันทึกอุปกรณ์ที่เข้าใช้เหมือนแอปหลัก</div>
+  </div>
+</div>
+
+<!-- ═════ จอยังไม่เปิดสิทธิ์ ═════ -->
+<div class="view" id="v-locked">
+  <div class="lk-card">
+    <div class="ic">🔒</div>
+    <h2>POS ยังไม่เปิดใช้งานสำหรับบัญชีนี้</h2>
+    <p>ระบบอยู่ระหว่างทดลองใช้งาน<br>เมื่อเปิดสิทธิ์ให้ที่หน้า "จัดการพนักงาน" ในแอปหลัก<br>จอนี้จะเข้าได้ทันทีโดยไม่ต้องล็อกอินใหม่</p>
+    <div class="who" id="lk-who"></div>
+    <button class="lk-out" id="lk-out">ออกจากระบบ</button>
+  </div>
+</div>
+
+<!-- ═════ จอเลือกสาขา ═════ -->
+<div class="view" id="v-branch">
+  <div class="topbar">
+    <span class="tt">🛒 ใหม่เภสัช POS</span>
+    <span class="sp"></span>
+    <span class="sync" id="sync-b"><span class="dot"></span><span class="lb">ออนไลน์</span></span>
+    <span class="who" id="br-who"></span>
+    <button id="br-out">ออกจากระบบ</button>
+  </div>
+  <div class="main">
+    <div class="q">วันนี้ขายที่สาขาไหน?</div>
+    <div class="qs">เลือกสาขาก่อนเริ่มขาย — ยอดขาย/เงินสดจะเข้าสาขานี้ · สลับสาขาทีหลังได้</div>
+    <div class="brs" id="br-list"></div>
+  </div>
+</div>
+
+<!-- ═════ หน้าหลัก (รากฐาน 1.1 — จอขายมาใน 1.2) ═════ -->
+<div class="view" id="v-home">
+  <div class="topbar">
+    <span class="tt">🛒 ใหม่เภสัช POS</span>
+    <span class="chip" id="hm-branch">สาขา</span>
+    <span class="sp"></span>
+    <span class="sync" id="sync-h"><span class="dot"></span><span class="lb">ออนไลน์</span></span>
+    <span class="who" id="hm-who"></span>
+    <button id="hm-switch">สลับสาขา</button>
+    <button id="hm-out">ออกจากระบบ</button>
+  </div>
+  <div class="main">
+    <div class="home-grid">
+      <div class="card">
+        <span class="ok-badge">✅ รากฐานระบบ (เฟส 1.1) ติดตั้งแล้ว</span>
+        <h3>เครื่องนี้พร้อมสำหรับระบบขายหน้าร้าน</h3>
+        <p>ล็อกอิน · สิทธิ์ · สาขา · การทำงานแบบออฟไลน์ (เน็ตหลุดข้อมูลไม่หาย ซิงค์เองเมื่อเน็ตกลับมา) ทำงานครบแล้ว — สังเกตไฟสถานะซิงค์ที่มุมขวาบนได้ตลอด</p>
+        <div class="next-list">
+          <b>กำลังจะมาถัดไป:</b><br>
+          1.2 ระบบสินค้า + สต็อกแบบล็อต (FIFO) + ตัวนำเข้า Excel<br>
+          1.3 จอขาย + รับเงิน + เชื่อมลิ้นชัก · 1.4 พิมพ์ใบเสร็จ/ฉลาก · 1.5 ข.ย.9/10/11
+        </div>
+      </div>
+      <div class="card">
+        <h3>🔄 อัปเดตโปรแกรม</h3>
+        <p>เวอร์ชันปัจจุบัน: <b id="hm-ver" style="font-family:var(--mono)"></b></p>
+        <div class="row-btns">
+          <button class="sbtn" id="hm-check">ตรวจอัปเดต</button>
+        </div>
+        <div id="hm-chg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="loading"><div class="spin"></div></div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+/* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
+const POS_VERSION='1.0.0';
+const POS_CHANGELOG=[
+  {v:'1.0.0',date:'2026-07-19',changes:[
+    '🎉 กำเนิดโปรแกรมขายหน้าร้าน (POS) — รากฐานเฟส 1.1: ล็อกอินด้วยบัญชีเดียวกับแอปมือถือ · เช็คสิทธิ์ "ใช้ POS ได้" (ช่วงทดลองเปิดเฉพาะเจ้าของ เปิดเพิ่มได้ที่หน้าจัดการพนักงานในแอปหลัก) · เลือกสาขาแล้วเครื่องจำไว้ · ทำงานออฟไลน์ได้ (เน็ตหลุดข้อมูลไม่หาย ซิงค์เองเมื่อเน็ตกลับมา) · ไฟสถานะซิงค์มุมจอ · ระบบตรวจอัปเดตของ POS เอง',
+  ]},
+];
+
+/* ═════ Firebase (ชุดเดียวกับแอปหลัก) + เปิดโหมดออฟไลน์ ═════ */
+const app = initializeApp({
+  apiKey:"AIzaSyCp-ykqpOv4dRExutf5308T6ia3HVHYuOo",
+  authDomain:"naimaphat-pharmacy.firebaseapp.com",
+  projectId:"naimaphat-pharmacy",
+  storageBucket:"naimaphat-pharmacy.firebasestorage.app",
+  messagingSenderId:"642082079849",
+  appId:"1:642082079849:web:54d00567f0654339414ef8"
+});
+const auth = getAuth(app);
+/* หัวใจเฟส 1.1: เก็บข้อมูลไว้ในเครื่อง — เน็ตหลุดใช้ต่อได้ เน็ตมาซิงค์เอง */
+const db = initializeFirestore(app,{localCache:persistentLocalCache({tabManager:persistentMultipleTabManager()})});
+
+const BRANCHES=['ทรัพย์พัฒนา','บางปู','อินดี้'];
+const BCOLORS=['var(--b0)','var(--b1)','var(--b2)'];
+const LS_BRANCH='nm_pos_branch';
+
+let currentUser=null, profile=null, unsubProfile=null, curBranch=null;
+
+/* ═════ เครื่องมือพื้นฐาน ═════ */
+const $=id=>document.getElementById(id);
+function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v));}
+function loading(b){$('loading').classList.toggle('show',b);}
+let toastT=null;
+function showToast(msg,type){
+  const t=$('toast');t.textContent=(type==='err'?'⚠️ ':'✅ ')+msg;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ═════ ไฟสถานะซิงค์ (เขียว=ครบ · เหลือง=ออฟไลน์ · ฟ้า=กำลังซิงค์) ═════ */
+function setSync(state){
+  document.querySelectorAll('.sync').forEach(el=>{
+    el.classList.remove('off','busy');
+    if(state==='off'){el.classList.add('off');el.querySelector('.lb').textContent='ออฟไลน์ · ขายต่อได้';}
+    else if(state==='busy'){el.classList.add('busy');el.querySelector('.lb').textContent='กำลังซิงค์...';}
+    else{el.querySelector('.lb').textContent='ออนไลน์';}
+  });
+}
+window.addEventListener('offline',()=>setSync('off'));
+window.addEventListener('online',()=>setSync('busy'));
+onSnapshotsInSync(db,()=>{if(navigator.onLine)setSync('on');});
+if(!navigator.onLine)setSync('off');
+
+/* ═════ บันทึกอุปกรณ์ (กลไกเดียวกับแอปหลัก v4.19) ═════ */
+function deviceLabel(){
+  const ua=navigator.userAgent;let os='อุปกรณ์';
+  if(/Windows/.test(ua))os='Windows';else if(/Macintosh/.test(ua))os='Mac';else if(/Android/.test(ua))os='Android';else if(/iPhone|iPad/.test(ua))os='iOS';else if(/Linux/.test(ua))os='Linux';
+  let br='เบราว์เซอร์';
+  if(/Edg\//.test(ua))br='Edge';else if(/Chrome\//.test(ua))br='Chrome';else if(/Firefox\//.test(ua))br='Firefox';else if(/Safari\//.test(ua)&&!/Chrome/.test(ua))br='Safari';
+  return os+' · '+br+' (POS)';
+}
+function getDeviceId(){
+  let id=localStorage.getItem('nm_deviceId');
+  if(!id){id='dev_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);localStorage.setItem('nm_deviceId',id);}
+  return id;
+}
+async function recordDevice(){
+  try{
+    const key='nm_pos_dev_'+currentUser.uid;
+    if(localStorage.getItem(key))return;
+    localStorage.setItem(key,'1');
+    const devId=getDeviceId(), nowIso=new Date().toISOString();
+    const known=Array.isArray(profile.knownDevices)?profile.knownDevices.slice():[];
+    if(!known.some(d=>d&&d.id===devId)){
+      known.push({id:devId,label:deviceLabel(),firstSeen:nowIso,lastSeen:nowIso});
+      await setDoc(doc(db,'members',currentUser.uid),{knownDevices:known.slice(-15),lastLoginAt:nowIso,lastLoginDevice:deviceLabel()},{merge:true});
+    }
+  }catch(e){/* ปัญหาบันทึกอุปกรณ์ต้องไม่ขวางการใช้งาน */}
+}
+
+/* ═════ สิทธิ์เข้า POS: แอดมิน หรือ permissions.pos === true ═════ */
+function canPOS(){
+  if(!profile)return false;
+  if(profile.role==='admin')return true;
+  return profile.permissions?.pos===true;
+}
+function displayName(){
+  return profile?.nickname||profile?.firstName||currentUser?.email||'';
+}
+
+/* ═════ ล็อกอิน ═════ */
+$('lg-ver').textContent='POS '+POS_VERSION;
+$('lg-btn').addEventListener('click',doLogin);
+$('lg-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+async function doLogin(){
+  const em=$('lg-email').value.trim(), pw=$('lg-pass').value;
+  if(!em||!pw){$('lg-err').style.display='block';$('lg-err').textContent='กรอกอีเมลและรหัสผ่านก่อนครับ';return;}
+  $('lg-err').style.display='none';$('lg-btn').disabled=true;$('lg-btn').textContent='กำลังเข้าสู่ระบบ...';
+  try{
+    await signInWithEmailAndPassword(auth,em,pw);
+  }catch(e){
+    $('lg-err').style.display='block';
+    $('lg-err').textContent=/network/i.test(e.code||'')?'ต่ออินเทอร์เน็ตไม่ได้ — การล็อกอินครั้งแรกต้องมีเน็ต':'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+  }
+  $('lg-btn').disabled=false;$('lg-btn').textContent='เข้าสู่ระบบ';
+}
+function bindLogout(id){$(id).addEventListener('click',async()=>{if(unsubProfile)unsubProfile();await signOut(auth);location.reload();});}
+bindLogout('lk-out');bindLogout('br-out');bindLogout('hm-out');
+
+/* ═════ เฝ้าสถานะล็อกอิน + โปรไฟล์แบบเรียลไทม์ (เปิดสิทธิ์ปุ๊บ เข้าได้ทันที) ═════ */
+onAuthStateChanged(auth,user=>{
+  currentUser=user;
+  if(unsubProfile){unsubProfile();unsubProfile=null;}
+  if(!user){show('v-login');return;}
+  loading(true);
+  unsubProfile=onSnapshot(doc(db,'members',user.uid),snap=>{
+    loading(false);
+    profile=snap.exists()?snap.data():null;
+    route();
+  },err=>{loading(false);profile=null;route();});
+});
+
+function route(){
+  if(!currentUser){show('v-login');return;}
+  if(!profile||profile.status==='pending'||!canPOS()){
+    $('lk-who').textContent='ล็อกอินเป็น: '+(profile?displayName()+' · ':'')+(currentUser.email||'');
+    show('v-locked');return;
+  }
+  recordDevice();
+  const saved=localStorage.getItem(LS_BRANCH);
+  if(saved!==null&&BRANCHES[+saved]!==undefined){enterHome(+saved);}
+  else{renderBranches();show('v-branch');}
+}
+
+/* ═════ เลือกสาขา ═════ */
+function renderBranches(){
+  $('br-who').textContent='ผู้ขาย: '+displayName();
+  const last=localStorage.getItem(LS_BRANCH);
+  $('br-list').innerHTML=BRANCHES.map((nm,i)=>`
+    <div class="br ${String(i)===last?'last':''}" data-b="${i}">
+      <span class="tag">เครื่องนี้เคยเลือกล่าสุด</span>
+      <div class="dot" style="background:${BCOLORS[i]}">🏪</div>
+      <div class="nm">${nm}</div>
+      <div class="sb">สาขา ${i+1}</div>
+    </div>`).join('');
+  $('br-list').querySelectorAll('.br').forEach(el=>el.addEventListener('click',()=>enterHome(+el.dataset.b)));
+}
+
+/* ═════ หน้าหลัก ═════ */
+function enterHome(b){
+  curBranch=b;localStorage.setItem(LS_BRANCH,String(b));
+  $('hm-branch').textContent='🏪 '+BRANCHES[b];
+  $('hm-who').textContent='ผู้ขาย: '+displayName();
+  $('hm-ver').textContent='POS '+POS_VERSION;
+  renderChangelog();
+  show('v-home');
+}
+$('hm-switch').addEventListener('click',()=>{localStorage.removeItem(LS_BRANCH);renderBranches();show('v-branch');});
+
+function renderChangelog(){
+  $('hm-chg').innerHTML=POS_CHANGELOG.map(c=>`
+    <div class="chg-item"><span class="cv">v${c.v} · ${c.date}</span>
+    <ul>${c.changes.map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('');
+}
+
+/* ═════ ตรวจอัปเดต (เทียบกับไฟล์บนเซิร์ฟเวอร์ — แบบเดียวกับแอปหลัก) ═════ */
+$('hm-check').addEventListener('click',async()=>{
+  loading(true);
+  try{
+    const res=await fetch('./pos.html?upd='+Date.now(),{cache:'no-store'});
+    const txt=await res.text();
+    const m=txt.match(/POS_VERSION='([\d.]+)'/);
+    loading(false);
+    if(!m){showToast('ตรวจไม่ได้ ลองใหม่อีกครั้ง','err');return;}
+    if(m[1]===POS_VERSION){showToast('เป็นเวอร์ชันล่าสุดแล้ว (POS '+POS_VERSION+')');}
+    else{
+      showToast('มีเวอร์ชันใหม่ POS '+m[1]+' — กำลังโหลด...');
+      if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();for(const r of regs){try{await r.update();}catch(e){}}}
+      setTimeout(()=>location.reload(),1400);
+    }
+  }catch(e){loading(false);showToast('ต่อเซิร์ฟเวอร์ไม่ได้ (ออฟไลน์อยู่หรือเปล่า?)','err');}
+});
+
+/* ═════ Service Worker (ตัวเดียวกับแอปหลัก — เพื่อเปิดออฟไลน์ได้) ═════ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+}
+</script>
+</body>
+</html>
