@@ -66,7 +66,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .sync.busy .dot{background:#6FB4FF;box-shadow:0 0 6px #6FB4FF;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.35}}
 
-#v-branch,#v-home,#v-prod{flex-direction:column}
+#v-branch,#v-home,#v-prod,#v-recv,#v-gpp{flex-direction:column}
 .main{flex:1;padding:34px 22px;overflow:auto}
 
 /* ===== จอเลือกสาขา ===== */
@@ -266,9 +266,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
   <div class="main">
     <div class="home-grid">
       <div class="navcards">
-        <div class="nvc" id="nav-sell" style="border-color:var(--green)"><span class="ic">🛒</span><div class="t">ขายหน้าร้าน</div><div class="s">ยิงบาร์โค้ด · คิดเงิน · ตัดสต็อก FIFO</div></div>
+        <div class="nvc" id="nav-sell" style="border-color:var(--green)"><span class="ic">🛒</span><div class="t">ขายหน้าร้าน</div><div class="s">ยิงบาร์โค้ด · คิดเงิน · พิมพ์ใบเสร็จ/ฉลาก</div></div>
         <div class="nvc" id="nav-prod"><span class="ic">📦</span><div class="t">สินค้า & สต็อก</div><div class="s">เพิ่ม/แก้สินค้า · ล็อต · นำเข้าจากไฟล์</div></div>
-        <div class="nvc soon"><span class="ic">📥</span><div class="t">รับของเข้า + ข.ย.</div><div class="s">มาใน 1.5</div></div>
+        <div class="nvc" id="nav-recv"><span class="ic">📥</span><div class="t">รับของเข้า</div><div class="s">รับจากการซื้อ (ลง ข.ย.9) / ปรับสต็อก</div></div>
+        <div class="nvc" id="nav-gpp"><span class="ic">📋</span><div class="t">รายงาน ข.ย.</div><div class="s">พิมพ์ ข.ย.9 · ข.ย.10 · ข.ย.11 (A4)</div></div>
       </div>
       <div class="card">
         <span class="ok-badge">✅ รากฐานระบบ (เฟส 1.1) ติดตั้งแล้ว</span>
@@ -318,12 +319,70 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
       <div class="rail">
         <button class="rbtn" id="sl-new">🆕 เริ่มขายใหม่<span class="k">F1</span></button>
         <button class="rbtn" id="sl-discbtn">🏷️ ลดท้ายบิล<span class="k">F5</span></button>
-        <button class="rbtn dis">💊 พิมพ์ฉลาก<span class="k">มาใน 1.4</span></button>
+        <button class="rbtn" id="sl-label">🏷️ พิมพ์ฉลาก<span class="k">F4</span></button>
         <button class="rbtn" id="sl-bills">📄 บิลวันนี้<span class="k"></span></button>
       </div>
       <div class="today-mini">ขายวันนี้ (สาขานี้ ผ่าน POS): <b id="sl-today">฿0</b> · <span id="sl-tcount">0 บิล</span></div>
     </div>
   </div>
+</div>
+
+<!-- ═════ จอรับของเข้า (เฟส 1.5) ═════ -->
+<div class="view" id="v-recv">
+  <div class="topbar">
+    <span class="tt">📥 รับของเข้า</span>
+    <span class="chip" id="rc-branch"></span>
+    <span class="sp"></span>
+    <span class="sync" id="sync-r"><span class="dot"></span><span class="lb">ออนไลน์</span></span>
+    <button id="rc-back">← หน้าหลัก</button>
+  </div>
+  <div class="main"><div style="max-width:860px;margin:0 auto">
+    <div class="paym" style="max-width:520px">
+      <div class="pm on" id="rc-m-buy">🧾 รับจากการซื้อ (ลง ข.ย.9)</div>
+      <div class="pm" id="rc-m-adj">🔧 ปรับสต็อก (ไม่ลง ข.ย.9)</div>
+    </div>
+    <div class="card" id="rc-head">
+      <h3>หัวบิลซื้อ</h3>
+      <div class="f3">
+        <div class="ff"><label>เลขที่บิลผู้ขาย *</label><input id="rc-billno" placeholder="ตามใบส่งของ"></div>
+        <div class="ff"><label>ชื่อผู้ขาย (บริษัท/ร้าน) *</label><input id="rc-vendor" placeholder="เช่น บจก.ยาดี"></div>
+        <div class="ff"><label>วันที่ซื้อ (ตามบิล)</label><input id="rc-buydate" type="date"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <h3>รายการที่รับ <button class="gbtn" id="rc-add" style="float:right;padding:7px 14px;font-size:12.5px">＋ เพิ่มรายการ</button></h3>
+      <div class="imp-prev" style="max-height:none"><table id="rc-lines"><tr><th>สินค้า</th><th>จำนวน</th><th>ล็อต</th><th>หมดอายุ</th><th>ทุน/ชิ้น</th><th></th></tr></table></div>
+      <div class="row-btns" style="justify-content:flex-end">
+        <button class="paybtn" id="rc-save" style="width:auto;padding:12px 30px;font-size:15px">💾 บันทึกรับของเข้า</button>
+      </div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═════ จอรายงาน ข.ย. (เฟส 1.5) ═════ -->
+<div class="view" id="v-gpp">
+  <div class="topbar">
+    <span class="tt">📋 รายงาน ข.ย.</span>
+    <span class="chip" id="gp-branch"></span>
+    <span class="sp"></span>
+    <button id="gp-back">← หน้าหลัก</button>
+  </div>
+  <div class="main"><div style="max-width:760px;margin:0 auto">
+    <div class="card">
+      <h3>เลือกเดือนที่จะพิมพ์ (กระดาษ A4 แนวนอน)</h3>
+      <div class="f3">
+        <div class="ff"><label>เดือน</label><input id="gp-month" type="month"></div>
+        <div class="ff"><label>ชื่อสถานที่ขายยา (ขึ้นหัวฟอร์ม)</label><input id="gp-shop" placeholder="ใหม่เภสัช"></div>
+        <div class="ff"><label>ผู้มีหน้าที่ปฏิบัติการ (เภสัชกร)</label><input id="gp-pharm" placeholder="ชื่อ-สกุล เภสัชกร"></div>
+      </div>
+      <div class="row-btns">
+        <button class="sbtn" id="gp-ky9">🖨️ ข.ย.9 — บัญชีซื้อยา</button>
+        <button class="sbtn" id="gp-ky10">🖨️ ข.ย.10 — ขายยาอันตราย</button>
+        <button class="sbtn" id="gp-ky11">🖨️ ข.ย.11 — ขายยาควบคุมพิเศษ</button>
+      </div>
+      <div id="gp-info" style="font-size:12.5px;color:var(--text3);margin-top:12px">ข.ย.9 ดึงจากการรับของเข้า (แบบซื้อ) · ข.ย.10/11 ดึงจากบิลขายที่มียาติดธง ข.ย. — แยกแผ่นละ 1 ยา 1 ล็อตตามฟอร์มจริง · สั่งพิมพ์แล้วเลือกเครื่อง A4 + แนวนอน (Landscape)</div>
+    </div>
+  </div></div>
 </div>
 
 <!-- ═════ จอสินค้า & สต็อก (เฟส 1.2) ═════ -->
@@ -355,11 +414,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='1.2.0';
+const POS_VERSION='1.3.0';
 const POS_CHANGELOG=[
+  {v:'1.3.0',date:'2026-07-19',changes:[
+    '🧾 พิมพ์ใบเสร็จ 80mm (เฟส 1.4) — จบบิลแล้วระบบถามก่อนทุกบิลตามที่เคาะ · พิมพ์ย้อนหลังได้จากปุ่ม "บิลวันนี้" · หัวบิลชื่อร้าน+สาขา+เลขบิล+ผู้ขาย ท้ายบิลเงินรับ/เงินทอน',
+    '🏷️ พิมพ์ฉลากยา 80×60 (เฟส 1.4) — ปุ่ม "พิมพ์ฉลาก" บนจอขายใช้ได้แล้ว: ติ๊กเลือกยา แก้วิธีใช้ต่อยาได้ก่อนพิมพ์ (ดึงค่าเริ่มต้นจากช่อง "วิธีใช้" ในหน้าสินค้า) · ฉลากตามอาการ+ภาษาต่างชาติมาเฟส 2',
+    '📥 รับของเข้า (เฟส 1.5) — รับจากการซื้อ: กรอกหัวบิล+รายการ+ล็อต+วันหมดอายุ+ทุน → สต็อกเข้าเป็นล็อตใหม่ · บันทึกเสร็จเด้งถาม "ปริ้น ข.ย.9 เลยไหม?" ตาม flow ที่เคาะ · โหมดปรับสต็อกไม่ลง ข.ย.9',
+    '📋 รายงาน ข.ย. (เฟส 1.5) — พิมพ์ ข.ย.9 (บัญชีซื้อยา) · ข.ย.10 (ยาอันตราย) · ข.ย.11 (ยาควบคุมพิเศษ) เป็น A4 แนวนอนตามฟอร์มจริง แยกแผ่นละ 1 ยา 1 ล็อต · เลือกเดือนย้อนหลังได้',
+    '🪪 บิลที่มียาติดธง ข.ย. ระบบบังคับกรอกชื่อผู้ซื้อตอนรับเงิน (ตามกฎหมาย) — ชื่อไหลเข้าบัญชี ข.ย.10/11 อัตโนมัติ',
+    '⚠️ ต้องวางกฎ Firestore ล่าสุด (เพิ่ม posReceives)',
+  ]},
   {v:'1.2.0',date:'2026-07-19',changes:[
     '🛒 จอขายมาแล้ว! (เฟส 1.3) — ยิงบาร์โค้ด/พิมพ์ชื่อแล้ว Enter เพื่อหยิบลงบิล · ปุ่ม +/− จำนวน · ลดท้ายบิล (บาทหรือ %) · รับเงิน: เงินสด (มีปุ่มแบงค์ด่วน + คิดเงินทอน) หรือโอน/อื่นๆ · คีย์ลัด F1 เริ่มใหม่ · F3 รับเงิน · F5 ลดท้ายบิล',
     '📉 จบบิลแล้วตัดสต็อกอัตโนมัติแบบ FIFO — ล็อตที่หมดอายุก่อนถูกตัดก่อน · ขายเกินคงเหลือได้แต่ระบบถามยืนยันก่อน (เผื่อช่วงสต็อกยังไม่ครบ)',
@@ -624,6 +691,7 @@ function openProduct(id){
         <option value="ky11" ${p.kyType==='ky11'?'selected':''}>ข.ย.11 (ยาควบคุมพิเศษ)</option>
       </select></div>
       <div class="ff"><label>หมายเหตุ</label><input id="f-note" value="${esc(p.note||'')}"></div>
+      <div class="ff" style="grid-column:1/-1"><label>วิธีใช้ (ค่าเริ่มต้นบนฉลากยา — แก้ต่อบิลได้ตอนพิมพ์)</label><input id="f-usage" value="${esc(p.usage||'')}" placeholder="เช่น รับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง หลังอาหาร"></div>
     </div>
     ${!isNew?renderLotsBlock(id):'<div class="lots"><div class="lt-h">📦 สต็อกแบบล็อต</div><div style="font-size:12px;color:var(--text3)">บันทึกสินค้าก่อน แล้วค่อยเพิ่มล็อต/จำนวนคงเหลือ</div></div>'}
     <div class="md-btns">
@@ -654,7 +722,7 @@ async function saveProduct(id){
     barcode:$('f-barcode').value.trim(), name, generic:$('f-generic').value.trim(),
     strength:$('f-strength').value.trim(), unit:$('f-unit').value.trim(),
     price, reorder:parseInt($('f-reorder').value)||0, cat:$('f-cat').value.trim(),
-    kyType:$('f-ky').value, note:$('f-note').value.trim(),
+    kyType:$('f-ky').value, note:$('f-note').value.trim(), usage:$('f-usage').value.trim(),
     active:true, updatedAt:new Date().toISOString(), updatedBy:displayName(),
   };
   try{
@@ -687,7 +755,7 @@ function openLotForm(pid){
   $('l-save').addEventListener('click',async()=>{
     const qty=parseInt($('l-qty').value);
     if(!qty||qty<1){showToast('กรอกจำนวนก่อนครับ','err');return;}
-    const l={pid,branch:+$('l-branch').value,qty,cost:parseFloat($('l-cost').value)||null,
+    const l={pid,branch:+$('l-branch').value,qty,initQty:qty,cost:parseFloat($('l-cost').value)||null,
       lotNo:$('l-lot').value.trim(),expiry:$('l-exp').value||'',vendor:$('l-vendor').value.trim(),
       source:'adjust',receivedAt:new Date().toISOString(),by:displayName()};
     try{const ref=await addDoc(collection(db,'stockLots'),l);lots[ref.id]={id:ref.id,...l};showToast('เพิ่มล็อตแล้ว');openProduct(pid);renderProducts();}
@@ -784,7 +852,7 @@ async function doImport(){
       const cost=num('cost')||null;
       for(const b of [0,1,2]){
         const q=Math.round(num('qty'+b));
-        if(q>0){const l={pid:ref.id,branch:b,qty:q,cost,lotNo:'ยกยอด',expiry:'',vendor:'',source:'import',receivedAt:new Date().toISOString(),by:displayName()};
+        if(q>0){const l={pid:ref.id,branch:b,qty:q,initQty:q,cost,lotNo:'ยกยอด',expiry:'',vendor:'',source:'import',receivedAt:new Date().toISOString(),by:displayName()};
           const lr=await addDoc(collection(db,'stockLots'),l);lots[lr.id]={id:lr.id,...l};}
       }
       ok++;
@@ -938,6 +1006,7 @@ function openPay(){
   openMD(`<h3>💵 รับเงิน</h3>
     ${over.length?`<div style="background:var(--amber-l);color:var(--amber-t);font-size:12px;border-radius:9px;padding:8px 12px;margin-bottom:8px">⚠️ ${over.length} รายการขายเกินคงเหลือในระบบ — กดชำระได้ แต่ไปเช็คสต็อกทีหลังด้วย</div>`:''}
     <div class="pay-total">฿${fmt(cartTotal())}</div>
+    ${cart.some(c=>c.kyType&&c.kyType!=='none')?`<div class="ff" style="margin-bottom:10px"><label>🪪 ชื่อ-สกุลผู้ซื้อ * (บิลนี้มียา ข.ย. ต้องบันทึกตามกฎหมาย)</label><input id="p-buyer" placeholder="ชื่อ-สกุลลูกค้า"></div>`:''}
     <div class="paym">
       <div class="pm on" data-m="cash">💵 เงินสด</div>
       <div class="pm" data-m="other">📱 โอน / อื่นๆ</div>
@@ -965,6 +1034,9 @@ function openPay(){
 }
 async function confirmPay(){
   const total=cartTotal();
+  const hasKy=cart.some(c=>c.kyType&&c.kyType!=='none');
+  const buyer=hasKy?($('p-buyer')?.value||'').trim():'';
+  if(hasKy&&!buyer){showToast('บิลนี้มียา ข.ย. — กรอกชื่อผู้ซื้อก่อนครับ','err');return;}
   let received=null,change=null;
   if(payMethod==='cash'){
     received=parseFloat($('p-recv').value);
@@ -991,7 +1063,7 @@ async function confirmPay(){
     no:'B'+day.slice(5,7)+day.slice(8,10)+'-'+String(curBranch+1)+'-'+String(seq).padStart(3,'0'),
     date:day,branch:curBranch,items,
     sub:cartSub(),discount:billDisc,total,
-    pay:{method:payMethod,received,change},
+    pay:{method:payMethod,received,change},buyer,
     at:new Date().toISOString(),by:displayName(),uid:currentUser.uid,status:'ok',
   };
   try{
@@ -1003,10 +1075,21 @@ async function confirmPay(){
       l.qty=newQty;
       updateDoc(doc(db,'stockLots',u.lotId),{qty:newQty});
     }
-    closeMD();
+    lastBill=bill;
     const chTxt=payMethod==='cash'&&change>0?' · ทอน ฿'+fmt(change):'';
     showToast('✅ รับเงิน ฿'+fmt(total)+chTxt+' — บิล '+bill.no);
-    cart=[];billDisc=0;renderCart();$('sl-scan').focus();
+    cart=[];billDisc=0;renderCart();
+    openMD(`<h3>✅ จบบิล ${esc(bill.no)}</h3>
+      ${bill.pay.method==='cash'&&bill.pay.change>0?`<div class="pay-total" style="font-size:30px">ทอน ฿${fmt(bill.pay.change)}</div>`:''}
+      <div style="font-size:13px;color:var(--text2)">พิมพ์อะไรไหมครับ? (ลำดับแนะนำ: ฉลากก่อน แล้วค่อยใบเสร็จ)</div>
+      <div class="md-btns" style="justify-content:center">
+        <button class="sbtn" id="fx-label">🏷️ พิมพ์ฉลากยา</button>
+        <button class="sbtn" id="fx-rcpt">🧾 พิมพ์ใบเสร็จ</button>
+        <button class="gbtn" id="fx-done">ไม่พิมพ์ · ขายต่อ</button>
+      </div>`);
+    $('fx-label').addEventListener('click',()=>openLabelDlg(lastBill));
+    $('fx-rcpt').addEventListener('click',()=>{printReceipt(lastBill);});
+    $('fx-done').addEventListener('click',()=>{closeMD();$('sl-scan').focus();});
   }catch(e){showToast('บันทึกบิลไม่สำเร็จ: '+(e.code||e.message),'err');$('p-ok').disabled=false;}
 }
 
@@ -1015,12 +1098,13 @@ $('sl-bills').addEventListener('click',()=>{
   const bs=Object.values(todayBills).filter(b=>+b.branch===+curBranch).sort((a,b)=>a.at<b.at?1:-1);
   openMD(`<h3>📄 บิลวันนี้ — ${BRANCHES[curBranch]} (${bs.length} บิล)</h3>
     <div class="imp-prev" style="max-height:320px"><table>
-      <tr><th>เลขบิล</th><th>เวลา</th><th>รายการ</th><th>ยอด</th><th>ชำระ</th><th>ผู้ขาย</th></tr>
-      ${bs.map(b=>`<tr><td style="font-family:var(--mono)">${esc(b.no)}</td><td>${(b.at||'').slice(11,16)}</td><td>${(b.items||[]).reduce((s,i)=>s+i.qty,0)} ชิ้น</td><td style="font-family:var(--mono);font-weight:700">฿${fmt(b.total)}</td><td>${b.pay?.method==='cash'?'เงินสด':'โอน/อื่นๆ'}</td><td>${esc(b.by||'')}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--text3)">ยังไม่มีบิลวันนี้</td></tr>'}
+      <tr><th>เลขบิล</th><th>เวลา</th><th>รายการ</th><th>ยอด</th><th>ชำระ</th><th>ผู้ขาย</th><th></th></tr>
+      ${bs.map(b=>`<tr><td style="font-family:var(--mono)">${esc(b.no)}</td><td>${(b.at||'').slice(11,16)}</td><td>${(b.items||[]).reduce((s,i)=>s+i.qty,0)} ชิ้น</td><td style="font-family:var(--mono);font-weight:700">฿${fmt(b.total)}</td><td>${b.pay?.method==='cash'?'เงินสด':'โอน/อื่นๆ'}</td><td>${esc(b.by||'')}</td><td><button class="sbtn bl-rp" data-id="${b.id}" style="padding:4px 10px;font-size:11px">🖨️</button></td></tr>`).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text3)">ยังไม่มีบิลวันนี้</td></tr>'}
     </table></div>
     <div style="font-size:11.5px;color:var(--text3);margin-top:8px">บิลแก้/ลบไม่ได้ — ระบบยกเลิกบิล (คืนสต็อก+บันทึกเหตุผล) มาในเฟส 2 · พิมพ์ใบเสร็จมาใน 1.4</div>
     <div class="md-btns"><button class="gbtn" id="bl-close">ปิด</button></div>`);
   $('bl-close').addEventListener('click',closeMD);
+  document.querySelectorAll('.bl-rp').forEach(b=>b.addEventListener('click',()=>{const bill=todayBills[b.dataset.id];if(bill)printReceipt(bill);}));
 });
 
 /* ── คีย์ลัดจอขาย ── */
@@ -1031,6 +1115,242 @@ document.addEventListener('keydown',e=>{
   if(e.key==='F3'){e.preventDefault();openPay();}
   if(e.key==='F5'){e.preventDefault();openDisc();}
 });
+
+/* ═══════════════════════ เฟส 1.4 — พิมพ์ใบเสร็จ 80mm + ฉลากยา 80×60 ═══════════════════════ */
+let lastBill=null;
+function printHTML(html,pageCSS){
+  const w=window.open('','_blank','width=820,height=640');
+  if(!w){showToast('เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — อนุญาต popup ให้เว็บนี้ก่อนครับ','err');return;}
+  w.document.write('<!DOCTYPE html><html lang="th"><head><meta charset="UTF-8"><title>พิมพ์</title>'+
+    '<style>@page{'+pageCSS+'}body{font-family:"Noto Sans Thai","Sarabun",sans-serif;margin:0;color:#000}'+
+    '.sheet{page-break-after:always}.sheet:last-child{page-break-after:auto}</style></head><body>'+html+
+    '<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script></body></html>');
+  w.document.close();
+}
+function receiptHTML(b){
+  const rows=(b.items||[]).map((it,i)=>
+    '<tr><td style="padding:1px 0">'+esc(it.name)+'</td></tr>'+
+    '<tr><td style="padding:0 0 3px;font-size:11px">&nbsp;&nbsp;'+it.qty+' x '+fmt(it.price)+
+    '<span style="float:right;font-weight:700">'+fmt(it.qty*it.price)+'</span></td></tr>').join('');
+  return '<div style="width:70mm;padding:2mm;font-size:12px;line-height:1.5">'+
+    '<div style="text-align:center;font-weight:800;font-size:15px">ใหม่เภสัช</div>'+
+    '<div style="text-align:center;font-size:11px">สาขา'+esc(BRANCHES[b.branch]||'')+'</div>'+
+    '<div style="border-top:1px dashed #000;margin:4px 0"></div>'+
+    '<div style="font-size:11px">บิล: '+esc(b.no)+'<span style="float:right">'+esc((b.at||'').slice(0,10))+' '+esc((b.at||'').slice(11,16))+'</span></div>'+
+    '<div style="font-size:11px">ผู้ขาย: '+esc(b.by||'')+(b.buyer?'<span style="float:right">ผู้ซื้อ: '+esc(b.buyer)+'</span>':'')+'</div>'+
+    '<div style="border-top:1px dashed #000;margin:4px 0"></div>'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+rows+'</table>'+
+    '<div style="border-top:1px dashed #000;margin:4px 0"></div>'+
+    '<div>รวม <span style="float:right">'+fmt(b.sub)+'</span></div>'+
+    (b.discount?'<div>ส่วนลด <span style="float:right">-'+fmt(b.discount)+'</span></div>':'')+
+    '<div style="font-weight:800;font-size:16px">ยอดสุทธิ <span style="float:right">฿'+fmt(b.total)+'</span></div>'+
+    (b.pay&&b.pay.method==='cash'?'<div style="font-size:11px">รับเงิน <span style="float:right">'+fmt(b.pay.received)+'</span></div><div style="font-size:11px">เงินทอน <span style="float:right">'+fmt(b.pay.change)+'</span></div>':'<div style="font-size:11px">ชำระ: โอน/อื่นๆ</div>')+
+    '<div style="border-top:1px dashed #000;margin:4px 0"></div>'+
+    '<div style="text-align:center;font-size:11px">ขอบคุณที่ใช้บริการครับ 🙏</div></div>';
+}
+function printReceipt(b){printHTML(receiptHTML(b),'size:80mm auto;margin:0');}
+
+/* ── ฉลากยา 80×60 — ติ๊กเลือกยา + แก้วิธีใช้ต่อบิล ── */
+function openLabelDlg(bill){
+  const items=(bill?bill.items:cart)||[];
+  if(!items.length){showToast('ยังไม่มีรายการยาในบิล','err');return;}
+  openMD('<h3>🏷️ พิมพ์ฉลากยา (80×60)</h3>'+
+    '<div class="ff"><label>ชื่อลูกค้า (ขึ้นบนฉลาก — เว้นว่างได้)</label><input id="lb-buyer" value="'+esc((bill&&bill.buyer)||'')+'"></div>'+
+    items.map((it,i)=>{
+      const p=products[it.pid]||{};
+      return '<div class="lots" style="margin-top:10px"><label style="display:flex;gap:9px;align-items:center;font-size:13.5px;font-weight:800;cursor:pointer">'+
+        '<input type="checkbox" class="lb-ck" data-i="'+i+'" checked style="width:17px;height:17px;accent-color:var(--green-d)"> '+esc(it.name)+
+        ' <span style="font-weight:600;color:var(--text3);font-size:11px">x'+it.qty+(p.generic?' · '+esc(p.generic):'')+'</span></label>'+
+        '<div class="ff" style="margin-top:6px"><input class="lb-use" data-i="'+i+'" value="'+esc(p.usage||'')+'" placeholder="วิธีใช้ (พิมพ์ตามที่คีย์เป๊ะ ๆ) เช่น รับประทานครั้งละ 1 เม็ด วันละ 3 ครั้ง"></div></div>';
+    }).join('')+
+    '<div class="md-btns"><button class="sbtn" id="lb-cancel">ปิด</button><button class="gbtn" id="lb-print">🖨️ พิมพ์ฉลาก</button></div>');
+  $('lb-cancel').addEventListener('click',closeMD);
+  $('lb-print').addEventListener('click',()=>{
+    const buyer=$('lb-buyer').value.trim();
+    const picks=[...document.querySelectorAll('.lb-ck')].filter(c=>c.checked).map(c=>+c.dataset.i);
+    if(!picks.length){showToast('ติ๊กเลือกยาอย่างน้อย 1 ตัวก่อนครับ','err');return;}
+    const uses={};document.querySelectorAll('.lb-use').forEach(u=>uses[+u.dataset.i]=u.value.trim());
+    const d=new Date();const dstr=d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543);
+    const sheets=picks.map(i=>{
+      const it=items[i];const p=products[it.pid]||{};
+      return '<div class="sheet" style="width:74mm;height:54mm;padding:2.5mm;font-size:10.5px;line-height:1.45;overflow:hidden">'+
+        '<div style="display:flex;justify-content:space-between;font-size:9px"><b>ใหม่เภสัช · สาขา'+esc(BRANCHES[curBranch])+'</b><span>'+dstr+'</span></div>'+
+        (buyer?'<div style="font-size:9.5px">สำหรับ: '+esc(buyer)+'</div>':'')+
+        '<div style="border-top:1px solid #000;margin:1.5mm 0"></div>'+
+        '<div style="font-weight:800;font-size:13px">'+esc(it.name)+'</div>'+
+        (p.generic?'<div style="font-size:9.5px">'+esc(p.generic)+(p.strength?' '+esc(p.strength):'')+' · จำนวน '+it.qty+' '+esc(it.unit||p.unit||'')+'</div>':'')+
+        '<div style="font-size:12px;font-weight:700;margin-top:1.5mm;white-space:pre-wrap">'+esc(uses[i]||'')+'</div>'+
+        '<div style="position:relative;margin-top:2mm;font-size:8.5px;color:#000">ผู้ส่งมอบ: '+esc(displayName())+'</div>'+
+      '</div>';
+    }).join('');
+    printHTML(sheets,'size:80mm 60mm;margin:0');
+  });
+}
+$('sl-label').addEventListener('click',()=>openLabelDlg(cart.length?null:lastBill));
+
+/* ═══════════════════════ เฟส 1.5 — รับของเข้า + ข.ย.9/10/11 ═══════════════════════ */
+let rcMode='buy', rcLines=[];
+$('nav-recv').addEventListener('click',()=>{startProductSync();rcLines=[];renderRcLines();
+  $('rc-branch').textContent='🏪 '+BRANCHES[curBranch];
+  $('rc-buydate').value=todayStr();show('v-recv');});
+$('rc-back').addEventListener('click',()=>show('v-home'));
+$('rc-m-buy').addEventListener('click',()=>setRcMode('buy'));
+$('rc-m-adj').addEventListener('click',()=>setRcMode('adj'));
+function setRcMode(m){rcMode=m;
+  $('rc-m-buy').classList.toggle('on',m==='buy');
+  $('rc-m-adj').classList.toggle('on',m==='adj');
+  $('rc-head').style.display=m==='buy'?'':'none';}
+function renderRcLines(){
+  const t=$('rc-lines');
+  t.innerHTML='<tr><th>สินค้า</th><th>จำนวน</th><th>ล็อต</th><th>หมดอายุ</th><th>ทุน/ชิ้น</th><th></th></tr>'+
+    rcLines.map((l,i)=>'<tr><td>'+esc(l.name)+'</td><td style="font-family:var(--mono)">'+l.qty+'</td><td>'+esc(l.lotNo||'-')+'</td><td>'+esc(l.expiry||'-')+'</td><td style="font-family:var(--mono)">'+(l.cost??'-')+'</td><td><button class="rm" data-i="'+i+'">✕</button></td></tr>').join('')||
+    '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:14px">ยังไม่มีรายการ — กด "＋ เพิ่มรายการ"</td></tr>';
+  t.querySelectorAll('.rm').forEach(b=>b.addEventListener('click',()=>{rcLines.splice(+b.dataset.i,1);renderRcLines();}));
+}
+$('rc-add').addEventListener('click',()=>{
+  openMD('<h3>＋ เพิ่มรายการรับเข้า</h3>'+
+    '<div class="ff"><label>ค้นหาสินค้า (ชื่อ/บาร์โค้ด)</label><input id="ra-q" autocomplete="off"><div class="sugg" id="ra-sugg" style="position:static;border-radius:9px;margin-top:4px"></div></div>'+
+    '<div id="ra-pick" style="font-size:13px;font-weight:800;color:var(--green-dd);margin:6px 0"></div>'+
+    '<div class="f3"><div class="ff"><label>จำนวน *</label><input id="ra-qty" type="number" min="1"></div>'+
+    '<div class="ff"><label>เลขล็อต</label><input id="ra-lot"></div>'+
+    '<div class="ff"><label>วันหมดอายุ</label><input id="ra-exp" type="month"></div>'+
+    '<div class="ff"><label>ทุนต่อชิ้น (บาท)</label><input id="ra-cost" type="number" min="0" step="0.01"></div></div>'+
+    '<div class="md-btns"><button class="sbtn" id="ra-cancel">ยกเลิก</button><button class="gbtn" id="ra-ok">เพิ่มเข้าใบรับ</button></div>');
+  let pick=null;
+  $('ra-q').addEventListener('input',()=>{
+    const q=$('ra-q').value.trim();
+    if(!q){$('ra-sugg').classList.remove('on');return;}
+    const list=matchProducts(q).slice(0,6);
+    $('ra-sugg').innerHTML=list.map(p=>'<div class="sg" data-id="'+p.id+'"><span>'+esc(p.name)+' <small>'+esc(p.generic||'')+'</small></span></div>').join('');
+    $('ra-sugg').classList.toggle('on',list.length>0);
+    $('ra-sugg').querySelectorAll('.sg').forEach(el=>el.addEventListener('mousedown',ev=>{ev.preventDefault();
+      pick=products[el.dataset.id];$('ra-pick').textContent='✔ '+pick.name;$('ra-q').value=pick.name;$('ra-sugg').classList.remove('on');}));
+  });
+  $('ra-cancel').addEventListener('click',closeMD);
+  $('ra-ok').addEventListener('click',()=>{
+    const qty=parseInt($('ra-qty').value);
+    if(!pick){showToast('เลือกสินค้าจากรายการก่อนครับ','err');return;}
+    if(!qty||qty<1){showToast('กรอกจำนวนก่อนครับ','err');return;}
+    rcLines.push({pid:pick.id,name:pick.name,qty,lotNo:$('ra-lot').value.trim(),expiry:$('ra-exp').value||'',cost:parseFloat($('ra-cost').value)||null});
+    closeMD();renderRcLines();
+  });
+});
+$('rc-save').addEventListener('click',async()=>{
+  if(!rcLines.length){showToast('ยังไม่มีรายการรับเข้า','err');return;}
+  const vendor=$('rc-vendor').value.trim(), billNo=$('rc-billno').value.trim();
+  if(rcMode==='buy'&&(!vendor||!billNo)){showToast('กรอกเลขที่บิลและชื่อผู้ขายก่อนครับ (โหมดรับจากการซื้อ)','err');return;}
+  $('rc-save').disabled=true;
+  const nowIso=new Date().toISOString();
+  const rec={date:todayStr(),branch:curBranch,source:rcMode==='buy'?'purchase':'adjust',
+    billNo:rcMode==='buy'?billNo:'',vendor:rcMode==='buy'?vendor:'',buyDate:$('rc-buydate').value||todayStr(),
+    items:rcLines.slice(),by:displayName(),uid:currentUser.uid,at:nowIso};
+  try{
+    for(const l of rcLines){
+      const lot={pid:l.pid,branch:curBranch,qty:l.qty,initQty:l.qty,cost:l.cost,lotNo:l.lotNo,expiry:l.expiry,
+        vendor:rec.vendor,recvBillNo:rec.billNo,source:rec.source,receivedAt:nowIso,by:displayName()};
+      const ref=await addDoc(collection(db,'stockLots'),lot);lots[ref.id]={id:ref.id,...lot};
+    }
+    if(rcMode==='buy')addDoc(collection(db,'posReceives'),rec);
+    const saved=rcLines.slice();rcLines=[];renderRcLines();
+    $('rc-billno').value='';
+    showToast('รับของเข้าแล้ว '+saved.length+' รายการ ✅');
+    if(rcMode==='buy'){
+      openMD('<h3>🖨️ ปริ้น ข.ย.9 เลยไหม?</h3><div style="font-size:13px;color:var(--text2)">ใบรับนี้ลงบัญชีซื้อยา (ข.ย.9) ให้แล้ว — พิมพ์แผ่นของใบรับนี้เลย หรือค่อยไปพิมพ์รวมทั้งเดือนที่หน้า "รายงาน ข.ย." ก็ได้</div>'+
+        '<div class="md-btns"><button class="sbtn" id="k9-later">ไว้ก่อน</button><button class="gbtn" id="k9-now">🖨️ ปริ้นเลย</button></div>');
+      $('k9-later').addEventListener('click',closeMD);
+      $('k9-now').addEventListener('click',()=>{printKy9([rec]);});
+    }
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e.code||e.message),'err');}
+  $('rc-save').disabled=false;
+});
+
+/* ── รายงาน ข.ย. ── */
+$('nav-gpp').addEventListener('click',()=>{startProductSync();
+  $('gp-branch').textContent='🏪 '+BRANCHES[curBranch];
+  if(!$('gp-month').value){const d=new Date();$('gp-month').value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');}
+  if(!$('gp-shop').value)$('gp-shop').value='ใหม่เภสัช สาขา'+BRANCHES[curBranch];
+  show('v-gpp');});
+$('gp-back').addEventListener('click',()=>show('v-home'));
+const thMonths=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+function ymLabel(ym){const p=ym.split('-');return thMonths[+p[1]-1]+' พ.ศ. '+(+p[0]+543);}
+function thDate(ds){if(!ds)return '-';const p=ds.split('-');return +p[2]+'/'+ +p[1]+'/'+(+p[0]+543);}
+async function fetchMonth(coll,ym){
+  const snap=await getDocs(query(collection(db,coll),where('date','>=',ym+'-01'),where('date','<=',ym+'-31')));
+  const out=[];snap.forEach(d=>{const x=d.data();if(+x.branch===+curBranch)out.push({id:d.id,...x});});
+  return out.sort((a,b)=>(a.at||'')<(b.at||'')?-1:1);
+}
+function ky9HeadHTML(title,ym){
+  return '<div style="text-align:center;font-weight:800;font-size:16px">'+title+'</div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:12px;margin:4px 0 6px">'+
+    '<span>ชื่อสถานที่ขายยา: '+esc($('gp-shop').value||'ใหม่เภสัช')+'</span>'+
+    '<span>ประจำเดือน: '+ymLabel(ym)+'</span></div>';
+}
+$('gp-ky9').addEventListener('click',async()=>{
+  loading(true);
+  try{const recs=await fetchMonth('posReceives',$('gp-month').value);loading(false);
+    if(!recs.length){showToast('เดือนนี้ยังไม่มีการรับจากการซื้อ (สาขานี้)','err');return;}
+    printKy9(recs);
+  }catch(e){loading(false);showToast('ดึงข้อมูลไม่สำเร็จ: '+(e.code||e.message),'err');}
+});
+function printKy9(recs){
+  const ym=$('gp-month')?.value||todayStr().slice(0,7);
+  let n=0;
+  const rows=recs.flatMap(r=>r.items.map(it=>{n++;return '<tr>'+
+    '<td style="text-align:center">'+n+'</td><td style="text-align:center">'+thDate(r.buyDate||r.date)+'</td>'+
+    '<td>'+esc(r.vendor||'-')+'</td><td>'+esc(it.name)+'</td>'+
+    '<td style="text-align:center">'+esc(it.lotNo||'-')+'</td><td style="text-align:center">'+it.qty+'</td>'+
+    '<td></td><td style="font-size:10px">บิล '+esc(r.billNo||'-')+'</td></tr>';}));
+  const html='<div class="sheet" style="padding:10mm 12mm">'+ky9HeadHTML('บัญชีการซื้อยา แบบ ข.ย.๙',ym)+
+    '<table style="width:100%;border-collapse:collapse;font-size:11.5px">'+
+    '<tr>'+['ลำดับ','วัน เดือน ปี ที่ซื้อ','ชื่อผู้ขาย','ชื่อยา','เลขที่หรืออักษรครั้งที่ผลิต','จำนวน','ลายมือชื่อผู้มีหน้าที่ปฏิบัติการ','หมายเหตุ'].map(h=>'<th style="border:1px solid #000;padding:4px 6px;font-weight:700">'+h+'</th>').join('')+'</tr>'+
+    rows.map(r=>r.replace(/<td/g,'<td style="border:1px solid #000;padding:4px 6px" ')).join('')+
+    '</table><div style="font-size:11px;margin-top:8px">ผู้มีหน้าที่ปฏิบัติการ: '+esc($('gp-pharm')?.value||'')+' ____________________</div></div>';
+  printHTML(html,'size:A4 landscape;margin:0');
+}
+async function printKySheets(kyType,title){
+  const ym=$('gp-month').value;
+  loading(true);
+  try{
+    const bills=await fetchMonth('posBills',ym);loading(false);
+    const groups={};
+    bills.forEach(b=>{(b.items||[]).forEach(it=>{
+      if(it.kyType!==kyType)return;
+      const lotsArr=it.lots&&it.lots.length?it.lots:[{lotNo:'-',qty:it.qty}];
+      lotsArr.forEach(u=>{
+        const key=it.pid+'|'+(u.lotNo||'-');
+        if(!groups[key])groups[key]={pid:it.pid,name:it.name,lotNo:u.lotNo||'-',rows:[]};
+        groups[key].rows.push({date:b.date,qty:u.qty,buyer:b.buyer||'-',by:b.by||''});
+      });
+    });});
+    const keys=Object.keys(groups);
+    if(!keys.length){showToast('เดือนนี้ไม่มีการขายยา'+title+' (สาขานี้)','err');return;}
+    const sheets=keys.map(k=>{
+      const g=groups[k];const p=products[g.pid]||{};
+      const lot=Object.values(lots).find(l=>l.pid===g.pid&&(l.lotNo||'-')===g.lotNo);
+      return '<div class="sheet" style="padding:10mm 12mm">'+ky9HeadHTML(title,ym)+
+        '<div style="font-size:12px;border:1px solid #000;padding:6px 9px;margin-bottom:6px">'+
+        '<b>ชื่อยา:</b> '+esc(g.name)+(p.generic?' ('+esc(p.generic)+(p.strength?' '+esc(p.strength):'')+')':'')+
+        ' &nbsp; <b>เลขครั้งที่ผลิต (ล็อต):</b> '+esc(g.lotNo)+
+        ' &nbsp; <b>ขนาดบรรจุ:</b> '+esc(p.unit||'-')+
+        '<br><b>ได้มาจาก:</b> '+esc(lot?.vendor||'-')+
+        ' &nbsp; <b>จำนวนรับ:</b> '+(lot?.initQty??'-')+
+        ' &nbsp; <b>วันที่รับ:</b> '+(lot?thDate((lot.receivedAt||'').slice(0,10)):'-')+'</div>'+
+        '<table style="width:100%;border-collapse:collapse;font-size:11.5px">'+
+        '<tr>'+['ลำดับ','วันที่ขาย','จำนวนที่ขาย','ชื่อ-สกุลผู้ซื้อ','ลายมือชื่อผู้ขาย','หมายเหตุ'].map(h=>'<th style="border:1px solid #000;padding:4px 6px">'+h+'</th>').join('')+'</tr>'+
+        g.rows.map((r,i)=>'<tr>'+
+          '<td style="border:1px solid #000;padding:4px 6px;text-align:center">'+(i+1)+'</td>'+
+          '<td style="border:1px solid #000;padding:4px 6px;text-align:center">'+thDate(r.date)+'</td>'+
+          '<td style="border:1px solid #000;padding:4px 6px;text-align:center">'+r.qty+'</td>'+
+          '<td style="border:1px solid #000;padding:4px 6px">'+esc(r.buyer)+'</td>'+
+          '<td style="border:1px solid #000;padding:4px 6px;font-size:10px">'+esc(r.by)+'</td>'+
+          '<td style="border:1px solid #000;padding:4px 6px"></td></tr>').join('')+
+        '</table><div style="font-size:11px;margin-top:8px">ผู้มีหน้าที่ปฏิบัติการ: '+esc($('gp-pharm').value||'')+' ____________________</div></div>';
+    }).join('');
+    printHTML(sheets,'size:A4 landscape;margin:0');
+  }catch(e){loading(false);showToast('ดึงข้อมูลไม่สำเร็จ: '+(e.code||e.message),'err');}
+}
+$('gp-ky10').addEventListener('click',()=>printKySheets('ky10','บัญชีการขายยาอันตราย แบบ ข.ย.๑๐'));
+$('gp-ky11').addEventListener('click',()=>printKySheets('ky11','บัญชีการขายยาควบคุมพิเศษ แบบ ข.ย.๑๑'));
 
 /* ═════ Service Worker (ตัวเดียวกับแอปหลัก — เพื่อเปิดออฟไลน์ได้) ═════ */
 if('serviceWorker' in navigator){

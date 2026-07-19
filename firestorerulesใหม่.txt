@@ -307,6 +307,12 @@ service cloud.firestore {
       allow create: if canPOS();
       allow update, delete: if isAdmin();
     }
+    // posReceives (ใบรับของเข้า — ต้นทางบัญชี ข.ย.9)
+    match /posReceives/{docId} {
+      allow read: if signedIn();
+      allow create: if canPOS();
+      allow update, delete: if isAdmin();
+    }
 
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
     match /{document=**} {
