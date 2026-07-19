@@ -1823,8 +1823,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.52.1';
+const APP_VERSION='4.53.0';
 const CHANGELOG=[
+  {v:'4.53.0',date:'2026-07-19',changes:[
+    '💬 แชททีมมาถึงมือถือแล้ว! — ปุ่มฟองแชทมุมขวาล่าง เปิดคุยกับทุกสาขาได้เลย (ห้องรวม + ห้องรายสาขา ห้องเดียวกับที่คุยบนเครื่อง POS) · มีตัวเลขเด้งเมื่อมีข้อความใหม่',
+  ]},
   {v:'4.52.1',date:'2026-07-19',changes:[
     '🔑 ล็อกอินที่เดียวใช้ได้ทั้งสองโปรแกรม — ล็อกอินเสร็จมี "จอเลือกทาง" ให้เลือก 🏪 จัดการร้าน หรือ 🛒 ขายหน้าร้าน (POS) · เปิด POS โดยยังไม่ล็อกอินจะพากลับมาหน้านี้เอง (ต้องอัป index.html + pos.html + sw.js คู่กัน)',
   ]},
@@ -17769,5 +17772,96 @@ function accessDenied(){return`<div class="access-denied"><svg viewBox="0 0 24 2
 
 document.getElementById('sales-date').value=todayStr();
 </script>
+
+<!-- ═════ แชททีม (ห้องเดียวกับ POS) — วิดเจ็ตลอยอิสระ ═════ -->
+<style>
+#nmcFab{position:fixed;right:16px;bottom:86px;width:50px;height:50px;border-radius:50%;background:linear-gradient(140deg,#4C9BF0,#2C6FBF);color:#fff;display:none;align-items:center;justify-content:center;font-size:22px;z-index:88;box-shadow:0 8px 22px rgba(44,111,191,.42);cursor:pointer}
+#nmcFab .b{position:absolute;top:-4px;right:-4px;background:#D65068;color:#fff;font-size:10px;font-weight:800;border-radius:12px;padding:1px 6px;display:none}
+#nmcWin{position:fixed;right:12px;bottom:86px;width:min(94vw,330px);height:min(70vh,440px);background:#fff;border:1.5px solid rgba(0,0,0,.12);border-radius:16px;box-shadow:0 22px 55px rgba(20,40,30,.35);display:none;flex-direction:column;z-index:89;overflow:hidden;font-family:inherit;color:#243029}
+#nmcWin.on{display:flex}
+#nmcWin .h{background:linear-gradient(140deg,#4C9BF0,#2C6FBF);color:#fff;padding:9px 13px;display:flex;align-items:center;gap:8px}
+#nmcWin .h .t{font-weight:800;font-size:13.5px;flex:1}
+#nmcWin .h button{background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:7px;padding:3px 10px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit}
+#nmcRooms{display:flex;gap:5px;padding:7px 9px;border-bottom:1px solid rgba(0,0,0,.08);flex-wrap:wrap}
+#nmcRooms span{font-size:11px;font-weight:700;border:1.5px solid rgba(0,0,0,.15);border-radius:14px;padding:3px 10px;cursor:pointer}
+#nmcRooms span.on{background:#E7F0FB;border-color:#3B8EEA;color:#2C6FBF}
+#nmcMsgs{flex:1;overflow-y:auto;padding:10px 11px;display:flex;flex-direction:column;gap:8px;background:rgba(0,0,0,.03)}
+.nmcM{max-width:85%}
+.nmcM .w{font-size:9.5px;opacity:.6;margin-bottom:1px}
+.nmcM .w b{display:inline-block;color:#fff;border-radius:8px;padding:0 6px;font-weight:800;font-size:8.5px;margin-right:3px}
+.nmcM .u{background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:11px;padding:6px 10px;font-size:12.5px;line-height:1.5;word-break:break-word}
+.nmcM.me{align-self:flex-end}
+.nmcM.me .u{background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-color:transparent}
+#nmcIn{display:flex;gap:7px;padding:9px;border-top:1px solid rgba(0,0,0,.08)}
+#nmcIn input{flex:1;border:1.5px solid rgba(0,0,0,.15);border-radius:10px;padding:8px 12px;font-size:13px;font-family:inherit}
+#nmcIn button{border:none;background:linear-gradient(140deg,#4C9BF0,#2C6FBF);color:#fff;border-radius:10px;padding:0 15px;font-size:15px;cursor:pointer}
+</style>
+<div id="nmcFab">💬<span class="b" id="nmcBdg"></span></div>
+<div id="nmcWin">
+  <div class="h"><span>💬</span><span class="t">แชททีม</span><button id="nmcClose">✕</button></div>
+  <div id="nmcRooms"></div>
+  <div id="nmcMsgs"></div>
+  <div id="nmcIn"><input id="nmcTxt" placeholder="พิมพ์ข้อความ..." maxlength="500"><button id="nmcSend">➤</button></div>
+</div>
+<script type="module">
+import { getApps, getApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, addDoc, collection, query, orderBy, limit, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+if(getApps().length){
+const capp=getApp();
+const cauth=getAuth(capp), cdb=getFirestore(capp);
+const CB=['ทรัพย์พัฒนา','บางปู','อินดี้'], CCOL={0:'#1FAE8B',1:'#3B8EEA',2:'#E8A23F'};
+const ROOMS=[['all','🏢 รวม'],['0','ทรัพย์'],['1','บางปู'],['2','อินดี้']];
+let room='all', me=null, myBranch=null, myName='', unsub=null, unread=0;
+const $c=id=>document.getElementById(id);
+function esc2(x){return String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+onAuthStateChanged(cauth,async u=>{
+  me=u;
+  if(!u){$c('nmcFab').style.display='none';return;}
+  $c('nmcFab').style.display='flex';
+  try{const d=await getDoc(doc(cdb,'members',u.uid));if(d.exists()){const p=d.data();myBranch=(p.branch===undefined?null:+p.branch);myName=p.nickname||p.firstName||'';}}catch(e){}
+  join(room);
+});
+function join(r){
+  if(unsub)unsub();
+  unsub=onSnapshot(query(collection(cdb,'chats',r,'msgs'),orderBy('at','desc'),limit(50)),snap=>{
+    const arr=[];snap.forEach(d=>arr.push(d.data()));arr.reverse();
+    const box=$c('nmcMsgs');
+    box.innerHTML=arr.map(m=>{
+      const mine=m.uid===(me&&me.uid);
+      const brb=(m.branch!==undefined&&m.branch!==null)?'<b style="background:'+(CCOL[m.branch]||'#8A6FD4')+'">'+esc2(CB[m.branch]||'ทีม')+'</b>':'';
+      return '<div class="nmcM '+(mine?'me':'')+'">'+(mine?'':'<div class="w">'+brb+esc2(m.by||'')+' · '+String(m.at||'').slice(11,16)+'</div>')+'<div class="u">'+esc2(m.text||'')+'</div></div>';
+    }).join('')||'<div style="text-align:center;opacity:.5;font-size:12px;padding:20px">ยังไม่มีข้อความ — ทักได้เลย 👋</div>';
+    box.scrollTop=box.scrollHeight;
+    if(arr.length){
+      const newest=arr[arr.length-1].at||'';
+      const key='nm_chat_last_'+r;
+      if($c('nmcWin').classList.contains('on')){localStorage.setItem(key,newest);unread=0;}
+      else if(newest>(localStorage.getItem(key)||'')){unread++;}
+      $c('nmcBdg').style.display=unread>0?'':'none';$c('nmcBdg').textContent=unread;
+    }
+  });
+}
+function rendRooms(){
+  $c('nmcRooms').innerHTML=ROOMS.map(function(x){return '<span class="'+(x[0]===room?'on':'')+'" data-r="'+x[0]+'">'+x[1]+'</span>';}).join('');
+  $c('nmcRooms').querySelectorAll('span').forEach(el=>el.addEventListener('click',()=>{room=el.dataset.r;rendRooms();join(room);}));
+}
+$c('nmcFab').addEventListener('click',()=>{
+  const w=$c('nmcWin');
+  if(w.classList.contains('on')){w.classList.remove('on');return;}
+  w.classList.add('on');unread=0;$c('nmcBdg').style.display='none';
+  rendRooms();join(room);
+});
+$c('nmcClose').addEventListener('click',()=>$c('nmcWin').classList.remove('on'));
+async function send(){
+  const t=$c('nmcTxt').value.trim();if(!t||!me)return;
+  $c('nmcTxt').value='';
+  try{await addDoc(collection(cdb,'chats',room,'msgs'),{text:t,by:myName,branch:myBranch,uid:me.uid,at:new Date().toISOString()});}catch(e){}
+}
+$c('nmcSend').addEventListener('click',send);
+$c('nmcTxt').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+}
+</script>
+
 </body>
 </html>

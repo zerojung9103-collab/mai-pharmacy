@@ -324,6 +324,42 @@ service cloud.firestore {
       allow read, create: if signedIn();
       allow update, delete: if isAdmin();
     }
+    // posMembers (ลูกค้าสมาชิก — สมัครที่ไหนก็ถึงกันหมด · แต้ม/แพ้ยา/โรคประจำตัว/ที่อยู่บริษัท)
+    match /posMembers/{docId} {
+      allow read: if signedIn();
+      allow create, update: if canPOS();
+      allow delete: if isAdmin();
+    }
+    // posCounts (รอบนับสต็อก — audit การปรับ)
+    match /posCounts/{docId} {
+      allow read: if signedIn();
+      allow create: if canPOS();
+      allow update, delete: if isAdmin();
+    }
+    // posTransfers (แบ่งยาข้ามสาขา — ย้ายยกล็อต ยืนยัน 2 ฝั่ง)
+    match /posTransfers/{docId} {
+      allow read: if signedIn();
+      allow create, update: if canPOS();
+      allow delete: if isAdmin();
+    }
+    // posTemps (บันทึกอุณหภูมิ-ความชื้นรายวัน)
+    match /posTemps/{docId} {
+      allow read: if signedIn();
+      allow create, update: if canPOS();
+      allow delete: if isAdmin();
+    }
+    // posBundles (ชุดสินค้า)
+    match /posBundles/{docId} {
+      allow read: if signedIn();
+      allow create, update: if canPOS();
+      allow delete: if isAdmin();
+    }
+    // posPOs (ใบสั่งซื้อจากสินค้าใกล้หมด)
+    match /posPOs/{docId} {
+      allow read: if signedIn();
+      allow create, update: if canPOS();
+      allow delete: if isAdmin();
+    }
 
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
     match /{document=**} {
