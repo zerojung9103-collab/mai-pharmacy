@@ -281,6 +281,27 @@ service cloud.firestore {
       allow read, create, update, delete: if signedIn();
     }
 
+    // ===== ระบบ POS (ขายหน้าร้าน) =====
+    // มีสิทธิ์ใช้ POS ไหม: แอดมิน หรือเปิดสวิตช์ "ใช้โปรแกรมขายหน้าร้าน (POS)" ในจัดการพนักงาน
+    function canPOS() {
+      return signedIn() && (
+        isAdmin()
+        || get(/databases/$(database)/documents/members/$(request.auth.uid)).data.get('permissions', {}).get('pos', false) == true
+      );
+    }
+    // products (ฐานสินค้ากลาง — POS และแอปหลักใช้ร่วมกัน)
+    match /products/{docId} {
+      allow read: if signedIn();
+      allow create, update: if canPOS();
+      allow delete: if isAdmin();
+    }
+    // stockLots (สต็อกแบบล็อตแยกสาขา — กระดูกสันหลัง FIFO / ข.ย. / วันหมดอายุ)
+    match /stockLots/{docId} {
+      allow read: if signedIn();
+      allow create, update: if canPOS();
+      allow delete: if isAdmin();
+    }
+
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
     match /{document=**} {
       allow read, write: if false;

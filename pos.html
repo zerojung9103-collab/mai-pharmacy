@@ -66,7 +66,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .sync.busy .dot{background:#6FB4FF;box-shadow:0 0 6px #6FB4FF;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.35}}
 
-#v-branch,#v-home{flex-direction:column}
+#v-branch,#v-home,#v-prod{flex-direction:column}
 .main{flex:1;padding:34px 22px;overflow:auto}
 
 /* ===== จอเลือกสาขา ===== */
@@ -96,6 +96,59 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .chg-item{border-top:1px dashed var(--border);padding:10px 0 4px;margin-top:8px}
 .chg-item .cv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green-dd)}
 .chg-item ul{margin:5px 0 0 20px;font-size:13px;color:var(--text2)}
+
+/* ===== เมนูหน้าหลัก ===== */
+.navcards{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.nvc{flex:1;min-width:200px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:18px 20px;cursor:pointer;transition:.15s}
+.nvc:hover{border-color:var(--green);transform:translateY(-2px)}
+.nvc .ic{font-size:26px}
+.nvc .t{font-family:var(--disp);font-size:15.5px;font-weight:700;margin-top:6px}
+.nvc .s{font-size:11.5px;color:var(--text3);margin-top:2px}
+.nvc.soon{opacity:.55;cursor:default}
+.nvc.soon:hover{border-color:var(--border);transform:none}
+
+/* ===== จอสินค้า ===== */
+.pbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.pbar input[type=search]{flex:1;min-width:220px;border:1.5px solid var(--border2);background:var(--surface);border-radius:11px;padding:10px 15px;font-size:14.5px;font-family:var(--font)}
+.pbar input[type=search]:focus{outline:none;border-color:var(--green)}
+.gbtn{border:none;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-radius:11px;padding:10px 18px;font-size:13.5px;font-weight:800;font-family:var(--font);cursor:pointer;white-space:nowrap}
+.plist{display:flex;flex-direction:column;gap:9px}
+.pi{background:var(--surface);border:1.5px solid var(--border);border-radius:13px;padding:12px 16px;display:flex;align-items:center;gap:14px;cursor:pointer}
+.pi:hover{border-color:var(--green)}
+.pi .nm{flex:1;min-width:0}
+.pi .nm .t{font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi .nm .s{font-size:11px;color:var(--text3)}
+.pi .stk{display:flex;gap:6px}
+.pi .stk span{font-size:11px;font-weight:700;border-radius:8px;padding:3px 9px;background:var(--surface-2);border:1px solid var(--border)}
+.pi .stk span b{font-family:var(--mono)}
+.pi .stk span.zero{opacity:.5}
+.pi .pr{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--green-dd);white-space:nowrap}
+.pi .ky{font-size:9.5px;font-weight:800;background:var(--amber-l);color:var(--amber-t);border-radius:12px;padding:2px 8px}
+.pcount{font-size:12px;color:var(--text3);margin:10px 2px}
+
+/* ===== โมดัล ===== */
+#md{position:fixed;inset:0;background:rgba(20,35,28,.45);display:none;align-items:flex-start;justify-content:center;z-index:60;overflow:auto;padding:30px 14px}
+#md.on{display:flex}
+.md-box{background:var(--surface);border-radius:16px;width:min(96vw,680px);padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.md-box h3{font-family:var(--disp);font-size:17px;font-weight:700;margin-bottom:14px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.f3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 14px}
+@media(max-width:560px){.f2,.f3{grid-template-columns:1fr}}
+.ff label{display:block;font-size:11.5px;font-weight:700;color:var(--text2);margin:9px 0 3px}
+.ff input,.ff select{width:100%;border:1.5px solid var(--border2);background:var(--surface-2);border-radius:9px;padding:8px 11px;font-size:13.5px;font-family:var(--font);color:var(--text)}
+.ff input:focus,.ff select:focus{outline:none;border-color:var(--green)}
+.md-btns{display:flex;gap:10px;margin-top:18px;justify-content:flex-end;flex-wrap:wrap}
+.md-btns .del{margin-right:auto;background:none;border:1.5px solid var(--red);color:var(--red-t);border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer}
+.lots{border:1.5px dashed var(--border2);border-radius:11px;padding:11px 13px;margin-top:14px}
+.lots .lt-h{font-size:12px;font-weight:800;color:var(--text2);margin-bottom:6px}
+.lots table{width:100%;border-collapse:collapse;font-size:12px}
+.lots th{text-align:left;color:var(--text3);font-size:10.5px;padding:3px 6px;border-bottom:1px solid var(--border)}
+.lots td{padding:4px 6px;border-bottom:1px dashed var(--border)}
+.lots td.n{font-family:var(--mono)}
+.lots .exp-near{color:var(--red-t);font-weight:700}
+.imp-prev{max-height:200px;overflow:auto;border:1px solid var(--border);border-radius:9px;margin-top:10px;font-size:11.5px}
+.imp-prev table{border-collapse:collapse;width:100%}
+.imp-prev td,.imp-prev th{border:1px solid var(--border);padding:3px 7px;white-space:nowrap}
 
 /* toast */
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:#243029;color:#fff;border-radius:12px;padding:11px 20px;font-size:13.5px;display:flex;gap:9px;align-items:center;opacity:0;transition:.25s;z-index:99;max-width:88vw}
@@ -164,6 +217,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
   </div>
   <div class="main">
     <div class="home-grid">
+      <div class="navcards">
+        <div class="nvc" id="nav-prod"><span class="ic">📦</span><div class="t">สินค้า & สต็อก</div><div class="s">เพิ่ม/แก้สินค้า · ล็อต · นำเข้าจากไฟล์</div></div>
+        <div class="nvc soon"><span class="ic">🛒</span><div class="t">ขายหน้าร้าน</div><div class="s">มาใน 1.3 (ถัดไป)</div></div>
+        <div class="nvc soon"><span class="ic">📥</span><div class="t">รับของเข้า + ข.ย.</div><div class="s">มาใน 1.5</div></div>
+      </div>
       <div class="card">
         <span class="ok-badge">✅ รากฐานระบบ (เฟส 1.1) ติดตั้งแล้ว</span>
         <h3>เครื่องนี้พร้อมสำหรับระบบขายหน้าร้าน</h3>
@@ -186,17 +244,44 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
   </div>
 </div>
 
+<!-- ═════ จอสินค้า & สต็อก (เฟส 1.2) ═════ -->
+<div class="view" id="v-prod">
+  <div class="topbar">
+    <span class="tt">📦 สินค้า & สต็อก</span>
+    <span class="chip" id="pd-branch"></span>
+    <span class="sp"></span>
+    <span class="sync" id="sync-p"><span class="dot"></span><span class="lb">ออนไลน์</span></span>
+    <button id="pd-back">← กลับหน้าหลัก</button>
+  </div>
+  <div class="main">
+    <div style="max-width:980px;margin:0 auto">
+      <div class="pbar">
+        <input type="search" id="pd-q" placeholder="🔍 ค้นหา ชื่อยา / ชื่อสามัญ / บาร์โค้ด...">
+        <button class="gbtn" id="pd-add">＋ เพิ่มสินค้า</button>
+        <button class="sbtn" id="pd-import">📥 นำเข้าจากไฟล์ (CSV)</button>
+      </div>
+      <div class="pcount" id="pd-count"></div>
+      <div class="plist" id="pd-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="md"><div class="md-box" id="md-box"></div></div>
 <div id="toast"></div>
 <div id="loading"><div class="spin"></div></div>
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='1.0.0';
+const POS_VERSION='1.1.0';
 const POS_CHANGELOG=[
+  {v:'1.1.0',date:'2026-07-19',changes:[
+    '📦 ระบบสินค้า & สต็อก (เฟส 1.2) — เพิ่ม/แก้ไข/ค้นหาสินค้า (ล้อโครงจากโปรแกรมเดิม) · สต็อกเก็บเป็น "ล็อต" แยก 3 สาขา (เลขล็อต/วันหมดอายุ/ทุน — รากฐาน FIFO และบัญชี ข.ย.) · คงเหลือแก้ตรงไม่ได้ ต้องเพิ่มผ่านล็อต (ปรับสต็อก) · นำเข้าสินค้าจากไฟล์ CSV (export จากโปรแกรมเดิมแล้วเลือกคอลัมน์ให้ตรง) · เตือนล็อตใกล้หมดอายุ (แดง = เหลือ ≤ 6 เดือน)',
+    '⚠️ ต้องวางกฎ Firestore เวอร์ชันใหม่ (firestore-rules-ใหม่.txt) ก่อนใช้ — เพิ่มกฎ products + stockLots',
+  ]},
   {v:'1.0.0',date:'2026-07-19',changes:[
     '🎉 กำเนิดโปรแกรมขายหน้าร้าน (POS) — รากฐานเฟส 1.1: ล็อกอินด้วยบัญชีเดียวกับแอปมือถือ · เช็คสิทธิ์ "ใช้ POS ได้" (ช่วงทดลองเปิดเฉพาะเจ้าของ เปิดเพิ่มได้ที่หน้าจัดการพนักงานในแอปหลัก) · เลือกสาขาแล้วเครื่องจำไว้ · ทำงานออฟไลน์ได้ (เน็ตหลุดข้อมูลไม่หาย ซิงค์เองเมื่อเน็ตกลับมา) · ไฟสถานะซิงค์มุมจอ · ระบบตรวจอัปเดตของ POS เอง',
   ]},
@@ -374,6 +459,264 @@ $('hm-check').addEventListener('click',async()=>{
     }
   }catch(e){loading(false);showToast('ต่อเซิร์ฟเวอร์ไม่ได้ (ออฟไลน์อยู่หรือเปล่า?)','err');}
 });
+
+/* ═══════════════════════ เฟส 1.2 — ระบบสินค้า & สต็อกล็อต ═══════════════════════ */
+const KY_LABEL={none:'',ky10:'ข.ย.10',ky11:'ข.ย.11'};
+let products={}, lots={}, unsubProd=null, unsubLots=null, prodStarted=false;
+
+function startProductSync(){
+  if(prodStarted)return;prodStarted=true;
+  unsubProd=onSnapshot(collection(db,'products'),snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='removed')delete products[ch.doc.id];
+      else products[ch.doc.id]={id:ch.doc.id,...ch.doc.data()};
+    });
+    if($('v-prod').classList.contains('on'))renderProducts();
+  });
+  unsubLots=onSnapshot(collection(db,'stockLots'),snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='removed')delete lots[ch.doc.id];
+      else lots[ch.doc.id]={id:ch.doc.id,...ch.doc.data()};
+    });
+    if($('v-prod').classList.contains('on'))renderProducts();
+  });
+}
+/* คงเหลือของสินค้า แยกสาขา = รวมทุกล็อต */
+function stockOf(pid){
+  const s=[0,0,0];
+  Object.values(lots).forEach(l=>{if(l.pid===pid&&s[+l.branch]!==undefined)s[+l.branch]+=(+l.qty||0);});
+  return s;
+}
+function lotsOf(pid){return Object.values(lots).filter(l=>l.pid===pid).sort((a,b)=>(a.expiry||'9999')<(b.expiry||'9999')?-1:1);}
+function expNear(exp){ /* เหลือ ≤ 6 เดือน = แดง */
+  if(!exp)return false;
+  const d=new Date();const cur=d.getFullYear()*12+d.getMonth();
+  const p=exp.split('-');const e=(+p[0])*12+(+p[1]-1);
+  return e-cur<=6;
+}
+
+/* ── หน้าจอรายการสินค้า ── */
+$('nav-prod').addEventListener('click',()=>{startProductSync();$('pd-branch').textContent='🏪 '+BRANCHES[curBranch];show('v-prod');renderProducts();});
+$('pd-back').addEventListener('click',()=>show('v-home'));
+$('pd-q').addEventListener('input',renderProducts);
+function renderProducts(){
+  const q=$('pd-q').value.trim().toLowerCase();
+  let list=Object.values(products).filter(p=>p.active!==false);
+  if(q)list=list.filter(p=>(p.name||'').toLowerCase().includes(q)||(p.generic||'').toLowerCase().includes(q)||(p.barcode||'').includes(q));
+  list.sort((a,b)=>(a.name||'').localeCompare(b.name||'','th'));
+  $('pd-count').textContent=list.length+' รายการ'+(q?' (จากการค้นหา)':'')+' · แตะสินค้าเพื่อแก้ไข/ดูล็อต';
+  $('pd-list').innerHTML=list.slice(0,200).map(p=>{
+    const s=stockOf(p.id);
+    return `<div class="pi" data-id="${p.id}">
+      <div class="nm"><div class="t">${esc(p.name)}</div><div class="s">${esc(p.generic||'')}${p.strength?' '+esc(p.strength):''}${p.barcode?' · '+esc(p.barcode):''}</div></div>
+      ${p.kyType&&p.kyType!=='none'?`<span class="ky">${KY_LABEL[p.kyType]||''}</span>`:''}
+      <div class="stk">${BRANCHES.map((b,i)=>`<span class="${s[i]?'':'zero'}">${b.slice(0,4)} <b>${s[i]}</b></span>`).join('')}</div>
+      <div class="pr">฿${(+p.price||0).toLocaleString()}</div>
+    </div>`;
+  }).join('')||'<div style="text-align:center;color:var(--text3);padding:30px">ยังไม่มีสินค้า — กด "＋ เพิ่มสินค้า" หรือ "นำเข้าจากไฟล์"</div>';
+  $('pd-list').querySelectorAll('.pi').forEach(el=>el.addEventListener('click',()=>openProduct(el.dataset.id)));
+}
+function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ── โมดัล ── */
+function openMD(html){$('md-box').innerHTML=html;$('md').classList.add('on');}
+function closeMD(){$('md').classList.remove('on');}
+$('md').addEventListener('click',e=>{if(e.target.id==='md')closeMD();});
+
+/* ── ฟอร์มสินค้า (สร้าง/แก้ไข) + ล็อต ── */
+$('pd-add').addEventListener('click',()=>openProduct(null));
+function openProduct(id){
+  const p=id?products[id]:{};
+  const isNew=!id;
+  openMD(`
+    <h3>${isNew?'＋ เพิ่มสินค้าใหม่':'✏️ แก้ไขสินค้า'}</h3>
+    <div class="f2">
+      <div class="ff"><label>บาร์โค้ด</label><input id="f-barcode" value="${esc(p.barcode||'')}" placeholder="ยิงหรือพิมพ์"></div>
+      <div class="ff"><label>ชื่อสินค้า *</label><input id="f-name" value="${esc(p.name||'')}" placeholder="เช่น Alerest Syrup 60ml"></div>
+      <div class="ff"><label>ชื่อสามัญ (ตัวยา)</label><input id="f-generic" value="${esc(p.generic||'')}" placeholder="เช่น CETIRIZINE"></div>
+      <div class="ff"><label>ความแรง</label><input id="f-strength" value="${esc(p.strength||'')}" placeholder="เช่น 5 mg/5ml"></div>
+    </div>
+    <div class="f3">
+      <div class="ff"><label>หน่วยขาย</label><input id="f-unit" value="${esc(p.unit||'')}" placeholder="ขวด/แผง/กล่อง"></div>
+      <div class="ff"><label>ราคาขาย (บาท) *</label><input id="f-price" type="number" min="0" step="0.25" value="${p.price??''}"></div>
+      <div class="ff"><label>จุดสั่งซื้อ (ชิ้น)</label><input id="f-reorder" type="number" min="0" value="${p.reorder??''}" placeholder="เตือนเมื่อต่ำกว่า"></div>
+      <div class="ff"><label>หมวด</label><input id="f-cat" value="${esc(p.cat||'')}" placeholder="เช่น ยาแก้แพ้"></div>
+      <div class="ff"><label>บัญชี ข.ย.</label><select id="f-ky">
+        <option value="none" ${!p.kyType||p.kyType==='none'?'selected':''}>ไม่เข้าบัญชี</option>
+        <option value="ky10" ${p.kyType==='ky10'?'selected':''}>ข.ย.10 (ยาอันตราย)</option>
+        <option value="ky11" ${p.kyType==='ky11'?'selected':''}>ข.ย.11 (ยาควบคุมพิเศษ)</option>
+      </select></div>
+      <div class="ff"><label>หมายเหตุ</label><input id="f-note" value="${esc(p.note||'')}"></div>
+    </div>
+    ${!isNew?renderLotsBlock(id):'<div class="lots"><div class="lt-h">📦 สต็อกแบบล็อต</div><div style="font-size:12px;color:var(--text3)">บันทึกสินค้าก่อน แล้วค่อยเพิ่มล็อต/จำนวนคงเหลือ</div></div>'}
+    <div class="md-btns">
+      ${!isNew&&profile?.role==='admin'?'<button class="del" id="f-del">🗑 ลบสินค้า</button>':''}
+      <button class="sbtn" id="f-cancel">ยกเลิก</button>
+      <button class="gbtn" id="f-save">💾 บันทึกสินค้า</button>
+    </div>`);
+  $('f-cancel').addEventListener('click',closeMD);
+  $('f-save').addEventListener('click',()=>saveProduct(id));
+  if($('f-del'))$('f-del').addEventListener('click',()=>delProduct(id));
+  if(!isNew&&$('lt-add'))$('lt-add').addEventListener('click',()=>openLotForm(id));
+}
+function renderLotsBlock(pid){
+  const ls=lotsOf(pid);
+  return `<div class="lots"><div class="lt-h">📦 สต็อกแบบล็อต (คงเหลือรวม: ${stockOf(pid).map((n,i)=>BRANCHES[i].slice(0,4)+' '+n).join(' · ')})</div>
+    ${ls.length?`<table><tr><th>สาขา</th><th>ล็อต</th><th>หมดอายุ</th><th>คงเหลือ</th><th>ทุน/ชิ้น</th></tr>
+      ${ls.map(l=>`<tr><td>${BRANCHES[+l.branch]||'?'}</td><td>${esc(l.lotNo||'-')}</td><td class="${expNear(l.expiry)?'exp-near':''}">${l.expiry||'-'}</td><td class="n">${l.qty}</td><td class="n">${l.cost??'-'}</td></tr>`).join('')}</table>`
+      :'<div style="font-size:12px;color:var(--text3)">ยังไม่มีล็อต — คงเหลือ = 0 ทุกสาขา</div>'}
+    <div style="margin-top:9px"><button class="sbtn" id="lt-add" style="font-size:12px;padding:7px 13px">＋ เพิ่มล็อต (ปรับสต็อก)</button>
+    <span style="font-size:10.5px;color:var(--text3);margin-left:8px">คงเหลือแก้ตรงไม่ได้ — เพิ่ม/ลดผ่านล็อตเสมอ (รับซื้อจริงมาใน 1.5)</span></div></div>`;
+}
+async function saveProduct(id){
+  const name=$('f-name').value.trim();
+  const price=parseFloat($('f-price').value);
+  if(!name){showToast('กรอกชื่อสินค้าก่อนครับ','err');return;}
+  if(isNaN(price)||price<0){showToast('กรอกราคาขายก่อนครับ','err');return;}
+  const data={
+    barcode:$('f-barcode').value.trim(), name, generic:$('f-generic').value.trim(),
+    strength:$('f-strength').value.trim(), unit:$('f-unit').value.trim(),
+    price, reorder:parseInt($('f-reorder').value)||0, cat:$('f-cat').value.trim(),
+    kyType:$('f-ky').value, note:$('f-note').value.trim(),
+    active:true, updatedAt:new Date().toISOString(), updatedBy:displayName(),
+  };
+  try{
+    if(id){await updateDoc(doc(db,'products',id),data);}
+    else{data.createdAt=data.updatedAt;const ref=await addDoc(collection(db,'products'),data);id=ref.id;products[id]={id,...data};}
+    closeMD();showToast('บันทึก "'+name+'" แล้ว');renderProducts();
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e.code||e.message),'err');}
+}
+async function delProduct(id){
+  if(!confirm('ลบสินค้า "'+(products[id]?.name||'')+'" ทั้งตัว? (ล็อตของมันจะไม่แสดงด้วย)'))return;
+  try{await deleteDoc(doc(db,'products',id));closeMD();showToast('ลบแล้ว');}
+  catch(e){showToast('ลบไม่สำเร็จ (ต้องเป็นแอดมิน)','err');}
+}
+
+/* ── เพิ่มล็อต (ปรับสต็อก — ไม่ลง ข.ย.9 ตาม flow ที่เคาะ) ── */
+function openLotForm(pid){
+  openMD(`
+    <h3>＋ เพิ่มล็อต (ปรับสต็อก) — ${esc(products[pid]?.name||'')}</h3>
+    <div class="f3">
+      <div class="ff"><label>สาขา *</label><select id="l-branch">${BRANCHES.map((b,i)=>`<option value="${i}" ${i===curBranch?'selected':''}>${b}</option>`).join('')}</select></div>
+      <div class="ff"><label>จำนวน (ชิ้น) *</label><input id="l-qty" type="number" min="1" placeholder="เช่น 10"></div>
+      <div class="ff"><label>ทุนต่อชิ้น (บาท)</label><input id="l-cost" type="number" min="0" step="0.01"></div>
+      <div class="ff"><label>เลขล็อต</label><input id="l-lot" placeholder="ตามข้างกล่อง"></div>
+      <div class="ff"><label>วันหมดอายุ</label><input id="l-exp" type="month"></div>
+      <div class="ff"><label>ได้มาจาก (ผู้ขาย)</label><input id="l-vendor" placeholder="ไม่บังคับ"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:10px">ใช้สำหรับตั้งยอดเริ่มต้น/แก้สต็อก — การรับจากการซื้อจริง (ลง ข.ย.9 + เด้งถามปริ้น) มาในเฟส 1.5</div>
+    <div class="md-btns"><button class="sbtn" id="l-cancel">ยกเลิก</button><button class="gbtn" id="l-save">💾 เพิ่มล็อต</button></div>`);
+  $('l-cancel').addEventListener('click',()=>openProduct(pid));
+  $('l-save').addEventListener('click',async()=>{
+    const qty=parseInt($('l-qty').value);
+    if(!qty||qty<1){showToast('กรอกจำนวนก่อนครับ','err');return;}
+    const l={pid,branch:+$('l-branch').value,qty,cost:parseFloat($('l-cost').value)||null,
+      lotNo:$('l-lot').value.trim(),expiry:$('l-exp').value||'',vendor:$('l-vendor').value.trim(),
+      source:'adjust',receivedAt:new Date().toISOString(),by:displayName()};
+    try{const ref=await addDoc(collection(db,'stockLots'),l);lots[ref.id]={id:ref.id,...l};showToast('เพิ่มล็อตแล้ว');openProduct(pid);renderProducts();}
+    catch(e){showToast('เพิ่มไม่สำเร็จ: '+(e.code||e.message),'err');}
+  });
+}
+
+/* ── นำเข้าจากไฟล์ CSV (export จาก hygeia แล้ว Save As CSV) ── */
+$('pd-import').addEventListener('click',openImport);
+let impRows=null, impHeads=null;
+function openImport(){
+  impRows=null;impHeads=null;
+  openMD(`
+    <h3>📥 นำเข้าสินค้าจากไฟล์ CSV</h3>
+    <div style="font-size:12.5px;color:var(--text2);line-height:1.8">
+      1. เปิดไฟล์ Excel ที่ export จากโปรแกรมเดิม → Save As เป็น <b>CSV UTF-8</b><br>
+      2. เลือกไฟล์ด้านล่าง → จับคู่คอลัมน์ → กดนำเข้า (สินค้าซ้ำชื่อ/บาร์โค้ดเดิมจะถูกข้าม ไม่เขียนทับ)
+    </div>
+    <div class="ff" style="margin-top:10px"><input type="file" id="im-file" accept=".csv,text/csv"></div>
+    <div id="im-map"></div>
+    <div id="im-prev"></div>
+    <div class="md-btns"><button class="sbtn" id="im-cancel">ยกเลิก</button><button class="gbtn" id="im-go" style="display:none">📥 นำเข้าทั้งหมด</button></div>`);
+  $('im-cancel').addEventListener('click',closeMD);
+  $('im-file').addEventListener('change',readCSV);
+}
+function parseCSV(text){
+  const rows=[];let row=[],cell='',inQ=false;
+  text=text.replace(/^﻿/,'');
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(inQ){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else inQ=false;}else cell+=c;}
+    else if(c==='"')inQ=true;
+    else if(c===','||c===';'){row.push(cell);cell='';}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);cell='';if(row.some(x=>x!=='')) rows.push(row);row=[];}
+    else cell+=c;
+  }
+  if(cell!==''||row.length){row.push(cell);if(row.some(x=>x!==''))rows.push(row);}
+  return rows;
+}
+const IMP_FIELDS=[
+  ['name','ชื่อสินค้า *'],['barcode','บาร์โค้ด'],['generic','ชื่อสามัญ'],['strength','ความแรง'],
+  ['unit','หน่วยขาย'],['price','ราคาขาย'],['cost','ทุน'],['reorder','จุดสั่งซื้อ'],['cat','หมวด'],
+  ['qty0','คงเหลือ '+'ทรัพย์พัฒนา'],['qty1','คงเหลือ บางปู'],['qty2','คงเหลือ อินดี้'],
+];
+function readCSV(){
+  const f=$('im-file').files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    const rows=parseCSV(rd.result);
+    if(rows.length<2){showToast('ไฟล์ว่างหรืออ่านไม่ได้','err');return;}
+    impHeads=rows[0];impRows=rows.slice(1);
+    const guess=h=>{h=h.toLowerCase();
+      if(/barcode|บาร์โค้ด|รหัสแท่ง/.test(h))return 'barcode';
+      if(/ชื่อสามัญ|generic/.test(h))return 'generic';
+      if(/ชื่อ|name/.test(h))return 'name';
+      if(/ความแรง|strength/.test(h))return 'strength';
+      if(/หน่วย|unit/.test(h))return 'unit';
+      if(/ราคา|price|ขาย/.test(h))return 'price';
+      if(/ทุน|cost/.test(h))return 'cost';
+      if(/หมวด|กลุ่ม|cat/.test(h))return 'cat';
+      return '';};
+    $('im-map').innerHTML='<div class="lt-h" style="margin-top:12px">จับคู่คอลัมน์ (คอลัมน์ในไฟล์ → ช่องในระบบ)</div><div class="f3">'+
+      impHeads.map((h,i)=>`<div class="ff"><label>${esc(h||('คอลัมน์ '+(i+1)))}</label><select data-col="${i}" class="im-sel"><option value="">— ไม่ใช้ —</option>${IMP_FIELDS.map(([k,lb])=>`<option value="${k}" ${guess(h)===k?'selected':''}>${lb}</option>`).join('')}</select></div>`).join('')+'</div>';
+    $('im-prev').innerHTML='<div class="imp-prev"><table><tr>'+impHeads.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr>'+
+      impRows.slice(0,5).map(r=>'<tr>'+impHeads.map((_,i)=>'<td>'+esc(r[i]||'')+'</td>').join('')+'</tr>').join('')+'</table></div>'+
+      `<div style="font-size:11.5px;color:var(--text3);margin-top:6px">ทั้งหมด ${impRows.length} แถว (โชว์ตัวอย่าง 5 แถวแรก) · ช่อง "คงเหลือ" ถ้าจับคู่ไว้ ระบบจะสร้างล็อตเริ่มต้น (ปรับสต็อก) ให้เลย</div>`;
+    $('im-go').style.display='';
+    $('im-go').onclick=doImport;
+  };
+  rd.readAsText(f,'utf-8');
+}
+async function doImport(){
+  const map={};document.querySelectorAll('.im-sel').forEach(s=>{if(s.value)map[s.value]=+s.dataset.col;});
+  if(map.name===undefined){showToast('ต้องจับคู่คอลัมน์ "ชื่อสินค้า" ก่อนครับ','err');return;}
+  const existNames=new Set(Object.values(products).map(p=>(p.name||'').toLowerCase()));
+  const existCodes=new Set(Object.values(products).filter(p=>p.barcode).map(p=>p.barcode));
+  let ok=0,skip=0;
+  $('im-go').disabled=true;
+  for(let i=0;i<impRows.length;i++){
+    const r=impRows[i];
+    const name=(r[map.name]||'').trim();
+    if(!name){skip++;continue;}
+    const barcode=map.barcode!==undefined?(r[map.barcode]||'').trim():'';
+    if(existNames.has(name.toLowerCase())||(barcode&&existCodes.has(barcode))){skip++;continue;}
+    const num=k=>map[k]!==undefined?(parseFloat(String(r[map[k]]).replace(/[,฿ ]/g,''))||0):0;
+    const txt=k=>map[k]!==undefined?(r[map[k]]||'').trim():'';
+    const data={barcode,name,generic:txt('generic'),strength:txt('strength'),unit:txt('unit'),
+      price:num('price'),reorder:Math.round(num('reorder')),cat:txt('cat'),kyType:'none',note:'',
+      active:true,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),updatedBy:displayName()+' (นำเข้า)'};
+    try{
+      const ref=await addDoc(collection(db,'products'),data);
+      products[ref.id]={id:ref.id,...data};
+      existNames.add(name.toLowerCase());if(barcode)existCodes.add(barcode);
+      const cost=num('cost')||null;
+      for(const b of [0,1,2]){
+        const q=Math.round(num('qty'+b));
+        if(q>0){const l={pid:ref.id,branch:b,qty:q,cost,lotNo:'ยกยอด',expiry:'',vendor:'',source:'import',receivedAt:new Date().toISOString(),by:displayName()};
+          const lr=await addDoc(collection(db,'stockLots'),l);lots[lr.id]={id:lr.id,...l};}
+      }
+      ok++;
+      if(ok%50===0){$('im-go').textContent='กำลังนำเข้า... '+ok+'/'+impRows.length;}
+    }catch(e){skip++;}
+  }
+  closeMD();renderProducts();
+  showToast(`นำเข้าเสร็จ: เพิ่ม ${ok} รายการ · ข้าม ${skip} (ซ้ำ/ว่าง)`);
+}
 
 /* ═════ Service Worker (ตัวเดียวกับแอปหลัก — เพื่อเปิดออฟไลน์ได้) ═════ */
 if('serviceWorker' in navigator){
