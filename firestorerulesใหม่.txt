@@ -301,6 +301,12 @@ service cloud.firestore {
       allow create, update: if canPOS();
       allow delete: if isAdmin();
     }
+    // posBills (บิลขายจาก POS — พนักงานสร้างได้ แก้/ลบไม่ได้ กันแก้ยอดย้อนหลัง · ยกเลิกบิลมาเฟส 2 พร้อม audit)
+    match /posBills/{docId} {
+      allow read: if signedIn();
+      allow create: if canPOS();
+      allow update, delete: if isAdmin();
+    }
 
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
     match /{document=**} {
