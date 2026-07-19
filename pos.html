@@ -203,6 +203,30 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .change-line{display:flex;justify-content:space-between;font-size:15px;margin-top:12px;padding:11px 14px;background:var(--amber-l);border-radius:11px}
 .change-line b{font-family:var(--mono);font-size:20px;color:var(--amber-t)}
 
+/* ===== แชททีมลอย (2.5) ===== */
+#chatw{position:fixed;width:330px;height:440px;background:var(--surface);border:1.5px solid var(--border2);border-radius:16px;box-shadow:0 22px 55px rgba(20,40,30,.32);display:none;flex-direction:column;z-index:70;overflow:hidden}
+#chatw.on{display:flex}
+.ch-top{background:linear-gradient(140deg,#4C9BF0,#2C6FBF);color:#fff;padding:9px 13px;display:flex;align-items:center;gap:8px;cursor:move;user-select:none}
+.ch-top .t{font-weight:800;font-size:13.5px;flex:1}
+.ch-top .cbt{background:rgba(255,255,255,.22);border:none;color:#fff;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font)}
+.ch-rooms{display:flex;gap:5px;padding:7px 9px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.ch-room{font-size:11px;font-weight:700;border:1.5px solid var(--border2);border-radius:14px;padding:3px 10px;cursor:pointer;background:var(--surface-2);position:relative}
+.ch-room.on{background:var(--blue-l);border-color:var(--blue);color:var(--blue-d)}
+.ch-msgs{flex:1;overflow-y:auto;padding:10px 11px;display:flex;flex-direction:column;gap:8px;background:var(--surface-2)}
+.ch-m{max-width:85%}
+.ch-m .who{font-size:9.5px;color:var(--text3);margin-bottom:1px}
+.ch-m .who .brb{display:inline-block;color:#fff;border-radius:8px;padding:0 6px;font-weight:800;font-size:8.5px;margin-right:3px}
+.ch-m .bub{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:6px 10px;font-size:12.5px;line-height:1.5;word-break:break-word}
+.ch-m.me{align-self:flex-end}
+.ch-m.me .bub{background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border-color:transparent}
+.ch-in{display:flex;gap:7px;padding:9px;border-top:1px solid var(--border)}
+.ch-in input{flex:1;border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:13px;font-family:var(--font)}
+.ch-in input:focus{outline:none;border-color:var(--blue)}
+.ch-in button{border:none;background:linear-gradient(140deg,#4C9BF0,#2C6FBF);color:#fff;border-radius:10px;padding:0 15px;font-size:15px;cursor:pointer}
+#chatfab{position:fixed;right:22px;bottom:22px;width:52px;height:52px;border-radius:50%;background:linear-gradient(140deg,#4C9BF0,#2C6FBF);color:#fff;display:none;align-items:center;justify-content:center;font-size:22px;cursor:pointer;box-shadow:0 10px 26px rgba(44,111,191,.4);z-index:69}
+#chatfab.on{display:flex}
+#chatfab .bdg{position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:10px;font-weight:800;border-radius:12px;padding:1px 6px;display:none}
+
 /* toast */
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:#243029;color:#fff;border-radius:12px;padding:11px 20px;font-size:13.5px;display:flex;gap:9px;align-items:center;opacity:0;transition:.25s;z-index:99;max-width:88vw}
 #toast.show{transform:translateX(-50%);opacity:1}
@@ -321,6 +345,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
         <button class="rbtn" id="sl-discbtn">🏷️ ลดท้ายบิล<span class="k">F5</span></button>
         <button class="rbtn" id="sl-label">🏷️ พิมพ์ฉลาก<span class="k">F4</span></button>
         <button class="rbtn" id="sl-bills">📄 บิลวันนี้<span class="k"></span></button>
+        <button class="rbtn" id="sl-ret">↩️ รับคืนสินค้า<span class="k"></span></button>
+        <button class="rbtn" id="sl-chat">💬 แชททีม <span id="ch-badge" style="display:none;background:var(--red);color:#fff;border-radius:10px;padding:0 6px;font-size:10px;font-weight:800"></span><span class="k"></span></button>
       </div>
       <div class="today-mini">ขายวันนี้ (สาขานี้ ผ่าน POS): <b id="sl-today">฿0</b> · <span id="sl-tcount">0 บิล</span></div>
     </div>
@@ -407,6 +433,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
   </div>
 </div>
 
+<div id="chatw">
+  <div class="ch-top" id="ch-drag"><span>💬</span><span class="t">แชททีม</span><span style="font-size:9.5px;opacity:.8">⠿ ลากย้าย</span><button class="cbt" id="ch-min">— ย่อ</button><button class="cbt" id="ch-close">✕</button></div>
+  <div class="ch-rooms" id="ch-rooms"></div>
+  <div class="ch-msgs" id="ch-msgs"></div>
+  <div class="ch-in"><input id="ch-txt" placeholder="พิมพ์ข้อความ..." maxlength="500"><button id="ch-send">➤</button></div>
+</div>
+<div id="chatfab">💬<span class="bdg" id="fab-bdg"></span></div>
+
 <div id="md"><div class="md-box" id="md-box"></div></div>
 <div id="toast"></div>
 <div id="loading"><div class="spin"></div></div>
@@ -414,11 +448,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='1.3.0';
+const POS_VERSION='1.4.0';
 const POS_CHANGELOG=[
+  {v:'1.4.0',date:'2026-07-19',changes:[
+    '↩️ รับคืนสินค้า / ยกเลิกบิล (เฟส 2.3) — กดปุ่ม "รับคืน" บนจอขาย หรือปุ่ม ↩️ ท้ายบิลใน "บิลวันนี้": เลือกคืนบางรายการหรือยกเลิกทั้งบิล · ระบบบังคับกรอกเหตุผล + บันทึกชื่อคนทำทุกครั้ง (ตาม audit ที่เคาะ) · สินค้าคืนกลับเข้าล็อตเดิมอัตโนมัติ · เงินคืนคิดตามสัดส่วนส่วนลดให้ · ช่วงแรกคืนได้จากบิลวันเดียวกันก่อน (บิลเก่ากว่านั้นให้แอดมินจัดการ)',
+    '💬 แชททีม (เฟส 2.5) — ปุ่มแชทบนจอขาย เปิดเป็นหน้าต่างลอยเล็ก ๆ ลากย้ายได้ตามที่เคาะ · ห้องรวมทุกสาขา + ห้องรายสาขา · ย่อเหลือฟองแชทพร้อมตัวเลขข้อความใหม่ · เครื่องจำตำแหน่งหน้าต่างไว้ (ฝั่งแอปมือถือจะตามมาในรอบถัดไป)',
+    '⚠️ ต้องวางกฎ Firestore ล่าสุด (เพิ่ม posReturns + chats)',
+  ]},
   {v:'1.3.0',date:'2026-07-19',changes:[
     '🧾 พิมพ์ใบเสร็จ 80mm (เฟส 1.4) — จบบิลแล้วระบบถามก่อนทุกบิลตามที่เคาะ · พิมพ์ย้อนหลังได้จากปุ่ม "บิลวันนี้" · หัวบิลชื่อร้าน+สาขา+เลขบิล+ผู้ขาย ท้ายบิลเงินรับ/เงินทอน',
     '🏷️ พิมพ์ฉลากยา 80×60 (เฟส 1.4) — ปุ่ม "พิมพ์ฉลาก" บนจอขายใช้ได้แล้ว: ติ๊กเลือกยา แก้วิธีใช้ต่อยาได้ก่อนพิมพ์ (ดึงค่าเริ่มต้นจากช่อง "วิธีใช้" ในหน้าสินค้า) · ฉลากตามอาการ+ภาษาต่างชาติมาเฟส 2',
@@ -871,7 +910,7 @@ const fmt=n=>(+n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFrac
 $('nav-sell').addEventListener('click',openSell);
 $('sl-back').addEventListener('click',()=>show('v-home'));
 function openSell(){
-  startProductSync();watchTodayBills();
+  startProductSync();watchTodayBills();watchTodayReturns();
   $('sl-branch').textContent='🏪 '+BRANCHES[curBranch];
   $('sl-who').textContent='ผู้ขาย: '+displayName();
   show('v-sell');renderCart();
@@ -892,8 +931,10 @@ function watchTodayBills(){
 }
 function renderTodayMini(){
   const bs=Object.values(todayBills).filter(b=>+b.branch===+curBranch&&b.status!=='void');
-  $('sl-today').textContent='฿'+bs.reduce((s,b)=>s+(+b.total||0),0).toLocaleString();
-  $('sl-tcount').textContent=bs.length+' บิล';
+  const rs=Object.values(todayReturns||{}).filter(r=>+r.branch===+curBranch);
+  const net=bs.reduce((s,b)=>s+(+b.total||0),0)-rs.reduce((s,r)=>s+(+r.refund||0),0);
+  $('sl-today').textContent='฿'+net.toLocaleString();
+  $('sl-tcount').textContent=bs.length+' บิล'+(rs.length?' · คืน '+rs.length:'');
 }
 
 /* ── ค้นหา/ยิงบาร์โค้ด ── */
@@ -1351,6 +1392,182 @@ async function printKySheets(kyType,title){
 }
 $('gp-ky10').addEventListener('click',()=>printKySheets('ky10','บัญชีการขายยาอันตราย แบบ ข.ย.๑๐'));
 $('gp-ky11').addEventListener('click',()=>printKySheets('ky11','บัญชีการขายยาควบคุมพิเศษ แบบ ข.ย.๑๑'));
+
+/* ═══════════════════════ เฟส 2.3 — รับคืนสินค้า / ยกเลิกบิล ═══════════════════════ */
+const RET_REASONS=['ลูกค้าเปลี่ยนใจ','หยิบ/คีย์ผิดตัว','สินค้าชำรุด/เสื่อมสภาพ','แพ้ยา-เปลี่ยนตัวยา','อื่นๆ (พิมพ์ระบุ)'];
+$('sl-ret').addEventListener('click',()=>{
+  const bs=Object.values(todayBills).filter(b=>+b.branch===+curBranch&&b.status!=='void').sort((a,b)=>a.at<b.at?1:-1);
+  if(!bs.length){showToast('วันนี้ยังไม่มีบิลให้คืน (บิลเก่ากว่าวันนี้ให้แอดมินจัดการ)','err');return;}
+  openMD('<h3>↩️ รับคืนสินค้า — เลือกบิล</h3><div class="imp-prev" style="max-height:300px"><table>'+
+    '<tr><th>เลขบิล</th><th>เวลา</th><th>ยอด</th><th>ผู้ขาย</th><th></th></tr>'+
+    bs.map(b=>'<tr><td style="font-family:var(--mono)">'+esc(b.no)+'</td><td>'+(b.at||'').slice(11,16)+'</td><td style="font-family:var(--mono)">฿'+fmt(b.total)+'</td><td>'+esc(b.by||'')+'</td><td><button class="sbtn rt-pick" data-id="'+b.id+'" style="padding:4px 12px;font-size:11.5px">เลือก</button></td></tr>').join('')+
+    '</table></div><div class="md-btns"><button class="sbtn" id="rt-cancel">ปิด</button></div>');
+  $('rt-cancel').addEventListener('click',closeMD);
+  document.querySelectorAll('.rt-pick').forEach(b=>b.addEventListener('click',()=>openReturnDlg(b.dataset.id)));
+});
+function openReturnDlg(billId){
+  const b=todayBills[billId];if(!b)return;
+  const already={};Object.values(todayReturns).forEach(r=>{if(r.billId===billId)(r.items||[]).forEach(it=>{already[it.pid]=(already[it.pid]||0)+it.qty;});});
+  openMD('<h3>↩️ รับคืน — บิล '+esc(b.no)+' (฿'+fmt(b.total)+')</h3>'+
+    '<div class="imp-prev" style="max-height:220px"><table><tr><th>รายการ</th><th>ซื้อไป</th><th>คืนแล้ว</th><th>คืนครั้งนี้</th></tr>'+
+    (b.items||[]).map((it,i)=>{
+      const maxq=it.qty-(already[it.pid]||0);
+      return '<tr><td>'+esc(it.name)+'</td><td style="text-align:center">'+it.qty+'</td><td style="text-align:center">'+(already[it.pid]||0)+'</td>'+
+      '<td><input type="number" class="rt-q" data-i="'+i+'" min="0" max="'+maxq+'" value="0" style="width:70px;border:1.5px solid var(--border2);border-radius:8px;padding:4px 8px"></td></tr>';
+    }).join('')+'</table></div>'+
+    '<div class="row-btns"><button class="sbtn" id="rt-all" style="font-size:12px">↩️ ยกเลิกทั้งบิล (คืนทุกรายการ)</button></div>'+
+    '<div class="f2" style="margin-top:8px">'+
+    '<div class="ff"><label>เหตุผล *</label><select id="rt-reason">'+RET_REASONS.map(r=>'<option>'+r+'</option>').join('')+'</select></div>'+
+    '<div class="ff"><label>รายละเอียดเพิ่มเติม</label><input id="rt-note" placeholder="เช่น ซองฉีกขาด"></div>'+
+    '<div class="ff"><label>คืนเงินทาง</label><select id="rt-method"><option value="cash">เงินสด</option><option value="other">โอน/อื่นๆ</option></select></div>'+
+    '<div class="ff"><label>เงินคืน (คิดสัดส่วนส่วนลดให้แล้ว)</label><div style="font-family:var(--mono);font-size:22px;font-weight:800;color:var(--red-t);padding:6px 2px" id="rt-refund">฿0.00</div></div></div>'+
+    '<div class="md-btns"><button class="sbtn" id="rt-back">ยกเลิก</button><button class="gbtn" id="rt-ok" style="background:linear-gradient(140deg,#E06C82,#B23A50)">↩️ ยืนยันรับคืน</button></div>');
+  const ratio=b.sub>0?b.total/b.sub:1;
+  function calc(){
+    let sum=0;
+    document.querySelectorAll('.rt-q').forEach(inp=>{
+      const it=b.items[+inp.dataset.i];const q=Math.min(+inp.value||0,+inp.max);
+      sum+=q*it.price;
+    });
+    $('rt-refund').textContent='฿'+fmt(sum*ratio);
+    return sum*ratio;
+  }
+  document.querySelectorAll('.rt-q').forEach(i=>i.addEventListener('input',calc));
+  $('rt-all').addEventListener('click',()=>{document.querySelectorAll('.rt-q').forEach(i=>i.value=i.max);calc();});
+  $('rt-back').addEventListener('click',closeMD);
+  $('rt-ok').addEventListener('click',async()=>{
+    const items=[];
+    document.querySelectorAll('.rt-q').forEach(inp=>{
+      const it=b.items[+inp.dataset.i];const q=Math.min(+inp.value||0,+inp.max);
+      if(q>0)items.push({pid:it.pid,name:it.name,qty:q,price:it.price,srcLots:it.lots||[]});
+    });
+    if(!items.length){showToast('ใส่จำนวนที่คืนอย่างน้อย 1 รายการ','err');return;}
+    const reason=$('rt-reason').value+($('rt-note').value.trim()?' — '+$('rt-note').value.trim():'');
+    if($('rt-reason').value.startsWith('อื่นๆ')&&!$('rt-note').value.trim()){showToast('เลือก "อื่นๆ" ต้องพิมพ์ระบุเหตุผลด้วยครับ','err');return;}
+    $('rt-ok').disabled=true;
+    const refund=calc();
+    const ret={billId:b.id,billNo:b.no,date:todayStr(),branch:curBranch,
+      items:items.map(x=>({pid:x.pid,name:x.name,qty:x.qty,price:x.price})),
+      refund:Math.round(refund*100)/100,method:$('rt-method').value,reason,
+      by:displayName(),uid:currentUser.uid,at:new Date().toISOString()};
+    try{
+      addDoc(collection(db,'posReturns'),ret);
+      /* คืนสต็อกเข้าล็อตเดิม */
+      for(const x of items){
+        let back=x.qty;
+        for(const u of x.srcLots){
+          if(back<=0)break;
+          const l=lots[u.lotId];if(!l)continue;
+          const give=Math.min(back,u.qty);
+          l.qty=(+l.qty||0)+give;
+          updateDoc(doc(db,'stockLots',u.lotId),{qty:l.qty});
+          back-=give;
+        }
+      }
+      closeMD();showToast('↩️ รับคืนแล้ว ฿'+fmt(refund)+' — คืนสต็อกเข้าล็อตเดิมเรียบร้อย');
+    }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e.code||e.message),'err');$('rt-ok').disabled=false;}
+  });
+}
+/* เฝ้าใบคืนของวันนี้ (ใช้กันคืนเกิน + หักยอดขายสุทธิ) */
+let todayReturns={}, unsubRet=null, retDay='';
+function watchTodayReturns(){
+  const day=todayStr();
+  if(unsubRet&&retDay===day)return;
+  if(unsubRet)unsubRet();
+  retDay=day;todayReturns={};
+  unsubRet=onSnapshot(query(collection(db,'posReturns'),where('date','==',day)),snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==='removed')delete todayReturns[ch.doc.id];
+      else todayReturns[ch.doc.id]={id:ch.doc.id,...ch.doc.data()};
+    });
+    renderTodayMini();
+  });
+}
+
+/* ═══════════════════════ เฟส 2.5 — แชททีมลอย ═══════════════════════ */
+const CHAT_ROOMS=[['all','🏢 รวมทุกสาขา'],['0','🏪 ทรัพย์พัฒนา'],['1','🏪 บางปู'],['2','🏪 อินดี้']];
+const BRB_COLORS={0:'var(--b0)',1:'var(--b1)',2:'var(--b2)'};
+let chatRoom='all', chatMsgs=[], unsubChat=null, chatOpen=false, chatUnread=0;
+function chatLastKey(){return 'nm_chat_last_'+chatRoom;}
+$('sl-chat').addEventListener('click',toggleChat);
+$('chatfab').addEventListener('click',()=>{$('chatfab').classList.remove('on');openChatWin();});
+$('ch-min').addEventListener('click',()=>{$('chatw').classList.remove('on');$('chatfab').classList.add('on');});
+$('ch-close').addEventListener('click',()=>{$('chatw').classList.remove('on');$('chatfab').classList.remove('on');chatOpen=false;});
+function toggleChat(){
+  if($('chatw').classList.contains('on')){$('ch-close').click();}
+  else{openChatWin();}
+}
+function openChatWin(){
+  chatOpen=true;chatUnread=0;updBadge();
+  const pos=JSON.parse(localStorage.getItem('nm_chat_pos')||'null');
+  const w=$('chatw');
+  if(pos){w.style.left=pos.x+'px';w.style.top=pos.y+'px';w.style.right='auto';w.style.bottom='auto';}
+  else{w.style.right='22px';w.style.bottom='22px';w.style.left='auto';w.style.top='auto';}
+  w.classList.add('on');
+  renderRooms();joinRoom(chatRoom);
+  setTimeout(()=>$('ch-txt').focus(),100);
+}
+function renderRooms(){
+  $('ch-rooms').innerHTML=CHAT_ROOMS.map(([id,lb])=>'<span class="ch-room '+(id===chatRoom?'on':'')+'" data-r="'+id+'">'+lb+'</span>').join('');
+  $('ch-rooms').querySelectorAll('.ch-room').forEach(el=>el.addEventListener('click',()=>{chatRoom=el.dataset.r;renderRooms();joinRoom(chatRoom);}));
+}
+function joinRoom(room){
+  if(unsubChat)unsubChat();
+  chatMsgs=[];renderMsgs();
+  unsubChat=onSnapshot(query(collection(db,'chats',room,'msgs'),orderBy('at','desc'),limit(50)),snap=>{
+    chatMsgs=[];snap.forEach(d=>chatMsgs.push({id:d.id,...d.data()}));
+    chatMsgs.reverse();renderMsgs();
+    if(chatMsgs.length){
+      const newest=chatMsgs[chatMsgs.length-1].at||'';
+      if(chatOpen&&$('chatw').classList.contains('on')){localStorage.setItem(chatLastKey(),newest);}
+      else if(newest>(localStorage.getItem(chatLastKey())||'')){chatUnread++;updBadge();}
+    }
+  });
+}
+function renderMsgs(){
+  const box=$('ch-msgs');
+  box.innerHTML=chatMsgs.map(m=>{
+    const me=m.uid===currentUser?.uid;
+    const brb=m.branch!==undefined&&m.branch!==null?'<span class="brb" style="background:'+(BRB_COLORS[m.branch]||'#8A6FD4')+'">'+esc(BRANCHES[m.branch]||'ทีม')+'</span>':'';
+    return '<div class="ch-m '+(me?'me':'')+'">'+(me?'':'<div class="who">'+brb+esc(m.by||'')+' · '+(m.at||'').slice(11,16)+'</div>')+
+      '<div class="bub">'+esc(m.text||'')+'</div></div>';
+  }).join('')||'<div style="text-align:center;color:var(--text3);font-size:12px;padding:20px">ยังไม่มีข้อความในห้องนี้ — ทักได้เลย 👋</div>';
+  box.scrollTop=box.scrollHeight;
+}
+function updBadge(){
+  const show=chatUnread>0;
+  $('ch-badge').style.display=show?'':'none';$('ch-badge').textContent=chatUnread;
+  $('fab-bdg').style.display=show?'':'none';$('fab-bdg').textContent=chatUnread;
+}
+async function sendChat(){
+  const t=$('ch-txt').value.trim();if(!t)return;
+  $('ch-txt').value='';
+  try{await addDoc(collection(db,'chats',chatRoom,'msgs'),{text:t,by:displayName(),branch:curBranch,uid:currentUser.uid,at:new Date().toISOString()});}
+  catch(e){showToast('ส่งไม่สำเร็จ: '+(e.code||e.message),'err');}
+}
+$('ch-send').addEventListener('click',sendChat);
+$('ch-txt').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat();});
+/* ลากย้ายหน้าต่างแชท + จำตำแหน่ง */
+(function(){
+  let sx=0,sy=0,ox=0,oy=0,drag=false;
+  $('ch-drag').addEventListener('pointerdown',e=>{
+    if(e.target.tagName==='BUTTON')return;
+    drag=true;const r=$('chatw').getBoundingClientRect();
+    sx=e.clientX;sy=e.clientY;ox=r.left;oy=r.top;
+    $('ch-drag').setPointerCapture(e.pointerId);
+  });
+  $('ch-drag').addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const x=Math.max(0,Math.min(window.innerWidth-120,ox+e.clientX-sx));
+    const y=Math.max(0,Math.min(window.innerHeight-60,oy+e.clientY-sy));
+    const w=$('chatw');w.style.left=x+'px';w.style.top=y+'px';w.style.right='auto';w.style.bottom='auto';
+  });
+  $('ch-drag').addEventListener('pointerup',e=>{
+    if(!drag)return;drag=false;
+    const r=$('chatw').getBoundingClientRect();
+    localStorage.setItem('nm_chat_pos',JSON.stringify({x:r.left,y:r.top}));
+  });
+})();
 
 /* ═════ Service Worker (ตัวเดียวกับแอปหลัก — เพื่อเปิดออฟไลน์ได้) ═════ */
 if('serviceWorker' in navigator){

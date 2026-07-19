@@ -313,6 +313,17 @@ service cloud.firestore {
       allow create: if canPOS();
       allow update, delete: if isAdmin();
     }
+    // posReturns (ใบรับคืน/ยกเลิกบิล — ทุกคนทำได้แต่บังคับเหตุผล+ชื่อคนทำ ตาม audit ที่เคาะ)
+    match /posReturns/{docId} {
+      allow read: if signedIn();
+      allow create: if canPOS();
+      allow update, delete: if isAdmin();
+    }
+    // chats (แชททีม — ห้องรวม all / ห้องรายสาขา 0,1,2 · พนักงานทุกคนคุยได้ทั้ง POS และมือถือ)
+    match /chats/{room}/msgs/{msgId} {
+      allow read, create: if signedIn();
+      allow update, delete: if isAdmin();
+    }
 
     // ===== ปฏิเสธอย่างอื่นทั้งหมด =====
     match /{document=**} {
