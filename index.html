@@ -253,7 +253,7 @@ onAuthStateChanged(auth, user=>{
 });
 
 window.doLogin=async function(){
-  const email=document.getElementById('login-email').value.trim();
+  const email=document.getElementById('login-email').value.trim().split(/\s+/)[0]; /* อีเมลมีช่องว่างไม่ได้ — ตัดตัวอักษรที่เผลอพิมพ์ติดท้ายทิ้ง */
   const pass=document.getElementById('login-pass').value;
   if(!email||!pass){showAlert('a-login','กรุณากรอกข้อมูลให้ครบ');return;}
   if(document.getElementById('login-remember').checked)localStorage.setItem('nm_login_email',email);
@@ -267,7 +267,7 @@ window.doLogin=async function(){
   }catch(e){
     isLoggingIn=false;
     loading(false);document.getElementById('btn-login').disabled=false;
-    const m={'auth/invalid-credential':'อีเมลหรือรหัสผ่านไม่ถูกต้อง','auth/user-not-found':'ไม่พบบัญชีนี้','auth/wrong-password':'รหัสผ่านไม่ถูกต้อง','auth/too-many-requests':'พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณารอสักครู่'};
+    const m={'auth/invalid-credential':'อีเมลหรือรหัสผ่านไม่ถูกต้อง','auth/user-not-found':'ไม่พบบัญชีนี้','auth/wrong-password':'รหัสผ่านไม่ถูกต้อง','auth/invalid-email':'รูปแบบอีเมลไม่ถูกต้อง — เช็คตัวสะกดและตัวอักษรที่พิมพ์เกินท้ายอีเมล','auth/too-many-requests':'พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณารอสักครู่'};
     showAlert('a-login',m[e.code]||'เกิดข้อผิดพลาด: '+e.message);
   }
 };
@@ -275,7 +275,7 @@ window.doLogin=async function(){
 window.doRegister=async function(){
   const fname=document.getElementById('r-fname').value.trim();
   const lname=document.getElementById('r-lname').value.trim();
-  const email=document.getElementById('r-email').value.trim();
+  const email=document.getElementById('r-email').value.trim().split(/\s+/)[0]; /* กันช่องว่าง/ตัวอักษรติดท้าย */
   const cid=document.getElementById('r-cid').value.trim();
   const dob=document.getElementById('r-dob').value;
   const pass=document.getElementById('r-pass').value;
@@ -316,7 +316,7 @@ window.doRegister=async function(){
 };
 
 window.doForgot=async function(){
-  const email=document.getElementById('f-email').value.trim();
+  const email=document.getElementById('f-email').value.trim().split(/\s+/)[0]; /* กันช่องว่าง/ตัวอักษรติดท้าย */
   if(!email){showAlert('a-forgot','กรุณากรอกอีเมล');return;}
   loading(true);document.getElementById('btn-forgot').disabled=true;
   try{
