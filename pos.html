@@ -372,20 +372,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
         <div class="nvc" id="nav-tran"><span class="ic">🔁</span><div class="t">แบ่งยาข้ามสาขา</div><div class="s">ขอ-ส่ง-รับ ย้ายยกล็อต</div></div>
         <div class="nvc" id="nav-low"><span class="ic">⏳</span><div class="t">สินค้าใกล้หมด</div><div class="s">เทียบยอดขาย · ใบสั่งซื้อ</div></div>
         <div class="nvc" id="nav-rep"><span class="ic">📊</span><div class="t">ยอดขาย & กำไร</div><div class="s">รายเดือน · ขายดี · CSV</div></div>
-      </div>
-      <div class="card">
-        <span class="ok-badge">✅ ระบบครบทุกเฟสแล้ว — พร้อมช่วงทดลองใช้จริง</span>
-        <h3>เครื่องนี้พร้อมขายหน้าร้านเต็มรูปแบบ</h3>
-        <p>ขาย-รับเงิน-ใบเสร็จ-ฉลาก · สต็อกล็อต FIFO · รับของเข้า+ข.ย.9/10/11 · สมาชิก+แต้ม · รับคืน/ยกเลิกบิล · นับสต็อก · แบ่งยาข้ามสาขา · อุณหภูมิ · แชททีม · ทำงานออฟไลน์ได้ (ดูไฟสถานะซิงค์มุมขวาบน)</p>
-        <div class="next-list"><b>ช่วงทดลอง:</b> เข้าใช้ได้เฉพาะเจ้าของร้าน · ทดลองครบแล้วค่อยเปิดสิทธิ์พนักงานทีละคนที่หน้า "จัดการพนักงาน" ในแอปหลัก</div>
-      </div>
-      <div class="card">
-        <h3>🔄 อัปเดตโปรแกรม</h3>
-        <p>เวอร์ชันปัจจุบัน: <b id="hm-ver" style="font-family:var(--mono)"></b></p>
-        <div class="row-btns">
-          <button class="sbtn" id="hm-check">ตรวจอัปเดต</button>
-        </div>
-        <div id="hm-chg"></div>
+        <div class="nvc" id="nav-upd" style="flex:0 1 calc((100% - 28px)/3)"><span class="ic">🔄</span><div class="t">อัปเดตโปรแกรม</div><div class="s"><span id="hm-ver"></span> · มีอะไรใหม่</div></div>
       </div>
     </div>
   </div>
@@ -609,8 +596,11 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.3.1';
+const POS_VERSION='2.3.3';
 const POS_CHANGELOG=[
+  {v:'2.3.3',date:'2026-07-20',changes:[
+    '🧹 หน้าหลักโล่งสวยขึ้น (แบบ ค ที่เจ้าของเลือก) — เอากล่องข้อความยาวๆ ("ระบบครบทุกเฟส" + กล่องอัปเดต) ออก แล้วเพิ่มการ์ด "🔄 อัปเดตโปรแกรม" เป็นการ์ดที่ 10 ในเมนู ขนาดเท่าการ์ดอื่น — กดแล้วเปิดหน้าต่าง: เวอร์ชันปัจจุบัน + ปุ่มตรวจอัปเดต + บันทึกอัปเดตทุกเวอร์ชัน',
+  ]},
   {v:'2.3.1',date:'2026-07-19',changes:[
     '🛡 ตรวจสุขภาพระบบครั้งใหญ่รอบดึก — ไล่เช็คทุกจอ ทุกการบันทึกข้อมูล แล้วแก้จุดเสี่ยง 14 จุด',
     '📴 เน็ตหลุดก็ขายต่อได้ลื่นๆ: ปุ่มบันทึกทุกจุด (ขายบิล รับของ นับสต็อก โอนสาขา รับคืน สมาชิก สินค้า ชุดสินค้า อุณหภูมิ) ไม่ค้างรอเน็ตอีกแล้ว — บันทึกลงเครื่องทันที พอเน็ตกลับมาระบบส่งขึ้นเองอัตโนมัติ',
@@ -822,19 +812,24 @@ function enterHome(b){
   $('hm-branch').textContent='🏪 '+BRANCHES[b];
   $('hm-who').textContent='ผู้ขาย: '+displayName();
   $('hm-ver').textContent='POS '+POS_VERSION;
-  renderChangelog();
   show('v-home');
 }
 $('hm-switch').addEventListener('click',()=>{localStorage.removeItem(LS_BRANCH);renderBranches();show('v-branch');});
 
-function renderChangelog(){
-  $('hm-chg').innerHTML=POS_CHANGELOG.map(c=>`
-    <div class="chg-item"><span class="cv">v${c.v} · ${c.date}</span>
-    <ul>${c.changes.map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('');
-}
+$('nav-upd').addEventListener('click',()=>{
+  openMD('<h3>🔄 อัปเดตโปรแกรม</h3>'+
+    '<p>เวอร์ชันปัจจุบัน: <b style="font-family:var(--mono)">POS '+POS_VERSION+'</b></p>'+
+    '<div class="row-btns"><button class="sbtn" id="chg-check">ตรวจอัปเดต</button><button class="sbtn" id="chg-close">ปิด</button></div>'+
+    '<div style="max-height:52vh;overflow-y:auto;margin-top:10px">'+
+    POS_CHANGELOG.map(c=>`<div class="chg-item"><span class="cv">v${c.v} · ${c.date}</span>
+    <ul>${c.changes.map(x=>`<li>${x}</li>`).join('')}</ul></div>`).join('')+
+    '</div>');
+  $('chg-check').addEventListener('click',checkUpdate);
+  $('chg-close').addEventListener('click',closeMD);
+});
 
 /* ═════ ตรวจอัปเดต (เทียบกับไฟล์บนเซิร์ฟเวอร์ — แบบเดียวกับแอปหลัก) ═════ */
-$('hm-check').addEventListener('click',async()=>{
+async function checkUpdate(){
   loading(true);
   try{
     const res=await fetch('./pos.html?upd='+Date.now(),{cache:'no-store'});
@@ -849,7 +844,7 @@ $('hm-check').addEventListener('click',async()=>{
       setTimeout(()=>location.reload(),1400);
     }
   }catch(e){loading(false);showToast('ต่อเซิร์ฟเวอร์ไม่ได้ (ออฟไลน์อยู่หรือเปล่า?)','err');}
-});
+}
 
 /* ═══════════════════════ เฟส 1.2 — ระบบสินค้า & สต็อกล็อต ═══════════════════════ */
 const KY_LABEL={none:'',ky10:'ข.ย.10',ky11:'ข.ย.11'};
