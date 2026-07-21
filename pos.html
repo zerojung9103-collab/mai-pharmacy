@@ -63,16 +63,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .sync{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--green-dd);background:var(--green-l);border-radius:20px;padding:4px 12px}
 .sync .dot{width:8px;height:8px;border-radius:50%;background:#23B895}
 /* ===== แถบนำทางซ้าย (ติดจอตลอด) ===== */
-#appnav{position:fixed;left:0;top:0;bottom:0;width:68px;background:#1B2420;display:none;flex-direction:column;align-items:center;padding:12px 0;gap:2px;z-index:45;overflow-y:auto}
+#appnav{position:fixed;left:0;top:0;bottom:0;width:68px;background:#1B2420;display:none;flex-direction:column;align-items:center;padding:12px 0;gap:2px;z-index:45;overflow-y:auto;overflow-x:hidden;transition:width .18s ease}
 body.withnav #appnav{display:flex}
 body.withnav .view{margin-left:68px}
 #an-logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;margin-bottom:10px;cursor:pointer;flex:none}
 .nv{width:56px;padding:7px 0;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;color:#8FA098;flex:none}
 .nv i{font-style:normal;font-size:17px}
-.nv span{font-size:9px;font-weight:600}
+.nv span{font-size:9px;font-weight:600;white-space:nowrap}
+.nv b{display:none;font-size:12.5px;font-weight:700;white-space:nowrap}
 .nv:hover{background:rgba(255,255,255,.06)}
 .nv.on{background:rgba(35,184,149,.16);color:#4BD9B4}
 .nv.bot{margin-top:auto}
+/* ชี้เมาส์ที่แถบ → ขยายโชว์ชื่อเต็ม (ลอยทับเนื้อหา ไม่ดันจอ) */
+#appnav:hover{width:172px;box-shadow:10px 0 28px rgba(10,18,14,.35);align-items:stretch;padding:12px 8px}
+#appnav:hover #an-logo{margin-left:9px}
+#appnav:hover .nv{width:auto;flex-direction:row;justify-content:flex-start;gap:11px;padding:9px 13px}
+#appnav:hover .nv span{display:none}
+#appnav:hover .nv b{display:block}
 /* อวตารสีตามหมวด + แป้นคีย์ลัด */
 .av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;flex:none}
 .av.sm{width:30px;height:30px;font-size:11.5px;border-radius:8px}
@@ -351,16 +358,16 @@ kbd{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:5px;bac
 <!-- ═════ แถบนำทางซ้าย (ดีไซน์ใหม่ 2.4 — สลับจอคลิกเดียว) ═════ -->
 <div id="appnav">
   <div id="an-logo" title="หน้าหลัก">ม</div>
-  <div class="nv" data-go="nav-sell" data-v="v-sell"><i>🛒</i><span>ขาย</span></div>
-  <div class="nv" data-go="nav-prod" data-v="v-prod"><i>📦</i><span>สินค้า</span></div>
-  <div class="nv" data-go="nav-recv" data-v="v-recv"><i>📥</i><span>รับของ</span></div>
-  <div class="nv" data-go="nav-gpp" data-v="v-gpp"><i>📋</i><span>GPP</span></div>
-  <div class="nv" data-go="nav-mem" data-v="v-mem"><i>👥</i><span>สมาชิก</span></div>
-  <div class="nv" data-go="nav-count" data-v="v-count"><i>🧮</i><span>นับ</span></div>
-  <div class="nv" data-go="nav-tran" data-v="v-tran"><i>🔁</i><span>โอน</span></div>
-  <div class="nv" data-go="nav-low" data-v="v-low"><i>⏳</i><span>ใกล้หมด</span></div>
-  <div class="nv" data-go="nav-rep" data-v="v-rep"><i>📊</i><span>รายงาน</span></div>
-  <div class="nv bot" data-go="nav-upd"><i>🔄</i><span>อัปเดต</span></div>
+  <div class="nv" data-go="nav-sell" data-v="v-sell"><i>🛒</i><span>ขาย</span><b>ขายหน้าร้าน</b></div>
+  <div class="nv" data-go="nav-prod" data-v="v-prod"><i>📦</i><span>สินค้า</span><b>สินค้า &amp; สต็อก</b></div>
+  <div class="nv" data-go="nav-recv" data-v="v-recv"><i>📥</i><span>รับของ</span><b>รับของเข้า</b></div>
+  <div class="nv" data-go="nav-gpp" data-v="v-gpp"><i>📋</i><span>GPP</span><b>GPP &amp; อุณหภูมิ</b></div>
+  <div class="nv" data-go="nav-mem" data-v="v-mem"><i>👥</i><span>สมาชิก</span><b>ลูกค้าสมาชิก</b></div>
+  <div class="nv" data-go="nav-count" data-v="v-count"><i>🧮</i><span>นับ</span><b>นับสต็อก</b></div>
+  <div class="nv" data-go="nav-tran" data-v="v-tran"><i>🔁</i><span>โอน</span><b>แบ่งยาข้ามสาขา</b></div>
+  <div class="nv" data-go="nav-low" data-v="v-low"><i>⏳</i><span>ใกล้หมด</span><b>สินค้าใกล้หมด</b></div>
+  <div class="nv" data-go="nav-rep" data-v="v-rep"><i>📊</i><span>รายงาน</span><b>ยอดขาย &amp; กำไร</b></div>
+  <div class="nv bot" data-go="nav-upd"><i>🔄</i><span>อัปเดต</span><b>อัปเดตโปรแกรม</b></div>
 </div>
 
 <!-- ═════ จอพักระหว่างพาไปล็อกอินรวม (ล็อกอินที่ index.html ที่เดียว) ═════ -->
@@ -647,8 +654,11 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.4.0';
+const POS_VERSION='2.4.1';
 const POS_CHANGELOG=[
+  {v:'2.4.1',date:'2026-07-20',changes:[
+    '🧭 แถบนำทางซ้าย: ชี้เมาส์ค้างที่แถบแล้วขยายออกมาโชว์ชื่อเมนูเต็มๆ (ขายหน้าร้าน · สินค้า & สต็อก · ...) เลื่อนเมาส์ออกก็หุบกลับเอง — ขยายแบบลอยทับ ไม่ดันเนื้อหาจอ',
+  ]},
   {v:'2.4.0',date:'2026-07-20',changes:[
     '🎨 โฉมใหม่ทั้งโปรแกรม (ดีไซน์ระดับโปรดักต์ที่เจ้าของอนุมัติจาก mockup) — โทนขาวสะอาด หัวจอขาวทุกจอ ตัวเลขเรียงตรงคอลัมน์ทั้งระบบ',
     '🧭 แถบนำทางซ้ายติดจอตลอด — สลับจอ ขาย/สินค้า/รับของ/GPP/สมาชิก/นับ/โอน/ใกล้หมด/รายงาน ได้ในคลิกเดียว ไม่ต้องกลับหน้าหลัก (จอที่เปิดอยู่มีไฮไลต์เขียว) · กดโลโก้มุมบนซ้ายเพื่อกลับหน้าหลัก',
