@@ -533,10 +533,21 @@ body.dark .pr-missout{color:#FFC96B;border-color:rgba(240,166,60,.5);background:
 .pv-tgl input{width:18px;height:18px;accent-color:var(--green-d);cursor:pointer}
 #pv-frame{width:100%;height:640px;border:none;background:#DDE6E0;border-radius:12px}
 .btn:disabled{opacity:.45;cursor:not-allowed}
-/* 🆕 v4.9: หน้าเงินสดโฉมใหม่ */
-.cash-hero{border-radius:20px;padding:18px 16px;color:#fff;margin-bottom:14px;box-shadow:var(--shadow);background:linear-gradient(140deg,#5FD3A0,#3FA877)}
+/* 🆕 v4.9: หน้าเงินสดโฉมใหม่ · v4.54: เติมลวดลาย */
+.cash-hero{position:relative;overflow:hidden;border-radius:20px;padding:18px 16px;color:#fff;margin-bottom:14px;box-shadow:var(--shadow);background:linear-gradient(140deg,#5FD3A0,#3FA877)}
+.cash-hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.14) 1.3px,transparent 1.3px);background-size:17px 17px;opacity:.5;pointer-events:none}
+.cash-hero::after{content:'฿';position:absolute;right:-10px;bottom:-40px;font-size:150px;font-weight:800;color:rgba(255,255,255,.08);line-height:1;pointer-events:none}
+.cash-hero>*{position:relative}
 .cash-hero .st{font-size:12px;opacity:.88}
 .cash-hero .h{font-family:var(--disp);font-size:19px;font-weight:700;margin:2px 0 12px}
+/* 🆕 v4.54: การ์ดเงินสดรวมในร้าน (สำรอง+ลิ้นชัก+เซฟ) */
+.cash-total{position:relative;overflow:hidden;background:linear-gradient(140deg,#4FBE8A,#217A54);color:#fff;border-radius:18px;padding:16px 18px;margin-bottom:12px;box-shadow:0 8px 20px rgba(33,122,84,.26)}
+.cash-total::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 1.2px,transparent 1.2px);background-size:15px 15px;opacity:.45;pointer-events:none}
+.cash-total::after{content:'💰';position:absolute;right:-4px;bottom:-14px;font-size:70px;opacity:.14;line-height:1;pointer-events:none}
+.cash-total>*{position:relative}
+.cash-total .tl{font-size:12px;opacity:.9}
+.cash-total .tv{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;margin-top:1px;font-family:var(--disp)}
+.cash-total .ts{font-size:11px;opacity:.85;margin-top:2px}
 .cash-steps{display:flex;align-items:center;gap:4px;margin-bottom:14px}
 .cash-stp{flex:1;text-align:center;font-size:10.5px;font-weight:700;opacity:.75}
 .cash-stp .dot{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;margin:0 auto 4px;font-size:12px}
@@ -548,7 +559,11 @@ body.dark .pr-missout{color:#FFC96B;border-color:rgba(240,166,60,.5);background:
 .cash-cta.night{color:var(--blue-t)}
 .cash-hero .hint{font-size:11px;opacity:.88;text-align:center;margin-top:8px;line-height:1.5}
 .cash-pools{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
-.cash-pool{background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:11px 8px;text-align:center;box-shadow:var(--shadow)}
+.cash-pool{position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:13px 8px 11px;text-align:center;box-shadow:var(--shadow)}
+.cash-pool::before{content:'';position:absolute;left:0;right:0;top:0;height:4px}
+.cash-pool.p-reserve::before{background:var(--blue)}
+.cash-pool.p-drawer::before{background:var(--green)}
+.cash-pool.p-safe::before{background:var(--amber)}
 .cash-pool .ic{font-size:19px}
 .cash-pool .l{font-size:10.5px;color:var(--text3);font-weight:700;margin:3px 0 1px}
 .cash-pool .v{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -1823,8 +1838,13 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.53.1';
+const APP_VERSION='4.54.0';
 const CHANGELOG=[
+  {v:'4.54.0',date:'2026-07-21',changes:[
+    '💰 หน้า "เงินสด & ตู้เซฟ" แต่งใหม่ให้อ่านง่ายสบายตาขึ้น — เพิ่มการ์ด "เงินสดในร้านตอนนี้" ตัวใหญ่บนสุด (รวมสำรอง+ลิ้นชัก+ตู้เซฟให้เห็นในตาเดียว) · การ์ด 3 กองมีแถบสีประจำกอง (สำรอง=ฟ้า · ลิ้นชัก=เขียว · ตู้เซฟ=ทอง) แยกด้วยตาแวบเดียว',
+    '🪙 นับเงินแยกชนิดสวยขึ้น — แต่ละแถวมีหน้าแบงค์สีตามธนบัตรจริง (พันม่วง · ร้อยแดง · ห้าสิบฟ้า · ยี่สิบเขียว · เหรียญทอง) กด +/− หรือคีย์ตรงๆ ก็ได้เหมือนเดิม',
+    '✨ เพิ่มลวดลายอ่อนๆ (ลายจุด · แสงนวล · ประกาย) ให้หน้าเงินดูอบอุ่นน่าใช้ — วิธีคิดเงิน สูตร ตัวเลขทุกอย่างเหมือนเดิมเป๊ะ ไม่กระทบข้อมูล',
+  ]},
   {v:'4.53.1',date:'2026-07-20',changes:[
     '🔑 หน้าเข้าสู่ระบบฉลาดขึ้น — ถ้าเผลอพิมพ์ตัวอักษรเกินต่อท้ายอีเมล (เช่น "อีเมล cd") ระบบตัดส่วนเกินให้เองอัตโนมัติ ทั้งตอนเข้าสู่ระบบ/สมัคร/ลืมรหัสผ่าน · ข้อความแจ้งเตือนอีเมลผิดรูปแบบเป็นภาษาไทยอ่านเข้าใจง่าย',
   ]},
@@ -7112,12 +7132,16 @@ function cashRow(label,val,hint,strong){
 const CASH_DENOMS=[1000,500,100,50,20,10,5,2,1];
 // นับแบบแตะ: ปุ่ม + / − กดนับทีละใบ หรือคีย์จำนวนตรงๆ ก็ได้ · optional=true = ไม่บังคับ (พับเก็บได้)
 function cashDenomBlock(optional){
-  const rows=CASH_DENOMS.map(d=>`<div style="display:flex;align-items:center;gap:7px;padding:3px 0">
-      <span style="width:64px;font-size:12px;color:var(--text2);flex-shrink:0">${d>=20?'แบงค์':'เหรียญ'} <b>${d}</b></span>
-      <button type="button" onclick="cashDenomAdj(${d},-1)" style="width:38px;height:38px;border-radius:11px;border:1px solid var(--border2);background:var(--surface);color:var(--text3);font-size:20px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:var(--font)">−</button>
-      <input type="number" min="0" inputmode="numeric" id="denom-${d}" placeholder="0" oninput="cashDenomSum()" style="flex:1;min-width:0;text-align:center;padding:9px 4px;font-size:17px;font-weight:700;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:10px">
-      <button type="button" onclick="cashDenomAdj(${d},1)" style="width:38px;height:38px;border-radius:11px;border:none;background:var(--green-l);color:var(--green-d);font-size:20px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:var(--font)">＋</button>
-      <span style="width:64px;text-align:right;font-size:11.5px;font-family:var(--mono);color:var(--text3);flex-shrink:0" id="denomamt-${d}">฿0</span>
+  // 🆕 v4.54: หน้าแบงค์สีตามธนบัตรจริง (ลวดลาย) — คง id denom-${d}/denomamt-${d} ไว้เดิม
+  const _face={1000:'#7C6BAE',500:'#8E6BAE',100:'#C15B5B',50:'#5B8AC1',20:'#5B9E7C',10:'#B7923A',5:'#B7923A',2:'#B7923A',1:'#B7923A'};
+  const _flbl={1000:'ใบละพัน',500:'ห้าร้อย',100:'ร้อย',50:'ห้าสิบ',20:'ยี่สิบ',10:'เหรียญสิบ',5:'เหรียญห้า',2:'เหรียญสอง',1:'เหรียญบาท'};
+  const rows=CASH_DENOMS.map(d=>`<div style="display:flex;align-items:center;gap:9px;padding:5px 0">
+      <span style="width:44px;height:29px;border-radius:6px;background:${_face[d]||'#8A8A8A'};color:#fff;font-size:${d>=1000?'11.5':'12.5'}px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">${d}</span>
+      <span style="flex:1;min-width:0;font-size:11px;color:var(--text3)">${_flbl[d]||d}</span>
+      <button type="button" onclick="cashDenomAdj(${d},-1)" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--border2);background:var(--surface);color:var(--text3);font-size:19px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:var(--font)">−</button>
+      <input type="number" min="0" inputmode="numeric" id="denom-${d}" placeholder="0" oninput="cashDenomSum()" style="width:52px;flex-shrink:0;text-align:center;padding:8px 2px;font-size:16px;font-weight:800;background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:9px">
+      <button type="button" onclick="cashDenomAdj(${d},1)" style="width:36px;height:36px;border-radius:10px;border:none;background:var(--green-l);color:var(--green-d);font-size:19px;font-weight:700;cursor:pointer;flex-shrink:0;font-family:var(--font)">＋</button>
+      <span style="width:58px;text-align:right;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text2);flex-shrink:0" id="denomamt-${d}">฿0</span>
     </div>`).join('');
   const inner=`<div style="background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:8px 10px">
       ${rows}
@@ -7939,11 +7963,14 @@ function renderCashPage(){
     drawer:opened?(closeEv?'หลังปิดร้าน':`เปิดร้าน ฿${fmt(st.openDrawer||0)}`):`มาตรฐาน ฿${fmt(cashCfg.floatTarget||0)}`,
     safe:depT>0?`เข้าเซฟวันนี้ ฿${fmt(depT)}`:'ยังไม่เข้าเซฟวันนี้'
   };
-  const _pool=(ic,l,v,cap)=>`<div class="cash-pool"><div class="ic">${ic}</div><div class="l">${l}</div><div class="v">฿${fmt(v||0)}</div><div class="c">${cap}</div></div>`;
+  // 🆕 v4.54: การ์ดเงินสดรวมในร้าน (สำรอง+ลิ้นชัก+เซฟ)
+  const _cashInHand=(+st.reserve||0)+(+st.drawer||0)+(+st.safe||0);
+  html+=`<div class="cash-total"><div class="tl">💵 เงินสดในร้านตอนนี้</div><div class="tv">฿${fmt(_cashInHand)}</div><div class="ts">เงินสำรอง + ลิ้นชัก + ตู้เซฟ</div></div>`;
+  const _pool=(cls,ic,l,v,cap)=>`<div class="cash-pool ${cls}"><div class="ic">${ic}</div><div class="l">${l}</div><div class="v">฿${fmt(v||0)}</div><div class="c">${cap}</div></div>`;
   html+=`<div class="cash-pools">
-    ${_pool('💼','เงินสำรอง',st.reserve,_poolCap.reserve)}
-    ${_pool('🧰','ลิ้นชัก',st.drawer,_poolCap.drawer)}
-    ${_pool('🔒','ตู้เซฟ',st.safe,_poolCap.safe)}
+    ${_pool('p-reserve','💼','เงินสำรอง',st.reserve,_poolCap.reserve)}
+    ${_pool('p-drawer','🧰','ลิ้นชัก',st.drawer,_poolCap.drawer)}
+    ${_pool('p-safe','🔒','ตู้เซฟ',st.safe,_poolCap.safe)}
   </div>`;
 
   // 🆕 ปุ่มงานรอง — การ์ดขาวแถวเดียว
