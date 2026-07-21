@@ -15,9 +15,9 @@
   --blue:#3B8EEA; --blue-d:#2C6FBF; --blue-l:#E7F0FB;
   --amber:#E8B93F; --amber-l:#FBF0DA; --amber-t:#8A6418;
   --red:#D65068; --red-l:#FBE5E9; --red-t:#9F2A3C;
-  --bg:#DCE6E0; --surface:#FFFFFF; --surface-2:#F6FAF7; --panel2:#EEF4F0;
-  --border:#E0E8E2; --border2:#D2DCD5;
-  --text:#243029; --text2:#5F6F66; --text3:#96A49B;
+  --bg:#F6F7F5; --surface:#FFFFFF; --surface-2:#FAFBF9; --panel2:#EEF1ED;
+  --border:#E5E8E4; --border2:#D6DBD4;
+  --text:#1D2321; --text2:#5E6862; --text3:#8B948E;
   --disp:'Noto Serif Thai',serif; --font:'IBM Plex Sans Thai','Noto Sans Thai',system-ui,sans-serif;
   --mono:ui-monospace,'Courier New',monospace;
   --b0:#1FAE8B; --b1:#3B8EEA; --b2:#E8A23F;
@@ -52,16 +52,33 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .lk-out{margin-top:16px;background:none;border:1.5px solid var(--border2);color:var(--text2);border-radius:10px;padding:9px 22px;font-size:13px;font-weight:700;font-family:var(--font);cursor:pointer}
 
 /* ===== แถบบนร่วม (เลือกสาขา/หน้าหลัก) ===== */
-.topbar{height:52px;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;display:flex;align-items:center;gap:12px;padding:0 18px;flex-shrink:0}
-.topbar .tt{font-family:var(--disp);font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
-.topbar .chip{font-size:12px;font-weight:700;background:rgba(255,255,255,.2);border-radius:20px;padding:3px 13px}
+.topbar{height:54px;background:var(--surface);color:var(--text);display:flex;align-items:center;gap:12px;padding:0 16px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.topbar .tt{font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px}
+.topbar .chip{font-size:12px;font-weight:700;background:var(--surface);border:1.5px solid var(--border2);color:var(--text2);border-radius:9px;padding:5px 12px}
 .topbar .sp{flex:1}
-.topbar .who{font-size:12.5px;opacity:.95}
-.topbar button{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer}
-.topbar button:hover{background:rgba(255,255,255,.3)}
+.topbar .who{font-size:12.5px;color:var(--text2)}
+.topbar button{background:var(--surface);border:1.5px solid var(--border2);color:var(--text);border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer}
+.topbar button:hover{border-color:var(--green)}
 /* ไฟสถานะซิงค์ */
-.sync{display:flex;align-items:center;gap:7px;font-size:11.5px;background:rgba(0,0,0,.16);border-radius:20px;padding:4px 12px}
-.sync .dot{width:9px;height:9px;border-radius:50%;background:#3DDC97;box-shadow:0 0 6px #3DDC97}
+.sync{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--green-dd);background:var(--green-l);border-radius:20px;padding:4px 12px}
+.sync .dot{width:8px;height:8px;border-radius:50%;background:#23B895}
+/* ===== แถบนำทางซ้าย (ติดจอตลอด) ===== */
+#appnav{position:fixed;left:0;top:0;bottom:0;width:68px;background:#1B2420;display:none;flex-direction:column;align-items:center;padding:12px 0;gap:2px;z-index:45;overflow-y:auto}
+body.withnav #appnav{display:flex}
+body.withnav .view{margin-left:68px}
+#an-logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(140deg,#23B895,#127C62);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px;margin-bottom:10px;cursor:pointer;flex:none}
+.nv{width:56px;padding:7px 0;border-radius:10px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;color:#8FA098;flex:none}
+.nv i{font-style:normal;font-size:17px}
+.nv span{font-size:9px;font-weight:600}
+.nv:hover{background:rgba(255,255,255,.06)}
+.nv.on{background:rgba(35,184,149,.16);color:#4BD9B4}
+.nv.bot{margin-top:auto}
+/* อวตารสีตามหมวด + แป้นคีย์ลัด */
+.av{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12.5px;flex:none}
+.av.sm{width:30px;height:30px;font-size:11.5px;border-radius:8px}
+.avc1{background:#E3F2ED;color:#127C62}.avc2{background:#E7EEF9;color:#3663B0}.avc3{background:#FBF0DE;color:#A8721E}
+.avc4{background:#EEEAF8;color:#6B54B8}.avc5{background:#FBE7EA;color:#BA4457}.avc6{background:#FDF3E0;color:#B9821B}
+kbd{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:5px;background:var(--surface-2);border:1px solid var(--border2);border-bottom-width:2px;color:var(--text2)}
 .sync.off .dot{background:#F5C445;box-shadow:0 0 6px #F5C445}
 .sync.busy .dot{background:#6FB4FF;box-shadow:0 0 6px #6FB4FF;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.35}}
@@ -128,6 +145,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .pi .ky{font-size:9.5px;font-weight:800;background:var(--amber-l);color:var(--amber-t);border-radius:12px;padding:2px 8px}
 .pcount{font-size:12px;color:var(--text3);margin:10px 2px}
 
+/* ===== รายงาน (ดีไซน์ 2.4: กราฟแท่ง + อันดับ) ===== */
+.ch{padding:2px 2px 8px;font-size:13.5px;font-weight:800}
+.bars{display:flex;align-items:flex-end;gap:5px;height:120px;padding:6px 2px 0}
+.bar{flex:1;background:linear-gradient(180deg,#23B895,#127C62);border-radius:4px 4px 0 0;min-width:5px;opacity:.88}
+.bx{display:flex;gap:5px;padding:3px 2px 0}
+.bx span{flex:1;text-align:center;font-size:9px;color:var(--text3);overflow:hidden}
+.rk{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--surface-2);font-size:12.5px}
+.rk:last-child{border-bottom:none}
+.rk .no{width:21px;height:21px;border-radius:6px;background:var(--surface-2);color:var(--text2);font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.rk .no.top{background:var(--amber-l);color:var(--amber-t)}
+.rk .rn{flex:1;min-width:0}
+.rk .rn b{font-weight:600;font-size:12.5px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rkbar{height:4px;border-radius:2px;background:#23B895;margin-top:3px}
+.rk .q{color:var(--text3);font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+
 /* ===== โมดัล ===== */
 #md{position:fixed;inset:0;background:rgba(20,35,28,.45);display:none;align-items:flex-start;justify-content:center;z-index:60;overflow:auto;padding:30px 14px}
 #md.on{display:flex}
@@ -155,34 +187,38 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 
 /* ===== จอขาย (ตาม mockup แท็บ 3) ===== */
 #v-sell{flex-direction:column;height:100vh;overflow:hidden}
-.b-top{background:linear-gradient(140deg,#4C9BF0,#2C6FBF)!important}
+.b-top{background:var(--surface)!important} /* ดีไซน์ใหม่: หัวจอขาวทุกจอ */
 .s-body{flex:1;display:flex;min-height:0}
 .s-left{flex:1.7;padding:15px;display:flex;flex-direction:column;min-width:0}
 .s-search{display:flex;gap:9px;margin-bottom:12px}
-.s-search input{flex:1;border:2px solid var(--green);border-radius:12px;padding:13px 15px;font-size:16px;font-family:var(--font);background:var(--surface);color:var(--text)}
-.s-search input:focus{outline:none;box-shadow:0 0 0 3px rgba(35,184,149,.15)}
+.s-search input{flex:1;border:1.5px solid var(--border2);border-radius:11px;padding:12px 15px;font-size:15px;font-family:var(--font);background:var(--surface);color:var(--text)}
+.s-search input:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(35,184,149,.12)}
 .s-scanb{background:rgba(31,174,139,.12);color:var(--green-dd);border-radius:12px;padding:0 15px;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;white-space:nowrap}
 .s-cats{display:flex;gap:6px;margin-bottom:11px;flex-wrap:wrap}
-.s-cat{font-size:11.5px;font-weight:700;border:1.5px solid var(--border2);background:var(--surface);border-radius:20px;padding:5px 13px;color:var(--text2);cursor:pointer}
-.s-cat.on{background:var(--green);border-color:var(--green);color:#fff}
+.s-cat{font-size:12px;font-weight:700;border:1.5px solid transparent;background:transparent;border-radius:9px;padding:6px 13px;color:var(--text2);cursor:pointer}
+.s-cat:hover{background:var(--surface)}
+.s-cat.on{background:#1D2321;border-color:#1D2321;color:#fff}
 .s-grid{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:9px;align-content:start;overflow:auto}
-.s-p{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 11px;cursor:pointer}
-.s-p:hover{border-color:var(--green)}
-.s-p .nm{font-size:12.5px;font-weight:700;line-height:1.3;min-height:33px;overflow:hidden}
-.s-p .pr{font-size:15px;font-weight:800;color:var(--green-d);margin-top:4px;font-family:var(--mono);clear:both}
-.s-p .st{float:right;margin:0 0 3px 6px;font-size:9px;font-weight:800;border-radius:7px;padding:2px 6px;background:rgba(31,174,139,.13);color:var(--green-dd)}
+.s-p{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:11px 12px;cursor:pointer;display:flex;flex-direction:column;gap:2px;box-shadow:0 1px 2px rgba(25,32,28,.04)}
+.s-p:hover{border-color:var(--green);box-shadow:0 3px 10px rgba(25,32,28,.07)}
+.s-p .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.s-p .nm{font-size:12.5px;font-weight:700;line-height:1.35;min-height:33px;overflow:hidden}
+.s-p .gn{font-size:10.5px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s-p .pr{font-size:15px;font-weight:800;color:var(--text);margin-top:3px;font-variant-numeric:tabular-nums}
+.s-p .pr small{font-size:10px;color:var(--text3);font-weight:500}
+.s-p .st{font-size:10px;font-weight:700;border-radius:20px;padding:2px 8px;background:#E9F6F1;color:#1E8A6B;font-variant-numeric:tabular-nums}
 .s-p .st.low{background:var(--amber-l);color:var(--amber-t)}
 .s-p .st.zero{background:var(--red-l);color:var(--red-t)}
-.s-p.warn{border-color:var(--red)}
-.s-p .algy{float:left;margin:0 5px 3px 0;font-size:12px}
-.s-mid{width:330px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
+.s-p.warn{border-color:#EFC7CD;background:#FEF9FA}
+.s-p.zero2{opacity:.55}
+.s-mid{width:330px;flex-shrink:0;background:var(--panel2);border-left:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
 .s-alert{background:var(--red-l);border:1.5px solid var(--red);border-radius:12px;padding:10px 13px;display:flex;align-items:flex-start;gap:10px;margin-top:10px}
 .s-alert .ax{font-size:19px}
 .s-alert .at{font-size:12px;color:var(--red-t);line-height:1.5}
 .s-carth{padding:12px 15px 6px;font-family:var(--disp);font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
 .s-carth .cn2{font-size:10.5px;background:rgba(31,174,139,.13);color:var(--green-dd);border-radius:20px;padding:2px 9px;font-weight:800;font-family:var(--font)}
 .s-cart{flex:1;overflow:auto;padding:0 13px}
-.s-ci{display:flex;align-items:center;gap:9px;padding:9px 3px;border-bottom:1px solid var(--border)}
+.s-ci{display:flex;align-items:center;gap:9px;padding:9px 11px;background:var(--surface);border:1px solid var(--border);border-radius:10px;margin-bottom:6px}
 .s-ci .cn{flex:1;min-width:0}
 .s-ci .cn .t{font-size:12.5px;font-weight:700}
 .s-ci .cn .u{font-size:10.5px;color:var(--text3);font-family:var(--mono);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
@@ -193,24 +229,25 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 .s-ci .lt{width:64px;text-align:right;font-weight:800;font-family:var(--mono);font-size:13px}
 .s-ci .rmv{border:none;background:none;color:var(--red-t);font-size:13px;cursor:pointer;padding:2px}
 .s-empty{text-align:center;color:var(--text3);padding:40px 16px;font-size:13px}
-.s-sum{border-top:1px solid var(--border);padding:12px 15px;background:var(--surface-2)}
+.s-sum{padding:10px 15px 12px}
 .s-sum .row{display:flex;justify-content:space-between;font-size:12.5px;padding:2px 0;color:var(--text2)}
 .s-sum .row.earn{color:var(--amber-t);font-weight:700}
 .s-sum .row.dsc{cursor:pointer}
-.s-sum .tot{display:flex;justify-content:space-between;align-items:baseline;margin-top:5px;padding-top:7px;border-top:1px dashed var(--border2)}
-.s-sum .tot .l{font-size:14px;font-weight:800}
-.s-sum .tot .v{font-size:28px;font-weight:800;color:var(--green-d);font-family:var(--mono)}
+.paybtn{display:flex;align-items:center;justify-content:space-between;border-radius:12px;padding:12px 16px;cursor:pointer;background:linear-gradient(150deg,#23B895,#127C62);color:#fff;box-shadow:0 5px 14px rgba(18,124,98,.32);margin-top:8px}
+.paybtn small{font-size:11px;display:block;opacity:.85;font-weight:600}
+.paybtn b{font-size:23px;font-variant-numeric:tabular-nums}
+.paybtn kbd{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.3);color:#fff}
+.paybtn.dis2{opacity:.5;pointer-events:none}
 .s-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:8px}
-.s-acts{width:150px;flex-shrink:0;background:var(--panel2,#EEF4F0);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:11px 10px;gap:6px;overflow:auto}
-.s-abtn{border-radius:10px;padding:9px 8px;font-size:12px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:1.5px solid var(--border2);background:var(--surface);color:var(--text);text-align:center;line-height:1.2;font-family:var(--font);position:relative}
-.s-abtn:hover{border-color:var(--green)}
-.s-abtn .ei{font-size:15px}
+.s-acts{width:122px;flex-shrink:0;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:12px 9px;gap:4px;overflow:auto}
+.s-rg{font-size:9.5px;font-weight:700;letter-spacing:.8px;color:var(--text3);padding:8px 4px 3px}
+.s-abtn{border-radius:9px;padding:8px 3px;font-size:10.5px;font-weight:700;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:none;background:transparent;color:var(--text2);text-align:center;line-height:1.25;font-family:var(--font);position:relative}
+.s-abtn:hover{background:var(--surface-2);color:var(--text)}
+.s-abtn .ei{font-size:17px}
 .s-abtn .k{font-family:var(--mono);font-size:8.5px;font-weight:700;opacity:.55}
-.s-abtn.pay2{background:linear-gradient(140deg,#23B895,#127C62);color:#fff;border:none;padding:12px 8px;font-size:14px}
-.s-abtn.lbl2{background:var(--blue-l);color:var(--blue-d);border-color:transparent}
-.s-abtn.amber2{background:var(--amber-l);color:var(--amber-t);border-color:transparent}
-.s-abtn.dis2{opacity:.45;cursor:default}
-.s-abtn.dis2:hover{border-color:var(--border2)}
+.s-abtn.lbl2{color:var(--blue-d)}
+.s-abtn.amber2{color:var(--amber-t)}
+.s-abtn.dis2{opacity:.4;cursor:default}
 .s-adiv{height:1px;background:var(--border);margin:3px 2px}
 .s-amore{font-size:10px;font-weight:700;color:var(--text3);text-align:center;margin-top:2px;line-height:1.7}
 
@@ -311,6 +348,21 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
 </head>
 <body>
 
+<!-- ═════ แถบนำทางซ้าย (ดีไซน์ใหม่ 2.4 — สลับจอคลิกเดียว) ═════ -->
+<div id="appnav">
+  <div id="an-logo" title="หน้าหลัก">ม</div>
+  <div class="nv" data-go="nav-sell" data-v="v-sell"><i>🛒</i><span>ขาย</span></div>
+  <div class="nv" data-go="nav-prod" data-v="v-prod"><i>📦</i><span>สินค้า</span></div>
+  <div class="nv" data-go="nav-recv" data-v="v-recv"><i>📥</i><span>รับของ</span></div>
+  <div class="nv" data-go="nav-gpp" data-v="v-gpp"><i>📋</i><span>GPP</span></div>
+  <div class="nv" data-go="nav-mem" data-v="v-mem"><i>👥</i><span>สมาชิก</span></div>
+  <div class="nv" data-go="nav-count" data-v="v-count"><i>🧮</i><span>นับ</span></div>
+  <div class="nv" data-go="nav-tran" data-v="v-tran"><i>🔁</i><span>โอน</span></div>
+  <div class="nv" data-go="nav-low" data-v="v-low"><i>⏳</i><span>ใกล้หมด</span></div>
+  <div class="nv" data-go="nav-rep" data-v="v-rep"><i>📊</i><span>รายงาน</span></div>
+  <div class="nv bot" data-go="nav-upd"><i>🔄</i><span>อัปเดต</span></div>
+</div>
+
 <!-- ═════ จอพักระหว่างพาไปล็อกอินรวม (ล็อกอินที่ index.html ที่เดียว) ═════ -->
 <div class="view on" id="v-login">
   <div class="lg-card" style="text-align:center">
@@ -408,25 +460,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15
         <div class="row"><span>รวม <span id="sl-n">0</span> ชิ้น</span><span></span></div>
         <div class="row dsc" id="sl-discrow"><span>ส่วนลด (กดเพื่อแก้ · F5)</span><span id="sl-disc">−฿0</span></div>
         <div class="row earn" id="sl-earnrow" style="display:none"><span>⭐ ได้แต้มจากบิลนี้</span><span id="sl-earn">+0 แต้ม</span></div>
-        <div class="tot"><span class="l">ยอดสุทธิ</span><span class="v" id="sl-total">฿0</span></div>
+        <div class="paybtn" id="sl-pay"><div><small>รับเงิน</small><b id="sl-total">฿0</b></div><kbd>F3</kbd></div>
         <div class="s-hint">วิธีชำระเลือกตอนกด "รับเงิน" · ปุ่มลัด F1-F5 ขายไวไม่ต้องใช้เมาส์</div>
       </div>
     </div>
     <div class="s-acts">
-      <div class="s-abtn pay2" id="sl-pay"><span class="ei">🧾</span> รับเงิน <span class="k">F3</span></div>
-      <div class="s-abtn lbl2" id="sl-label"><span class="ei">🏷️</span> พิมพ์ฉลาก <span class="k">F4</span></div>
-      <div class="s-abtn dis2"><span class="ei">💊</span> ใบสั่งยา <span class="k">เร็วๆนี้</span></div>
-      <div class="s-adiv"></div>
-      <div class="s-abtn" id="sl-new"><span class="ei">➕</span> เริ่มขายใหม่ <span class="k">F1</span></div>
-      <div class="s-abtn" id="sl-bundle"><span class="ei">📦</span> ชุดสินค้า</div>
-      <div class="s-abtn" id="sl-discbtn"><span class="ei">🔖</span> ลดท้ายบิล <span class="k">F5</span></div>
-      <div class="s-abtn" id="sl-ret"><span class="ei">↩️</span> รับคืนสินค้า</div>
-      <div class="s-abtn amber2 dis2"><span class="ei">💵</span> เปิดลิ้นชัก <span class="k">F7 เร็วๆนี้</span></div>
-      <div class="s-abtn" id="sl-chat"><span class="ei">💬</span> แชททีม <span id="ch-badge" style="display:none;position:absolute;top:5px;right:9px;background:var(--red);color:#fff;font-size:9px;font-weight:800;border-radius:20px;padding:1px 6px"></span></div>
-      <div class="s-abtn" id="sl-bills"><span class="ei">📄</span> บิลวันนี้</div>
-      <div class="s-adiv"></div>
-      <div class="s-abtn dis2"><span class="ei">⋯</span> เพิ่มเติม</div>
-      <div class="s-amore" id="sl-todaywrap">ขายวันนี้ (POS)<br><b id="sl-today" style="color:var(--green-dd);font-family:var(--mono)">฿0</b> · <span id="sl-tcount">0 บิล</span></div>
+      <div class="s-rg">พิมพ์</div>
+      <div class="s-abtn lbl2" id="sl-label"><span class="ei">🏷️</span> ฉลากยา <span class="k">F4</span></div>
+      <div class="s-abtn dis2"><span class="ei">💊</span> ใบสั่งยา</div>
+      <div class="s-rg">บิล</div>
+      <div class="s-abtn" id="sl-new"><span class="ei">🗒️</span> บิลใหม่ <span class="k">F1</span></div>
+      <div class="s-abtn" id="sl-discbtn"><span class="ei">％</span> ลดท้ายบิล <span class="k">F5</span></div>
+      <div class="s-abtn" id="sl-ret"><span class="ei">↩️</span> รับคืน</div>
+      <div class="s-abtn" id="sl-bills"><span class="ei">🗂️</span> บิลวันนี้</div>
+      <div class="s-rg">อื่นๆ</div>
+      <div class="s-abtn" id="sl-bundle"><span class="ei">🎁</span> ชุดสินค้า</div>
+      <div class="s-abtn amber2 dis2"><span class="ei">💵</span> เปิดลิ้นชัก</div>
+      <div class="s-abtn" id="sl-chat"><span class="ei">💬</span> แชททีม <span id="ch-badge" style="display:none;position:absolute;top:3px;right:8px;background:var(--red);color:#fff;font-size:9px;font-weight:800;border-radius:20px;padding:1px 6px"></span></div>
+      <div class="s-amore" id="sl-todaywrap">ขายวันนี้ (POS)<br><b id="sl-today" style="color:var(--green-dd)">฿0</b> · <span id="sl-tcount">0 บิล</span></div>
     </div>
   </div>
 </div>
@@ -596,8 +647,15 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.3.3';
+const POS_VERSION='2.4.0';
 const POS_CHANGELOG=[
+  {v:'2.4.0',date:'2026-07-20',changes:[
+    '🎨 โฉมใหม่ทั้งโปรแกรม (ดีไซน์ระดับโปรดักต์ที่เจ้าของอนุมัติจาก mockup) — โทนขาวสะอาด หัวจอขาวทุกจอ ตัวเลขเรียงตรงคอลัมน์ทั้งระบบ',
+    '🧭 แถบนำทางซ้ายติดจอตลอด — สลับจอ ขาย/สินค้า/รับของ/GPP/สมาชิก/นับ/โอน/ใกล้หมด/รายงาน ได้ในคลิกเดียว ไม่ต้องกลับหน้าหลัก (จอที่เปิดอยู่มีไฮไลต์เขียว) · กดโลโก้มุมบนซ้ายเพื่อกลับหน้าหลัก',
+    '🛒 จอขาย: การ์ดสินค้ามีอวตารสีตามหมวด + ป้ายคงเหลือแบบเม็ดสี + ราคาโชว์หน่วยชัด (฿20/แผง) · ตะกร้าเป็นการ์ดขาวอ่านง่าย · ปุ่มรับเงินใหญ่โชว์ยอดสุทธิในตัว (กดปุ๊บรู้เลยเก็บเงินเท่าไร) · แถบเครื่องมือขวาจัดกลุ่ม พิมพ์/บิล/อื่นๆ',
+    '📦 จอสินค้า: แต่ละรายการมีอวตารสี หาของไวขึ้น',
+    '📊 จอรายงาน: เพิ่มกราฟแท่งยอดขายรายวัน + ขายดี 10 อันดับแบบมีแถบเทียบความยาว (เห็นทันทีว่าตัวไหนขายดีกว่ากันแค่ไหน)',
+  ]},
   {v:'2.3.3',date:'2026-07-20',changes:[
     '🧹 หน้าหลักโล่งสวยขึ้น (แบบ ค ที่เจ้าของเลือก) — เอากล่องข้อความยาวๆ ("ระบบครบทุกเฟส" + กล่องอัปเดต) ออก แล้วเพิ่มการ์ด "🔄 อัปเดตโปรแกรม" เป็นการ์ดที่ 10 ในเมนู ขนาดเท่าการ์ดอื่น — กดแล้วเปิดหน้าต่าง: เวอร์ชันปัจจุบัน + ปุ่มตรวจอัปเดต + บันทึกอัปเดตทุกเวอร์ชัน',
   ]},
@@ -684,7 +742,15 @@ let currentUser=null, profile=null, unsubProfile=null, curBranch=null;
 
 /* ═════ เครื่องมือพื้นฐาน ═════ */
 const $=id=>document.getElementById(id);
-function show(v){document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v));}
+const NAV_HIDE=['v-login','v-locked','v-branch'];
+function show(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id===v));
+  document.body.classList.toggle('withnav',!NAV_HIDE.includes(v));
+  document.querySelectorAll('#appnav .nv').forEach(n=>n.classList.toggle('on',n.dataset.v===v));
+}
+/* แถบนำทางซ้าย: กดแล้วส่งต่อไปปุ่มเมนูเดิมของหน้าหลัก (ตัวจัดการเดิมทำงานครบ) */
+document.querySelectorAll('#appnav .nv[data-go]').forEach(el=>el.addEventListener('click',()=>{const t=$(el.dataset.go);if(t)t.click();}));
+$('an-logo').addEventListener('click',()=>show('v-home'));
 function loading(b){$('loading').classList.toggle('show',b);}
 let toastT=null;
 function showToast(msg,type){
@@ -896,6 +962,7 @@ function renderProducts(){
   $('pd-list').innerHTML=list.slice(0,200).map(p=>{
     const s=stockOf(p.id);
     return `<div class="pi" data-id="${p.id}">
+      ${avHTML(p,'sm')}
       <div class="nm"><div class="t">${esc(p.name)}</div><div class="s">${esc(p.generic||'')}${p.strength?' '+esc(p.strength):''}${p.barcode?' · '+esc(p.barcode):''}</div></div>
       ${p.kyType&&p.kyType!=='none'?`<span class="ky">${KY_LABEL[p.kyType]||''}</span>`:''}
       <div class="stk">${BRANCHES.map((b,i)=>`<span class="${s[i]?'':'zero'}">${b.slice(0,4)} <b>${s[i]}</b></span>`).join('')}</div>
@@ -905,6 +972,13 @@ function renderProducts(){
   $('pd-list').querySelectorAll('.pi').forEach(el=>el.addEventListener('click',()=>openProduct(el.dataset.id)));
 }
 function esc(s){return String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+/* อวตารสีตามหมวด (ดีไซน์ 2.4): อักษร 2 ตัวแรกของชื่อ + สีคงที่ตามหมวดสินค้า */
+function avHTML(p,cls){
+  const ini=String(p.name||'?').trim().slice(0,2);
+  const s=String(p.cat||'อื่นๆ');let h=0;
+  for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;
+  return '<div class="av '+(cls||'')+' avc'+(h%6+1)+'">'+esc(ini)+'</div>';
+}
 
 /* ── โมดัล ── */
 function openMD(html){$('md-box').innerHTML=html;$('md').classList.add('on');}
@@ -1212,11 +1286,11 @@ function renderGrid(){
     const st=stockOf(p.id)[curBranch];
     const low=st>0&&st<=Math.max(5,+p.reorder||0);
     const hit=mem?allergyHit(mem,p):null;
-    return '<div class="s-p'+(hit?' warn':'')+'" data-id="'+p.id+'">'+
-      (hit?'<span class="algy">🚫</span>':'')+
-      '<span class="st'+(st<=0?' zero':low?' low':'')+'">'+(st<=0?'หมด':(low?'เหลือ ':'คงเหลือ ')+st)+'</span>'+
-      '<div class="nm">'+esc(p.name)+'</div>'+
-      '<div class="pr">฿'+((unitPrice(p,-1,!!mem))||0).toLocaleString()+'</div></div>';
+    return '<div class="s-p'+(hit?' warn':'')+(st<=0?' zero2':'')+'" data-id="'+p.id+'">'+
+      '<div class="ph">'+avHTML(p)+'<span class="st'+(st<=0?' zero':low?' low':'')+'">'+(st<=0?'หมด':st)+'</span></div>'+
+      '<div class="nm">'+(hit?'🚫 ':'')+esc(p.name)+'</div>'+
+      '<div class="gn">'+esc([p.generic,p.unit].filter(Boolean).join(' · '))+'&nbsp;</div>'+
+      '<div class="pr">฿'+((unitPrice(p,-1,!!mem))||0).toLocaleString()+(p.unit?'<small>/'+esc(p.unit)+'</small>':'')+'</div></div>';
   }).join('')||'<div class="s-empty" style="grid-column:1/-1">'+(Object.keys(products).length?'ไม่พบสินค้าตามที่ค้น':'ยังไม่มีสินค้า — ไปเพิ่มที่เมนู 📦 สินค้า & สต็อก')+'</div>';
   $('sl-grid').querySelectorAll('.s-p').forEach(el=>el.addEventListener('click',()=>addToCart(el.dataset.id)));
 }
@@ -2408,18 +2482,25 @@ async function runReport(){
     const netTotal=total-refund;
     const profit=netTotal-cost*(total>0?netTotal/total:1);
     const tops=Object.entries(top).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    const days=Object.entries(perDay).sort();
+    const mxAmt=Math.max(1,...days.map(([,v])=>v.amt));
+    const mxQ=tops.length?tops[0][1]:1;
     $('rp-body').innerHTML=
       '<div class="navcards">'+
       '<div class="nvc"><span class="ic">💰</span><div class="t">฿'+fmt(netTotal)+'</div><div class="s">ยอดขายสุทธิ (หักคืน ฿'+fmt(refund)+')</div></div>'+
       '<div class="nvc"><span class="ic">🧾</span><div class="t">'+repBills.length+' บิล</div><div class="s">'+qty+' ชิ้น</div></div>'+
       '<div class="nvc"><span class="ic">📈</span><div class="t">฿'+fmt(profit)+'</div><div class="s">กำไรขั้นต้น (จากทุนตามล็อต)'+(unkQty>0?'<br><span style="color:var(--amber-t)">⚠️ ไม่ทราบทุน '+fmt(unkQty)+' ชิ้น — กำไรจริงอาจต่ำกว่านี้</span>':'')+'</div></div></div>'+
-      '<div class="card"><h3>🏆 ขายดี 10 อันดับ</h3><div class="imp-prev" style="max-height:none"><table>'+
-      '<tr><th>#</th><th>สินค้า</th><th>จำนวนที่ขาย</th></tr>'+
-      tops.map(([n,q],i)=>'<tr><td>'+(i+1)+'</td><td>'+esc(n)+'</td><td style="text-align:center;font-family:var(--mono)">'+q+'</td></tr>').join('')+
-      '</table></div></div>'+
-      '<div class="card" style="margin-top:12px"><h3>📅 รายวัน</h3><div class="imp-prev" style="max-height:280px"><table>'+
+      (days.length?'<div class="card" style="margin-bottom:12px"><div class="ch">📅 ยอดขายรายวัน</div>'+
+        '<div class="bars">'+days.map(([d,v])=>'<div class="bar" style="height:'+Math.max(5,Math.round(v.amt/mxAmt*100))+'%" title="'+d+' · ฿'+fmt(v.amt)+' ('+v.n+' บิล)"></div>').join('')+'</div>'+
+        '<div class="bx">'+days.map(([d])=>'<span>'+(+d.slice(8))+'</span>').join('')+'</div></div>':'')+
+      '<div class="card"><div class="ch">🏆 ขายดี 10 อันดับ</div>'+
+      tops.map(([n,q],i)=>'<div class="rk"><span class="no'+(i<3?' top':'')+'">'+(i+1)+'</span>'+
+        '<div class="rn"><b>'+esc(n)+'</b><div class="rkbar" style="width:'+Math.max(4,Math.round(q/mxQ*100))+'%"></div></div>'+
+        '<span class="q">'+fmt(q)+' ชิ้น</span></div>').join('')+
+      '</div>'+
+      '<div class="card" style="margin-top:12px"><h3>🗓 ตารางรายวัน</h3><div class="imp-prev" style="max-height:280px"><table>'+
       '<tr><th>วันที่</th><th>บิล</th><th>ยอดขาย</th></tr>'+
-      Object.entries(perDay).sort().map(([d,v])=>'<tr><td>'+d+'</td><td style="text-align:center">'+v.n+'</td><td style="text-align:right;font-family:var(--mono)">'+fmt(v.amt)+'</td></tr>').join('')+
+      days.map(([d,v])=>'<tr><td>'+d+'</td><td style="text-align:center">'+v.n+'</td><td style="text-align:right;font-family:var(--mono)">'+fmt(v.amt)+'</td></tr>').join('')+
       '</table></div></div>';
   }catch(e){loading(false);showToast('ดึงรายงานไม่สำเร็จ: '+(e.code||e.message),'err');}
 }
