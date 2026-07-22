@@ -654,8 +654,13 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.4.2';
+const POS_VERSION='2.4.3';
 const POS_CHANGELOG=[
+  {v:'2.4.3',date:'2026-07-22',changes:[
+    '🔢 เลขที่บิลไม่ซ้ำกันแล้ว กรณีขายรัวๆ ติดกันเร็วมากในเครื่องเดียว (เพิ่มตัวนับสำรองในเครื่อง)',
+    '📊 รายงานยอดขาย & กำไร ตัดบิลที่ยกเลิก (void) ออกจากการคำนวณแล้ว — เดิมนับรวม ทำให้ยอดขาย/กำไรโชว์เกินจริง',
+    '📄 ไฟล์ CSV รายบิล เปิดใน Excel คอลัมน์ไม่เพี้ยนแล้ว แม้ชื่อผู้ขาย/สมาชิกจะมีลูกน้ำหรือเครื่องหมายคำพูด',
+  ]},
   {v:'2.4.2',date:'2026-07-21',changes:[
     '↩️ รับคืนสินค้า: คืนสต็อกครบถูกต้องขึ้น — กรณีบิลเดียวขายสินค้าตัวเดียวกันหลายหน่วย (เช่น 1 กล่อง + 3 แผง จากล็อตเดียวกัน) แล้วรับคืนทั้งบิล เดิมคืนสต็อกกลับไม่ครบ ตอนนี้คืนครบทุกชิ้น',
     '⭐ แต้มคืน: ทยอยคืนหลายรอบแล้วแต้มไม่เกินของจริง — เดิมปัดเศษแต่ละรอบอาจทำให้คืนแต้มเกินที่ลูกค้าใช้ไป 1 แต้ม ตอนนี้คุมเพดานให้พอดี',
@@ -1477,7 +1482,11 @@ async function confirmPay(){
     items.push({pid:c.pid,name:c.name,price:c.price,qty:c.qty,unit:c.unit,factor:c.factor||1,kyType:c.kyType,lots:used,unlotted:need>0?need:0});
   }
   const day=todayStr();
-  const seq=Object.values(todayBills).filter(b=>+b.branch===+curBranch).length+1;
+  /* 2.4.3: เลขรันบิลกันซ้ำ 2 ชั้น — นับจากบิลวันนี้ + ตัวนับในเครื่อง (กันขายรัวๆ ก่อนบิลแรก sync กลับมาแล้วได้เลขซ้ำ) */
+  const seqKey='pos_seq_'+day+'_'+curBranch;
+  Object.keys(localStorage).forEach(k=>{if(k.startsWith('pos_seq_')&&!k.includes(day))localStorage.removeItem(k);}); /* ล้างตัวนับวันเก่า */
+  const seq=Math.max(Object.values(todayBills).filter(b=>+b.branch===+curBranch).length+1,(parseInt(localStorage.getItem(seqKey))||0)+1);
+  localStorage.setItem(seqKey,String(seq));
   const dev2=getDeviceId().slice(-2).toUpperCase(); /* กันเลขบิลชนกันระหว่างเครื่อง/ออฟไลน์ */
   const bill={
     no:'B'+day.slice(5,7)+day.slice(8,10)+'-'+String(curBranch+1)+'-'+String(seq).padStart(3,'0')+dev2,
@@ -2482,7 +2491,7 @@ async function runReport(){
   loading(true);
   try{
     const ym=$('rp-month').value;
-    repBills=await fetchMonth('posBills',ym);
+    repBills=(await fetchMonth('posBills',ym)).filter(b=>b.status!=='void'); /* 2.4.3: ตัดบิลที่ยกเลิกออกจากรายงาน (เดิมนับรวม ทำยอด/กำไรเกินจริง) */
     const rets=await fetchMonth('posReturns',ym);
     loading(false);
     let total=0,cost=0,qty=0,unkQty=0;const perDay={},top={};
@@ -2528,8 +2537,10 @@ async function runReport(){
 }
 $('rp-csv').addEventListener('click',()=>{
   if(!repBills.length){showToast('กด "ดูรายงาน" ก่อนครับ','err');return;}
+  /* 2.4.3: escape ค่าที่มีลูกน้ำ/เครื่องหมายคำพูด/ขึ้นบรรทัด — ชื่อคน/สมาชิกมีลูกน้ำแล้วคอลัมน์ไม่เพี้ยนใน Excel */
+  const cesc=v=>{v=String(v==null?'':v);return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
   let csv='﻿เลขบิล,วันที่,เวลา,ยอดรวม,ส่วนลด,สุทธิ,ชำระ,ผู้ขาย,สมาชิก\n';
-  repBills.forEach(b=>{csv+=[b.no,b.date,(b.at||'').slice(11,16),b.sub,b.discount,b.total,b.pay?.method==='cash'?'เงินสด':'โอน/อื่นๆ',b.by,(b.member?.name||'')].join(',')+'\n';});
+  repBills.forEach(b=>{csv+=[b.no,b.date,(b.at||'').slice(11,16),b.sub,b.discount,b.total,b.pay?.method==='cash'?'เงินสด':'โอน/อื่นๆ',b.by,(b.member?.name||'')].map(cesc).join(',')+'\n';});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
   a.download='posbills-'+$('rp-month').value+'.csv';a.click();
