@@ -1114,7 +1114,8 @@ input,select,textarea{border-radius:14px}
           <div class="field"><label class="fl">ข้อความใต้ชื่อร้าน <span style="font-size:11px;color:var(--text3)">(โชว์บนหน้า login · เว้นว่างได้)</span></label><input type="text" id="ap-tagline" placeholder="เช่น ร้านยาคุณภาพ ใกล้บ้านคุณ" maxlength="60" oninput="apLoginPreview()"></div>
         </div>
         <div class="field-row">
-          <div class="field"><label class="fl">สีหลักของแอป</label><div style="display:flex;gap:8px;align-items:center"><input type="color" id="ap-color" value="#1FAE8B" style="width:48px;height:38px;padding:2px;border:1.5px solid var(--border2);border-radius:8px;cursor:pointer"><input type="text" id="ap-color-text" placeholder="#16B981" style="flex:1" oninput="document.getElementById('ap-color').value=this.value"></div></div>
+          <!-- v4.58: เอาช่อง "สีหลักของแอป" ออก — ค่านี้บันทึกได้แต่ไม่ถูกใช้จริง (สีแอปมาจาก "ธีมของฉัน" ของแต่ละคน) -->
+
           <div class="field"><label class="fl">ไอคอนหน้าโลโก้ (พิมพ์อิโมจิ — ถ้าไม่ได้อัปโหลดรูปด้านล่าง)</label><input type="text" id="ap-emoji" placeholder="💊" maxlength="4"></div>
         </div>
         <div class="field">
@@ -1127,7 +1128,8 @@ input,select,textarea{border-radius:14px}
           <div style="font-size:11px;color:var(--text3);margin-top:4px">รองรับ PNG/JPG/WebP/SVG ขนาดไม่เกิน 1MB</div>
         </div>
         <div class="field-row">
-          <div class="field"><label class="fl">ขนาดเนื้อหาเริ่มต้นทั้งร้าน <span style="font-size:11px;color:var(--text3)">(พนักงานปรับเองได้ที่ "ธีมของฉัน")</span></label><select id="ap-size"><option value="compact">กะทัดรัด</option><option value="normal" selected>ปกติ</option><option value="large">ใหญ่</option></select></div>
+          <!-- v4.58: เอาช่อง "ขนาดเนื้อหาทั้งร้าน" ออก — ถูก "ธีมของฉัน" ของแต่ละคนทับเสมอ ตั้งไปก็ไม่มีผล -->
+
         </div>
         <div style="font-size:12.5px;font-weight:600;color:var(--text2);margin:1.25rem 0 .5rem;padding-top:1rem;border-top:1px dashed var(--border2)">🏪 หน้าเข้าสู่ระบบ (Login)</div>
         <div style="font-size:11.5px;color:var(--text3);margin-bottom:.8rem">โลโก้ · ชื่อร้าน · ข้อความใต้ชื่อร้าน (ด้านบน) จะโชว์บนหน้า login — ปรับขนาดโลโก้ได้ที่นี่</div>
@@ -1876,8 +1878,16 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.57.1';
+const APP_VERSION='4.58.0';
 const CHANGELOG=[
+  {v:'4.58.0',date:'2026-07-22',changes:[
+    '🧰 "ลิ้นชัก" โชว์เงินจริงตอนนี้เหมือนกันทุกจอแล้ว (รวมยอดขายสดวันนี้) — เดิมหน้าภาพรวมเงินรวมยอดขายแล้ว แต่บรีฟแอดมิน/ตารางเชิงลึก/หน้าสาขา/ผู้ช่วย ยังโชว์ค่าที่ไม่รวม ทำให้วันเดียวกันสองจอต่างกันได้หลายพันบาท',
+    '📡 แก้ตั้งค่าจากเครื่องไหน เครื่องอื่นเห็นทันที — เดิมเครื่องที่เปิดค้างอยู่จะใช้ค่าเก่าจนกว่าจะปิดเปิดใหม่ (ตั้งค่าเงิน · พิกัด GPS เช็คอิน · สลิป · เหตุผลเบิก · หน้าตาแอป ฯลฯ)',
+    '🎂 ตั้งค่าโชว์วันเกิดพนักงาน + ลิงก์ชีตตารางเวร เก็บขึ้น cloud แล้ว — เดิมอยู่แค่ในเครื่องที่ตั้ง เครื่องอื่นมองไม่เห็น',
+    '🧹 เอาช่อง "สีหลักของแอป" กับ "ขนาดเนื้อหาทั้งร้าน" ออกจากหน้าปรับแต่ง — สองช่องนี้บันทึกได้แต่ไม่มีผลจริง (สี/ขนาดมาจาก "ธีมของฉัน" ของแต่ละคน) ตั้งไปก็งงเปล่าๆ',
+    '🎨 สีประจำสาขาตรงกับโปรแกรมขาย POS แล้ว (เดิมเขียว/ฟ้า/ส้มคนละเฉดกัน)',
+    '⭐ ตั้งอัตราแต้มสมาชิก POS ได้จากแอปจัดการ (ตั้งค่า → ช่องทางรับเงิน) — บันทึกปุ๊บ POS ทุกเครื่องอัปเดตทันที',
+  ]},
   {v:'4.57.1',date:'2026-07-22',changes:[
     '🎯 แก้เป้ายอดขายไม่ตรงกันระหว่างจอ — เดิม "แก้เป้า" ที่การ์ดหน้าแรก กับ "เป้ายอดขาย" ในตั้งค่าเงิน เก็บแยกกันคนละที่ ทำให้แถบในบรีฟแอดมินโชว์เลขเก่า ตอนนี้บันทึกจากจอไหนก็อัปเดตตรงกันทุกจอ (บันทึกเป้าใหม่อีกครั้งหนึ่ง เลขจะตรงกันทันที)',
   ]},
@@ -1994,7 +2004,7 @@ const CHANGELOG=[
     '🐛 (แอดมิน) แก้ปฏิทิน "ลงเวลาแทน" ขึ้นแดง "ไม่ได้ลงเวลา" ทั้งเดือนทั้งที่พนักงานลงเวลาแล้ว — เกิดตอนเปิดหน้านี้โดยยังไม่เคยเข้าหน้าตารางเวร (ข้อมูลเช็คอินยังไม่ถูกโหลด) · ตอนนี้ปฏิทินโหลดข้อมูลเองก่อนแสดงเสมอ ไม่ต้องอ้อมไปเปิดตารางเวรก่อนแล้ว']},
   {v:'รุ่นก่อนหน้า',date:'',changes:['ประวัติรุ่นเก่ากว่านี้ (ราว 270 รุ่นแรก) ถูกย่อออกจากแอปเพื่อให้ไฟล์เล็กลง โหลดเร็วขึ้น — ประวัติฉบับเต็มยังอยู่ครบใน GitHub (ประวัติไฟล์ app.html)']}
 ];
-const BCOLORS=['#1D9E75','#378ADD','#EF9F27'];
+const BCOLORS=['#1FAE8B','#3B8EEA','#E8A23F']; // v4.58: ปรับให้ตรงกับ POS (--b0/--b1/--b2) — สาขาเดียวกันสีเดียวกันทุกโปรแกรม
 const BCOLORS_L=['#E1F5EE','#E6F1FB','#FAEEDA'];
 const DAYNAMES=['จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์','อาทิตย์'];
 const MONTHS_TH=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
@@ -2335,8 +2345,7 @@ function applyAppearanceConfig(cfg){
   const root=document.documentElement.style;
   // NOTE: ไม่ set --green ที่นี่ — user theme (applyUserThemeCfg) จัดการ accent color เอง
   // admin brand color จะถูกใช้เป็น default ใน USER_THEME_DEFAULT.accent เท่านั้น
-  const mainEl=document.querySelector('.main');
-  if(mainEl)mainEl.style.zoom=SIZE_ZOOM[cfg.size]||'1';
+  // v4.58: ไม่ set zoom ที่นี่แล้ว — ขนาดเนื้อหาเป็นของ "ธีมของฉัน" (applyUserThemeCfg) ที่เดียว กันตีกัน
   // ชื่อร้าน/โลโก้
   const tbdName=document.querySelector('.tbd-brand-name');
   if(tbdName)tbdName.textContent=cfg.shopName||APPEARANCE_DEFAULT.shopName;
@@ -2379,11 +2388,7 @@ function renderAppearanceSettings(){
   if(!isAdmin)return;
   document.getElementById('ap-name').value=appearanceCfg.shopName||'';
   document.getElementById('ap-tagline').value=appearanceCfg.shopTagline||'';
-  document.getElementById('ap-color').value=appearanceCfg.primaryColor||'#16B981';
-  document.getElementById('ap-color-text').value=appearanceCfg.primaryColor||'#16B981';
   document.getElementById('ap-emoji').value=appearanceCfg.logoEmoji||'';
-  
-  document.getElementById('ap-size').value=appearanceCfg.size||'normal';
   const llEl=document.getElementById('ap-loginlogo');if(llEl)llEl.value=appearanceCfg.loginLogoSize||80;
   // ช่องเปลี่ยนชื่อเมนู
   const mlEl=document.getElementById('ap-menulabels-list');
@@ -2551,16 +2556,13 @@ function onMenuDragEnd(){
 
 window.saveAppearance=async function(){
   if(!isAdmin)return;
-  const color=document.getElementById('ap-color-text').value.trim()||document.getElementById('ap-color').value;
-  if(!/^#[0-9A-Fa-f]{6}$/.test(color)){showToast('รหัสสีไม่ถูกต้อง เช่น #16B981','err');return;}
+  // v4.58: ตัด primaryColor/size ออก — เป็น setting หลอก (ไม่ถูกใช้จริง / โดนธีมส่วนตัวทับ)
   appearanceCfg={
     ...appearanceCfg,
     shopName:document.getElementById('ap-name').value.trim()||APPEARANCE_DEFAULT.shopName,
     shopTagline:document.getElementById('ap-tagline').value.trim(),   // เว้นว่างได้ = ไม่โชว์คำโปรยหน้า login
-    primaryColor:color,
     logoEmoji:document.getElementById('ap-emoji').value.trim()||APPEARANCE_DEFAULT.logoEmoji,
     loginLogoSize:parseInt(document.getElementById('ap-loginlogo').value)||80,
-    size:document.getElementById('ap-size').value,
   };
   // เก็บชื่อเมนูที่ตั้งเอง
   const ml={};
@@ -3125,6 +3127,7 @@ onAuthStateChanged(auth,async user=>{
   loadSlipCfgFromCloud();
   loadCashCfgFromCloud();
   loadTempStaffFromCloud();
+  loadBdaySettingsFromCloud();loadSchedCfgFromCloud(); // v4.58: ค่าที่เคยอยู่แค่ในเครื่อง — โหลดจาก cloud ทุกเครื่อง
   loadTodoTemplates();
   loadShiftsFromCloud().then(()=>{ if(document.getElementById('page-schedule')?.classList.contains('active'))scRender(); checkNotifications(); });
   loadLeavesForSchedule();
@@ -3562,9 +3565,28 @@ function refreshActivePage(){
 function startRealtimeAll(){
   if(_rtAll.length||!currentUser)return;
   const ping=()=>{clearTimeout(_rtBusy);_rtBusy=setTimeout(()=>{try{refreshActivePage();}catch(e){}},250);};
-  ['sales','members','checkins','leaves','payroll','activityLogs','todos','drugWarnings','articles','config'].forEach(c=>{
+  ['sales','members','checkins','leaves','payroll','activityLogs','todos','drugWarnings','articles'].forEach(c=>{
     try{_rtAll.push(onSnapshot(collection(db,c),()=>ping()));}catch(e){}
   });
+  // v4.58: config เปลี่ยนจากเครื่องอื่น → ดึงค่าใหม่เข้าเครื่องจริง แล้วค่อยวาดหน้าจอใหม่
+  // (เดิมแค่วาดหน้าจอใหม่ด้วยค่าเก่าที่ค้างในเครื่อง — แอดมินแก้ตั้งค่าบนคอม มือถือไม่เห็นจนกว่าจะปิดเปิดแอปใหม่)
+  let _cfgBusy=null,_cfgFirst=true;
+  try{_rtAll.push(onSnapshot(collection(db,'config'),()=>{
+    if(_cfgFirst){_cfgFirst=false;return;} // รอบแรกคือข้อมูลเดิมตอน subscribe — โหลดไปแล้วตอนล็อกอิน
+    clearTimeout(_cfgBusy);
+    _cfgBusy=setTimeout(async()=>{
+      try{
+        await Promise.all([
+          loadAppearanceConfig(),loadCashCfgFromCloud(),loadSlipCfgFromCloud(),
+          loadExpenseReasonsFromCloud(),loadTempStaffFromCloud(),loadBranchLocations(),
+          (typeof docLoaded!=='undefined'&&docLoaded)?loadDocCfgFromCloud():Promise.resolve(),
+          isAdmin?loadAlertSettings():Promise.resolve(),
+          loadBdaySettingsFromCloud(),loadSchedCfgFromCloud(),
+        ]);
+      }catch(e){console.error('config reload',e);}
+      ping();
+    },400);
+  }));}catch(e){}
 }
 window.goto=function(page){
   if(!canAccessPage(page)){
@@ -5160,6 +5182,31 @@ window.renderDayDetail=function(){
 let scMonth=new Date().getMonth();
 let scYear=new Date().getFullYear();
 let bdaySettings=JSON.parse(localStorage.getItem('nm_bday_settings')||'{}');
+// v4.58: ตั้งค่าวันเกิดขึ้น cloud — เดิมอยู่แค่ในเครื่องที่กดตั้ง เครื่องอื่นไม่มีวันเห็น
+async function loadBdaySettingsFromCloud(){
+  try{
+    const d=await getDoc(doc(db,'config','bdaySettings'));
+    if(d.exists()){bdaySettings=d.data().on||{};localStorage.setItem('nm_bday_settings',JSON.stringify(bdaySettings));}
+    else if(Object.keys(bdaySettings).length&&isAdmin){setDoc(doc(db,'config','bdaySettings'),{on:bdaySettings}).catch(()=>{});} // ย้ายค่าเก่าในเครื่องขึ้น cloud ครั้งแรก
+  }catch(e){}
+}
+// v4.58: ลิงก์ชีตตารางเวรขึ้น cloud — เครื่องอื่นเห็นปุ่ม "เปิดชีตต้นทาง" ด้วย
+async function loadSchedCfgFromCloud(){
+  try{
+    const d=await getDoc(doc(db,'config','schedSettings'));
+    if(d.exists()){
+      const s=d.data();
+      if(s.csvUrl)localStorage.setItem('nm_schedCsvUrl',s.csvUrl);
+      if(s.sheetView)localStorage.setItem('nm_schedSheetView',s.sheetView);
+    }else if(isAdmin&&(localStorage.getItem('nm_schedCsvUrl')||localStorage.getItem('nm_schedSheetView'))){
+      setDoc(doc(db,'config','schedSettings'),{csvUrl:localStorage.getItem('nm_schedCsvUrl')||'',sheetView:localStorage.getItem('nm_schedSheetView')||''}).catch(()=>{});
+    }
+  }catch(e){}
+}
+function saveSchedCfgToCloud(){ // เรียกทุกครั้งที่บันทึกลิงก์ชีต
+  if(!isAdmin)return;
+  setDoc(doc(db,'config','schedSettings'),{csvUrl:localStorage.getItem('nm_schedCsvUrl')||'',sheetView:localStorage.getItem('nm_schedSheetView')||''}).catch(()=>{});
+}
 let memberBdays=[];
 let allLeaves=[]; // วันลาทั้งหมด สำหรับแสดงในตารางเวร
 let allCheckins=[]; // การเช็คอินทั้งหมด สำหรับแสดงในตารางเวร + คำนวณ payroll
@@ -5807,7 +5854,7 @@ window.schedImportRead=async function(){
   // จับคู่ชื่ออัตโนมัติ
   const mapping={};parsed.names.forEach(n=>{mapping[n]=schedMatchMember(n);});
   window._schedImp={year,month,url,parsed,mapping};
-  if(url)localStorage.setItem('nm_schedCsvUrl',url);
+  if(url){localStorage.setItem('nm_schedCsvUrl',url);saveSchedCfgToCloud();} // v4.58: ขึ้น cloud
   schedImportRenderPreview();
 };
 function schedImportRenderPreview(){
@@ -5866,7 +5913,7 @@ window.schedImportConfirm=async function(){
   if(tempLost)warn+=`\n⚠️ เวรพนักงานชั่วคราว ${tempLost} เวร จะถูกลบ`;
   if(!await capsuleConfirm(`นำเข้า ${newShifts.length} เวร เข้าเดือน ${SCHED_MONTHS_TH[month]} ${year+543}?\nจะลบเวรเดิมของเดือนนี้ ${existing.length} เวร แล้วแทนด้วยชีต${warn}`))return;
   shifts=shifts.filter(s=>!(s.date||'').startsWith(monthStr)).concat(newShifts);
-  if(S.url){localStorage.setItem('nm_schedCsvUrl',S.url);localStorage.setItem('nm_schedSheetView',schedCsvToView(S.url));}
+  if(S.url){localStorage.setItem('nm_schedCsvUrl',S.url);localStorage.setItem('nm_schedSheetView',schedCsvToView(S.url));saveSchedCfgToCloud();} /* v4.58: ขึ้น cloud */
   saveLocal();syncShiftsToCloud();
   scYear=year;scMonth=month;
   closeMD();scRender();
@@ -6095,6 +6142,7 @@ window.toggleBday=function(uid,val){
   if(!isAdmin){showToast('เฉพาะผู้ดูแลระบบ','err');return;}
   bdaySettings[uid]=val;
   localStorage.setItem('nm_bday_settings',JSON.stringify(bdaySettings));
+  setDoc(doc(db,'config','bdaySettings'),{on:bdaySettings}).catch(()=>{}); // v4.58: ขึ้น cloud ให้ทุกเครื่องเห็นตรงกัน
   scRender();
 };
 
@@ -7190,16 +7238,17 @@ function cashAdminBranchCards(){
   const alerts=[];const rcDueList=[];
   const data=BRANCHES.map((bn,b)=>{
     const st=cashGet(b);
+    const drw=Math.round(cashDrawerNow(b)*100)/100; // v4.58: ลิ้นชัก = เงินจริงตอนนี้ (รวมยอดขายสดวันนี้) — ให้ตรงกับหน้าภาพรวมเงิน
     const opened=cashOpenedToday(b),closeEv=cashTodayClose(b);
     const sales=cashSalesToday(b),dep=cashSumToday(b,'deposit');
-    grand+=st.reserve+st.drawer+st.safe;salesTot+=sales;depTot+=dep;
+    grand+=st.reserve+drw+st.safe;salesTot+=sales;depTot+=dep;
     if(opened)openedCount++;if(closeEv)closedCount++;
     ['reserve','drawer','safe'].forEach(k=>{if(st[k]<0)alerts.push({ic:'⚠️',txt:`<b>${bn}</b> ${CASH_POOLS[k].t}ติดลบ ฿${fmt(st[k])}`,act:`cashSetBranch(${b})`,lbl:'ดู'});});
     const _rmin=cashCfg.reserveMin||0;
     if(st.reserve>=0&&_rmin>0&&st.reserve<_rmin)alerts.push({ic:'💼',txt:`<b>${bn}</b> เงินสำรองเหลือ ฿${fmt(st.reserve)} ต่ำกว่าขั้นต่ำ`,act:`cashTopupPrompt(${b},'reserve')`,lbl:'เติม'});
     if(closeEv){const d=cashCloseCalc(b,closeEv).diff;if(d!==0&&!closeEv.reviewed)alerts.push({ic:'✏️',txt:`<b>${bn}</b> ปิดร้าน${d>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(d))} ยังไม่ตรวจ`,act:`cashSetBranch(${b})`,lbl:'รีวิว'});}
-    if(cashReserveDue(b))rcDueList.push({bn,b});
-    return {bn,b,st,opened,closeEv,sales,dep};
+    if(cashReserveDue(b))rcDueList.push({bn,b,drw});
+    return {bn,b,st,drw,opened,closeEv,sales,dep};
   });
   if(rcDueList.length)alerts.unshift({ic:'🪙',txt:`<b>${rcDueList.map(x=>x.bn).join(' + ')}</b> ถึงรอบนับเงินสำรองสัปดาห์นี้`,act:`cashReserveCountPrompt(${rcDueList[0].b})`,lbl:'นับเลย'});
   const kpi=`<div class="cabk-kpis">
@@ -7211,7 +7260,7 @@ function cashAdminBranchCards(){
   const alertHtml=alerts.length?`<div class="cabk-alerts">${alerts.slice(0,5).map(a=>`<div class="cabk-al">${a.ic} <span>${a.txt}</span>${a.act?`<button onclick="${a.act}">${a.lbl}</button>`:''}</div>`).join('')}</div>`:'';
   const mo=todayStr().slice(0,7);
   const edcTgt=(+cashCfg.edcTarget||0)*2; // เป้า/เครื่อง × 2 เครื่อง
-  const cards=data.map(({bn,b,st,opened,closeEv,sales,dep})=>{
+  const cards=data.map(({bn,b,st,drw,opened,closeEv,sales,dep})=>{
     let chip,chipCls;
     if(closeEv){const d=cashCloseCalc(b,closeEv).diff;chip=d===0?'🌙 ปิดแล้ว · ตรง':(d>0?`🌙 เกิน ฿${fmt(d)}`:`🌙 ขาด ฿${fmt(-d)}`);chipCls=d===0?'ok':'warn';}
     else if(opened){const _o=cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='open');chip=`🟢 เปิดแล้ว${_o?.by?' · '+_o.by:''}`;chipCls='ok';}
@@ -7223,7 +7272,7 @@ function cashAdminBranchCards(){
       <div class="cabk-h"><span class="dt" style="background:${BCOLORS[b]}"></span><b>${bn}</b><span class="cabk-chip ${chipCls}">${chip}</span></div>
       <div class="cabk-pools">
         <div class="pl p1"><small>💼 สำรอง</small><b style="${st.reserve<0?'color:var(--red-t)':''}">${fmt(st.reserve)}</b></div>
-        <div class="pl p2"><small>🧰 ลิ้นชัก</small><b style="${st.drawer<0?'color:var(--red-t)':''}">${fmt(st.drawer)}</b></div>
+        <div class="pl p2"><small>🧰 ลิ้นชัก</small><b style="${drw<0?'color:var(--red-t)':''}">${fmt(drw)}</b></div>
         <div class="pl p3"><small>🔒 เซฟ</small><b style="${st.safe<0?'color:var(--red-t)':''}">${fmt(st.safe)}</b></div>
       </div>
       <div class="cabk-r"><span>ยอดขายเงินสดวันนี้</span><b>฿${fmt(sales)}</b></div>
@@ -7242,8 +7291,9 @@ function cashAdminSummary(){
   const warns=[];
   const rows=BRANCHES.map((bn,b)=>{
     const st=cashGet(b);
-    totR+=st.reserve;totD+=st.drawer;totS+=st.safe;
-    const bTot=st.reserve+st.drawer+st.safe;
+    const drw=Math.round(cashDrawerNow(b)*100)/100; // v4.58: ลิ้นชัก = เงินจริงตอนนี้ (รวมยอดขายสดวันนี้)
+    totR+=st.reserve;totD+=drw;totS+=st.safe;
+    const bTot=st.reserve+drw+st.safe;
     const opened=cashOpenedToday(b), closeEv=cashTodayClose(b);
     if(opened)openedCount++; if(closeEv)closedCount++;
     salesCash+=cashSalesToday(b);
@@ -7261,7 +7311,7 @@ function cashAdminSummary(){
     return `<tr style="border-top:1px solid var(--border)">
       <td style="padding:7px 6px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${BCOLORS[b]};margin-right:6px"></span>${bn}</td>
       <td style="padding:7px 6px;text-align:right;font-family:var(--mono);color:${st.reserve<0?'var(--red-t)':'inherit'}">฿${fmt(st.reserve)}</td>
-      <td style="padding:7px 6px;text-align:right;font-family:var(--mono);color:${st.drawer<0?'var(--red-t)':'inherit'}">฿${fmt(st.drawer)}</td>
+      <td style="padding:7px 6px;text-align:right;font-family:var(--mono);color:${drw<0?'var(--red-t)':'inherit'}">฿${fmt(drw)}</td>
       <td style="padding:7px 6px;text-align:right;font-family:var(--mono);color:${st.safe<0?'var(--red-t)':'inherit'}">฿${fmt(st.safe)}</td>
       <td style="padding:7px 6px;text-align:right;font-family:var(--mono);font-weight:700">฿${fmt(bTot)}</td>
       <td style="padding:7px 6px;text-align:center;font-size:11.5px">${statusChip}</td>
@@ -7655,12 +7705,13 @@ function renderCashPage(){
     safe:depT>0?`เข้าเซฟวันนี้ ฿${fmt(depT)}`:'ยังไม่เข้าเซฟวันนี้'
   };
   // 🆕 v4.54: การ์ดเงินสดรวมในร้าน (สำรอง+ลิ้นชัก+เซฟ)
-  const _cashInHand=(+st.reserve||0)+(+st.drawer||0)+(+st.safe||0);
+  const _drawerNow=Math.round(cashDrawerNow(branch)*100)/100; // v4.58: ลิ้นชัก = เงินจริงตอนนี้ (รวมยอดขายสดวันนี้) — ตรงกับหน้าภาพรวมเงิน/บรีฟ
+  const _cashInHand=(+st.reserve||0)+_drawerNow+(+st.safe||0);
   html+=`<div class="cash-total"><div class="tl">💵 เงินสดในร้านตอนนี้</div><div class="tv">฿${fmt(_cashInHand)}</div><div class="ts">เงินสำรอง + ลิ้นชัก + ตู้เซฟ</div></div>`;
   const _pool=(cls,ic,l,v,cap)=>`<div class="cash-pool ${cls}"><div class="ic">${ic}</div><div class="l">${l}</div><div class="v">฿${fmt(v||0)}</div><div class="c">${cap}</div></div>`;
   html+=`<div class="cash-pools">
     ${_pool('p-reserve','💼','เงินสำรอง',st.reserve,_poolCap.reserve)}
-    ${_pool('p-drawer','🧰','ลิ้นชัก',st.drawer,_poolCap.drawer)}
+    ${_pool('p-drawer','🧰','ลิ้นชัก',_drawerNow,_poolCap.drawer)}
     ${_pool('p-safe','🔒','ตู้เซฟ',st.safe,_poolCap.safe)}
   </div>`;
 
@@ -12496,8 +12547,25 @@ function renderPayTypeSettings(){
     <div style="display:flex;align-items:center;gap:8px">
       <select id="reserve-count-day" style="flex:1">${['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'].map((n,i)=>`<option value="${i}" ${((cashCfg.reserveCountDay==null?1:+cashCfg.reserveCountDay)===i)?'selected':''}>ทุกวัน${n}</option>`).join('')}</select>
       <button class="btn btn-primary btn-sm" onclick="saveReserveCountDay(document.getElementById('reserve-count-day').value)">บันทึก</button>
+    </div>
+    <div style="border-top:1px solid var(--border);margin:14px 0 10px"></div>
+    <div style="font-size:13px;font-weight:700;margin-bottom:4px">⭐ แต้มสมาชิก (โปรแกรมขาย POS)</div>
+    <div style="font-size:11.5px;color:var(--text3);margin-bottom:8px">ตั้งจากที่นี่แล้ว POS ทุกเครื่องอัปเดตทันที — เดิมค่านี้ฝังอยู่ในโปรแกรมขาย แก้จากแอปจัดการไม่ได้</div>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <div style="flex:1"><label class="fl" style="font-size:11px">ซื้อครบ (บาท) = 1 แต้ม</label><input type="number" id="pos-ptrate" min="1" placeholder="25" style="width:100%"></div>
+      <div style="flex:1"><label class="fl" style="font-size:11px">1 แต้ม แลกได้ (บาท)</label><input type="number" id="pos-rdrate" min="0.25" step="0.25" placeholder="1" style="width:100%"></div>
+      <button class="btn btn-primary btn-sm" onclick="savePosPoints()">บันทึก</button>
     </div>`;
+  // เติมค่าจริงจาก cloud (POS ฟัง doc นี้แบบ realtime อยู่แล้ว — บันทึกปุ๊บมีผลทุกเครื่องทันที)
+  getDoc(doc(db,'config','posSettings')).then(d=>{const s=d.exists()?d.data():{};const a=document.getElementById('pos-ptrate'),b=document.getElementById('pos-rdrate');if(a)a.value=s.pointsRate||25;if(b)b.value=s.redeemRate||1;}).catch(()=>{});
 }
+window.savePosPoints=async function(){
+  if(!isAdmin)return;
+  const pr=Math.max(1,parseFloat(document.getElementById('pos-ptrate')?.value)||25);
+  const rr=Math.max(0.25,parseFloat(document.getElementById('pos-rdrate')?.value)||1);
+  try{await setDoc(doc(db,'config','posSettings'),{pointsRate:pr,redeemRate:rr},{merge:true});showToast(`บันทึกแล้ว — ครบ ฿${fmt(pr)} ได้ 1 แต้ม · 1 แต้ม = ฿${rr} (POS อัปเดตทันที)`);logActivity('pos_points',`ตั้งอัตราแต้ม POS: ฿${pr}=1แต้ม · แลกแต้มละ ฿${rr}`);}
+  catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');}
+};
 window.saveReserveCountDay=async function(v){
   const n=Math.min(6,Math.max(0,parseInt(v)||0));
   cashCfg.reserveCountDay=n;
@@ -13495,9 +13563,9 @@ async function assistantCashBalance(){
   try{ if(typeof loadCashData==='function')await loadCashData(); }catch(e){console.error('assistantCash',e);}
   const g=(b)=>typeof cashGet==='function'?cashGet(b):{reserve:0,drawer:0,safe:0};
   const body=`<div style="display:flex;flex-direction:column;gap:8px">
-    ${BRANCHES.map((b,i)=>{const s=g(i);return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--green-ll);border-radius:9px;border:1px solid var(--border)">
+    ${BRANCHES.map((b,i)=>{const s=g(i);const dnow=typeof cashDrawerNow==='function'?Math.round(cashDrawerNow(i)*100)/100:s.drawer;return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--green-ll);border-radius:9px;border:1px solid var(--border)">
       <span style="font-weight:600;font-size:13px;color:${BCOLORS[i]}">${b}</span>
-      <span style="font-size:12px;color:var(--text2)">ลิ้นชัก <b>${fmtB(s.drawer)}</b> · ตู้เซฟ <b>${fmtB(s.safe)}</b> · สำรอง <b>${fmtB(s.reserve)}</b></span>
+      <span style="font-size:12px;color:var(--text2)">ลิ้นชัก <b>${fmtB(dnow)}</b> · ตู้เซฟ <b>${fmtB(s.safe)}</b> · สำรอง <b>${fmtB(s.reserve)}</b></span>
     </div>`;}).join('')}
   </div>`;
   const box=document.getElementById('modal-box');
