@@ -578,6 +578,44 @@ body.dark .pr-missout{color:#FFC96B;border-color:rgba(240,166,60,.5);background:
 /* 🆕 v4.10: จอคอมแอดมิน — การ์ด 3 สาขาเรียงข้างกัน */
 .cash-admin-grid{display:grid;gap:12px;grid-template-columns:1fr;margin-bottom:1.1rem}
 @media(min-width:1024px){.cash-admin-grid{grid-template-columns:repeat(3,1fr)}}
+/* 🆕 v4.56 แบบ ก: ภาพรวมเงินแอดมิน — KPI + แถบเตือน + การ์ดสาขา */
+.cabk-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+@media(max-width:900px){.cabk-kpis{grid-template-columns:1fr 1fr}}
+.cabk-kpi{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:13px 16px;box-shadow:var(--shadow)}
+.cabk-kpi small{font-size:11px;color:var(--text2);display:block}
+.cabk-kpi b{font-size:22px;font-variant-numeric:tabular-nums}
+.cabk-kpi span{font-size:10.5px;color:var(--text3);display:block;min-height:16px}
+.cabk-kpi.hero{background:linear-gradient(140deg,#4FBE8A,#217A54);border:none;color:#fff}
+.cabk-kpi.hero small,.cabk-kpi.hero span{color:rgba(255,255,255,.85)}
+.cabk-alerts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.cabk-al{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--amber);border-radius:12px;padding:8px 12px;font-size:12px;box-shadow:var(--shadow)}
+.cabk-al button{border:none;background:var(--green-l);color:var(--green-dd);border-radius:8px;padding:4px 11px;font-size:11px;font-weight:700;font-family:var(--font);cursor:pointer;white-space:nowrap}
+.cabk-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.cabk-h{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--border)}
+.cabk-h .dt{width:10px;height:10px;border-radius:50%;flex:none}
+.cabk-h b{flex:1;font-size:14px}
+.cabk-chip{font-size:10.5px;font-weight:800;border-radius:20px;padding:3px 9px;white-space:nowrap}
+.cabk-chip.ok{background:var(--green-l);color:var(--green-dd)}
+.cabk-chip.warn{background:var(--amber-l);color:var(--amber-t)}
+.cabk-chip.off{background:var(--bg);color:var(--text3)}
+.cabk-pools{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border)}
+.cabk-pools .pl{padding:9px 4px 10px;text-align:center;border-right:1px solid var(--border);border-top:3px solid transparent}
+.cabk-pools .pl:last-child{border-right:none}
+.cabk-pools .pl.p1{border-top-color:var(--blue)}
+.cabk-pools .pl.p2{border-top-color:var(--green)}
+.cabk-pools .pl.p3{border-top-color:var(--amber)}
+.cabk-pools .pl small{font-size:9.5px;color:var(--text3);font-weight:700;display:block}
+.cabk-pools .pl b{font-size:14px;font-variant-numeric:tabular-nums}
+.cabk-r{display:flex;justify-content:space-between;padding:7px 14px;font-size:12px;border-bottom:1px dashed var(--border)}
+.cabk-r b{font-variant-numeric:tabular-nums}
+.cabk-edc{padding:6px 14px 2px}
+.cabk-edc small{font-size:10px;color:var(--text3);font-weight:700}
+.cabk-edc .eb{height:6px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:3px}
+.cabk-edc .eb i{display:block;height:100%;background:linear-gradient(90deg,#4FBE8A,#2E9E6D)}
+.cabk-more{margin-bottom:1.1rem}
+.cabk-more>summary{cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:11px 16px;font-size:13px;font-weight:700;color:var(--text2);box-shadow:var(--shadow);list-style:none}
+.cabk-more>summary::-webkit-details-marker{display:none}
+.cabk-more[open]>summary{margin-bottom:12px;color:var(--green-dd)}
 .cab-pools{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
 .cab-pool{background:var(--bg);border-radius:10px;padding:7px 4px;text-align:center}
 .cab-pool .l{font-size:9.5px;color:var(--text3);font-weight:700}
@@ -1838,8 +1876,12 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.55.0';
+const APP_VERSION='4.56.0';
 const CHANGELOG=[
+  {v:'4.56.0',date:'2026-07-21',changes:[
+    '💰 จอภาพรวมเงิน 3 สาขา (จอคอมแอดมิน) โฉมใหม่ตามแบบที่เจ้าของเลือก — อ่านรู้เรื่องใน 5 วินาที: แถวบนตัวเลขใหญ่ 4 ใบ (เงินสดรวมทุกสาขา · ยอดขายวันนี้ · เปิดร้านกี่สาขา · ต้องจัดการกี่เรื่อง) → แถบเตือนสั้นๆ พร้อมปุ่มกดทำได้เลย (นับสำรอง/เติม/รีวิว) → การ์ด 3 สาขา แต่ละใบเห็น 3 กอง+ยอดขาย+เข้าเซฟ+EDC จบในใบเดียว',
+    '🔍 ของเดิมที่ละเอียดยิบ (ตารางรวม · มอนิเตอร์เงินสำรอง · แยกชนิดเงิน) ไม่ได้หายไปไหน — ยุบเก็บใน "รายละเอียดเชิงลึก" กดเปิดดูเมื่อต้องการ',
+  ]},
   {v:'4.55.0',date:'2026-07-21',changes:[
     '🔔 ปิดร้านแล้วเงินไม่ตรง (ขาด/เกิน) ระบบแจ้งเตือนแอดมินทันที — เดิมปุ่มปิดร้านหลักลืมส่งแจ้งเตือน (ปุ่มแบบเก่าส่ง แต่ปุ่มที่ใช้จริงไม่ส่ง) ตอนนี้ส่งครบทุกทาง',
     '📴 เน็ตหลุดก็ทำงานต่อได้ไม่ค้าง — เช็คอิน/เช็คเอาท์ และบันทึกเงินสด (เปิด-ปิดร้าน/ทำรายการ) บันทึกลงเครื่องทันที ไม่ต้องรอเซิร์ฟเวอร์ พอเน็ตกลับมาระบบส่งขึ้นเองอัตโนมัติ (เดิมถ้าเน็ตหลุดหน้าจะค้าง ดูเหมือนพัง)',
@@ -7511,42 +7553,55 @@ window.cashDoSafeCount=async function(branch){
 // 🆕 v4.10: การ์ดรายสาขา (จอคอมเรียง 3 คอลัมน์ · มือถือเรียงลงมา) — โชว์ตอนแอดมินยังไม่เลือกสาขา
 function cashAdminBranchCards(){
   if(!isAdmin)return '';
-  const EV_LBL={open:['🌅','เปิดร้าน'],close:['🌙','ปิดร้าน'],r2d:['💼','เบิกสำรองเข้าลิ้นชัก'],topup:['➕','เติมเงินเข้า'],deposit:['🔒','เก็บเข้าตู้เซฟ'],safeout:['🏦','นำออกจากเซฟ'],expense:['🛒','เบิกซื้อของ'],adjust:['⚖️','ปรับยอด'],reservecount:['🪙','นับเงินสำรอง'],safecount:['🔐','นับตู้เซฟ']};
-  const cards=BRANCHES.map((bn,b)=>{
+  /* 🆕 v4.56 แบบ ก (เจ้าของเลือกจาก mockup): KPI 4 ใบ → แถบเตือนสั้น → การ์ด 3 สาขา */
+  let grand=0,salesTot=0,depTot=0,openedCount=0,closedCount=0;
+  const alerts=[];const rcDueList=[];
+  const data=BRANCHES.map((bn,b)=>{
     const st=cashGet(b);
-    const opened=cashOpenedToday(b), closeEv=cashTodayClose(b);
-    const _openEv=cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='open');
-    let chip,chipStyle;
-    if(closeEv){
-      const d=cashCloseCalc(b,closeEv).diff;
-      chip=d===0?'🌙 ปิดแล้ว · ✓ ตรง':(d>0?`🌙 ปิดแล้ว · เกิน ฿${fmt(d)}`:`🌙 ปิดแล้ว · ขาด ฿${fmt(-d)}`);
-      chipStyle=d===0?'background:var(--green-l);color:var(--green-dd)':(d>0?'background:var(--blue-l);color:var(--blue-t)':'background:var(--red-l);color:var(--red-t)');
-    }else if(opened){chip=`● เปิดอยู่${_openEv?.by?' · '+_openEv.by:''}`;chipStyle='background:var(--amber-l);color:var(--amber-t)';}
-    else{chip='— ยังไม่เปิดร้าน';chipStyle='background:var(--bg);color:var(--text3)';}
-    const expect=closeEv?cashCloseCalc(b,closeEv).expected:cashExpectedClose(b);
-    const evs=cashEvents.filter(e=>+e.branch===+b&&e.date===todayStr()).sort((x,y)=>(y.ts||0)-(x.ts||0)).slice(0,3);
-    const evHtml=evs.length?evs.map(e=>{
-      const [ic,lb]=EV_LBL[e.type]||['•',e.type];
-      const t=e.ts?new Date(e.ts).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}):'';
-      return `<div class="cab-ev"><span>${ic}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${lb}${e.by?' · '+e.by:''}</span><span style="color:var(--text3)">${t}</span><b style="font-variant-numeric:tabular-nums">฿${fmt(e.amount||0)}</b></div>`;
-    }).join(''):'<div style="font-size:11px;color:var(--text3);padding:5px 0">ยังไม่มีรายการวันนี้</div>';
-    return `<div class="card" style="padding:1rem;margin-bottom:0">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="width:10px;height:10px;border-radius:50%;background:${BCOLORS[b]}"></span>
-        <span style="font-weight:700;font-size:14px;flex:1">${bn}</span>
-        <span style="font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;${chipStyle};white-space:nowrap">${chip}</span>
+    const opened=cashOpenedToday(b),closeEv=cashTodayClose(b);
+    const sales=cashSalesToday(b),dep=cashSumToday(b,'deposit');
+    grand+=st.reserve+st.drawer+st.safe;salesTot+=sales;depTot+=dep;
+    if(opened)openedCount++;if(closeEv)closedCount++;
+    ['reserve','drawer','safe'].forEach(k=>{if(st[k]<0)alerts.push({ic:'⚠️',txt:`<b>${bn}</b> ${CASH_POOLS[k].t}ติดลบ ฿${fmt(st[k])}`,act:`cashSetBranch(${b})`,lbl:'ดู'});});
+    const _rmin=cashCfg.reserveMin||0;
+    if(st.reserve>=0&&_rmin>0&&st.reserve<_rmin)alerts.push({ic:'💼',txt:`<b>${bn}</b> เงินสำรองเหลือ ฿${fmt(st.reserve)} ต่ำกว่าขั้นต่ำ`,act:`cashTopupPrompt(${b},'reserve')`,lbl:'เติม'});
+    if(closeEv){const d=cashCloseCalc(b,closeEv).diff;if(d!==0&&!closeEv.reviewed)alerts.push({ic:'✏️',txt:`<b>${bn}</b> ปิดร้าน${d>0?'เกิน':'ขาด'} ฿${fmt(Math.abs(d))} ยังไม่ตรวจ`,act:`cashSetBranch(${b})`,lbl:'รีวิว'});}
+    if(cashReserveDue(b))rcDueList.push({bn,b});
+    return {bn,b,st,opened,closeEv,sales,dep};
+  });
+  if(rcDueList.length)alerts.unshift({ic:'🪙',txt:`<b>${rcDueList.map(x=>x.bn).join(' + ')}</b> ถึงรอบนับเงินสำรองสัปดาห์นี้`,act:`cashReserveCountPrompt(${rcDueList[0].b})`,lbl:'นับเลย'});
+  const kpi=`<div class="cabk-kpis">
+    <div class="cabk-kpi hero"><small>💵 เงินสดรวมทุกสาขา</small><b>฿${fmt(grand)}</b><span>สำรอง+ลิ้นชัก+เซฟ ทั้ง ${BRANCHES.length} สาขา</span></div>
+    <div class="cabk-kpi"><small>ยอดขายเงินสดวันนี้</small><b>฿${fmt(salesTot)}</b><span>เข้าเซฟแล้ว ฿${fmt(depTot)}</span></div>
+    <div class="cabk-kpi"><small>เปิดร้านแล้ว</small><b>${openedCount}/${BRANCHES.length} สาขา</b><span>${closedCount?closedCount+' สาขาปิดร้านแล้ว':(openedCount===BRANCHES.length?'✓ ครบทุกสาขา':' ')}</span></div>
+    <div class="cabk-kpi"><small>ต้องจัดการ</small><b style="color:${alerts.length?'var(--amber-t)':'var(--green-d)'}">${alerts.length?alerts.length+' เรื่อง':'ไม่มี ✓'}</b><span>${alerts.length?'ดูแถบด้านล่าง':'ทุกอย่างเรียบร้อย'}</span></div>
+  </div>`;
+  const alertHtml=alerts.length?`<div class="cabk-alerts">${alerts.slice(0,5).map(a=>`<div class="cabk-al">${a.ic} <span>${a.txt}</span>${a.act?`<button onclick="${a.act}">${a.lbl}</button>`:''}</div>`).join('')}</div>`:'';
+  const mo=todayStr().slice(0,7);
+  const edcTgt=(+cashCfg.edcTarget||0)*2; // เป้า/เครื่อง × 2 เครื่อง
+  const cards=data.map(({bn,b,st,opened,closeEv,sales,dep})=>{
+    let chip,chipCls;
+    if(closeEv){const d=cashCloseCalc(b,closeEv).diff;chip=d===0?'🌙 ปิดแล้ว · ตรง':(d>0?`🌙 เกิน ฿${fmt(d)}`:`🌙 ขาด ฿${fmt(-d)}`);chipCls=d===0?'ok':'warn';}
+    else if(opened){const _o=cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='open');chip=`🟢 เปิดแล้ว${_o?.by?' · '+_o.by:''}`;chipCls='ok';}
+    else{chip='— ยังไม่เปิดร้าน';chipCls='off';}
+    const expect=(opened&&!closeEv)?cashExpectedClose(b):null;
+    const edcSum=edcMachineSum(b,'black',mo)+edcMachineSum(b,'white',mo);
+    const edcPct=edcTgt>0?Math.min(100,Math.round(edcSum/edcTgt*100)):0;
+    return `<div class="cabk-card">
+      <div class="cabk-h"><span class="dt" style="background:${BCOLORS[b]}"></span><b>${bn}</b><span class="cabk-chip ${chipCls}">${chip}</span></div>
+      <div class="cabk-pools">
+        <div class="pl p1"><small>💼 สำรอง</small><b style="${st.reserve<0?'color:var(--red-t)':''}">${fmt(st.reserve)}</b></div>
+        <div class="pl p2"><small>🧰 ลิ้นชัก</small><b style="${st.drawer<0?'color:var(--red-t)':''}">${fmt(st.drawer)}</b></div>
+        <div class="pl p3"><small>🔒 เซฟ</small><b style="${st.safe<0?'color:var(--red-t)':''}">${fmt(st.safe)}</b></div>
       </div>
-      <div class="cab-pools">
-        <div class="cab-pool"><div class="l">💼 สำรอง</div><div class="v" style="${st.reserve<0?'color:var(--red-t)':''}">฿${fmt(st.reserve)}</div></div>
-        <div class="cab-pool"><div class="l">🧰 ลิ้นชัก</div><div class="v" style="${st.drawer<0?'color:var(--red-t)':''}">฿${fmt(st.drawer)}</div></div>
-        <div class="cab-pool"><div class="l">🔒 เซฟ</div><div class="v" style="${st.safe<0?'color:var(--red-t)':''}">฿${fmt(st.safe)}</div></div>
-      </div>
-      ${opened&&!closeEv?`<div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--text2);margin-bottom:8px"><span>🧮 ควรมีตอนปิดร้าน</span><b>฿${fmt(expect)}</b></div>`:''}
-      ${evHtml}
-      <button class="btn btn-sm" style="width:100%;margin-top:9px" onclick="cashSetBranch(${b})">เปิดดูสาขานี้ ›</button>
+      <div class="cabk-r"><span>ยอดขายเงินสดวันนี้</span><b>฿${fmt(sales)}</b></div>
+      <div class="cabk-r"><span>เข้าเซฟวันนี้</span><b>${dep>0?'฿'+fmt(dep):'<span style="color:var(--text3)">฿0 · ยังไม่เข้า</span>'}</b></div>
+      ${expect!=null?`<div class="cabk-r"><span>🧮 ควรมีตอนปิดร้าน</span><b>฿${fmt(expect)}</b></div>`:''}
+      ${edcTgt>0?`<div class="cabk-edc"><small>💳 EDC เดือนนี้ ${edcPct}% ของเป้า</small><div class="eb"><i style="width:${edcPct}%"></i></div></div>`:''}
+      <div style="padding:8px 14px 12px"><button class="btn btn-sm" style="width:100%" onclick="cashSetBranch(${b})">เปิดดูสาขานี้ ›</button></div>
     </div>`;
   }).join('');
-  return `<div class="cash-admin-grid">${cards}</div>`;
+  return kpi+alertHtml+`<div class="cash-admin-grid">${cards}</div>`;
 }
 
 function cashAdminSummary(){
@@ -7875,7 +7930,7 @@ function renderCashPage(){
   const _braw=document.getElementById('cash-branch')?.value;
   // ต้องเลือกสาขาก่อน ถึงจะดู/กรอกข้อมูลได้
   if(_braw===''||_braw==null){
-    el.innerHTML=(isAdmin?cashAdminBranchCards()+cashAdminSummary():'')+`<div class="card" style="text-align:center;padding:2.5rem 1.5rem;color:var(--text3)">
+    el.innerHTML=(isAdmin?cashAdminBranchCards()+`<details class="cabk-more"><summary>🔍 รายละเอียดเชิงลึก — ตารางรวม · มอนิเตอร์เงินสำรอง · แยกชนิดเงิน (กดเปิด)</summary>${cashAdminSummary()}</details>`:'')+`<div class="card" style="text-align:center;padding:2.5rem 1.5rem;color:var(--text3)">
       <div style="font-size:34px;margin-bottom:10px">🏪</div>
       <div style="font-size:15px;font-weight:600;color:var(--text2);margin-bottom:4px">เลือกสาขาก่อน</div>
       <div style="font-size:13px">แตะเลือกสาขาด้านบน เพื่อดูและบันทึกเงินสด${isAdmin?' · หรือดูภาพรวม 3 สาขาด้านบน (กด "เปิดดูสาขานี้" เพื่อทำรายการ)':''}</div>
