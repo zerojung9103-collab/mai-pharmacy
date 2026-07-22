@@ -542,6 +542,11 @@ body.dark .pr-missout{color:#FFC96B;border-color:rgba(240,166,60,.5);background:
 .cash-hero .h{font-family:var(--disp);font-size:19px;font-weight:700;margin:2px 0 12px}
 /* 🆕 v4.54: การ์ดเงินสดรวมในร้าน (สำรอง+ลิ้นชัก+เซฟ) */
 .cash-total{position:relative;overflow:hidden;background:linear-gradient(140deg,#4FBE8A,#217A54);color:#fff;border-radius:18px;padding:16px 18px;margin-bottom:12px;box-shadow:0 8px 20px rgba(33,122,84,.26)}
+.cash-redo{background:var(--surface);border:1.5px solid var(--amber);border-radius:15px;padding:12px 14px;margin-bottom:13px;box-shadow:var(--shadow);display:flex;align-items:center;gap:11px}
+.cash-redo .ic{width:38px;height:38px;border-radius:12px;background:var(--amber-l);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.cash-redo .tx{flex:1;min-width:0}.cash-redo .tx b{font-size:13px;color:var(--text)}.cash-redo .tx div{font-size:10.5px;color:var(--text3);margin-top:1px;line-height:1.4}
+.cash-redo button{background:var(--amber);color:#fff;border:none;border-radius:10px;padding:8px 15px;font-family:var(--font);font-weight:700;font-size:12.5px;cursor:pointer;flex-shrink:0}
+.cash-redo.lock{border-color:var(--border2)}.cash-redo.lock .ic{background:var(--bg)}.cash-redo.lock button{background:var(--bg);color:var(--text3);cursor:not-allowed}
 .cash-total::before{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.16) 1.2px,transparent 1.2px);background-size:15px 15px;opacity:.45;pointer-events:none}
 .cash-total::after{content:'💰';position:absolute;right:-4px;bottom:-14px;font-size:70px;opacity:.14;line-height:1;pointer-events:none}
 .cash-total>*{position:relative}
@@ -1874,8 +1879,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.59.0';
+const APP_VERSION='4.60.0';
 const CHANGELOG=[
+  {v:'4.60.0',date:'2026-07-22',changes:[
+    '🔄 ปิดร้านผิด แก้ไขนับใหม่เองได้ 1 ครั้ง/วัน — ไม่ต้องรอแอดมิน! หลังปิดร้านจะมีปุ่ม "แก้ไข" ในหน้าเงิน กดแล้วระบบยกเลิกรอบก่อนให้อัตโนมัติ (ย้อนเงินเข้าเซฟ+คืนลิ้นชัก) แล้วพานับใหม่ตั้งแต่ต้น · แก้ได้ครั้งเดียว เกินนั้นล็อก ต้องแจ้งแอดมิน (กันแก้ไปมาจนยอดสับสน · แอดมินยังแก้ได้เสมอ)',
+  ]},
   {v:'4.59.0',date:'2026-07-22',changes:[
     '🧹 ถอด "บรีฟ" ในหน้าเงินออกทั้งหมด — ภาพรวมดูที่ dashboard หน้าหลัก กับหน้า "ภาพรวมเงิน 3 สาขา" (การ์ด KPI/แจ้งเตือน/รายสาขา) ที่เดียวจบ ไม่มีข้อมูลซ้ำซ้อนหลายจอให้สับสนอีก · แอปเบาลงอีก ~24KB',
   ]},
@@ -7425,6 +7433,14 @@ function renderCashPage(){
   html+=`<div class="cash-hero"><div class="st">${heroSt}</div><div class="h">${heroH}</div>
     <div class="cash-steps">${heroSteps}</div>${heroBody}</div>`;
 
+  // 🆕 v4.60: แก้ไขปิดร้านใหม่เองได้ 1 ครั้ง (โผล่หลังปิดร้านวันนี้ — ไม่ต้องรอแอดมิน)
+  if(closeEv){
+    if(closeEv.redone)
+      html+=`<div class="cash-redo lock"><div class="ic">🔒</div><div class="tx"><b>แก้ไขปิดร้านไปแล้ว 1 ครั้ง</b><div>ถ้ายอดยังไม่ถูก แจ้งแอดมินให้แก้ให้ (แอดมินแก้ได้เสมอ)</div></div><button disabled>ล็อก</button></div>`;
+    else
+      html+=`<div class="cash-redo"><div class="ic">🔄</div><div class="tx"><b>ปิดร้านผิด? แก้ไขได้อีก 1 ครั้ง</b><div>นับเงินผิด/ลืมลงรายการ — กดแก้ไขนับใหม่ได้เลย ไม่ต้องรอแอดมิน</div></div><button onclick="cashRedoClose(${branch})">แก้ไข</button></div>`;
+  }
+
   // 🆕 การ์ด 3 กอง + คำอธิบายที่มาสั้นๆ
   const _poolCap={
     reserve:_rcDue?'ค้างนับรอบสัปดาห์นี้':'นับตรวจทุกสัปดาห์ ✓',
@@ -8128,8 +8144,9 @@ window.cashCWDone=async function(){
     const expected=Math.round(cashExpectedClose(branch)*100)/100;   // ยอดควรมี (ก่อนเก็บเข้าเซฟรอบนี้)
     const diff=Math.round((counted-expected)*100)/100;
     // 1) ปิดร้าน — บันทึกยอดที่นับได้จริง + ตั้งลิ้นชัก = counted
+    const _isRedo=(window._ccwRedo===branch); if(_isRedo)window._ccwRedo=null; // v4.60: ปิดร้านรอบนี้มาจากการแก้ไข → ติดธง redone (ล็อกไม่ให้แก้ซ้ำ)
     await cashSaveState(branch,{drawer:counted});
-    await cashAddEvent({branch,type:'close',amount:counted,counted,expected,diff,prevDrawer:st.drawer,cashSales,note:'นับลิ้นชักปิดร้าน'});
+    await cashAddEvent({branch,type:'close',amount:counted,counted,expected,diff,prevDrawer:st.drawer,cashSales,note:'นับลิ้นชักปิดร้าน',...(_isRedo?{redone:true}:{})});
     // 2) เก็บส่วนเกินเข้าเซฟ (บันทึกหลัง close)
     if(dep>0){
       await cashSaveDelta(branch,{safe:dep},{drawer:Math.round((counted-dep)*100)/100}); // v4.57: เซฟเป็น delta กันเขียนทับ
@@ -8526,6 +8543,50 @@ window.cashMarkReviewed=async function(evId){
     ev.reviewed=true;ev.reviewedBy=cashWho();
     renderCashPage();showToast('ทำเครื่องหมายว่าตรวจแล้ว');
   }catch(e){showToast('บันทึกไม่สำเร็จ','err');}
+};
+// 🆕 v4.60: แก้ไขปิดร้านใหม่เองได้ 1 ครั้ง/วัน — ย้อนรอบก่อนอัตโนมัติแล้วพานับใหม่ · เกินนั้นล็อก (แอดมินแก้ได้เสมอ)
+// หา deposit ที่เกิดตอนปิดร้านรอบนี้ (ไว้ย้อนคืน) — ตัดเข้าเซฟตอนปิด + เกิดหลัง event ปิด
+function _cashCloseDeposits(branch,closeEv){
+  return cashEvents.filter(e=>+e.branch===+branch&&e.date===closeEv.date&&e.type==='deposit'&&e.note==='ตัดเข้าเซฟตอนปิดร้าน'&&(e.ts||0)>=(closeEv.ts||0));
+}
+window.cashRedoClose=function(branch){
+  const closeEv=cashTodayClose(branch);
+  if(!closeEv){showToast('ยังไม่ได้ปิดร้านวันนี้','err');return;}
+  if(closeEv.redone){showToast('แก้ไขปิดร้านไปแล้ว 1 ครั้ง — ถ้ายังไม่ถูกแจ้งแอดมินให้แก้ให้','err');return;}
+  const counted=closeEv.counted!=null?closeEv.counted:closeEv.amount;
+  const depSum=_cashCloseDeposits(branch,closeEv).reduce((a,e)=>a+(e.amount||0),0);
+  openModal(`<div class="modal-title">🔄 แก้ไขปิดร้านใหม่</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:12px">ระบบจะ<b>ยกเลิกการปิดร้านรอบก่อน</b>แล้วพาคุณนับใหม่ตั้งแต่ต้น (ลงยอดขาย → นับลิ้นชัก → เก็บเข้าเซฟ)</div>
+    <div style="background:var(--bg);border-radius:12px;padding:11px 13px;font-size:12.5px;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;padding:4px 0"><span>รอบก่อนบันทึกไว้</span><b style="font-family:var(--mono)">นับจริง ฿${fmt(counted)}</b></div>
+      ${depSum>0?`<div style="display:flex;justify-content:space-between;padding:4px 0"><span>จะย้อนคืน — เข้าเซฟรอบก่อน</span><b style="font-family:var(--mono)">฿${fmt(depSum)}</b></div>`:''}
+      <div style="display:flex;justify-content:space-between;padding:7px 0 0;border-top:1px dashed var(--border2);margin-top:3px"><span style="color:var(--green-d);font-weight:700">ตั้งต้นนับใหม่ให้อัตโนมัติ</span><b style="color:var(--green-d)">✓</b></div>
+    </div>
+    <div style="background:var(--amber-l);border:1px solid var(--amber);border-radius:12px;padding:11px 13px;font-size:12px;color:var(--amber-t);line-height:1.6;margin-bottom:14px">⚠️ <b>แก้ไขได้ครั้งเดียว</b> — หลังจากนี้ถ้ายังผิดต้องแจ้งแอดมินให้แก้ให้ (กันแก้ไปมาจนยอดสับสน)</div>
+    <div class="modal-footer"><button class="btn" onclick="closeMD()">ยกเลิก</button><button class="btn" style="background:var(--amber);color:#fff;border:none" onclick="cashDoRedoClose(${branch})">แก้ไขนับใหม่ →</button></div>`);
+};
+window.cashDoRedoClose=async function(branch){
+  if(_cashBusy)return;_cashBusy=true;
+  try{
+    const closeEv=cashTodayClose(branch);
+    if(!closeEv){showToast('ไม่พบรายการปิดร้าน','err');return;}
+    if(closeEv.redone){showToast('แก้ไขไปแล้ว 1 ครั้ง','err');return;}
+    const deps=_cashCloseDeposits(branch,closeEv);
+    const depSum=deps.reduce((a,e)=>a+(e.amount||0),0);
+    // ย้อนยอด: ลิ้นชักกลับไปก่อนปิด (prevDrawer) · เซฟลบส่วนที่เข้าไปตอนปิด
+    const prevDrawer=(closeEv.prevDrawer!=null)?closeEv.prevDrawer:cashGet(branch).drawer;
+    await cashSaveDelta(branch,depSum>0?{safe:-depSum}:{},{drawer:Math.round(prevDrawer*100)/100});
+    // ลบ event ปิดร้าน + deposit ของรอบนี้ (ในเครื่องก่อน แล้วลบบน cloud)
+    const rmIds=[closeEv.id,...deps.map(d=>d.id)];
+    cashEvents=cashEvents.filter(e=>!rmIds.includes(e.id));
+    if(isTester)testerCashPersist();
+    else for(const id of rmIds){try{await deleteDoc(doc(db,'cashEvents',id));}catch(e){}}
+    logActivity('cash_redo_close',`แก้ไขปิดร้าน ${BRANCHES[branch]} — ยกเลิกรอบก่อน (นับจริง ฿${fmt(closeEv.counted!=null?closeEv.counted:closeEv.amount)}${depSum>0?` · คืนเซฟ ฿${fmt(depSum)}`:''}) แล้วนับใหม่`);
+    window._ccwRedo=branch; // ให้ปิดร้านรอบใหม่ติดธง redone (ล็อกไม่ให้แก้ซ้ำ)
+    closeMD();
+    setTimeout(()=>cashClosePrompt(branch),120); // พาเข้า wizard นับใหม่ (ตอนนี้ยังไม่มี close event แล้ว ผ่าน guard)
+  }catch(e){showToast('แก้ไขไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
+  finally{_cashBusy=false;}
 };
 window.cashResetAllPrompt=async function(){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
