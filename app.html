@@ -1878,8 +1878,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.58.0';
+const APP_VERSION='4.58.1';
 const CHANGELOG=[
+  {v:'4.58.1',date:'2026-07-22',changes:[
+    '🎯 เอาแถบ "เป้ายอดขายเดือนนี้" ออกจากบรีฟแอดมิน — ดูเป้าที่การ์ดหน้าแรกที่เดียว (แสดงถูกต้อง กดแก้เป้าได้ตรงนั้นเลย) จบปัญหาเลขสองจอไม่ตรงกันถาวร',
+  ]},
   {v:'4.58.0',date:'2026-07-22',changes:[
     '🧰 "ลิ้นชัก" โชว์เงินจริงตอนนี้เหมือนกันทุกจอแล้ว (รวมยอดขายสดวันนี้) — เดิมหน้าภาพรวมเงินรวมยอดขายแล้ว แต่บรีฟแอดมิน/ตารางเชิงลึก/หน้าสาขา/ผู้ช่วย ยังโชว์ค่าที่ไม่รวม ทำให้วันเดียวกันสองจอต่างกันได้หลายพันบาท',
     '📡 แก้ตั้งค่าจากเครื่องไหน เครื่องอื่นเห็นทันที — เดิมเครื่องที่เปิดค้างอยู่จะใช้ค่าเก่าจนกว่าจะปิดเปิดใหม่ (ตั้งค่าเงิน · พิกัด GPS เช็คอิน · สลิป · เหตุผลเบิก · หน้าตาแอป ฯลฯ)',
@@ -7487,28 +7490,8 @@ function cashAdminSummary(){
     BRANCHES.forEach((bn,bi)=>{if(!edcBranchHas(bi))return;EDC_MACHINES.forEach(m=>{const t=edcMachineSum(bi,m.k,moB);const p=Math.min(100,Math.round(t/edcTgtB*100));const pShow=Math.min(999,Math.round(t/edcTgtB*100));const col=pShow>=100?'var(--green)':(pShow>=60?'var(--amber)':'#D96B6B');bars.push(`<div style="display:flex;align-items:center;gap:8px;font-size:11px;padding:2.5px 0"><span style="width:96px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bn} ${m.i}</span><span style="flex:1;height:7px;border-radius:5px;background:var(--border);overflow:hidden"><i style="display:block;height:100%;width:${p}%;background:${col}"></i></span><b style="width:40px;text-align:right;flex-shrink:0">${pShow}%</b></div>`);});});
     if(bars.length)edcSec=`<div style="border-top:1px solid var(--border2);padding-top:8px;margin-top:9px"><div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">💳 EDC เดือนนี้ (เป้า ฿${fmt(edcTgtB)}/เครื่อง)</div>${bars.join('')}</div>`;
   }
-  // 🎯 เป้ายอดขายรายเดือน — แถบความคืบหน้า + ต้องขายวันละเท่าไหร่
-  let targetSec='';
-  {
-    const _tgs=cashCfg.salesTargets||{};
-    const _moT=todayStr().slice(0,7);
-    const _dNow=new Date();
-    const _dim=new Date(_dNow.getFullYear(),_dNow.getMonth()+1,0).getDate();
-    const _daysLeft=_dim-_dNow.getDate()+1;
-    const _expPct=Math.round(_dNow.getDate()/_dim*100); // ผ่านเดือนมากี่ % แล้ว (ไว้เทียบว่าตามเป้าไหม)
-    const _rows=[];
-    BRANCHES.forEach((bn,bi)=>{
-      const tg=+_tgs[String(bi)]||0;if(!tg)return;
-      const sum=salesEntries.filter(e=>+e.branch===+bi&&(e.date||'').startsWith(_moT)).reduce((a,e)=>a+(+e.total||0),0);
-      const pctShow=Math.min(999,Math.round(sum/tg*100));
-      const p=Math.min(100,pctShow);
-      const col=pctShow>=100?'var(--green)':(pctShow>=_expPct-5?'var(--green)':(pctShow>=_expPct-25?'var(--amber)':'#D96B6B'));
-      const remain=Math.round((tg-sum)*100)/100;
-      const sub=pctShow>=100?`ถึงเป้าแล้ว 🎉 เกินมา ฿${fmt(Math.round(sum-tg))}`:`ได้ ฿${fmt(Math.round(sum))} จากเป้า ฿${fmt(tg)} · เหลือ ${_daysLeft} วัน ~วันละ ฿${fmt(Math.ceil(remain/Math.max(1,_daysLeft)))}`;
-      _rows.push(`<div style="display:flex;align-items:center;gap:8px;font-size:11px;padding:2.5px 0"><span style="width:96px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${bn}</span><span style="flex:1;height:7px;border-radius:5px;background:var(--border);overflow:hidden"><i style="display:block;height:100%;width:${p}%;background:${col}"></i></span><b style="width:40px;text-align:right;flex-shrink:0">${pctShow}%</b></div><div style="font-size:10px;color:var(--text3);margin:-1px 0 3px 104px">${sub}</div>`);
-    });
-    if(_rows.length)targetSec=`<div style="border-top:1px solid var(--border2);padding-top:8px;margin-top:9px"><div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">🎯 เป้ายอดขายเดือนนี้</div>${_rows.join('')}</div>`;
-  }
+  // v4.58.1: เอาแถบ "🎯 เป้ายอดขายเดือนนี้" ออกจากบรีฟ (เจ้าของสั่ง) — ดูเป้าที่การ์ดหน้าแรกที่เดียว จบปัญหาเลขสองจอไม่ตรงกันถาวร
+  const targetSec='';
   // ส่วนเสริม: ตารางรายสาขาเต็ม (ของเดิม)
   const tableSec=cfg.secTable?`<div style="overflow-x:auto;margin-top:10px;border-top:1px solid var(--border2);padding-top:9px">
       <div style="font-size:10.5px;font-weight:800;color:var(--text2);margin-bottom:3px">📋 ตารางรายสาขา</div>
