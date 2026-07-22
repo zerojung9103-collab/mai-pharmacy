@@ -654,8 +654,13 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.4.1';
+const POS_VERSION='2.4.2';
 const POS_CHANGELOG=[
+  {v:'2.4.2',date:'2026-07-21',changes:[
+    '↩️ รับคืนสินค้า: คืนสต็อกครบถูกต้องขึ้น — กรณีบิลเดียวขายสินค้าตัวเดียวกันหลายหน่วย (เช่น 1 กล่อง + 3 แผง จากล็อตเดียวกัน) แล้วรับคืนทั้งบิล เดิมคืนสต็อกกลับไม่ครบ ตอนนี้คืนครบทุกชิ้น',
+    '⭐ แต้มคืน: ทยอยคืนหลายรอบแล้วแต้มไม่เกินของจริง — เดิมปัดเศษแต่ละรอบอาจทำให้คืนแต้มเกินที่ลูกค้าใช้ไป 1 แต้ม ตอนนี้คุมเพดานให้พอดี',
+    '🏷 หน้ารับของ: เปลี่ยนป้าย "ทุนต่อชิ้น" เป็น "ทุนต่อหน่วยที่รับ" ให้ชัด — เวลารับเป็นกล่องให้ใส่ทุนต่อกล่อง ระบบหารเป็นทุนต่อชิ้นให้เอง (กันกรอกทุนผิดจนกำไรเพี้ยน)',
+  ]},
   {v:'2.4.1',date:'2026-07-20',changes:[
     '🧭 แถบนำทางซ้าย: ชี้เมาส์ค้างที่แถบแล้วขยายออกมาโชว์ชื่อเมนูเต็มๆ (ขายหน้าร้าน · สินค้า & สต็อก · ...) เลื่อนเมาส์ออกก็หุบกลับเอง — ขยายแบบลอยทับ ไม่ดันเนื้อหาจอ',
   ]},
@@ -1642,7 +1647,7 @@ $('rc-add').addEventListener('click',()=>{
     '<div class="ff"><label>หน่วยที่รับ</label><select id="ra-unit"><option value="-1">หน่วยหลัก</option></select></div>'+
     '<div class="ff"><label>เลขล็อต</label><input id="ra-lot"></div>'+
     '<div class="ff"><label>วันหมดอายุ</label><input id="ra-exp" type="month"></div>'+
-    '<div class="ff"><label>ทุนต่อชิ้น (บาท)</label><input id="ra-cost" type="number" min="0" step="0.01"></div></div>'+
+    '<div class="ff"><label>ทุนต่อหน่วยที่รับ (บาท)</label><input id="ra-cost" type="number" min="0" step="0.01" placeholder="เช่น รับเป็นกล่อง=ทุน/กล่อง"></div></div>'+
     '<div class="md-btns"><button class="sbtn" id="ra-cancel">ยกเลิก</button><button class="gbtn" id="ra-ok">เพิ่มเข้าใบรับ</button></div>');
   let pick=null;
   $('ra-q').addEventListener('input',()=>{
@@ -1847,20 +1852,27 @@ function openReturnDlg(billId){
     /* สัดส่วนที่คืน → คืนแต้มที่ใช้ + หักแต้มที่เคยได้ ตามสัดส่วน */
     const retSub=items.reduce((s2,x)=>s2+x.qty*x.price,0);
     const share=b.sub>0?retSub/b.sub:0;
-    const ptsBack=Math.round((b.ptsUsed||0)*share);
-    const ptsClaw=Math.round((b.pointsEarned||0)*share);
+    /* 🆕 v2.4.2: กันแต้มคืน/เรียกคืนสะสมเกินของจริง เมื่อทยอยคืนหลายรอบ (เดิมปัดเศษแต่ละรอบทำให้เกินได้) */
+    let prevPtsBack=0,prevPtsClaw=0;
+    Object.values(todayReturns).forEach(r=>{if(r.billId===b.id){prevPtsBack+=(+r.ptsBack||0);prevPtsClaw+=(+r.ptsClaw||0);}});
+    const ptsBack=Math.max(0,Math.min(Math.round((b.ptsUsed||0)*share),(b.ptsUsed||0)-prevPtsBack));
+    const ptsClaw=Math.max(0,Math.min(Math.round((b.pointsEarned||0)*share),(b.pointsEarned||0)-prevPtsClaw));
     /* ล็อตที่เคยคืนไปแล้วของบิลนี้ (กันคืนซ้ำเข้าล็อตผิด) */
     const prevLot={};Object.values(todayReturns).forEach(r=>{if(r.billId===b.id)(r.retLots||[]).forEach(rl=>{prevLot[rl.lotId]=(prevLot[rl.lotId]||0)+rl.qty;});});
-    const retLots=[];
+    /* 🆕 v2.4.2: รวมจำนวนที่ขายจากแต่ละล็อต (ทุกบรรทัดในบิลที่กำลังคืน) — เพดานคืนคิดจากยอดล็อตรวม
+       กันบั๊กสินค้าตัวเดียวกันขาย 2 หน่วยจากล็อตเดียว แล้วคืนสต็อกขาด */
+    const soldByLot={};items.forEach(x=>(x.srcLots||[]).forEach(u=>{soldByLot[u.lotId]=(soldByLot[u.lotId]||0)+u.qty;}));
+    const retLots=[];const givenByLot={};
     for(const x of items){
       let back=x.qty*(x.factor||1);
       for(const u of x.srcLots){
         if(back<=0)break;
-        const cap=u.qty-(prevLot[u.lotId]||0);
+        /* คืนได้ = ที่ขายจากล็อตนี้รวม − ที่เคยคืนไปแล้ว − ที่คืนไปในรอบนี้ */
+        const cap=(soldByLot[u.lotId]||0)-(prevLot[u.lotId]||0)-(givenByLot[u.lotId]||0);
         if(cap<=0)continue;
         const give=Math.min(back,cap);
         retLots.push({lotId:u.lotId,qty:give});
-        prevLot[u.lotId]=(prevLot[u.lotId]||0)+give;
+        givenByLot[u.lotId]=(givenByLot[u.lotId]||0)+give;
         back-=give;
       }
     }

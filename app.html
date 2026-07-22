@@ -1838,8 +1838,13 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.54.0';
+const APP_VERSION='4.55.0';
 const CHANGELOG=[
+  {v:'4.55.0',date:'2026-07-21',changes:[
+    '🔔 ปิดร้านแล้วเงินไม่ตรง (ขาด/เกิน) ระบบแจ้งเตือนแอดมินทันที — เดิมปุ่มปิดร้านหลักลืมส่งแจ้งเตือน (ปุ่มแบบเก่าส่ง แต่ปุ่มที่ใช้จริงไม่ส่ง) ตอนนี้ส่งครบทุกทาง',
+    '📴 เน็ตหลุดก็ทำงานต่อได้ไม่ค้าง — เช็คอิน/เช็คเอาท์ และบันทึกเงินสด (เปิด-ปิดร้าน/ทำรายการ) บันทึกลงเครื่องทันที ไม่ต้องรอเซิร์ฟเวอร์ พอเน็ตกลับมาระบบส่งขึ้นเองอัตโนมัติ (เดิมถ้าเน็ตหลุดหน้าจะค้าง ดูเหมือนพัง)',
+    '🧮 คิดเงินเดือนไม่พังแล้ว ถ้ามีกะที่ยังไม่ได้ใส่เวลาเข้า-ออก — ระบบข้ามกะนั้นไปแทนที่จะคิดพลาดทั้งชุด (เดิมถ้ามีกะไม่มีเวลาแม้แต่คนเดียว อาจคิดเงินเดือนคนนั้นเป็นค่าว่าง/พัง)',
+  ]},
   {v:'4.54.0',date:'2026-07-21',changes:[
     '💰 หน้า "เงินสด & ตู้เซฟ" แต่งใหม่ให้อ่านง่ายสบายตาขึ้น — เพิ่มการ์ด "เงินสดในร้านตอนนี้" ตัวใหญ่บนสุด (รวมสำรอง+ลิ้นชัก+ตู้เซฟให้เห็นในตาเดียว) · การ์ด 3 กองมีแถบสีประจำกอง (สำรอง=ฟ้า · ลิ้นชัก=เขียว · ตู้เซฟ=ทอง) แยกด้วยตาแวบเดียว',
     '🪙 นับเงินแยกชนิดสวยขึ้น — แต่ละแถวมีหน้าแบงค์สีตามธนบัตรจริง (พันม่วง · ร้อยแดง · ห้าสิบฟ้า · ยี่สิบเขียว · เหรียญทอง) กด +/− หรือคีย์ตรงๆ ก็ได้เหมือนเดิม',
@@ -7102,16 +7107,16 @@ function cashCloseCalc(branch,ev){
 async function cashSaveState(branch,patch){
   const cur=cashState[String(branch)]||{};
   const next={reserve:0,drawer:0,safe:0,...cur,...patch,updatedAt:new Date().toISOString()};
-  if(isTester){cashState[String(branch)]=next;testerCashPersist();return;} // 🧪 จำลองในเครื่อง
-  await setDoc(doc(db,'cashState',String(branch)),next);
-  cashState[String(branch)]=next;
+  cashState[String(branch)]=next; // 🆕 v4.55: อัปเดตในเครื่องก่อน — เน็ตหลุดก็ทำงานต่อได้ ไม่ค้าง
+  if(isTester){testerCashPersist();return;} // 🧪 จำลองในเครื่อง
+  setDoc(doc(db,'cashState',String(branch)),next).catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ขึ้น cloud ไม่ได้: '+(e?.message||e),'err')); // ไม่ await — กันหน้าค้างตอนออฟไลน์ (Firestore เก็บลงเครื่องแล้ว sync เองเมื่อเน็ตกลับ)
 }
 async function cashAddEvent(ev){
   const ts=Date.now();const id=`ev_${ts}_${Math.random().toString(36).slice(2,7)}`;
   const full={ts,date:todayStr(),by:memberName(currentUser.uid)||profile?.nickname||'ผู้ใช้',byUid:currentUser.uid,...ev};
   if(isTester){full.isTest=true;cashEvents.unshift({id,...full});testerCashPersist();return id;} // 🧪 จำลองในเครื่อง
-  await setDoc(doc(db,'cashEvents',id),full);
-  cashEvents.unshift({id,...full});
+  cashEvents.unshift({id,...full}); // 🆕 v4.55: อัปเดตในเครื่องก่อน
+  setDoc(doc(db,'cashEvents',id),full).catch(e=>showToast('บันทึกรายการเงินในเครื่องแล้ว แต่ sync ไม่ได้: '+(e?.message||e),'err')); // ไม่ await — กันหน้าค้างตอนออฟไลน์
   return id;
 }
 
@@ -8670,6 +8675,7 @@ window.cashCWDone=async function(){
     const dt=diff===0?'เงินตรงพอดี ✓':(diff>0?`เกิน ฿${fmt(Math.abs(diff))}`:`ขาด ฿${fmt(Math.abs(diff))}`);
     showToast(`ปิดร้านเรียบร้อย 🌙 ${dt}`);
     logActivity('cash_close',`ปิดร้าน ${BRANCHES[branch]} นับได้ ฿${fmt(counted)}${dep>0?` · เก็บเข้าเซฟ ฿${fmt(dep)}`:''} · คงเหลือ ฿${fmt(Math.round((counted-dep)*100)/100)}`);
+    if(!isTester&&diff!==0)notifyEvent('close_diff',{branch,diff,by:cashWho()}); // 🔔 v4.55: แจ้งเตือนแอดมินเมื่อปิดร้านเงินไม่ตรง (เดิม path wizard ลืมส่ง)
     if(window.refreshTodoStatus)refreshTodoStatus();
     setTimeout(()=>showNextStep('close',branch),280);
   }catch(e){showToast('บันทึกไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
@@ -10291,8 +10297,10 @@ async function _prComputeHours(uid, monthStr){
   const myShifts=[...shifts.filter(s=>s.staffId===uid&&s.date?.startsWith(monthStr))].sort((a,b)=>a.date.localeCompare(b.date));
   let rawHours=0, lateDeduction=0, lateCount=0, minorLateAccum=0, minorLateEvents=0, accumDeductCount=0;
   myShifts.forEach(s=>{
+    if(!s.start||!s.end)return; // 🆕 v4.55: กะที่ยังไม่ใส่เวลาเข้า/ออก — ข้ามไม่คิด (กันคิดเงินเดือนพังทั้งชุด)
     const[sh,sm]=s.start.split(':').map(Number);
     const[eh,em]=s.end.split(':').map(Number);
+    if([sh,sm,eh,em].some(n=>isNaN(n)))return; // เวลาผิดรูปแบบ — ข้าม (กันชั่วโมงเป็น NaN)
     let shiftHrs=(eh+em/60)-(sh+sm/60);
     if(shiftHrs<0)shiftHrs+=24; // เวรข้ามคืน เช่น 20:00-04:00
     rawHours+=shiftHrs;
@@ -14197,7 +14205,7 @@ window.doCheckin=function(type){
         }
       }
 
-      await setDoc(doc(db,'checkins',id),rec);
+      setDoc(doc(db,'checkins',id),rec).catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+(e?.message||e),'err')); // 🆕 v4.55: ไม่ await — เน็ตหลุดก็เช็คอินได้ ไม่ค้าง (sync เองเมื่อเน็ตกลับ)
       // toast บอกสถานะรัศมีตอนเช็คเอาท์
       const radiusNote=(type==='out'&&!inRadius)?` (นอกรัศมี${outDist?' ~'+outDist+'ม.':''})`:'';
       showToast(`${type==='in'?'เช็คอิน':'เช็คเอาท์'}สำเร็จ ${timeStr} ที่${BRANCHES[matchedBranch]}${radiusNote}`);
@@ -14236,7 +14244,7 @@ window.doCheckin=function(type){
         rec.branchOut=rec.branchIn!=null?rec.branchIn:0;
         rec.checkOutInRadius=false;rec.checkOutDistance=null;rec.checkOutNoGPS=true;
         rec.uid=currentUser.uid;rec.name=profile?`${profile.firstName||''} ${profile.lastName||''}`.trim():'';rec.date=todayStr();
-        await setDoc(doc(db,'checkins',id),rec);
+        setDoc(doc(db,'checkins',id),rec).catch(e=>showToast('บันทึกในเครื่องแล้ว แต่ sync ไม่ได้: '+(e?.message||e),'err')); // 🆕 v4.55: ไม่ await — กันหน้าค้างตอนออฟไลน์
         showToast(`เช็คเอาท์สำเร็จ ${timeStr} (ไม่มีตำแหน่ง GPS)`);
         logActivity('checkout',`ออกงาน ${timeStr} (ไม่มี GPS)`);
         renderCheckinPage();
