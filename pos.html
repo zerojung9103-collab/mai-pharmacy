@@ -433,6 +433,7 @@ kbd{font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:5px;bac
         <div class="nvc" id="nav-rep"><span class="ic">📊</span><div class="t">ยอดขาย & กำไร</div><div class="s">รายเดือน · ขายดี · CSV</div></div>
         <div class="nvc" id="nav-upd" style="flex:0 1 calc((100% - 28px)/3)"><span class="ic">🔄</span><div class="t">อัปเดตโปรแกรม</div><div class="s"><span id="hm-ver"></span> · มีอะไรใหม่</div></div>
       </div>
+      <div id="hm-exp"></div><!-- 2.5.0: การ์ดเตือนยาใกล้หมดอายุ -->
     </div>
   </div>
 </div>
@@ -654,8 +655,13 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.4.3';
+const POS_VERSION='2.5.0';
 const POS_CHANGELOG=[
+  {v:'2.5.0',date:'2026-07-22',changes:[
+    '🧠 แนะนำจำนวนสั่งซื้อ — หน้า "สินค้าใกล้หมด" มีคอลัมน์ "แนะนำสั่ง" คิดจากยอดขายจริง 30 วันหลังสุด (ให้พอขาย 30 วัน) แก้เลขเองได้ และเลขนี้จะถูกเติมลงช่อง "จำนวนที่สั่ง" ในใบสั่งซื้อที่พิมพ์ให้เลย',
+    '⏰ เตือนยาใกล้หมดอายุ — หน้าแรกมีการ์ดแสดงล็อตที่จะหมดอายุใน 90 วันของสาขานั้น (แดง = ใน 30 วัน/หมดแล้ว) พร้อมมูลค่าทุนที่เสี่ยง กดไปดูสินค้าได้ทันที',
+    '🚨 เตือนขายต่ำกว่าทุน — ถ้าราคาขายในตะกร้าต่ำกว่าทุนล็อต (เช่น แก้ราคาผิด) จะขึ้นเตือนสีแดงทั้งในตะกร้าและตอนกดรับเงิน บอกชัดว่าขาดทุนกี่บาท — ตั้งใจลดราคาก็ขายต่อได้ปกติ',
+  ]},
   {v:'2.4.3',date:'2026-07-22',changes:[
     '🔢 เลขที่บิลไม่ซ้ำกันแล้ว กรณีขายรัวๆ ติดกันเร็วมากในเครื่องเดียว (เพิ่มตัวนับสำรองในเครื่อง)',
     '📊 รายงานยอดขาย & กำไร ตัดบิลที่ยกเลิก (void) ออกจากการคำนวณแล้ว — เดิมนับรวม ทำให้ยอดขาย/กำไรโชว์เกินจริง',
@@ -899,6 +905,42 @@ function enterHome(b){
   $('hm-who').textContent='ผู้ขาย: '+displayName();
   $('hm-ver').textContent='POS '+POS_VERSION;
   show('v-home');
+  startProductSync();renderExpiryHome(); /* 2.5.0: โหลดล็อตเพื่อการ์ดเตือนหมดอายุ */
+}
+/* ═════ 2.5.0 ข: เตือนยาใกล้หมดอายุ (การ์ดหน้าแรก) ═════ */
+/* expiry เป็น 'YYYY-MM' (หรือ 'YYYY-MM-DD') → เหลือกี่วันก่อนหมดอายุ (ไม่ระบุวัน = นับถึงวันสุดท้ายของเดือน) */
+function expDays(exp){
+  if(!exp)return null;
+  const p=String(exp).split('-');if(p.length<2||!+p[0]||!+p[1])return null;
+  const end=p.length>=3&&+p[2]?new Date(+p[0],+p[1]-1,+p[2]):new Date(+p[0],+p[1],0);
+  return Math.floor((end-new Date())/86400000);
+}
+function renderExpiryHome(){
+  const el=$('hm-exp');if(!el)return;
+  const risk=Object.values(lots)
+    .filter(l=>+l.branch===+curBranch&&(+l.qty||0)>0)
+    .map(l=>({l,d:expDays(l.expiry)}))
+    .filter(x=>x.d!=null&&x.d<=90)
+    .sort((a,b)=>a.d-b.d);
+  if(!risk.length){el.innerHTML='';return;}
+  let costRisk=0,unkCost=0;
+  risk.forEach(x=>{if(x.l.cost!=null)costRisk+=x.l.cost*(+x.l.qty||0);else unkCost++;});
+  const chip=d=>d<0?'<span style="background:#FDE8E8;color:var(--red-t);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700">หมดอายุแล้ว</span>'
+    :d<=30?'<span style="background:#FDE8E8;color:var(--red-t);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700">อีก '+d+' วัน</span>'
+    :'<span style="background:var(--amber-l);color:var(--amber-t);border-radius:99px;padding:2px 10px;font-size:11px;font-weight:700">อีก '+d+' วัน</span>';
+  el.innerHTML='<div class="card" style="margin-top:14px;border-left:4px solid var(--red-t);max-width:980px">'+
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px"><b style="font-size:14px">⏰ ยาใกล้หมดอายุใน 90 วัน — สาขา'+esc(BRANCHES[curBranch])+'</b>'+
+    '<span style="font-size:12px;color:var(--text3)">'+risk.length+' ล็อต · ทุนที่เสี่ยง ฿'+fmt(Math.round(costRisk))+(unkCost?' (+'+unkCost+' ล็อตไม่ทราบทุน)':'')+'</span></div>'+
+    risk.slice(0,5).map(x=>{
+      const p=products[x.l.pid]||{name:'(สินค้าไม่พบ)'};
+      return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--border);font-size:12.5px">'+
+        '<div style="flex:1;min-width:0"><b>'+esc(p.name)+'</b> <span style="color:var(--text3)">ล็อต '+esc(x.l.lotNo||'-')+' · เหลือ '+(+x.l.qty||0)+' '+esc(p.unit||'ชิ้น')+(x.l.cost!=null?' · ทุน ฿'+fmt(Math.round(x.l.cost*(+x.l.qty||0))):'')+'</span></div>'+
+        chip(x.d)+
+        '<button class="sbtn hm-exp-go" data-pid="'+x.l.pid+'" style="padding:5px 12px;font-size:12px">ไปดูสินค้า</button></div>';
+    }).join('')+
+    (risk.length>5?'<div style="font-size:11.5px;color:var(--text3);padding-top:7px;border-top:1px solid var(--border)">…และอีก '+(risk.length-5)+' ล็อต (ระบบขายตัดล็อตที่หมดอายุก่อนให้อยู่แล้ว — FEFO)</div>':'')+
+    '</div>';
+  el.querySelectorAll('.hm-exp-go').forEach(b=>b.addEventListener('click',()=>{openProduct(b.dataset.pid);}));
 }
 $('hm-switch').addEventListener('click',()=>{localStorage.removeItem(LS_BRANCH);renderBranches();show('v-branch');});
 
@@ -953,6 +995,7 @@ function startProductSync(){
     });
     if($('v-prod').classList.contains('on'))renderProducts();
     if($('v-sell').classList.contains('on'))renderGrid();
+    if($('v-home').classList.contains('on'))renderExpiryHome(); /* 2.5.0: อัปเดตการ์ดหมดอายุ */
   });
 }
 /* คงเหลือของสินค้า แยกสาขา = รวมทุกล็อต */
@@ -1334,11 +1377,30 @@ function addToCart(pid,uIdx=-1){
 /* ── ตะกร้า (ฝั่งขวาแบบ mockup) ── */
 function cartSub(){return cart.reduce((s,c)=>s+c.price*c.qty,0);}
 function cartTotal(){return Math.max(0,cartSub()-billDisc);}
+/* ═════ 2.5.0 ค: ทุนโดยประมาณของรายการในตะกร้า (ตัดตามล็อต FEFO เหมือนตอนขายจริง) ═════ */
+function cartLineCost(c){
+  let need=c.qty*(c.factor||1),cost=0,unk=0;
+  for(const l of lotsOf(c.pid)){
+    if(+l.branch!==+curBranch)continue;
+    const q=Math.min(need,+l.qty||0);
+    if(q<=0)continue;
+    if(l.cost==null)unk+=q;else cost+=l.cost*q;
+    need-=q;if(need<=0)break;
+  }
+  if(need>0)unk+=need;
+  return {cost:Math.round(cost*100)/100,unk};
+}
+/* ขายต่ำกว่าทุนแน่ๆ = รายรับของบรรทัด < ทุนส่วนที่รู้ (ล็อตไม่ทราบทุนไม่นับ — ไม่เดา) */
+function cartLineBelow(c){const lc=cartLineCost(c);return lc.cost>0&&c.price*c.qty<lc.cost-0.001?Math.round((lc.cost-c.price*c.qty)*100)/100:0;}
 function renderCart(){
   const mem=memberSel?memberById(memberSel):null;
   /* กล่องเตือนแพ้ยา */
   const hits=mem?cart.map(c=>allergyHit(mem,products[c.pid]||{name:c.name})).filter(Boolean):[];
-  $('sl-alert').innerHTML=hits.length?'<div class="s-alert"><span class="ax">⚠️</span><div class="at"><b>ลูกค้าแพ้ยา: '+esc(mem.allergies||'')+'</b><br>ในตะกร้ามียาที่อาจชนกับที่แพ้ ('+hits.map(esc).join(', ')+') — โปรดตรวจสอบก่อนจ่าย</div></div>':'';
+  let alertHtml=hits.length?'<div class="s-alert"><span class="ax">⚠️</span><div class="at"><b>ลูกค้าแพ้ยา: '+esc(mem.allergies||'')+'</b><br>ในตะกร้ามียาที่อาจชนกับที่แพ้ ('+hits.map(esc).join(', ')+') — โปรดตรวจสอบก่อนจ่าย</div></div>':'';
+  /* 2.5.0 ค: เตือนขายต่ำกว่าทุน */
+  const belowN=cart.filter(c=>cartLineBelow(c)>0).length;
+  if(belowN)alertHtml+='<div class="s-alert" style="background:#FDE8E8;border-color:#F5B5B0"><span class="ax">🚨</span><div class="at"><b>'+belowN+' รายการราคาขายต่ำกว่าทุน</b> — ขายแล้วขาดทุนทันที เช็คราคาก่อนคิดเงิน (ถ้าตั้งใจลดก็ขายต่อได้)</div></div>';
+  $('sl-alert').innerHTML=alertHtml;
   /* รายการ */
   if(!cart.length){
     $('sl-cart').innerHTML='<div class="s-empty">🛒 บิลว่าง — ยิงบาร์โค้ด พิมพ์ค้น หรือแตะการ์ดสินค้าด้านซ้าย</div>';
@@ -1351,10 +1413,12 @@ function renderCart(){
       const uSel=hasUnits?'<select class="uSel" data-i="'+i+'"><option value="-1"'+((c.uIdx??-1)===-1?' selected':'')+'>'+esc(p.unit||'หน่วย')+'</option>'+
         p.units.map((u,x)=>'<option value="'+x+'"'+(c.uIdx===x?' selected':'')+'>'+esc(u.name)+' (='+u.factor+')</option>').join('')+'</select>':esc(c.unit||'');
       const hit=mem?allergyHit(mem,p):null;
+      const below=cartLineBelow(c); /* 2.5.0 ค */
       return '<div class="s-ci"><div class="cn"><div class="t">'+esc(c.name)+(hit?' 🚫':'')+'</div>'+
         '<div class="u">฿'+fmt(c.price)+' × '+c.qty+' '+uSel+
         ((c.factor||1)>1?' <span>= '+baseNeed+' '+esc(p.unit||'')+'</span>':'')+
-        (st<baseNeed?' <span style="color:var(--red-t);font-weight:700">⚠️เกินคงเหลือ('+st+')</span>':'')+'</div></div>'+
+        (st<baseNeed?' <span style="color:var(--red-t);font-weight:700">⚠️เกินคงเหลือ('+st+')</span>':'')+'</div>'+
+        (below?'<div style="color:var(--red-t);font-size:11px;font-weight:700;margin-top:2px">🚨 ต่ำกว่าทุน ฿'+fmt(below)+' (ทุนล็อต ≈฿'+fmt(cartLineCost(c).cost)+')</div>':'')+'</div>'+
         '<div class="s-qty"><button class="bt" data-i="'+i+'" data-d="-1">−</button><span class="q">'+c.qty+'</span><button class="bt" data-i="'+i+'" data-d="1">＋</button></div>'+
         '<div class="lt">฿'+fmt(c.price*c.qty)+'</div><button class="rmv" data-i="'+i+'">✕</button></div>';
     }).join('');
@@ -1415,8 +1479,10 @@ function openPay(){
   if(!cart.length)return;
   payMethod='cash';
   const over=cart.filter(c=>stockOf(c.pid)[curBranch]<c.qty*(c.factor||1));
+  const belowSum=cart.reduce((s,c)=>s+cartLineBelow(c),0); /* 2.5.0 ค */
   openMD(`<h3>💵 รับเงิน</h3>
     ${over.length?`<div style="background:var(--amber-l);color:var(--amber-t);font-size:12px;border-radius:9px;padding:8px 12px;margin-bottom:8px">⚠️ ${over.length} รายการขายเกินคงเหลือในระบบ — กดชำระได้ แต่ไปเช็คสต็อกทีหลังด้วย</div>`:''}
+    ${belowSum>0?`<div style="background:#FDE8E8;color:var(--red-t);font-size:12px;border-radius:9px;padding:8px 12px;margin-bottom:8px">🚨 บิลนี้มีรายการขายต่ำกว่าทุน รวมขาดทุน ฿${fmt(belowSum)} — ถ้าตั้งใจลดราคาก็กดยืนยันได้เลย</div>`:''}
     <div class="pay-total" id="pay-eff">฿${fmt(cartTotal())}</div>
     ${memberSel?`<div style="background:var(--blue-l);border-radius:10px;padding:9px 13px;margin-bottom:10px;font-size:12.5px">👤 <b>${esc(memberById(memberSel)?.name||'')}</b> · มี ⭐ ${(+memberById(memberSel)?.points||0).toLocaleString()} แต้ม
       <span style="float:right">ใช้แต้ม (1 แต้ม = ฿${posCfg.redeemRate}) <input id="p-pts" type="number" min="0" max="${Math.min(+memberById(memberSel)?.points||0,Math.floor(cartTotal()/(posCfg.redeemRate||1)))}" value="0" style="width:70px;border:1.5px solid var(--border2);border-radius:8px;padding:3px 7px"></span></div>`:''}
@@ -2449,20 +2515,25 @@ function renderLow(){
     return {p,stock,perDay,daysLeft,lowByReorder};
   }).filter(r=>r.daysLeft<=th||r.lowByReorder).sort((a,b)=>a.daysLeft-b.daysLeft);
   $('lw-count').textContent=rows.length+' รายการเข้าเกณฑ์';
-  $('lw-table').innerHTML='<tr><th></th><th>สินค้า</th><th>คงเหลือ</th><th>ขายเฉลี่ย/วัน</th><th>พอขายอีก</th><th>จุดสั่งซื้อ</th><th>ผู้ขายล่าสุด</th></tr>'+
+  $('lw-table').innerHTML='<tr><th></th><th>สินค้า</th><th>คงเหลือ</th><th>ขายเฉลี่ย/วัน</th><th>พอขายอีก</th><th>🧠 แนะนำสั่ง<br><small style="font-weight:400">(พอขาย 30 วัน · แก้ได้)</small></th><th>จุดสั่งซื้อ</th><th>ผู้ขายล่าสุด</th></tr>'+
     rows.slice(0,150).map(r=>{
       const lastVen=lastVendorOf(r.p.id);
+      /* 2.5.0 ก: แนะนำจำนวนสั่ง = ยอดพอขาย 30 วัน − ของที่เหลือ (คิดจากยอดขายจริง 30 วันหลังสุด) */
+      const suggest=r.perDay>0?Math.max(0,Math.ceil(r.perDay*30-r.stock)):0;
       return '<tr><td><input type="checkbox" class="lw-ck" data-pid="'+r.p.id+'" checked></td><td>'+esc(r.p.name)+'</td>'+
       '<td style="text-align:center;font-family:var(--mono)">'+r.stock+'</td>'+
       '<td style="text-align:center">'+(r.perDay?r.perDay.toFixed(1):'-')+'</td>'+
       '<td style="text-align:center;font-weight:700;color:'+(r.daysLeft<=7?'var(--red-t)':'var(--amber-t)')+'">'+(r.daysLeft>=9999?'ไม่มียอดขาย':'~'+Math.floor(r.daysLeft)+' วัน')+'</td>'+
+      '<td style="text-align:center"><input type="number" class="lw-qty" data-pid="'+r.p.id+'" min="0" value="'+(suggest||'')+'" style="width:66px;border:1.5px solid var(--border2);border-radius:8px;padding:4px 6px;text-align:center;font-weight:700;color:var(--green-dd);font-family:var(--mono)"></td>'+
       '<td style="text-align:center">'+(r.p.reorder||'-')+(r.lowByReorder?' ⚠️':'')+'</td>'+
       '<td style="font-size:11px">'+esc(lastVen||'-')+'</td></tr>';
-    }).join('')||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:14px">ไม่มีสินค้าเข้าเกณฑ์ 🎉</td></tr>';
+    }).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:14px">ไม่มีสินค้าเข้าเกณฑ์ 🎉</td></tr>';
 }
 $('lw-po').addEventListener('click',()=>{
   const picks=[...document.querySelectorAll('.lw-ck')].filter(c=>c.checked).map(c=>c.dataset.pid);
   if(!picks.length){showToast('ติ๊กเลือกสินค้าที่จะสั่งก่อนครับ','err');return;}
+  /* 2.5.0 ก: เอาเลขแนะนำ (ที่ผู้ใช้แก้ได้) ไปเติมช่อง "จำนวนที่สั่ง" ในใบสั่งซื้อ */
+  const qmap={};document.querySelectorAll('.lw-qty').forEach(i=>{if(+i.value>0)qmap[i.dataset.pid]=+i.value;});
   const byVendor={};
   picks.forEach(pid=>{
     const p=products[pid];if(!p)return;
@@ -2474,7 +2545,7 @@ $('lw-po').addEventListener('click',()=>{
     '<div style="font-weight:800;font-size:17px">ใบสั่งซื้อ — ใหม่เภสัช สาขา'+esc(BRANCHES[curBranch])+'</div>'+
     '<div style="font-size:12px;margin:3px 0 10px">ผู้ขาย: '+esc(v)+' · วันที่ '+d.getDate()+'/'+(d.getMonth()+1)+'/'+(d.getFullYear()+543)+'</div>'+
     '<table style="width:100%;border-collapse:collapse;font-size:12px"><tr>'+['ลำดับ','รายการ','คงเหลือ','จำนวนที่สั่ง','หมายเหตุ'].map(h=>'<th style="border:1px solid #000;padding:5px 8px">'+h+'</th>').join('')+'</tr>'+
-    ps.map((p,i)=>'<tr><td style="border:1px solid #000;padding:5px 8px;text-align:center">'+(i+1)+'</td><td style="border:1px solid #000;padding:5px 8px">'+esc(p.name)+'</td><td style="border:1px solid #000;padding:5px 8px;text-align:center">'+stockOf(p.id)[curBranch]+'</td><td style="border:1px solid #000;padding:5px 8px"></td><td style="border:1px solid #000;padding:5px 8px"></td></tr>').join('')+
+    ps.map((p,i)=>'<tr><td style="border:1px solid #000;padding:5px 8px;text-align:center">'+(i+1)+'</td><td style="border:1px solid #000;padding:5px 8px">'+esc(p.name)+'</td><td style="border:1px solid #000;padding:5px 8px;text-align:center">'+stockOf(p.id)[curBranch]+'</td><td style="border:1px solid #000;padding:5px 8px;text-align:center;font-weight:700">'+(qmap[p.id]||'')+'</td><td style="border:1px solid #000;padding:5px 8px"></td></tr>').join('')+
     '</table><div style="margin-top:14px;font-size:12px">ผู้สั่ง: '+esc(displayName())+' ____________________</div></div>').join('');
   printHTML(sheets,'size:A4 portrait;margin:0');
   addDoc(collection(db,'posPOs'),{date:todayStr(),branch:curBranch,vendors:Object.keys(byVendor),count:picks.length,by:displayName(),at:new Date().toISOString()}).catch(()=>{});
