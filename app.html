@@ -1876,8 +1876,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.57.0';
+const APP_VERSION='4.57.1';
 const CHANGELOG=[
+  {v:'4.57.1',date:'2026-07-22',changes:[
+    '🎯 แก้เป้ายอดขายไม่ตรงกันระหว่างจอ — เดิม "แก้เป้า" ที่การ์ดหน้าแรก กับ "เป้ายอดขาย" ในตั้งค่าเงิน เก็บแยกกันคนละที่ ทำให้แถบในบรีฟแอดมินโชว์เลขเก่า ตอนนี้บันทึกจากจอไหนก็อัปเดตตรงกันทุกจอ (บันทึกเป้าใหม่อีกครั้งหนึ่ง เลขจะตรงกันทันที)',
+  ]},
   {v:'4.57.0',date:'2026-07-22',changes:[
     '🛡️ กันยอดเงินเพี้ยนเมื่อ 2 เครื่องทำรายการพร้อมกัน — เบิกสำรอง/เติมเงิน/เข้าเซฟ/นำออก/ยกเลิก/แก้รายการ เปลี่ยนเป็นบันทึกแบบ "บวก-ลบ" (เดิมเครื่องที่บันทึกทีหลังจะเขียนทับ ทำให้รายการของอีกเครื่องหาย)',
     '💳 ช่อง EDC ตอนปิดร้าน พิมพ์ 0 เพื่อล้างค่าได้แล้ว (เดิมพิมพ์ 0 ระบบจะดึงยอดเก่ากลับมาแทน)',
@@ -12507,6 +12510,8 @@ window.saveSalesTargets=async function(){
   const t={};BRANCHES.forEach((_,bi)=>{t[String(bi)]=Math.max(0,parseFloat(document.getElementById('starget-'+bi)?.value)||0);});
   cashCfg.salesTargets=t;
   localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
+  // v4.57.1: sync ไปเป้าการ์ดหน้าแรกด้วย — บันทึกจากจอไหน เลขก็ตรงกันทุกจอ
+  if(appearanceCfg){const _arr=[0,1,2].map(i=>+t[String(i)]||0);appearanceCfg.branchTargets=_arr;appearanceCfg.monthlyTarget=_arr.reduce((a,v)=>a+v,0);setDoc(doc(db,'config','appearance'),appearanceCfg).catch(()=>{});}
   try{await setDoc(doc(db,'config','cashSettings'),cashCfg);showToast('บันทึกเป้ายอดขายแล้ว 🎯');}
   catch(e){showToast('บันทึกขึ้น cloud ไม่ได้ (เก็บในเครื่องแล้ว)','err');}
 };
@@ -13289,6 +13294,11 @@ function renderHome(){
     const arr=[0,1,2].map(i=>parseFloat(document.getElementById('tg-'+i)?.value)||0);
     const total=arr.reduce((a,v)=>a+v,0);
     if(appearanceCfg){appearanceCfg.branchTargets=arr;appearanceCfg.monthlyTarget=total;}
+    // v4.57.1: เป้ามี 2 จอ (การ์ดหน้าแรก + บรีฟแอดมิน) — บันทึกครั้งเดียวให้ตรงกันทั้งคู่ (เดิมต่างคนต่างเก็บ เลขเลยไม่ตรงกัน)
+    const _t={};arr.forEach((v,i)=>{_t[String(i)]=v;});
+    cashCfg.salesTargets=_t;
+    localStorage.setItem('nm_cashCfg',JSON.stringify(cashCfg));
+    setDoc(doc(db,'config','cashSettings'),cashCfg).catch(()=>{});
     try{await setDoc(doc(db,'config','appearance'),appearanceCfg);closeMD();homeTargetCard();showToast(total?'บันทึกเป้าแล้ว':'ปิดเป้าแล้ว');logActivity('sales_target','ตั้งเป้ารายสาขา รวม ฿'+total.toLocaleString());}catch(e){showToast('บันทึกไม่สำเร็จ','err');}
   };
   if(_homeChartData&&window.Chart){drawHomeChart();}
