@@ -655,8 +655,13 @@ import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/fi
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, addDoc, updateDoc, deleteDoc, collection, query, where, getDocs, orderBy, limit, increment, onSnapshot, onSnapshotsInSync } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 /* ═════ เวอร์ชัน POS (แยกจากแอปหลัก — คนละโปรแกรม) ═════ */
-const POS_VERSION='2.5.0';
+const POS_VERSION='2.5.1';
 const POS_CHANGELOG=[
+  {v:'2.5.1',date:'2026-07-22',changes:[
+    '📄 มีไฟล์ต้นแบบ Excel สำหรับนำเข้าสินค้าแล้ว — กดดาวน์โหลดได้ในหน้า "นำเข้าจากไฟล์ (CSV)" หัวคอลัมน์ตรงกับระบบ กรอกเสร็จ Save เป็น CSV UTF-8 แล้วนำเข้าได้เลย',
+    '💊 ในไฟล์ต้นแบบมีรายชื่อตัวยา (ชื่อสามัญ) ที่พบบ่อยในร้านยา ~100 ตัว ให้กดเลือกจาก dropdown ในช่อง "ชื่อสามัญ" — ช่วยให้ระบบเตือนลูกค้าแพ้ยาแม่นขึ้น',
+    '🎯 ตัวนำเข้าจับคู่คอลัมน์อัตโนมัติครบทุกช่องแล้ว (เพิ่ม จุดสั่งซื้อ + คงเหลือรายสาขา — เดิมต้องเลือกเอง)',
+  ]},
   {v:'2.5.0',date:'2026-07-22',changes:[
     '🧠 แนะนำจำนวนสั่งซื้อ — หน้า "สินค้าใกล้หมด" มีคอลัมน์ "แนะนำสั่ง" คิดจากยอดขายจริง 30 วันหลังสุด (ให้พอขาย 30 วัน) แก้เลขเองได้ และเลขนี้จะถูกเติมลงช่อง "จำนวนที่สั่ง" ในใบสั่งซื้อที่พิมพ์ให้เลย',
     '⏰ เตือนยาใกล้หมดอายุ — หน้าแรกมีการ์ดแสดงล็อตที่จะหมดอายุใน 90 วันของสาขานั้น (แดง = ใน 30 วัน/หมดแล้ว) พร้อมมูลค่าทุนที่เสี่ยง กดไปดูสินค้าได้ทันที',
@@ -1182,8 +1187,12 @@ function openImport(){
   impRows=null;impHeads=null;
   openMD(`
     <h3>📥 นำเข้าสินค้าจากไฟล์ CSV</h3>
+    <div style="background:var(--green-ll,#EAF7F1);border:1px solid var(--border);border-radius:11px;padding:10px 13px;margin-bottom:10px;font-size:12.5px;line-height:1.7">
+      🆕 <b>ยังไม่มีไฟล์?</b> ดาวน์โหลดต้นแบบ Excel ไปกรอกได้เลย — หัวคอลัมน์ตรงกับระบบ จับคู่ให้อัตโนมัติ พร้อมรายชื่อตัวยา ~100 ตัวให้เลือกในช่อง "ชื่อสามัญ"
+      <div style="margin-top:7px"><a class="sbtn" href="./pos-import-template.xlsx" download style="text-decoration:none;display:inline-block">⬇️ ดาวน์โหลดไฟล์ต้นแบบ (Excel)</a></div>
+    </div>
     <div style="font-size:12.5px;color:var(--text2);line-height:1.8">
-      1. เปิดไฟล์ Excel ที่ export จากโปรแกรมเดิม → Save As เป็น <b>CSV UTF-8</b><br>
+      1. กรอกในไฟล์ต้นแบบ (หรือ export จากโปรแกรมเดิม) → Save As เป็น <b>CSV UTF-8</b><br>
       2. เลือกไฟล์ด้านล่าง → จับคู่คอลัมน์ → กดนำเข้า (สินค้าซ้ำชื่อ/บาร์โค้ดเดิมจะถูกข้าม ไม่เขียนทับ)
     </div>
     <div class="ff" style="margin-top:10px"><input type="file" id="im-file" accept=".csv,text/csv"></div>
@@ -1221,7 +1230,14 @@ function readCSV(){
     impHeads=rows[0];impRows=rows.slice(1);
     const guess=h=>{h=h.toLowerCase();
       if(/barcode|บาร์โค้ด|รหัสแท่ง/.test(h))return 'barcode';
-      if(/ชื่อสามัญ|generic/.test(h))return 'generic';
+      if(/ชื่อสามัญ|generic|ตัวยา/.test(h))return 'generic';
+      /* 2.5.1: เดาคอลัมน์ไฟล์ต้นแบบครบทุกช่อง — จุดสั่งซื้อ + คงเหลือรายสาขา */
+      if(/จุดสั่งซื้อ|reorder/.test(h))return 'reorder';
+      if(/คงเหลือ|สต็อก|stock|qty/.test(h)){
+        if(/ทรัพย์/.test(h))return 'qty0';
+        if(/บางปู/.test(h))return 'qty1';
+        if(/อินดี้/.test(h))return 'qty2';
+      }
       if(/ชื่อ|name/.test(h))return 'name';
       if(/ความแรง|strength/.test(h))return 'strength';
       if(/หน่วย|unit/.test(h))return 'unit';
