@@ -1879,8 +1879,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.60.0';
+const APP_VERSION='4.60.1';
 const CHANGELOG=[
+  {v:'4.60.1',date:'2026-07-22',changes:[
+    '🐢 แจ้งเตือน "สายบ่อยเดือนนี้" กด "ดู" แล้วเห็นรายละเอียดทันที — ใครสาย วันไหนบ้าง กี่นาที รวมกี่นาที (เดิมกดแล้วพาไปหน้าประวัติลงเวลาเฉยๆ ต้องไปไล่หาเอง)',
+  ]},
   {v:'4.60.0',date:'2026-07-22',changes:[
     '🔄 ปิดร้านผิด แก้ไขนับใหม่เองได้ 1 ครั้ง/วัน — ไม่ต้องรอแอดมิน! หลังปิดร้านจะมีปุ่ม "แก้ไข" ในหน้าเงิน กดแล้วระบบยกเลิกรอบก่อนให้อัตโนมัติ (ย้อนเงินเข้าเซฟ+คืนลิ้นชัก) แล้วพานับใหม่ตั้งแต่ต้น · แก้ได้ครั้งเดียว เกินนั้นล็อก ต้องแจ้งแอดมิน (กันแก้ไปมาจนยอดสับสน · แอดมินยังแก้ได้เสมอ)',
   ]},
@@ -8588,6 +8591,32 @@ window.cashDoRedoClose=async function(branch){
   }catch(e){showToast('แก้ไขไม่สำเร็จ: '+(e?.message||e),'err');console.error(e);}
   finally{_cashBusy=false;}
 };
+// 🆕 v4.60.1: กด "ดู" ที่เตือนสายบ่อย → เปิดรายละเอียดทันที: ใครสาย วันไหน กี่นาที (เดิมพาไปหน้าประวัติลงเวลาเฉยๆ ต้องไปไล่หาเอง)
+window.lateShowDetail=async function(){
+  loading(true);
+  try{
+    const today=todayStr();const _ms=today.slice(0,8)+'01';
+    const _cs=await getDocs(query(collection(db,'checkins'),where('date','>=',_ms),where('date','<=',today)));
+    const by={};
+    _cs.docs.forEach(d=>{const x=d.data();const L=ciLateInfo(x);if(L.late&&!isTestCheckin(x)){(by[x.uid]=by[x.uid]||[]).push({date:x.date,min:L.min||0});}});
+    loading(false);
+    const ppl=Object.entries(by).sort((a,b)=>b[1].length-a[1].length);
+    if(!ppl.length){showToast('เดือนนี้ยังไม่มีใครมาสายเลย 🎉');return;}
+    const thDate=ds=>new Date(ds+'T12:00:00').toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short'});
+    const body=ppl.map(([u,arr])=>{
+      arr.sort((a,b)=>a.date<b.date?-1:1);
+      const tot=arr.reduce((s,r)=>s+(+r.min||0),0);
+      return `<div style="background:var(--bg);border-radius:13px;padding:11px 13px;margin-bottom:9px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px;flex-wrap:wrap"><b style="font-size:13.5px">${memberName(u)||'—'}</b><span style="background:var(--amber-l);color:var(--amber-t);border-radius:99px;padding:2px 10px;font-size:11.5px;font-weight:700;white-space:nowrap">สาย ${arr.length} ครั้ง · รวม ${tot} นาที</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:5px">${arr.map(r=>`<span style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px 8px;font-size:11px">${thDate(r.date)} · ${r.min} นาที</span>`).join('')}</div>
+      </div>`;
+    }).join('');
+    openModal(`<div class="modal-title">🐢 มาสายเดือนนี้</div>
+      <div style="font-size:11.5px;color:var(--text3);margin-bottom:10px">นับตั้งแต่ต้นเดือนถึงวันนี้ · เกณฑ์แจ้งเตือนคือสายตั้งแต่ ${alertSettings.lateThreshold||3} ครั้งขึ้นไป (ตั้งได้ในตั้งค่า → เกณฑ์แจ้งเตือน)</div>
+      <div style="max-height:56vh;overflow:auto">${body}</div>
+      <div class="modal-footer"><button class="btn" onclick="closeMD()">ปิด</button><button class="btn btn-primary" onclick="closeMD();goto('checkin-history')">เปิดประวัติลงเวลา →</button></div>`);
+  }catch(e){loading(false);showToast('โหลดข้อมูลไม่สำเร็จ: '+(e?.message||e),'err');}
+};
 window.cashResetAllPrompt=async function(){
   if(!isAdmin){showToast('เฉพาะผู้ดูแล','err');return;}
   // 🛡️ ต้องพิมพ์คำยืนยันเอง — กันกดพลาด (คำสั่งนี้ย้อนกลับไม่ได้)
@@ -14441,7 +14470,7 @@ async function checkNotifications(){
         const _fr=Object.entries(_lb).filter(([u,n])=>n>=(alertSettings.lateThreshold||3));
         if(_fr.length){
           const nm=_fr.map(([u,n])=>`${memberName(u)||'—'} (${n} ครั้ง)`).slice(0,3).join(', ');
-          alerts.push({color:'amber',icon:'🐢',text:`สายบ่อยเดือนนี้: ${nm}`,action:`<button class="btn btn-sm" onclick="goto('checkin-history')" style="margin-left:auto">ดู</button>`});
+          alerts.push({color:'amber',icon:'🐢',text:`สายบ่อยเดือนนี้: ${nm}`,action:`<button class="btn btn-sm" onclick="lateShowDetail()" style="margin-left:auto">ดู</button>`}); // v4.60.1: เปิดรายละเอียดเลย (เดิมพาไปหน้าประวัติเฉยๆ หาไม่เจอ)
         }
       }catch(e){}
       // (5) 🧠 ยอดขาย/บิลเฉลี่ยเมื่อวานผิดปกติ — เทียบวันเดียวกันของสัปดาห์ ย้อนหลัง 6 สัปดาห์
