@@ -1879,8 +1879,11 @@ function applyDarkMode(){
 }
 applyDarkMode();
 
-const APP_VERSION='4.60.1';
+const APP_VERSION='4.60.2';
 const CHANGELOG=[
+  {v:'4.60.2',date:'2026-07-22',changes:[
+    '🧰 แก้ตัวเลข "ลิ้นชัก" หลังปิดร้านให้ตรงกับเงินที่นับได้จริง — เดิมวันไหนปิดร้านแล้วเงินขาด/เกิน จอจะโชว์ลิ้นชักเพี้ยนไปเท่าผลต่าง (เช่น ขาด ฿109 → โชว์ ฿5,109 ทั้งที่นับได้ ฿5,000) เพราะระบบยังคิดตามสูตร "ควรมี" อยู่ (ขอบคุณเจ้าของร้านที่ตาไวจับได้ครับ 🙏)',
+  ]},
   {v:'4.60.1',date:'2026-07-22',changes:[
     '🐢 แจ้งเตือน "สายบ่อยเดือนนี้" กด "ดู" แล้วเห็นรายละเอียดทันที — ใครสาย วันไหนบ้าง กี่นาที รวมกี่นาที (เดิมกดแล้วพาไปหน้าประวัติลงเวลาเฉยๆ ต้องไปไล่หาเอง)',
   ]},
@@ -6817,7 +6820,9 @@ function cashExpectedClose(b){const st=cashGet(b);const open=st.openDate===today
 function cashTodayClose(b){return cashEvents.find(ev=>+ev.branch===+b&&ev.date===todayStr()&&ev.type==='close');}
 // เงินจริงที่ควรอยู่ในลิ้นชักตอนนี้ — ยอดขายสดไม่ได้บวกเข้า cashState.drawer เรียลไทม์
 // วันนี้เปิดร้านแล้วให้คิดตามสูตร (ต้นลิ้นชัก+เบิกสำรอง+ขายสด−เก็บเซฟ−เบิกซื้อของ) แทนยอดดิบในระบบ
-function cashDrawerNow(b){const st=cashGet(b);return st.openDate===todayStr()?Math.round(cashExpectedClose(b)*100)/100:st.drawer;}
+// v4.60.2: หลังปิดร้านแล้ว ใช้ยอดที่ "นับได้จริง" (st.drawer = นับได้−เข้าเซฟ) ไม่ใช่สูตรควรมี
+// (เดิมหลังปิดร้านยังคิดตามสูตร → วันไหนเงินขาด/เกิน จอจะโชว์ลิ้นชักเพี้ยนเท่าผลต่าง เช่น ขาด 109 → โชว์ 5,109 ทั้งที่นับได้ 5,000)
+function cashDrawerNow(b){const st=cashGet(b);if(st.openDate!==todayStr())return st.drawer;return cashTodayClose(b)?st.drawer:Math.round(cashExpectedClose(b)*100)/100;}
 // คำนวณ "ควรมี/ผลต่าง" ของรายการปิดร้าน — ถ้าเป็นของวันนี้ คิดสดตามยอดขายล่าสุด (เผื่อแก้ยอดขายทีหลัง),
 // ถ้าเป็นวันก่อน ใช้ค่าที่บันทึกไว้ (ยอดขายอ้างอิงเฉพาะวันนี้)
 function cashCloseCalc(branch,ev){
